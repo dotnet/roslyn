@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
-        private readonly ILspLogger? _logger;
+        private readonly ILspLoggerProvider? _loggerProvider;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(
-            ILspLogger? logger,
+            ILspLoggerProvider? loggerProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             string serverName,
             string? clientName)
         {
-            _logger = logger;
+            _loggerProvider = loggerProvider;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
             _clientName = clientName;
@@ -180,17 +180,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
-            TraceSource? traceSource = null;
             try
             {
                 var logIdName = $"{_serverName}.{_clientName ?? "Default"}";
-                traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
+                using var logger = _loggerProvider == null ? null : await _loggerProvider.CreateLoggerAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
                 var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
-                    await ProcessSingleWorkItemAsync(traceSource, work, requestId++).ConfigureAwait(false);
+                    await ProcessSingleWorkItemAsync(logger, work, requestId++).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
@@ -202,19 +201,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
-            finally
-            {
-                traceSource?.Flush();
-                traceSource?.Close();
-            }
         }
 
-        private async Task ProcessSingleWorkItemAsync(TraceSource? traceSource, QueueItem work, int requestId)
+        private async Task ProcessSingleWorkItemAsync(ILspLogger logger, QueueItem work, int requestId)
         {
             // Create a linked cancellation token to cancel any requests in progress when this shuts down
             var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-            var context = CreateRequestContext(traceSource, work, requestId);
+            var context = CreateRequestContext(logger, work, requestId);
 
             if (work.MutatesSolutionState)
             {
@@ -260,7 +254,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(TraceSource? traceSource, QueueItem queueItem, int requestId)
+        private RequestContext CreateRequestContext(ILspLogger logger, QueueItem queueItem, int requestId)
         {
             var logPrefix = $"{requestId++:00000000}.{queueItem.MethodName}: ";
 
@@ -277,7 +271,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _lspSolutionCache,
                 trackerToUse);
 
-            void TraceInformation(string m) => traceSource?.TraceInformation(logPrefix + m);
+            void TraceInformation(string m) => logger.TraceInformation(logPrefix + m);
         }
     }
 }

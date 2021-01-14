@@ -15,12 +15,12 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal partial class InProcLanguageServer : ILspLogger
+    internal partial class InProcLanguageServer : ILspLoggerProvider
     {
-        public async Task<TraceSource?> CreateTraceSourceAsync(string logName, CancellationToken cancellationToken)
+        public async Task<ILspLogger> CreateLoggerAsync(string logName, CancellationToken cancellationToken)
         {
             if (_asyncServiceProvider == null)
-                return null;
+                return NoOpLspLogger.Instance;
 
             var cleaned = string.Concat(logName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
             var logId = new LogId(cleaned, new ServiceMoniker("Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient"));
@@ -28,12 +28,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var serviceContainer = await _asyncServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();
 
-            using var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
             var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Verbose;
-            Trace.AutoFlush = true;
-            return traceSource;
+
+            return new LogHubLspLogger(configuration, traceSource);
+        }
+
+        private class NoOpLspLogger : ILspLogger
+        {
+            public static readonly ILspLogger Instance = new NoOpLspLogger();
+
+            private NoOpLspLogger()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public void TraceInformation(string message)
+            {
+            }
+        }
+
+        private class LogHubLspLogger : ILspLogger
+        {
+            private readonly TraceConfiguration _configuration;
+            private readonly TraceSource _traceSource;
+
+            public LogHubLspLogger(TraceConfiguration configuration, TraceSource traceSource)
+            {
+                _configuration = configuration;
+                _traceSource = traceSource;
+            }
+
+            public void Dispose()
+            {
+                _traceSource.Flush();
+                _traceSource.Close();
+                _configuration.Dispose();
+            }
+
+            public void TraceInformation(string message)
+                => _traceSource.TraceInformation(message);
         }
     }
 }
