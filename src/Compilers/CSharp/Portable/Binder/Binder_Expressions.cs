@@ -4411,6 +4411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundInitializer = BindInitializerExpression(syntax: initializerOpt,
                                                                  type: type,
                                                                  typeSyntax: typeSyntax,
+                                                                 isForNewInstance: true,
                                                                  diagnostics: diagnostics);
                 children.Add(boundInitializer);
             }
@@ -4422,12 +4423,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax syntax,
             TypeSymbol type,
             SyntaxNode typeSyntax,
+            bool isForNewInstance,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert((object)type != null);
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, type) { WasCompilerGenerated = true };
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, isForNewInstance, type) { WasCompilerGenerated = true };
 
             switch (syntax.Kind())
             {
@@ -4462,7 +4464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
                     Debug.Assert(syntax.Parent.Parent.Kind() != SyntaxKind.WithInitializerExpression);
-                    return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
+                    return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, isForNewInstance: false, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);
             }
@@ -5343,6 +5345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindInitializerExpression(syntax: initializerSyntaxOpt,
                                                      type: initializerTypeOpt ?? type,
                                                      typeSyntax: typeNode,
+                                                     isForNewInstance: true,
                                                      diagnostics: diagnostics);
                 }
                 return null;
@@ -5483,10 +5486,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundInitializerOpt = initializerOpt == null ? null :
-                                                BindInitializerExpression(syntax: initializerOpt,
-                                                 type: interfaceType,
-                                                 typeSyntax: typeNode,
-                                                 diagnostics: diagnostics);
+                BindInitializerExpression(syntax: initializerOpt,
+                    type: interfaceType,
+                    typeSyntax: typeNode,
+                    isForNewInstance: true,
+                    diagnostics: diagnostics);
 
             var creation = new BoundNoPiaObjectCreationExpression(node, guidString, boundInitializerOpt, interfaceType);
 
@@ -5528,6 +5532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: initializerOpt,
                         type: typeParameter,
                         typeSyntax: typeSyntax,
+                        isForNewInstance: true,
                         diagnostics: diagnostics);
                 return new BoundNewT(node, boundInitializerOpt, typeParameter);
             }

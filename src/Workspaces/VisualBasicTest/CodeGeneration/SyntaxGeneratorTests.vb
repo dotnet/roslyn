@@ -2272,6 +2272,17 @@ End Class ' end")
 
 End Interface")
         End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            Dim a As SyntaxNode = Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind"))
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

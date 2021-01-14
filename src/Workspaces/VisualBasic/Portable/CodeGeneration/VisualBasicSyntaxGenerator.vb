@@ -1470,10 +1470,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsEnumMember(node As SyntaxNode) As StatementSyntax
-            Dim id = TryCast(node, IdentifierNameSyntax)
-            If id IsNot Nothing Then
-                Return DirectCast(EnumMember(id.Identifier.ValueText), EnumMemberDeclarationSyntax)
-            End If
+            Select Case node.Kind
+                Case SyntaxKind.IdentifierName
+                    Dim id = DirectCast(node, IdentifierNameSyntax)
+                    Return DirectCast(EnumMember(id.Identifier.ValueText), EnumMemberDeclarationSyntax)
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(node, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Dim vd = fd.Declarators(0)
+                        If vd.Initializer IsNot Nothing AndAlso vd.Names.Count = 1 Then
+                            Return DirectCast(EnumMember(vd.Names(0).Identifier.ValueText, vd.Initializer.Value), EnumMemberDeclarationSyntax)
+                        End If
+                    End If
+            End Select
 
             Return TryCast(node, EnumMemberDeclarationSyntax)
         End Function
