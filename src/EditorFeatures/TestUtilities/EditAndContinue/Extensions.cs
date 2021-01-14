@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -15,13 +14,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal static class Extensions
     {
         public static void Verify(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            => diagnostics.ToDescription(newSource, expectedDiagnostics.Any(d => d.FirstLine != null)).Verify(expectedDiagnostics);
+
+        public static void Verify(this IEnumerable<RudeEditDiagnosticDescription> diagnostics, params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            expectedDiagnostics = expectedDiagnostics ?? Array.Empty<RudeEditDiagnosticDescription>();
-            var actualDiagnostics = diagnostics.ToDescription(newSource, expectedDiagnostics.Any(d => d.FirstLine != null)).ToArray();
-            AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, itemSeparator: ",\r\n");
+            expectedDiagnostics ??= Array.Empty<RudeEditDiagnosticDescription>();
+            AssertEx.SetEqual(expectedDiagnostics, diagnostics, itemSeparator: ",\r\n");
         }
 
-        private static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, bool includeFirstLines)
+        public static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, bool includeFirstLines)
         {
             return diagnostics.Select(d => new RudeEditDiagnosticDescription(
                 d.Kind,

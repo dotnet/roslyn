@@ -2947,7 +2947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             #endregion
         }
 
-        internal override void ReportSyntacticRudeEdits(
+        internal override void ReportTopLevelSyntacticRudeEdits(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             Edit<SyntaxNode> edit,

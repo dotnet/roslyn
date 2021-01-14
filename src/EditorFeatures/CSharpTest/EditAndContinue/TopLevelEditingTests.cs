@@ -4723,13 +4723,10 @@ class B
             var srcA2 = "partial class C { }";
             var srcB2 = "partial class C { static C() { } }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
                 targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single())
@@ -4746,18 +4743,13 @@ class B
             var srcA2 = "partial class C { }";
             var srcB2 = "partial class C { C() { } }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single())
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -4769,18 +4761,13 @@ class B
             var srcA2 = "partial class C { }";
             var srcB2 = "partial class C { public C() { } }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single())
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -4792,16 +4779,13 @@ class B
             var srcA2 = "partial class C { }";
             var srcB2 = "partial class C { public C() { } }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits: null,
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.constructor) },
-                expectedDeclarationError: null);
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.Delete, "partial class C", FeaturesResources.constructor)
+                });
         }
 
         [Fact]
@@ -4813,18 +4797,13 @@ class B
             var srcA2 = "partial class C { static C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -4836,18 +4815,13 @@ class B
             var srcA2 = "partial class C { public C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -4859,18 +4833,13 @@ class B
             var srcA2 = "partial class C { private C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -4882,16 +4851,29 @@ class B
             var srcA2 = "partial class C { internal C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                },
-                expectedDeclarationError: null);
+                });
+        }
+
+        [Fact]
+        public void InstanceCtor_Partial_InsertInternal_WithBody()
+        {
+            var srcA1 = "partial class C { }";
+            var srcB1 = "partial class C { internal C() { } }";
+
+            var srcA2 = "partial class C { internal C() { Console.WriteLine(1); } }";
+            var srcB2 = "partial class C { }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                expectedSemanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+                });
         }
 
         [Fact]
@@ -4903,16 +4885,13 @@ class B
             var srcA2 = "partial class C { public C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits: null,
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "public C()") },
-                expectedDeclarationError: null);
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingConstructorVisibility, "public C()")
+                });
         }
 
         [Fact]
@@ -4924,16 +4903,13 @@ class B
             var srcA2 = "partial class C { internal C() { } }";
             var srcB2 = "partial class C { }";
 
-            var edits = GetTopEdits(srcA1, srcA2);
-
-            edits.VerifySemantics(
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
                 activeStatements: ActiveStatementsDescription.Empty,
-                targetFrameworks: null,
-                additionalOldSources: new[] { srcB1 },
-                additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits: null,
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()") },
-                expectedDeclarationError: null);
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()")
+                });
         }
 
         [Fact]

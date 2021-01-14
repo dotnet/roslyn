@@ -8380,13 +8380,9 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                edits,
+                new[] { edits },
                 ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null,
-                new[]
+                expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
                 });
@@ -8419,13 +8415,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null);
+            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(new[] { edits });
         }
 
         #endregion
@@ -9172,7 +9162,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
+            edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.MinimalAsync },
                 expectedDiagnostics: new[]
                 {
@@ -9208,7 +9198,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(targetFrameworks: new[] { TargetFramework.MinimalAsync });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.MinimalAsync });
         }
 
         [Fact]

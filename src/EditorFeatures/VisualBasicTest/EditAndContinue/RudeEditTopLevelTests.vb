@@ -2763,10 +2763,9 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {srcB1}, {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
         End Sub
 
         <Fact>
@@ -2777,10 +2776,9 @@ End Class
             Dim srcA2 = "Partial Module C : End Module"
             Dim srcB2 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, {srcB1}, {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
         End Sub
 
         <Fact>
@@ -2791,12 +2789,9 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
         End Sub
 
         <Fact>
@@ -2807,12 +2802,9 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Public Sub New() : End Sub : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
         End Sub
 
         <Fact>
@@ -2823,13 +2815,9 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Public Sub New() : End Sub : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  Nothing,
-                                  Diagnostic(RudeEditKind.Delete, "Partial Class C", FeaturesResources.constructor))
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedDiagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", FeaturesResources.constructor)})
         End Sub
 
         <Fact>
@@ -2840,12 +2828,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2856,12 +2841,9 @@ End Class
             Dim srcA2 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
             Dim srcB2 = "Partial Module C : End Module"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2872,12 +2854,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2888,12 +2867,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2904,12 +2880,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2920,13 +2893,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  Nothing,
-                                  Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Sub New()"))
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Sub New()")})
         End Sub
 
         <Fact>
@@ -2937,13 +2906,9 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            Dim edits = GetTopEdits(srcA1, srcA2)
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {srcB1},
-                                  {srcB2},
-                                  Nothing,
-                                  Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedDiagnostics:=Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
         End Sub
 
         <Fact>

@@ -2827,7 +2827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
         End Structure
 
-        Friend Overrides Sub ReportSyntacticRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
                                                       match As Match(Of SyntaxNode),
                                                       edit As Edit(Of SyntaxNode),
                                                       editMap As Dictionary(Of SyntaxNode, EditKind))

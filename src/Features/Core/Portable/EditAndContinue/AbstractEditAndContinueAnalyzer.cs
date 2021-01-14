@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
-        internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
+        internal abstract void ReportTopLevelSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
         internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var syntacticEdits = topMatch.GetTreeEdits();
                 var editMap = BuildEditMap(syntacticEdits);
 
-                AnalyzeSyntax(
+                AnalyzeMemberBodiesSyntax(
                     syntacticEdits,
                     editMap,
                     oldText,
@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newExceptionRegions,
                     updatedMethods,
                     diagnostics);
+
+                ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
                 if (diagnostics.Count > 0)
                 {
@@ -562,14 +564,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         newModel,
                         semanticEdits,
                         diagnostics,
-                        out var firstDeclaratingErrorOpt,
+                        out var firstDeclaratingError,
                         cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (firstDeclaratingErrorOpt != null)
+                    if (firstDeclaratingError != null)
                     {
-                        var location = firstDeclaratingErrorOpt.Location;
+                        var location = firstDeclaratingError.Location;
                         DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree!.FilePath : location.MetadataModule!.Name);
 
                         return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray<RudeEditDiagnostic>.Empty, hasSemanticErrors: true);
@@ -604,6 +606,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        private void ReportTopLevelSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
+        {
+            foreach (var edit in syntacticEdits.Edits)
+            {
+                ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits.Match, edit, editMap);
+            }
+        }
+
         internal static Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
             var map = new Dictionary<SyntaxNode, EditKind>(editScript.Edits.Length);
@@ -630,7 +640,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Syntax Analysis 
 
-        private void AnalyzeSyntax(
+        private void AnalyzeMemberBodiesSyntax(
             EditScript<SyntaxNode> script,
             Dictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
@@ -650,18 +660,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             for (var i = 0; i < script.Edits.Length; i++)
             {
-                var edit = script.Edits[i];
-
-                AnalyzeUpdatedActiveMethodBodies(script, i, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
-                ReportSyntacticRudeEdits(diagnostics, script.Match, edit, editMap);
+                AnalyzeChangedMemberBody(script, i, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
             }
 
-            UpdateUneditedSpans(diagnostics, script.Match, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions);
+            AnalyzeUnchangedMemberBodies(diagnostics, script.Match, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions);
 
             Debug.Assert(newActiveStatements.All(a => a != null));
         }
 
-        private void UpdateUneditedSpans(
+        private void AnalyzeUnchangedMemberBodies(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> topMatch,
             SourceText oldText,
@@ -908,7 +915,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void AnalyzeUpdatedActiveMethodBodies(
+        private void AnalyzeChangedMemberBody(
             EditScript<SyntaxNode> topEditScript,
             int editOrdinal,
             Dictionary<SyntaxNode, EditKind> editMap,
@@ -2874,11 +2881,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dictionary<INamedTypeSymbol, ConstructorEdit> constructorEdits;
             if (newSymbol.IsStatic)
             {
-                constructorEdits = staticConstructorEdits ??= new Dictionary<INamedTypeSymbol, ConstructorEdit>();
+                constructorEdits = staticConstructorEdits ??= new();
             }
             else
             {
-                constructorEdits = instanceConstructorEdits ??= new Dictionary<INamedTypeSymbol, ConstructorEdit>();
+                constructorEdits = instanceConstructorEdits ??= new();
             }
 
             if (!constructorEdits.TryGetValue(newType, out var edit))
@@ -3883,7 +3890,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
                 => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
-            internal void AnalyzeSyntax(
+            internal void AnalyzeMemberBodiesSyntax(
                 EditScript<SyntaxNode> script,
                 Dictionary<SyntaxNode, EditKind> editMap,
                 SourceText oldText,
@@ -3895,8 +3902,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 [Out] List<UpdatedMemberInfo> updatedMethods,
                 [Out] List<RudeEditDiagnostic> diagnostics)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                _abstractEditAndContinueAnalyzer.AnalyzeMemberBodiesSyntax(script, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
             }
+
+            internal void ReportTopLevelSynctactiveRudeEdits(List<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
+                => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
             internal void AnalyzeUnchangedDocument(
                 ImmutableArray<ActiveStatement> oldActiveStatements,

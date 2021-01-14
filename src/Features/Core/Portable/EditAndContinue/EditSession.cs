@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
         /// Contains analyses of the latest observed document versions.
         /// </summary>
-        private readonly Dictionary<DocumentId, (Document Document, AsyncLazy<DocumentAnalysisResults> Results)> _analyses
-            = new Dictionary<DocumentId, (Document, AsyncLazy<DocumentAnalysisResults>)>();
+        private readonly Dictionary<DocumentId, (Document Document, AsyncLazy<DocumentAnalysisResults> Results)> _analyses = new();
         private readonly object _analysesGuard = new();
 
         /// <summary>
