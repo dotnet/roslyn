@@ -1834,6 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private readonly SyntaxNode? _newNode;
             private readonly EditKind _kind;
             private readonly TextSpan? _span;
+            private readonly bool _isTopLevelEdit;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
@@ -1842,7 +1843,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 SyntaxNode? newNode,
                 EditKind kind,
                 Match<SyntaxNode>? match = null,
-                TextSpan? span = null)
+                TextSpan? span = null,
+                bool isTopLevelEdit = true)
             {
                 RoslynDebug.Assert(oldNode != null || newNode != null);
 
@@ -1856,6 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _kind = kind;
                 _span = span;
                 _match = match;
+                _isTopLevelEdit = isTopLevelEdit;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode? spanNode = null, SyntaxNode? displayNode = null)
@@ -1915,6 +1918,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyMove()
             {
+                if (!_isTopLevelEdit)
+                {
+                    return;
+                }
+
                 // We could perhaps allow moving a type declaration to a different namespace syntax node
                 // as long as it represents semantically the same namespace as the one of the original type declaration.
                 ReportError(RudeEditKind.Move);
@@ -1922,6 +1930,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyReorder(SyntaxNode newNode)
             {
+                if (!_isTopLevelEdit)
+                {
+                    return;
+                }
+
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
@@ -1985,113 +1998,125 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyInsert(SyntaxNode node)
             {
+                // Check edits that are rude as top level or statement edits
                 switch (node.Kind())
                 {
-                    case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Insert);
-                        return;
-
-                    case SyntaxKind.ExternAliasDirective:
-                    case SyntaxKind.UsingDirective:
-                    case SyntaxKind.NamespaceDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                        ReportError(RudeEditKind.Insert);
-                        return;
-
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                        var typeDeclaration = (TypeDeclarationSyntax)node;
-                        ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
-                        return;
-
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                        return;
-
-                    case SyntaxKind.PropertyDeclaration:
-                        var propertyDeclaration = (PropertyDeclarationSyntax)node;
-                        ClassifyModifiedMemberInsert(propertyDeclaration, propertyDeclaration.Modifiers);
-                        return;
-
-                    case SyntaxKind.EventDeclaration:
-                        var eventDeclaration = (EventDeclarationSyntax)node;
-                        ClassifyModifiedMemberInsert(eventDeclaration, eventDeclaration.Modifiers);
-                        return;
-
-                    case SyntaxKind.IndexerDeclaration:
-                        var indexerDeclaration = (IndexerDeclarationSyntax)node;
-                        ClassifyModifiedMemberInsert(indexerDeclaration, indexerDeclaration.Modifiers);
-                        return;
-
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                        ReportError(RudeEditKind.InsertOperator);
-                        return;
-
-                    case SyntaxKind.MethodDeclaration:
-                        ClassifyMethodInsert((MethodDeclarationSyntax)node);
-                        return;
-
-                    case SyntaxKind.ConstructorDeclaration:
-                        // Allow adding parameterless constructor.
-                        // Semantic analysis will determine if it's an actual addition or 
-                        // just an update of an existing implicit constructor.
-                        var method = (BaseMethodDeclarationSyntax)node;
-                        if (SyntaxUtilities.IsParameterlessConstructor(method))
-                        {
-                            // Disallow adding an extern constructor
-                            if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
-                            {
-                                ReportError(RudeEditKind.InsertExtern);
-                            }
-
-                            return;
-                        }
-
-                        ClassifyModifiedMemberInsert(method, method.Modifiers);
-                        return;
-
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        ClassifyAccessorInsert((AccessorDeclarationSyntax)node);
-                        return;
-
-                    case SyntaxKind.AccessorList:
-                        // an error will be reported for each accessor
-                        return;
-
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                        // allowed: private fields in classes
-                        ClassifyFieldInsert((BaseFieldDeclarationSyntax)node);
-                        return;
-
-                    case SyntaxKind.VariableDeclarator:
-                        // allowed: private fields in classes
-                        ClassifyFieldInsert((VariableDeclaratorSyntax)node);
-                        return;
-
-                    case SyntaxKind.VariableDeclaration:
-                        // allowed: private fields in classes
-                        ClassifyFieldInsert((VariableDeclarationSyntax)node);
-                        return;
-
-                    case SyntaxKind.EnumMemberDeclaration:
+                    // These are rude when added to methods, or local functions
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
                         ReportError(RudeEditKind.Insert);
                         return;
+                }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                // Check edits that are rude specifically for top level edits
+                if (_isTopLevelEdit)
+                {
+                    switch (node.Kind())
+                    {
+                        case SyntaxKind.GlobalStatement:
+                            // TODO:
+                            ReportError(RudeEditKind.Insert);
+                            return;
+
+                        case SyntaxKind.ExternAliasDirective:
+                        case SyntaxKind.UsingDirective:
+                        case SyntaxKind.NamespaceDeclaration:
+                        case SyntaxKind.DestructorDeclaration:
+                            ReportError(RudeEditKind.Insert);
+                            return;
+
+                        case SyntaxKind.ClassDeclaration:
+                        case SyntaxKind.StructDeclaration:
+                            var typeDeclaration = (TypeDeclarationSyntax)node;
+                            ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
+                            return;
+
+                        case SyntaxKind.InterfaceDeclaration:
+                        case SyntaxKind.EnumDeclaration:
+                        case SyntaxKind.DelegateDeclaration:
+                            return;
+
+                        case SyntaxKind.PropertyDeclaration:
+                            var propertyDeclaration = (PropertyDeclarationSyntax)node;
+                            ClassifyModifiedMemberInsert(propertyDeclaration, propertyDeclaration.Modifiers);
+                            return;
+
+                        case SyntaxKind.EventDeclaration:
+                            var eventDeclaration = (EventDeclarationSyntax)node;
+                            ClassifyModifiedMemberInsert(eventDeclaration, eventDeclaration.Modifiers);
+                            return;
+
+                        case SyntaxKind.IndexerDeclaration:
+                            var indexerDeclaration = (IndexerDeclarationSyntax)node;
+                            ClassifyModifiedMemberInsert(indexerDeclaration, indexerDeclaration.Modifiers);
+                            return;
+
+                        case SyntaxKind.ConversionOperatorDeclaration:
+                        case SyntaxKind.OperatorDeclaration:
+                            ReportError(RudeEditKind.InsertOperator);
+                            return;
+
+                        case SyntaxKind.MethodDeclaration:
+                            ClassifyMethodInsert((MethodDeclarationSyntax)node);
+                            return;
+
+                        case SyntaxKind.ConstructorDeclaration:
+                            // Allow adding parameterless constructor.
+                            // Semantic analysis will determine if it's an actual addition or 
+                            // just an update of an existing implicit constructor.
+                            var method = (BaseMethodDeclarationSyntax)node;
+                            if (SyntaxUtilities.IsParameterlessConstructor(method))
+                            {
+                                // Disallow adding an extern constructor
+                                if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
+                                {
+                                    ReportError(RudeEditKind.InsertExtern);
+                                }
+
+                                return;
+                            }
+
+                            ClassifyModifiedMemberInsert(method, method.Modifiers);
+                            return;
+
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            ClassifyAccessorInsert((AccessorDeclarationSyntax)node);
+                            return;
+
+                        case SyntaxKind.AccessorList:
+                            // an error will be reported for each accessor
+                            return;
+
+                        case SyntaxKind.FieldDeclaration:
+                        case SyntaxKind.EventFieldDeclaration:
+                            // allowed: private fields in classes
+                            ClassifyFieldInsert((BaseFieldDeclarationSyntax)node);
+                            return;
+
+                        case SyntaxKind.VariableDeclarator:
+                            // allowed: private fields in classes
+                            ClassifyFieldInsert((VariableDeclaratorSyntax)node);
+                            return;
+
+                        case SyntaxKind.VariableDeclaration:
+                            // allowed: private fields in classes
+                            ClassifyFieldInsert((VariableDeclarationSyntax)node);
+                            return;
+
+                        case SyntaxKind.EnumMemberDeclaration:
+                        case SyntaxKind.Parameter:
+                            ReportError(RudeEditKind.Insert);
+                            return;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    }
                 }
             }
 
@@ -2195,74 +2220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyDelete(SyntaxNode oldNode)
             {
+                // Check edits that are rude as top level or statement edits
                 switch (oldNode.Kind())
                 {
-                    case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Delete);
-                        return;
-
-                    case SyntaxKind.ExternAliasDirective:
-                    case SyntaxKind.UsingDirective:
-                    case SyntaxKind.NamespaceDeclaration:
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.VariableDeclarator:
-                    case SyntaxKind.VariableDeclaration:
-                        // To allow removal of declarations we would need to update method bodies that 
-                        // were previously binding to them but now are binding to another symbol that was previously hidden.
-                        ReportError(RudeEditKind.Delete);
-                        return;
-
-                    case SyntaxKind.ConstructorDeclaration:
-                        // Allow deletion of a parameterless constructor.
-                        // Semantic analysis reports an error if the parameterless ctor isn't replaced by a default ctor.
-                        if (!SyntaxUtilities.IsParameterlessConstructor(oldNode))
-                        {
-                            ReportError(RudeEditKind.Delete);
-                        }
-
-                        return;
-
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        // An accessor can be removed. Accessors are not hiding other symbols.
-                        // If the new compilation still uses the removed accessor a semantic error will be reported.
-                        // For simplicity though we disallow deletion of accessors for now. 
-                        // The compiler would need to remember that the accessor has been deleted,
-                        // so that its addition back is interpreted as an update. 
-                        // Additional issues might involve changing accessibility of the accessor.
-                        ReportError(RudeEditKind.Delete);
-                        return;
-
-                    case SyntaxKind.AccessorList:
-                        Debug.Assert(
-                            oldNode.Parent.IsKind(SyntaxKind.PropertyDeclaration) ||
-                            oldNode.Parent.IsKind(SyntaxKind.IndexerDeclaration));
-
-                        var accessorList = (AccessorListSyntax)oldNode;
-                        var setter = accessorList.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration));
-                        if (setter != null)
-                        {
-                            ReportError(RudeEditKind.Delete, accessorList.Parent, setter);
-                        }
-
-                        return;
-
+                    // These are rude when added to methods, or local functions
                     case SyntaxKind.AttributeList:
                     case SyntaxKind.Attribute:
                         // To allow removal of attributes we would need to check if the removed attribute
@@ -2271,22 +2232,98 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ReportError(RudeEditKind.Delete);
                         return;
 
-                    case SyntaxKind.EnumMemberDeclaration:
-                        // We could allow removing enum member if it didn't affect the values of other enum members.
-                        // If the updated compilation binds without errors it means that the enum value wasn't used.
-                        ReportError(RudeEditKind.Delete);
-                        return;
-
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
-                    case SyntaxKind.ParameterList:
                     case SyntaxKind.TypeParameterConstraintClause:
                         ReportError(RudeEditKind.Delete);
                         return;
+                }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+                // Check edits that are rude specifically for top level edits
+                if (_isTopLevelEdit)
+                {
+                    switch (oldNode.Kind())
+                    {
+                        case SyntaxKind.GlobalStatement:
+                            // TODO:
+                            ReportError(RudeEditKind.Delete);
+                            return;
+
+                        case SyntaxKind.ExternAliasDirective:
+                        case SyntaxKind.UsingDirective:
+                        case SyntaxKind.NamespaceDeclaration:
+                        case SyntaxKind.ClassDeclaration:
+                        case SyntaxKind.StructDeclaration:
+                        case SyntaxKind.InterfaceDeclaration:
+                        case SyntaxKind.EnumDeclaration:
+                        case SyntaxKind.DelegateDeclaration:
+                        case SyntaxKind.MethodDeclaration:
+                        case SyntaxKind.ConversionOperatorDeclaration:
+                        case SyntaxKind.OperatorDeclaration:
+                        case SyntaxKind.DestructorDeclaration:
+                        case SyntaxKind.PropertyDeclaration:
+                        case SyntaxKind.IndexerDeclaration:
+                        case SyntaxKind.EventDeclaration:
+                        case SyntaxKind.FieldDeclaration:
+                        case SyntaxKind.EventFieldDeclaration:
+                        case SyntaxKind.VariableDeclarator:
+                        case SyntaxKind.VariableDeclaration:
+                            // To allow removal of declarations we would need to update method bodies that 
+                            // were previously binding to them but now are binding to another symbol that was previously hidden.
+                            ReportError(RudeEditKind.Delete);
+                            return;
+
+                        case SyntaxKind.ConstructorDeclaration:
+                            // Allow deletion of a parameterless constructor.
+                            // Semantic analysis reports an error if the parameterless ctor isn't replaced by a default ctor.
+                            if (!SyntaxUtilities.IsParameterlessConstructor(oldNode))
+                            {
+                                ReportError(RudeEditKind.Delete);
+                            }
+
+                            return;
+
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            // An accessor can be removed. Accessors are not hiding other symbols.
+                            // If the new compilation still uses the removed accessor a semantic error will be reported.
+                            // For simplicity though we disallow deletion of accessors for now. 
+                            // The compiler would need to remember that the accessor has been deleted,
+                            // so that its addition back is interpreted as an update. 
+                            // Additional issues might involve changing accessibility of the accessor.
+                            ReportError(RudeEditKind.Delete);
+                            return;
+
+                        case SyntaxKind.AccessorList:
+                            Debug.Assert(
+                                oldNode.Parent.IsKind(SyntaxKind.PropertyDeclaration) ||
+                                oldNode.Parent.IsKind(SyntaxKind.IndexerDeclaration));
+
+                            var accessorList = (AccessorListSyntax)oldNode;
+                            var setter = accessorList.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration));
+                            if (setter != null)
+                            {
+                                ReportError(RudeEditKind.Delete, accessorList.Parent, setter);
+                            }
+
+                            return;
+
+                        case SyntaxKind.EnumMemberDeclaration:
+                            // We could allow removing enum member if it didn't affect the values of other enum members.
+                            // If the updated compilation binds without errors it means that the enum value wasn't used.
+                            ReportError(RudeEditKind.Delete);
+                            return;
+
+                        case SyntaxKind.Parameter:
+                        case SyntaxKind.ParameterList:
+                            ReportError(RudeEditKind.Delete);
+                            return;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+                    }
                 }
             }
 
@@ -2296,109 +2333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(SyntaxNode oldNode, SyntaxNode newNode)
             {
-                switch (newNode.Kind())
+                // Check edits that are rude as top level or statement edits
+                switch (oldNode.Kind())
                 {
-                    case SyntaxKind.GlobalStatement:
-                        ReportError(RudeEditKind.Update);
-                        return;
-
-                    case SyntaxKind.ExternAliasDirective:
-                        ReportError(RudeEditKind.Update);
-                        return;
-
-                    case SyntaxKind.UsingDirective:
-                        // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
-                        // None of these changes are allowed anyways, so let's keep it simple.
-                        ReportError(RudeEditKind.Update);
-                        return;
-
-                    case SyntaxKind.NamespaceDeclaration:
-                        ClassifyUpdate((NamespaceDeclarationSyntax)oldNode, (NamespaceDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                        ClassifyUpdate((TypeDeclarationSyntax)oldNode, (TypeDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.EnumDeclaration:
-                        ClassifyUpdate((EnumDeclarationSyntax)oldNode, (EnumDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.DelegateDeclaration:
-                        ClassifyUpdate((DelegateDeclarationSyntax)oldNode, (DelegateDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.FieldDeclaration:
-                        ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.EventFieldDeclaration:
-                        ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.VariableDeclaration:
-                        ClassifyUpdate((VariableDeclarationSyntax)oldNode, (VariableDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.VariableDeclarator:
-                        ClassifyUpdate((VariableDeclaratorSyntax)oldNode, (VariableDeclaratorSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.MethodDeclaration:
-                        ClassifyUpdate((MethodDeclarationSyntax)oldNode, (MethodDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        ClassifyUpdate((ConversionOperatorDeclarationSyntax)oldNode, (ConversionOperatorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.OperatorDeclaration:
-                        ClassifyUpdate((OperatorDeclarationSyntax)oldNode, (OperatorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.ConstructorDeclaration:
-                        ClassifyUpdate((ConstructorDeclarationSyntax)oldNode, (ConstructorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.DestructorDeclaration:
-                        ClassifyUpdate((DestructorDeclarationSyntax)oldNode, (DestructorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.PropertyDeclaration:
-                        ClassifyUpdate((PropertyDeclarationSyntax)oldNode, (PropertyDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.IndexerDeclaration:
-                        ClassifyUpdate((IndexerDeclarationSyntax)oldNode, (IndexerDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.EventDeclaration:
-                        return;
-
-                    case SyntaxKind.EnumMemberDeclaration:
-                        ClassifyUpdate((EnumMemberDeclarationSyntax)oldNode, (EnumMemberDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                        ClassifyUpdate((AccessorDeclarationSyntax)oldNode, (AccessorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        ClassifyUpdate((TypeParameterConstraintClauseSyntax)oldNode, (TypeParameterConstraintClauseSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.TypeParameter:
-                        ClassifyUpdate((TypeParameterSyntax)oldNode, (TypeParameterSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.Parameter:
-                        ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
-                        return;
+                    // These are rude when added to methods, or local functions
 
                     case SyntaxKind.AttributeList:
                         ClassifyUpdate((AttributeListSyntax)oldNode, (AttributeListSyntax)newNode);
@@ -2410,14 +2348,123 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ReportError(RudeEditKind.Update);
                         return;
 
-                    case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.ParameterList:
-                    case SyntaxKind.BracketedParameterList:
-                    case SyntaxKind.AccessorList:
+                    case SyntaxKind.TypeParameterConstraintClause:
+                        ClassifyUpdate((TypeParameterConstraintClauseSyntax)oldNode, (TypeParameterConstraintClauseSyntax)newNode);
                         return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
+                    case SyntaxKind.TypeParameter:
+                        ClassifyUpdate((TypeParameterSyntax)oldNode, (TypeParameterSyntax)newNode);
+                        return;
+                }
+
+                // Check edits that are rude specifically for top level edits
+                if (_isTopLevelEdit)
+                {
+                    switch (newNode.Kind())
+                    {
+                        case SyntaxKind.GlobalStatement:
+                            ReportError(RudeEditKind.Update);
+                            return;
+
+                        case SyntaxKind.ExternAliasDirective:
+                            ReportError(RudeEditKind.Update);
+                            return;
+
+                        case SyntaxKind.UsingDirective:
+                            // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
+                            // None of these changes are allowed anyways, so let's keep it simple.
+                            ReportError(RudeEditKind.Update);
+                            return;
+
+                        case SyntaxKind.NamespaceDeclaration:
+                            ClassifyUpdate((NamespaceDeclarationSyntax)oldNode, (NamespaceDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.ClassDeclaration:
+                        case SyntaxKind.StructDeclaration:
+                        case SyntaxKind.InterfaceDeclaration:
+                            ClassifyUpdate((TypeDeclarationSyntax)oldNode, (TypeDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.EnumDeclaration:
+                            ClassifyUpdate((EnumDeclarationSyntax)oldNode, (EnumDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.DelegateDeclaration:
+                            ClassifyUpdate((DelegateDeclarationSyntax)oldNode, (DelegateDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.FieldDeclaration:
+                            ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.EventFieldDeclaration:
+                            ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.VariableDeclaration:
+                            ClassifyUpdate((VariableDeclarationSyntax)oldNode, (VariableDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.VariableDeclarator:
+                            ClassifyUpdate((VariableDeclaratorSyntax)oldNode, (VariableDeclaratorSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.MethodDeclaration:
+                            ClassifyUpdate((MethodDeclarationSyntax)oldNode, (MethodDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.ConversionOperatorDeclaration:
+                            ClassifyUpdate((ConversionOperatorDeclarationSyntax)oldNode, (ConversionOperatorDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.OperatorDeclaration:
+                            ClassifyUpdate((OperatorDeclarationSyntax)oldNode, (OperatorDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.ConstructorDeclaration:
+                            ClassifyUpdate((ConstructorDeclarationSyntax)oldNode, (ConstructorDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.DestructorDeclaration:
+                            ClassifyUpdate((DestructorDeclarationSyntax)oldNode, (DestructorDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.PropertyDeclaration:
+                            ClassifyUpdate((PropertyDeclarationSyntax)oldNode, (PropertyDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.IndexerDeclaration:
+                            ClassifyUpdate((IndexerDeclarationSyntax)oldNode, (IndexerDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.EventDeclaration:
+                            return;
+
+                        case SyntaxKind.EnumMemberDeclaration:
+                            ClassifyUpdate((EnumMemberDeclarationSyntax)oldNode, (EnumMemberDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                            ClassifyUpdate((AccessorDeclarationSyntax)oldNode, (AccessorDeclarationSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.Parameter:
+                            ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
+                            return;
+
+                        case SyntaxKind.TypeParameterList:
+                        case SyntaxKind.ParameterList:
+                        case SyntaxKind.BracketedParameterList:
+                        case SyntaxKind.AccessorList:
+                            return;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
+                    }
                 }
             }
 
