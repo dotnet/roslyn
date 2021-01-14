@@ -59283,13 +59283,9 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
@@ -59329,13 +59325,9 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
@@ -59397,13 +59389,9 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
