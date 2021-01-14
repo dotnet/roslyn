@@ -221,6 +221,14 @@
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
+    "master": {
+      "nugetKind": ["Shipping", "NonShipping"],
+      "version": "3.9.*",
+      "packageFeeds": "arcade",
+      "channels": [ "validation" ],
+      "vsBranch": "main",
+      "vsMajorVersion": 16
+    },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
       "version": "2.6.*",
