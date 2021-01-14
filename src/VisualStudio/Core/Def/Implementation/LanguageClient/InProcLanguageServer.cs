@@ -578,7 +578,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var option = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
-            var pushDiagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken);
+            var pushDiagnostics = await diagnosticService.GetPushDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken).ConfigureAwait(false);
             var diagnostics = pushDiagnostics.WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
