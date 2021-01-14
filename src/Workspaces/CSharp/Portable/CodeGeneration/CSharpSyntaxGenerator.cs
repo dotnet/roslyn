@@ -820,11 +820,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> members)
         {
+            return EnumDeclaration(name, null, accessibility, modifiers, members);
+        }
+
+        internal override SyntaxNode EnumDeclaration(string name, SyntaxNode underlyingType, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode> members = null)
+        {
+            List<BaseTypeSyntax> underlyingTypeList = underlyingType != null ? new() { SyntaxFactory.SimpleBaseType((TypeSyntax)underlyingType) } : null;
+
             return SyntaxFactory.EnumDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.EnumDeclaration),
                 name.ToIdentifierToken(),
-                null,
+                underlyingTypeList != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(underlyingTypeList)) : null,
                 this.AsEnumMembers(members));
         }
 
