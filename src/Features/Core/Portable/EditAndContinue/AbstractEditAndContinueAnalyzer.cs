@@ -3069,8 +3069,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
-
-                    ReportLambdaAttributeRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, hasErrors, cancellationToken);
                 }
 
                 ArrayBuilder<SyntaxNode>? lazyNewErroneousClauses = null;
@@ -3709,14 +3707,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasErrors = true;
             }
         }
-
-        protected abstract void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
-            SyntaxNode oldLambdaBody,
-            SemanticModel newModel,
-            SyntaxNode newLambdaBody,
-            List<RudeEditDiagnostic> diagnostics,
-            bool hadSignatureEdits,
-            CancellationToken cancellationToken);
 
         protected virtual void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
