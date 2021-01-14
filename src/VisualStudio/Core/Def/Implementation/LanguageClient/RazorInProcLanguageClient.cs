@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
-            SVsServiceProvider asyncServiceProvider)
+            SAsyncServiceProvider asyncServiceProvider)
             : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, ClientName)
         {
             _globalOptionService = globalOptionService;

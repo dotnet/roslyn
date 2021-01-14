@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            VSShell.SVsServiceProvider asyncServiceProvider,
+            VSShell.IAsyncServiceProvider asyncServiceProvider,
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
-            _asyncServiceProvider = (VSShell.IAsyncServiceProvider)asyncServiceProvider;
+            _asyncServiceProvider = asyncServiceProvider;
         }
 
         /// <summary>
