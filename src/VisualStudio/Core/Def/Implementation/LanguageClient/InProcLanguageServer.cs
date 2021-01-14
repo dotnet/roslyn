@@ -18,11 +18,15 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using VSShell = Microsoft.VisualStudio.Shell;
 
@@ -38,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// Legacy support for LSP push diagnostics.
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
-        private readonly VSShell.IAsyncServiceProvider? _asyncServiceProvider;
         private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
@@ -83,11 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
-            _asyncServiceProvider = asyncServiceProvider;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(this, lspWorkspaceRegistrationService, languageClient.Name, clientName);
+            var serverName = languageClient.Name;
+            var lazyLogger = new AsyncLazy<ILspLogger>(ct => CreateLoggerAsync(serverName, asyncServiceProvider, ct), cacheResult: true);
+
+            _queue = new RequestExecutionQueue(lazyLogger, lspWorkspaceRegistrationService, serverName, clientName);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -100,6 +105,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             if (_diagnosticService != null)
                 _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+        }
+
+        private static async Task<ILspLogger> CreateLoggerAsync(
+            string serverName,
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            CancellationToken cancellationToken)
+        {
+            if (asyncServiceProvider == null)
+                return NoOpLspLogger.Instance;
+
+            var cleaned = string.Concat(serverName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
+            var logId = new LogId(cleaned, new ServiceMoniker("Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient"));
+
+            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
+            var service = serviceContainer.GetFullAccessServiceBroker();
+
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+
+            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+
+            return new LogHubLspLogger(configuration, traceSource);
         }
 
         public bool HasShutdownStarted => _shuttingDown;

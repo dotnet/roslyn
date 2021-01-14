@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
-        private readonly ILspLoggerProvider? _loggerProvider;
+        private readonly Roslyn.Utilities.AsyncLazy<ILspLogger> _lazyLogger;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(
-            ILspLoggerProvider? loggerProvider,
+            Roslyn.Utilities.AsyncLazy<ILspLogger> lazyLogger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             string serverName,
             string? clientName)
         {
-            _loggerProvider = loggerProvider;
+            _lazyLogger = lazyLogger;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
             _clientName = clientName;
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             try
             {
                 var logIdName = $"{_serverName}.{_clientName ?? "Default"}";
-                using var logger = _loggerProvider == null ? NoOpLspLogger.Instance : await _loggerProvider.CreateLoggerAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
+                using var logger = await _lazyLogger.GetValueAsync(_cancelSource.Token).ConfigureAwait(false);
 
                 var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
