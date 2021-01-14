@@ -8,11 +8,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -35,8 +33,6 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
-        private static readonly ConditionalWeakTable<SourceText, SyntaxTree> s_parsedGeneratedSources = new();
-
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, syntaxTreeProvider: null, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -129,6 +125,12 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver RemoveAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.RemoveRange(additionalTexts));
+            return FromState(newState);
+        }
+
+        public GeneratorDriver WithSyntaxTreeProvider(SyntaxTreeProvider? syntaxTreeProvider)
+        {
+            var newState = _state.With(syntaxTreeProvider: syntaxTreeProvider);
             return FromState(newState);
         }
 
@@ -351,7 +353,9 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxTree GetOrParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
         {
-            if (s_parsedGeneratedSources.TryGetValue(input.Text, out var tree))
+            SyntaxTree? tree = null;
+            if (_state.SyntaxTreeProvider is not null
+                && _state.SyntaxTreeProvider.TryGetSyntaxTree(input.Text, out tree))
             {
                 // We have a syntax tree, but still need to make sure it matches the expected options
                 if (Equals(_state.ParseOptions, tree.Options))
@@ -377,14 +381,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             tree ??= ParseGeneratedSourceText(input, fileName, cancellationToken);
-
-#if NETCOREAPP
-            s_parsedGeneratedSources.AddOrUpdate(input.Text, tree);
-#else
-            s_parsedGeneratedSources.Remove(input.Text);
-            s_parsedGeneratedSources.Add(input.Text, tree);
-#endif
-
+            _state.SyntaxTreeProvider?.AddOrUpdate(input.Text, tree);
             return tree;
         }
 

@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
                                       AnalyzerConfigOptionsProvider optionsProvider,
+                                      SyntaxTreeProvider? syntaxTreeProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
             Edits = edits;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
+            SyntaxTreeProvider = syntaxTreeProvider;
             EditsFailed = editsFailed;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
@@ -60,6 +61,11 @@ namespace Microsoft.CodeAnalysis
         internal readonly AnalyzerConfigOptionsProvider OptionsProvider;
 
         /// <summary>
+        /// An optional provider that can obtain a <see cref="SyntaxTree"/> for a <see cref="SourceText"/>.
+        /// </summary>
+        internal readonly SyntaxTreeProvider? SyntaxTreeProvider;
+
+        /// <summary>
         /// An ordered list of <see cref="PendingEdit"/>s that are waiting to be applied to the compilation.
         /// </summary>
         internal readonly ImmutableArray<PendingEdit> Edits;
@@ -78,12 +84,14 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
+            Optional<SyntaxTreeProvider?> syntaxTreeProvider = default,
             ImmutableArray<PendingEdit>? edits = null,
             bool? editsFailed = null)
         {
             return new GeneratorDriverState(
                 this.ParseOptions,
                 this.OptionsProvider,
+                syntaxTreeProvider.HasValue ? syntaxTreeProvider.Value : this.SyntaxTreeProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
