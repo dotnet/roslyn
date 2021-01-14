@@ -191,7 +191,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newCompilation = CreateLibraryCompilation("New", newTrees);
 
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
-            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<SourceLineUpdate>();
             var actualSemanticEdits = new List<SemanticEdit>();
@@ -215,7 +214,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var newText = SourceText.From(newSource);
                 var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
                 var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
+
                 var diagnostics = new List<RudeEditDiagnostic>();
+                var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
 
                 testAccessor.AnalyzeMemberBodiesSyntax(
                     editScript,
