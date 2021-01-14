@@ -351,14 +351,32 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxTree GetOrParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
         {
-            if (s_parsedGeneratedSources.TryGetValue(input.Text, out var existingTree)
-                && Equals(_state.ParseOptions, existingTree.Options)
-                && Equals(fileName, existingTree.FilePath))
+            if (s_parsedGeneratedSources.TryGetValue(input.Text, out var tree))
             {
-                return existingTree;
+                // We have a syntax tree, but still need to make sure it matches the expected options
+                if (Equals(_state.ParseOptions, tree.Options))
+                {
+                    var treeWithUpdatedPath = tree.WithFilePath(fileName);
+                    if (treeWithUpdatedPath == tree)
+                    {
+                        // The provided tree does not need updating, so return it
+                        return treeWithUpdatedPath;
+                    }
+                    else
+                    {
+                        // Use the tree with the correct path. Code below will update the provider to use it in future
+                        // calls.
+                        tree = treeWithUpdatedPath;
+                    }
+                }
+                else
+                {
+                    // Ignore the previous tree
+                    tree = null;
+                }
             }
 
-            var tree = ParseGeneratedSourceText(input, fileName, cancellationToken);
+            tree ??= ParseGeneratedSourceText(input, fileName, cancellationToken);
 
 #if NETCOREAPP
             s_parsedGeneratedSources.AddOrUpdate(input.Text, tree);
