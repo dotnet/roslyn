@@ -1700,7 +1700,7 @@ endRegion:
             }
         }
 
-        private static void AssertTrueWithGraph([DoesNotReturnIf(false)]bool value, string message, Func<string> finalGraph)
+        private static void AssertTrueWithGraph([DoesNotReturnIf(false)] bool value, string message, Func<string> finalGraph)
         {
             if (!value)
             {
@@ -1896,7 +1896,7 @@ endRegion:
             } && containingType.IsTopLevelMainType();
 
         private static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol 
+            => symbol is INamedTypeSymbol
             {
                 Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 ContainingType: null,
