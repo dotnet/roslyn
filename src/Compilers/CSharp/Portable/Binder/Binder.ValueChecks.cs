@@ -1191,9 +1191,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isAllowedInitOnlySet(BoundExpression receiver)
             {
                 // ok: new C() { InitOnlyProperty = ... }
-                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                // bad: { ... = { InitOnlyProperty = ... } }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder placeholder)
                 {
-                    return true;
+                    return placeholder.IsNewInstance;
                 }
 
                 // bad: other.InitOnlyProperty = ...
