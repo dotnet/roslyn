@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,25 +13,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class NullableWalker
     {
+        /// <summary>
+        /// An immutable copy of Variables.
+        /// </summary>
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        internal sealed class VariablesSnapshot
+        {
+            internal readonly int Id;
+            internal readonly VariablesSnapshot? Container;
+            internal readonly Symbol? Symbol;
+            internal readonly ImmutableArray<KeyValuePair<VariableIdentifier, int>> VariableSlot;
+            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+
+            internal VariablesSnapshot(int id, VariablesSnapshot? container, Symbol? symbol, ImmutableArray<KeyValuePair<VariableIdentifier, int>> variableSlot, ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
+            {
+                Id = id;
+                Container = container;
+                Symbol = symbol;
+                VariableSlot = variableSlot;
+                VariableTypes = variableTypes;
+            }
+
+            internal bool TryGetType(Symbol symbol, out TypeWithAnnotations type)
+            {
+                return VariableTypes.TryGetValue(symbol, out type);
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                var symbol = (object?)Symbol ?? "<null>";
+                return $"Id={Id}, Symbol={symbol}, Count={VariableSlot.Length}";
+            }
+        }
+
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Variables
         {
-            private sealed class Factory
+            private sealed class NextId
             {
-                internal int NextId;
-                internal int MaxSlotDepth;
-
-                internal Factory(int maxSlotDepth)
-                {
-                    MaxSlotDepth = maxSlotDepth;
-                }
+                internal int Value;
             }
+
+            // Members of variables are tracked up to a fixed depth, to avoid cycles. The
+            // MaxSlotDepth value is arbitrary but large enough to allow most scenarios.
+            private const int MaxSlotDepth = 5;
 
             private const int IdOffset = 16;
             private const int IdOrIndexMask = (1 << IdOffset) - 1;
             private const int IndexMax = IdOrIndexMask;
 
-            private readonly Factory _factory;
+            private readonly NextId _nextId;
             internal readonly int Id;
             internal readonly Variables? Container;
             internal readonly Symbol? Symbol;
@@ -56,23 +89,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly ArrayBuilder<VariableIdentifier> _variableBySlot;
 
-            /// <summary>
-            /// Variable slots are allocated to local variables sequentially and never reused.  This is
-            /// the index of the next slot number to use.
-            /// </summary>
-            private int _nextVariableIndex = 1;
-
-            internal static Variables Create(Symbol? symbol, int maxSlotDepth)
+            internal static Variables Create(Symbol? symbol)
             {
-                return new Variables(new Factory(maxSlotDepth), container: null, symbol);
+                return new Variables(new NextId() { Value = 1 }, id: 0, container: null, symbol);
             }
 
-            private Variables(Factory factory, Variables? container, Symbol? symbol)
+            internal static Variables Create(VariablesSnapshot snapshot)
             {
-                Debug.Assert(container is null || container.Id < factory.NextId);
-                _factory = factory;
+                return CreateInternal(snapshot, new NextId() { Value = snapshot.Id + 1 });
+            }
+
+            private static Variables CreateInternal(VariablesSnapshot snapshot, NextId nextId)
+            {
+                var container = snapshot.Container is null ? null : CreateInternal(snapshot.Container, nextId);
+                var variables = new Variables(nextId, snapshot.Id, container, snapshot.Symbol);
+                variables.Populate(snapshot);
+                return variables;
+            }
+
+            private void Populate(VariablesSnapshot snapshot)
+            {
+                Debug.Assert(_variableSlot.Count == 0);
+                Debug.Assert(_variableTypes.Count == 0);
+                Debug.Assert(_variableBySlot.Count == 1);
+
+                _variableBySlot.AddMany(default, snapshot.VariableSlot.Length);
+                foreach (var pair in snapshot.VariableSlot)
+                {
+                    var identifier = pair.Key;
+                    var index = pair.Value;
+                    _variableSlot.Add(identifier, index);
+                    _variableBySlot[index] = identifier;
+                }
+
+                foreach (var pair in snapshot.VariableTypes)
+                {
+                    _variableTypes.Add(pair.Key, pair.Value);
+                }
+            }
+
+            private Variables(NextId nextId, int id, Variables? container, Symbol? symbol)
+            {
+                Debug.Assert(container is null || container.Id < nextId.Value);
+                Debug.Assert(id < nextId.Value);
+                _nextId = nextId;
                 // PROTOTYPE: Handle > 64K nested methods (distinct ids). See NullableStateTooManyNestedFunctions().
-                Id = _factory.NextId++;
+                Id = id;
                 Container = container;
                 Symbol = symbol;
                 _variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance();
@@ -81,19 +143,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void Free()
             {
-                // PROTOTYPE:
-#if false
                 Container?.Free();
                 _variableBySlot.Free();
                 _variableTypes.Free();
                 _variableSlot.Free();
-#endif
+            }
+
+            internal VariablesSnapshot CreateSnapshot()
+            {
+                return new VariablesSnapshot(
+                    Id,
+                    Container?.CreateSnapshot(),
+                    Symbol,
+                    ImmutableArray.CreateRange(_variableSlot),
+                    ImmutableDictionary.CreateRange(_variableTypes));
             }
 
             internal Variables CreateNestedFunction(MethodSymbol method)
             {
                 Debug.Assert(GetVariablesForSymbol(method) is null or { Symbol: null });
-                return new Variables(_factory, this, method);
+                return new Variables(_nextId, id: _nextId.Value++, this, method);
             }
 
             internal int RootSlot(int slot)
@@ -131,11 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal int Add(VariableIdentifier identifier)
             {
-                if (_nextVariableIndex > IndexMax)
+                if (Count > IndexMax)
                 {
                     return -1;
                 }
-                if (GetSlotDepth(identifier.ContainingSlot) >= _factory.MaxSlotDepth)
+                if (GetSlotDepth(identifier.ContainingSlot) >= MaxSlotDepth)
                 {
                     return -1;
                 }
@@ -145,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private int AddInternal(VariableIdentifier identifier)
             {
-                int index = _nextVariableIndex++;
+                int index = Count;
                 _variableSlot.Add(identifier, index);
                 while (index >= _variableBySlot.Count)
                 {
@@ -178,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal int Count => _nextVariableIndex;
+            internal int Count => _variableBySlot.Count;
 
             internal void GetMembers(ArrayBuilder<(VariableIdentifier, int)> builder, int containingSlot)
             {
@@ -286,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return slot < 0 ? (0, slot) : ((slot >> IdOffset & IdOrIndexMask), slot & IdOrIndexMask);
             }
 
-            internal string GetDebuggerDisplay()
+            private string GetDebuggerDisplay()
             {
                 var symbol = (object?)Symbol ?? "<null>";
                 return $"Id={Id}, Symbol={symbol}, Count={Count}";

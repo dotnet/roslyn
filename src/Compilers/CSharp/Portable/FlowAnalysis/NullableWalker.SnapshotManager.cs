@@ -53,12 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (VariableState, Symbol) GetSnapshot(int position)
+            internal (VariablesSnapshot, LocalStateSnapshot) GetSnapshot(int position)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(sharedState.Variables, incrementalSnapshot.VariableState.Clone());
-                return (variableState, sharedState.Symbol);
+                return (sharedState.Variables, incrementalSnapshot.VariableState);
             }
 
             internal TypeWithAnnotations? GetUpdatedTypeForLocalSymbol(SourceLocalSymbol symbol)
@@ -218,7 +217,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                     // Note that we can't use Add here, as this is potentially not the stable
                     // state of this node and we could get updated states later.
-                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.Clone(), _currentWalkerSlot);
+                    _incrementalSnapshots[node.Syntax.SpanStart] = new Snapshot(currentState.CreateSnapshot(), _currentWalkerSlot);
                 }
 
                 internal void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
@@ -253,13 +252,11 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         internal struct SharedWalkerState
         {
-            internal readonly Variables Variables;
-            internal readonly Symbol Symbol;
+            internal readonly VariablesSnapshot Variables;
 
-            internal SharedWalkerState(Variables variables, Symbol symbol)
+            internal SharedWalkerState(VariablesSnapshot variables)
             {
                 Variables = variables;
-                Symbol = symbol;
             }
         }
 
@@ -269,10 +266,10 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         private readonly struct Snapshot
         {
-            internal readonly LocalState VariableState;
+            internal readonly LocalStateSnapshot VariableState;
             internal readonly int SharedStateIndex;
 
-            internal Snapshot(LocalState variableState, int sharedStateIndex)
+            internal Snapshot(LocalStateSnapshot variableState, int sharedStateIndex)
             {
                 VariableState = variableState;
                 SharedStateIndex = sharedStateIndex;

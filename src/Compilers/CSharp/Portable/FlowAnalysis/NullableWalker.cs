@@ -30,20 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class VariableState
         {
-            internal readonly Variables Variables;
+            // Consider referencing the Variables instance directly from the original NullableWalker
+            // rather than cloning. (Items are added to the collections but never replaced so the
+            // collections are lazily populated but otherwise immutable. We'd probably want a
+            // clone when analyzing from speculative semantic model though.)
+            internal readonly VariablesSnapshot Variables;
 
             // The nullable state of all variables captured at the point where the function or lambda appeared.
-            internal readonly LocalState VariableNullableStates;
+            internal readonly LocalStateSnapshot VariableNullableStates;
 
-            internal VariableState(Variables variables, LocalState variableNullableStates)
+            internal VariableState(VariablesSnapshot variables, LocalStateSnapshot variableNullableStates)
             {
                 Variables = variables;
                 VariableNullableStates = variableNullableStates;
-            }
-
-            internal VariableState Clone()
-            {
-                return new VariableState(Variables, VariableNullableStates.Clone());
             }
         }
 
@@ -370,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             Conversions conversions,
-            VariableState? initialState,
+            Variables? variables,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
@@ -379,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
 
-            _variables = initialState?.Variables ?? Variables.Create(symbol, maxSlotDepth: 5);
+            _variables = variables ?? Variables.Create(symbol);
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
@@ -389,16 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
             _isSpeculative = isSpeculative;
-
-            if (initialState != null)
-            {
-                _hasInitialState = true;
-                this.State = initialState.VariableNullableStates.Clone();
-            }
-            else
-            {
-                _hasInitialState = false;
-            }
+            _hasInitialState = variables is { };
         }
 
         public string GetDebuggerDisplay()
@@ -1192,7 +1182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol?)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var newSnapshotBuilder = new SnapshotManager.Builder();
-            var (initialState, symbol) = originalSnapshots.GetSnapshot(position);
+            var (variables, localState) = originalSnapshots.GetSnapshot(position);
+            var symbol = variables.Symbol;
             var walker = new NullableWalker(
                 binder.Compilation,
                 symbol,
@@ -1202,14 +1193,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 binder,
                 binder.Conversions,
-                initialState, // PROTOTYPE: This needs to be a clone, to avoid having analysis of the speculation modify the dictionaries from the caller (say adding new variables).
+                Variables.Create(variables),
                 returnTypesOpt: null,
                 analyzedNullabilities,
                 newSnapshotBuilder,
                 isSpeculative: true);
             try
             {
-                Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
+                Analyze(walker, symbol, diagnostics: null, LocalState.Create(localState), snapshotBuilderOpt: newSnapshotBuilder);
             }
             finally
             {
@@ -1307,24 +1298,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt)
         {
             var symbol = lambda.Symbol;
-            var variables = initialState.Variables.CreateNestedFunction(symbol);
-            initialState = new VariableState(variables, initialState.VariableNullableStates.CreateNestedFunction(variables));
-            Analyze(
+            var variables = Variables.Create(initialState.Variables).CreateNestedFunction(symbol);
+            var walker = new NullableWalker(
                 compilation,
                 symbol,
-                lambda.Body,
-                lambda.Binder,
-                conversions,
-                diagnostics,
                 useConstructorExitWarnings: false,
                 useDelegateInvokeParameterTypes: UseDelegateInvokeParameterTypes(lambda, delegateInvokeMethodOpt),
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
-                initialState,
-                analyzedNullabilityMapOpt,
-                snapshotBuilderOpt,
+                lambda.Body,
+                lambda.Binder,
+                conversions,
+                variables,
                 returnTypesOpt,
-                getFinalNullableState: false,
-                out _);
+                analyzedNullabilityMapOpt,
+                snapshotBuilderOpt);
+            try
+            {
+                var localState = LocalState.Create(initialState.VariableNullableStates).CreateNestedFunction(variables);
+                Analyze(walker, symbol, diagnostics, localState, snapshotBuilderOpt);
+            }
+            finally
+            {
+                walker.Free();
+            }
         }
 
         private static void Analyze(
@@ -1354,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             node,
                                             binder,
                                             conversions,
-                                            initialState,
+                                            initialState is null ? null : Variables.Create(initialState.Variables),
                                             returnTypesOpt,
                                             analyzedNullabilityMapOpt,
                                             snapshotBuilderOpt);
@@ -1362,11 +1358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalNullableState = null;
             try
             {
-                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, requiresAnalysis);
+                Analyze(walker, symbol, diagnostics, initialState is null ? (Optional<LocalState>)default : LocalState.Create(initialState.VariableNullableStates), snapshotBuilderOpt, requiresAnalysis);
                 if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
-                    finalNullableState = walker.GetVariableState(walker.State);
+                    finalNullableState = GetVariableState(walker._variables, walker.State);
                 }
             }
             finally
@@ -1379,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableWalker walker,
             Symbol? symbol,
             DiagnosticBag? diagnostics,
-            VariableState? initialState,
+            Optional<LocalState> initialState,
             SnapshotManager.Builder? snapshotBuilderOpt,
             bool requiresAnalysis = true)
         {
@@ -1387,9 +1383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
                 var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
-                ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
+                ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
                 snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics?.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
@@ -1415,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private SharedWalkerState SaveSharedState()
         {
-            return new SharedWalkerState(_variables, CurrentSymbol);
+            return new SharedWalkerState(_variables.CreateSnapshot());
         }
 
         private void TakeIncrementalSnapshot(BoundNode? node)
@@ -1465,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!state.Reachable)
                 return;
 
-            state.Normalize(this);
+            state.Normalize(this, _variables);
         }
 
         private NullableFlowState GetDefaultState(int slot)
@@ -2235,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void JoinTryBlockState(ref LocalState self, ref LocalState other)
         {
-            var tryState = other.GetStateForVariables(self.Variables);
+            var tryState = other.GetStateForVariables(self.Id);
             Join(ref self, ref tryState);
         }
 
@@ -2608,15 +2603,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var state = TopState();
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
-                static (variables, slot, arg) =>
+                static (slot, arg) =>
                 {
+                    var (variables, state, localFunc, startingState) = arg;
                     var symbol = variables[variables.RootSlot(slot)].Symbol;
-                    if (Symbol.IsCaptured(symbol, arg.localFunc))
+                    if (Symbol.IsCaptured(symbol, localFunc))
                     {
-                        arg.state[slot] = arg.startingState[slot];
+                        state[slot] = startingState[slot];
                     }
                 },
-                (state, localFunc, startingState));
+                (_variables, state, localFunc, startingState));
             localFunctionState.Visited = true;
 
             AnalyzeLocalFunctionOrLambda(
@@ -2727,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var localFunctionState = GetOrCreateLocalFuncUsages(symbol);
-            var state = State.GetStateForVariables(localFunctionState.StartingState.Variables);
+            var state = State.GetStateForVariables(localFunctionState.StartingState.Id);
             if (Join(ref localFunctionState.StartingState, ref state) &&
                 localFunctionState.Visited)
             {
@@ -3462,7 +3458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             node,
                                             binder,
                                             conversions: conversions,
-                                            initialState: null,
+                                            variables: null,
                                             returnTypesOpt: null,
                                             analyzedNullabilityMapOpt: null,
                                             snapshotBuilderOpt: null);
@@ -5719,9 +5715,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (arguments, conversions);
         }
 
-        private VariableState GetVariableState(LocalState localState)
+        private static VariableState GetVariableState(Variables variables, LocalState localState)
         {
-            return new VariableState(localState.Variables, localState);
+            Debug.Assert(variables.Id == localState.Id);
+            return new VariableState(variables.CreateSnapshot(), localState.CreateSnapshot());
         }
 
         private (ParameterSymbol? Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isExpandedParamsArgument) GetCorrespondingParameter(
@@ -5888,7 +5885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return getUnboundLambda((BoundLambda)argument, GetVariableState(lambdaState.Value));
+                    return getUnboundLambda((BoundLambda)argument, GetVariableState(_variables, lambdaState.Value));
                 }
                 if (!argumentType.HasType)
                 {
@@ -9554,7 +9551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override string Dump(LocalState state)
         {
-            return state.Dump();
+            return state.Dump(_variables);
         }
 
         protected override bool Meet(ref LocalState self, ref LocalState other)
@@ -9591,10 +9588,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return self.Join(in other);
         }
 
+        internal sealed class LocalStateSnapshot
+        {
+            internal readonly int Id;
+            internal readonly LocalStateSnapshot? Container;
+            internal readonly BitVector State;
+
+            internal LocalStateSnapshot(int id, LocalStateSnapshot? container, BitVector state)
+            {
+                Id = id;
+                Container = container;
+                State = state;
+            }
+        }
+
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class LocalState : ILocalDataFlowState // PROTOTYPE: Pool instances.
         {
-            internal readonly Variables Variables;
+            internal readonly int Id;
             internal LocalState? Container;
 
             // The representation of a state is a bit vector with two bits per slot:
@@ -9602,11 +9613,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Slot 0 is used to represent whether the state is reachable (true) or not.
             private BitVector _state;
 
-            private LocalState(Variables variables, LocalState? container, BitVector state)
+            private LocalState(int id, LocalState? container, BitVector state)
             {
-                Variables = variables;
+                Id = id;
                 Container = container;
                 _state = state;
+            }
+
+            internal static LocalState Create(LocalStateSnapshot snapshot)
+            {
+                var container = snapshot.Container is null ? null : Create(snapshot.Container);
+                return new LocalState(snapshot.Id, container, snapshot.State.Clone());
+            }
+
+            internal LocalStateSnapshot CreateSnapshot()
+            {
+                return new LocalStateSnapshot(Id, Container?.CreateSnapshot(), _state.Clone());
             }
 
             public bool Reachable => _state[0];
@@ -9629,13 +9651,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null :
                     CreateReachableOrUnreachableState(variables.Container, reachable);
                 int capacity = reachable ? variables.Count : 1;
-                return new LocalState(variables, container, CreateBitVector(capacity, reachable));
+                return new LocalState(variables.Id, container, CreateBitVector(capacity, reachable));
             }
 
             public LocalState CreateNestedFunction(Variables variables)
             {
-                Debug.Assert(Variables == variables.Container);
-                return new LocalState(variables, container: this, CreateBitVector(capacity: variables.Count, reachable: true));
+                Debug.Assert(Id == variables.Container!.Id);
+                return new LocalState(variables.Id, container: this, CreateBitVector(capacity: variables.Count, reachable: true));
             }
 
             private static BitVector CreateBitVector(int capacity, bool reachable)
@@ -9652,7 +9674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void EnsureCapacity(int capacity)
             {
-                Debug.Assert(capacity <= Variables.Count);
                 _state.EnsureCapacity(capacity * 2);
             }
 
@@ -9668,13 +9689,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private bool HasVariable(int id, int index)
             {
-                if (Variables.Id > id)
+                if (Id > id)
                 {
                     return Container!.HasValue(id, index);
                 }
                 else
                 {
-                    return Variables.Id == id;
+                    return Id == id;
                 }
             }
 
@@ -9690,9 +9711,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private bool HasValue(int id, int index)
             {
-                if (Variables.Id != id)
+                if (Id != id)
                 {
-                    Debug.Assert(Variables.Id > id);
+                    Debug.Assert(Id > id);
                     return Container!.HasValue(id, index);
                 }
                 else
@@ -9701,12 +9722,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public void Normalize(NullableWalker walker)
+            public void Normalize(NullableWalker walker, Variables variables)
             {
-                Container?.Normalize(walker);
-                int start = Capacity;
-                EnsureCapacity(Variables.Count);
-                Populate(walker, start);
+                if (Id != variables.Id)
+                {
+                    Debug.Assert(Id < variables.Id);
+                    Normalize(walker, variables.Container!);
+                }
+                else
+                {
+                    Container?.Normalize(walker, variables.Container!);
+                    int start = Capacity;
+                    EnsureCapacity(variables.Count);
+                    Populate(walker, start);
+                }
             }
 
             public void PopulateAll(NullableWalker walker)
@@ -9720,9 +9749,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int capacity = Capacity;
                 for (int index = start; index < capacity; index++)
                 {
-                    int id = Variables.Id;
-                    int slot = Variables.ConstructSlot(id, index);
-                    SetValue(id, index, walker.GetDefaultState(slot));
+                    int slot = Variables.ConstructSlot(Id, index);
+                    SetValue(Id, index, walker.GetDefaultState(slot));
                 }
             }
 
@@ -9742,9 +9770,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NullableFlowState GetValue(int id, int index)
             {
-                if (Variables.Id != id)
+                if (Id != id)
                 {
-                    Debug.Assert(Variables.Id > id);
+                    Debug.Assert(Id > id);
                     return Container!.GetValue(id, index);
                 }
                 else
@@ -9767,14 +9795,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void SetValue(int id, int index, NullableFlowState value)
             {
-                if (Variables.Id != id)
+                if (Id != id)
                 {
-                    Debug.Assert(Variables.Id > id);
+                    Debug.Assert(Id > id);
                     Container!.SetValue(id, index, value);
                 }
                 else
                 {
-                    Debug.Assert(index < Variables.Count);
                     // No states should be modified in unreachable code, as there is only one unreachable state.
                     if (!this.Reachable) return;
                     index *= 2;
@@ -9783,19 +9810,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal void ForEach<TArg>(Action<Variables, int, TArg> action, TArg arg)
+            internal void ForEach<TArg>(Action<int, TArg> action, TArg arg)
             {
                 Container?.ForEach(action, arg);
                 for (int index = 1; index < Capacity; index++)
                 {
-                    action(Variables, Variables.ConstructSlot(Variables.Id, index), arg);
+                    action(Variables.ConstructSlot(Id, index), arg);
                 }
             }
 
-            internal LocalState GetStateForVariables(Variables variables)
+            internal LocalState GetStateForVariables(int id)
             {
                 var state = this;
-                while ((object)state.Variables != variables)
+                while (state.Id != id)
                 {
                     state = state.Container!;
                 }
@@ -9809,12 +9836,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState Clone()
             {
                 var container = Container?.Clone();
-                return new LocalState(Variables, container, _state.Clone());
+                return new LocalState(Id, container, _state.Clone());
             }
 
             public bool Join(in LocalState other)
             {
-                Debug.Assert((object)Variables == other.Variables);
+                Debug.Assert(Id == other.Id);
                 bool result = false;
                 if (Container is { } && Container.Join(in other.Container!))
                 {
@@ -9829,7 +9856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Meet(in LocalState other)
             {
-                Debug.Assert((object)Variables == other.Variables);
+                Debug.Assert(Id == other.Id);
                 bool result = false;
                 if (Container is { } && Container.Meet(in other.Container!))
                 {
@@ -9854,27 +9881,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return pooledBuilder.ToStringAndFree();
             }
 
-            internal string Dump()
+            internal string Dump(Variables variables)
             {
                 if (!this.Reachable)
                     return "unreachable";
 
+                if (Id != variables.Id)
+                    return "invalid";
+
                 var builder = PooledStringBuilder.GetInstance();
-                Dump(builder);
+                Dump(builder, variables);
                 return builder.ToStringAndFree();
             }
 
-            private void Dump(StringBuilder builder)
+            private void Dump(StringBuilder builder, Variables variables)
             {
-                Container?.Dump(builder);
+                Container?.Dump(builder, variables.Container!);
 
-                int id = Variables.Id;
                 for (int index = 1; index < Capacity; index++)
                 {
-                    if (getName(Variables.ConstructSlot(id, index)) is string name)
+                    if (getName(Variables.ConstructSlot(Id, index)) is string name)
                     {
                         builder.Append(name);
-                        var annotation = GetValue(id, index) switch
+                        var annotation = GetValue(Id, index) switch
                         {
                             NullableFlowState.MaybeNull => "?",
                             NullableFlowState.MaybeDefault => "??",
@@ -9886,7 +9915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 string? getName(int slot)
                 {
-                    VariableIdentifier id = Variables[slot];
+                    VariableIdentifier id = variables[slot];
                     var name = id.Symbol.Name;
                     int containingSlot = id.ContainingSlot;
                     return containingSlot > 0 ?
