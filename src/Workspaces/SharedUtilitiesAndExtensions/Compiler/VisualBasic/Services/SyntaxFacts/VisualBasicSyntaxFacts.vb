@@ -2173,6 +2173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     Return DeclarationKind.NamespaceImport
                 Case SyntaxKind.ClassBlock
                     Return DeclarationKind.Class
+                Case SyntaxKind.ClassStatement
+                    If Not IsChildOf(declaration, SyntaxKind.ClassBlock) Then
+                        Return DeclarationKind.Class
+                    End If
                 Case SyntaxKind.StructureBlock
                     Return DeclarationKind.Struct
                 Case SyntaxKind.InterfaceBlock
