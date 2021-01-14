@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TraceSource? traceSource = null;
             try
             {
-                var logIdName = $"{_serverName}.{_clientName ?? "Default"}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+                var logIdName = $"{_serverName}.{_clientName ?? "Default"}";
                 traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
                 var requestId = 0;
