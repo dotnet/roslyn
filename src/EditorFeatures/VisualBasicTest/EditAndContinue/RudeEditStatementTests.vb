@@ -6012,10 +6012,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScript:=edits,
+                editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
                 expectedSemanticEdits:=Nothing,
                 expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
                 expectedDeclarationError:=Nothing)
@@ -6043,10 +6041,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScript:=edits,
+                editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
                 expectedSemanticEdits:=Nothing,
                 expectedDiagnostics:=Nothing,
                 expectedDeclarationError:=Nothing)
@@ -6130,10 +6126,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
-                editScript:=edits,
+                editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
-                additionalOldSources:=Nothing,
-                additionalNewSources:=Nothing,
                 expectedSemanticEdits:=Nothing,
                 expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
                 expectedDeclarationError:=Nothing)
@@ -6161,13 +6155,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                Nothing,
-                Nothing,
-                Nothing,
-                Nothing)
+            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics({edits})
         End Sub
 #End Region
     End Class

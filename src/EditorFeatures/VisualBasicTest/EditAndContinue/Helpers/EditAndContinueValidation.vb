@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
-    Friend Module Extensions
+    Friend Module EditAndContinueValidation
 
         Friend Sub VerifyUnchangedDocument(
             source As String,
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Friend Sub VerifySemanticDiagnostics(editScript As EditScript(Of SyntaxNode),
                                              expectedDeclarationError As DiagnosticDescription,
                                              ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(editScript, ActiveStatementsDescription.Empty, Nothing, expectedDeclarationError, expectedDiagnostics)
+            VerifySemantics({editScript}, ActiveStatementsDescription.Empty, Nothing, expectedDeclarationError, expectedDiagnostics)
         End Sub
 
         <Extension>
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    activeStatements As ActiveStatementsDescription,
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(editScript, activeStatements, Nothing, Nothing, expectedSemanticEdits, Nothing, expectedDiagnostics)
+            VerifySemantics({editScript}, activeStatements, expectedSemanticEdits, expectedDeclarationError:=Nothing, expectedDiagnostics)
         End Sub
 
         <Extension>
@@ -72,32 +72,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    expectedDeclarationError As DiagnosticDescription,
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(editScript, activeStatements, Nothing, Nothing, expectedSemanticEdits, expectedDeclarationError, expectedDiagnostics)
+            VerifySemantics({editScript}, activeStatements, expectedSemanticEdits, expectedDeclarationError, expectedDiagnostics)
         End Sub
 
         <Extension>
-        Friend Sub VerifySemantics(editScript As EditScript(Of SyntaxNode),
-                                   activeStatements As ActiveStatementsDescription,
-                                   additionalOldSources As IEnumerable(Of String),
-                                   additionalNewSources As IEnumerable(Of String),
-                                   expectedSemanticEdits As SemanticEditDescription(),
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VerifySemantics(editScript, activeStatements, additionalOldSources, additionalNewSources, expectedSemanticEdits, Nothing, expectedDiagnostics)
-        End Sub
-
-        <Extension>
-        Friend Sub VerifySemantics(editScript As EditScript(Of SyntaxNode),
-                                   activeStatements As ActiveStatementsDescription,
-                                   additionalOldSources As IEnumerable(Of String),
-                                   additionalNewSources As IEnumerable(Of String),
-                                   expectedSemanticEdits As SemanticEditDescription(),
-                                   expectedDeclarationError As DiagnosticDescription,
-                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
+        Friend Sub VerifySemantics(editScripts As EditScript(Of SyntaxNode)(),
+                                   Optional activeStatements As ActiveStatementsDescription = Nothing,
+                                   Optional expectedSemanticEdits As SemanticEditDescription() = Nothing,
+                                   Optional expectedDeclarationError As DiagnosticDescription = Nothing,
+                                   Optional expectedDiagnostics As RudeEditDiagnosticDescription() = Nothing)
             VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifySemantics(
-                editScript,
+                editScripts,
                 activeStatements,
-                additionalOldSources,
-                additionalNewSources,
                 expectedSemanticEdits,
                 expectedDeclarationError,
                 expectedDiagnostics)
