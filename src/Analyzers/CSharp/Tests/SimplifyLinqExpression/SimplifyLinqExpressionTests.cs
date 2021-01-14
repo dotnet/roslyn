@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
         CSharpSimplifyLinqExpressionCodeFixProvider>;
 
-    public partial class SimplifyLinqExpressionTests
+    public partial class CSharpSimplifyLinqExpressionTests
     {
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public static async Task TestAllowedMethodTypes(
