@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
-                                type.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32 ? null : TypeExpression(type.EnumUnderlyingType),
+                                type.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32 ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
                                 accessibility: type.DeclaredAccessibility,
                                 members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
                             break;

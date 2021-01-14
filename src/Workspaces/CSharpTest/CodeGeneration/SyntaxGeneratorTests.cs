@@ -1829,7 +1829,7 @@ public class C { } // end").Members[0];
             VerifySyntax<EnumDeclarationSyntax>(
                     Generator.Declaration(
                         _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-@"public enum SecurityRuleSet : global::System.Byte
+@"public enum SecurityRuleSet : byte
 {
     None = 0,
     Level1 = 1,

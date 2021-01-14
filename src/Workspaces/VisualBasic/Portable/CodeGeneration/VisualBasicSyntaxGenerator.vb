@@ -1453,11 +1453,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                   Optional accessibility As Accessibility = Accessibility.NotApplicable,
                                                   Optional modifiers As DeclarationModifiers = Nothing,
                                                   Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
-            Dim underlyingTypeClause As AsClauseSyntax = Nothing
 
-            If underlyingType IsNot Nothing Then
-                underlyingTypeClause = SyntaxFactory.SimpleAsClause(DirectCast(underlyingType, TypeSyntax))
-            End If
+            Dim underlyingTypeClause = If(underlyingType Is Nothing, Nothing, SyntaxFactory.SimpleAsClause(DirectCast(underlyingType, TypeSyntax)))
 
             Return SyntaxFactory.EnumBlock(
                 enumStatement:=SyntaxFactory.EnumStatement(

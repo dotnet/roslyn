@@ -2286,7 +2286,7 @@ End Enum")
         <Fact>
         Public Sub TestEnumWithUnderlyingTypeFromSymbol()
             VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-"Public Enum SecurityRuleSet As System.Byte
+"Public Enum SecurityRuleSet As Byte
     None = CByte(0)
     Level1 = CByte(1)
     Level2 = CByte(2)
