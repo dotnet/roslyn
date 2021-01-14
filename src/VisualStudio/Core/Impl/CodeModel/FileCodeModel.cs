@@ -329,8 +329,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(CancellationToken.None);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(State.ThreadingContext);
+                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(State.ThreadingContext);
 
                 ApplyChanges(workspace, formatted);
             });
@@ -418,14 +418,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             return GetDocument()
                 .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(State.ThreadingContext);
         }
 
         internal Compilation GetCompilation()
         {
             return GetDocument().Project
                 .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+                .WaitAndGetResult_CodeModel(State.ThreadingContext);
         }
 
         internal ProjectId GetProjectId()
@@ -679,7 +679,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                        var newDocument = Simplifier
+                            .ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None)
+                            .WaitAndGetResult_CodeModel(State.ThreadingContext);
+
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
                         // done using batch document

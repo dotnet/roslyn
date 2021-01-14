@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
             // to keep the rename action from deadlocking.
-            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
+            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(_threadingContext);
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -1073,7 +1073,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 new TextSpan[] { formattingSpan },
                 options: null,
                 rules: formattingRules,
-                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(_threadingContext);
         }
 
         private SyntaxNode InsertNode(
@@ -1106,7 +1106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(_threadingContext);
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

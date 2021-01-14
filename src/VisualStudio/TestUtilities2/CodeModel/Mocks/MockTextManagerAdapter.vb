@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
         Implements ITextManagerAdapter
 
         Public Function CreateTextPoint(fileCodeModel As FileCodeModel, point As VirtualTreePoint) As EnvDTE.TextPoint Implements ITextManagerAdapter.CreateTextPoint
-            Dim options = fileCodeModel.GetDocument().GetOptionsAsync().WaitAndGetResult_CodeModel(CancellationToken.None)
+            Dim options = fileCodeModel.GetDocument().GetOptionsAsync().WaitAndGetResult_CodeModel(fileCodeModel.State.ThreadingContext)
             Return New MockTextPoint(point)
         End Function
     End Class

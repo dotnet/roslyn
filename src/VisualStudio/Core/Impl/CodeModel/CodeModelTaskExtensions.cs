@@ -2,24 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal static class CodeModelTaskExtensions
     {
         /// <summary>
-        /// Does a Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T} for CodeModel.
+        /// Easy extension for running a task synchronously for CodeModel code.
         /// </summary>
         /// <remarks>
-        /// This function is the exact same as Roslyn.Utilities.TaskExtensions.WaitAndGetResult{T}. CodeModel, since it
-        /// must implement a highly blocking API, has no choice but to use WaitAndGetResult in a bunch of places. We
-        /// hope to audit _CanCallOnBackground periodically, and so rather than having to understand that each of those
-        /// uses are CodeModel and thus get a special pass.
+        /// CodeModel only exists in Visual Studio, and is required to be a synchronous API. Since it may
+        /// now call into other processes, which then could call back to the UI thread in VS, we need a non
+        /// UI blocking way to handle this behavior. This forces the use of JTF as the way to do asynchronous
+        /// work synchronously in the CodeModel layer. It is not advised that this is general purpose to all
+        /// of Roslyn editor layer.
         /// </remarks>
-        public static T WaitAndGetResult_CodeModel<T>(this Task<T> task, CancellationToken cancellationToken)
-            => task.WaitAndGetResult(cancellationToken);
+        public static T WaitAndGetResult_CodeModel<T>(this Task<T> task, IThreadingContext threadingContext)
+            => threadingContext.JoinableTaskFactory.Run(() => task);
     }
 }
