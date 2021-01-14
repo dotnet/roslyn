@@ -54,10 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
-            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace))
-            {
-                rootNamespace = string.Empty;
-            }
+            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace);
 
             // Project directory is a must to correctly get the relative path and construct a namespace
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
@@ -122,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
         private bool IsFileAndNamespaceMismatch(
             TNamespaceSyntax namespaceDeclaration,
-            string rootNamespace,
+            string? rootNamespace,
             string projectDir,
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
@@ -140,9 +137,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 
-            if (expectedNamespace is null || expectedNamespace.Equals(GetNamespaceName(namespaceDeclaration, rootNamespace), StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(expectedNamespace) || expectedNamespace.Equals(GetNamespaceName(namespaceDeclaration, rootNamespace), StringComparison.OrdinalIgnoreCase))
             {
-                // The namespace currently matches the folder structure
+                // The namespace currently matches the folder structure or is invalid, in which case we don't want
+                // to provide a diagnostic.
                 targetNamespace = null;
                 return false;
             }
@@ -151,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             return true;
         }
 
-        private string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string rootNamespace)
+        private string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string? rootNamespace)
         {
             var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
             var syntaxFacts = GetSyntaxFacts();

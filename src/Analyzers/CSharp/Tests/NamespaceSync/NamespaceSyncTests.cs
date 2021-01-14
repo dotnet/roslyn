@@ -8,6 +8,8 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
     Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync.CSharpNamespaceSyncDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync.CSharpNamespaceSyncCodeFixProvider>;
 using System.IO;
+using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceSync
 {
@@ -27,31 +29,46 @@ build_property.ProjectDir = {Directory}
             var filePath = Path.Combine(directory ?? Directory, fileName);
             fixedCode ??= fileContents;
 
+            return RunTestAsync(
+                new [] { (filePath, fileContents)}, 
+                new [] { (filePath, fixedCode)},
+                editorconfig);
+        }
+
+        private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null)
+        {
             var testState = new VerifyCS.Test
             {
                 EditorConfig = editorconfig ?? EditorConfig,
-                TestState = { Sources = { (filePath, fileContents) } },
-                FixedState = { Sources = { (filePath, fixedCode) } }
             };
+
+            foreach (var (fileName, content) in originalSources)
+            {
+                testState.TestState.Sources.Add((fileName, content));
+            }
+
+            fixedSources ??= Array.Empty<(string, string)>();
+            foreach (var (fileName, content) in fixedSources)
+            {
+                testState.FixedState.Sources.Add((fileName, content));
+            }
 
             return testState.RunAsync();
         }
 
         [Fact]
-        public Task ChangeNamespace_InvalidFolderName1()
+        public Task InvalidFolderName1_NoDiagnostic()
         {
-            var declaredNamespace = "Foo.Bar";
-
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { "3B", "C" });
             var code =
-$@"
-namespace {declaredNamespace}
-{{    
+@"
+namespace A.B
+{    
     class Class1
-    {{
-    }}
-}}";
+    {
+    }
+}";
 
             return RunTestAsync(
                 "File1.cs",
@@ -60,20 +77,18 @@ namespace {declaredNamespace}
         }
 
         [Fact]
-        public Task ChangeNamespace_InvalidFolderName2()
+        public Task InvalidFolderName2_NoDiagnostic()
         {
-            var declaredNamespace = "Foo.Bar";
-
             // No change namespace action because the folder name is not valid identifier
             var folder = CreateFolderPath(new[] { "B.3C", "D" });
             var code =
-$@"
-namespace {declaredNamespace}
-{{    
+@"
+namespace A.B
+{    
     class Class1
-    {{
-    }}
-}}";
+    {
+    }
+}";
 
             return RunTestAsync(
                 "File1.cs",
@@ -82,33 +97,162 @@ namespace {declaredNamespace}
         }
 
         [Fact]
-        public async Task ChangeNamespace_SingleDocumentNoReference()
+        public Task CaseInsensitiveMatch_NoDiagnostic()
+        {
+            var folder = CreateFolderPath(new[] { "A", "B" });
+            var code =
+@"
+namespace a.b
+{    
+    class Class1
+    {
+    }
+}";
+
+            return RunTestAsync(
+                "File1.cs",
+                code,
+                directory: folder);
+        }
+
+        [Fact]
+        public async Task SingleDocumentNoReference()
         {
             var folder = CreateFolderPath("B", "C");
             var code =
-$@"namespace [|A.B|]
-{{
+@"namespace [|A.B|]
+{
     class Class1
-    {{
-    }}
-}}";
+    {
+    }
+}";
 
-            var expectedSourceOriginal =
-$@"namespace B.C
-{{
+            var fixedCode =
+@"namespace B.C
+{
     class Class1
-    {{
-    }}
-}}";
+    {
+    }
+}";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
                 directory: folder,
-                fixedCode: expectedSourceOriginal);
+                fixedCode: fixedCode);
         }
 
         [Fact]
-        public async Task ChangeNamespace_SingleDocumentLocalReference()
+        public async Task NamespaceWithSpaces_NoDiagnostic()
+        {
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace [|A    .     B|]
+{
+    class Class1
+    {
+    }
+}";
+
+            var fixedCode =
+@"namespace B.C
+{
+    class Class1
+    {
+    }
+}";
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                fixedCode: fixedCode);
+        }
+
+        [Fact]
+        public async Task NestedNamespaces_NoDiagnostic()
+        {
+            // The code fix doesn't currently support nested namespaces for sync, so 
+            // diagnostic does not report. 
+
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace A.B
+{
+    namespace C.D
+    {
+        class CDClass
+        {
+        }
+    }
+
+    class ABClass
+    {
+    }
+}";
+
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder);
+        }
+
+        [Fact]
+        public async Task PartialTypeWithMultipleDeclarations_NoDiagnostic()
+        {
+            // The code fix doesn't currently support nested namespaces for sync, so 
+            // diagnostic does not report. 
+
+            var folder = CreateFolderPath("B", "C");
+            var code1 =
+@"namespace A.B
+{
+    partial class ABClass
+    {
+        void M1() {}
+    }
+}";
+
+            var code2 = 
+@"namespace A.B
+{
+    partial class ABClass
+    {
+        void M2() {}
+    }
+}";
+
+            var sources = new[]
+            {
+                (Path.Combine(folder, "ABClass1.cs"), code1),
+                (Path.Combine(folder, "ABClass2.cs"), code2),
+            };
+
+            await RunTestAsync(sources);
+        }
+
+        [Fact]
+        public async Task FileNotInProjectFolder_NoDiagnostic()
+        {
+            // Default directory is Test\Directory for the project,
+            // putting the file outside the directory should have no
+            // diagnostic shown.
+
+            var folder = Path.Combine("B", "C");
+            var code =
+$@"namespace A.B
+{{
+    class ABClass
+    {{
+    }}
+}}";
+
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder);
+        }
+
+        [Fact]
+        public async Task SingleDocumentLocalReference()
         {
             var @namespace = "Bar.Baz";
 
@@ -157,529 +301,157 @@ namespace [|{@namespace}|]
                 fixedCode: expected);
         }
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_WithCrefReference()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
+        [Fact]
+        public async Task ChangeUsingsInMultipleContainers()
+        {
+            var declaredNamespace = "Bar.Baz";
 
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    /// &lt;summary&gt;
-        //    /// See &lt;see cref=""Class1""/&gt;
-        //    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
-        //    /// See &lt;see cref=""global::{declaredNamespace}.Class1""/&gt;
-        //    /// See &lt;see cref=""global::{declaredNamespace}.Class1.M1""/&gt;
-        //    /// &lt;/summary&gt;
-        //    public class Class1
-        //    {{
-        //        public void M1() {{ }}
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //namespace Foo
-        //{{
-        //    using {declaredNamespace};
+            var folder = CreateFolderPath("B", "C");
+            var code1 =
+$@"namespace [|{declaredNamespace}|]
+        {{
+            class Class1
+            {{
+            }}
+        }}";
 
-        //    /// &lt;summary&gt;
-        //    /// See &lt;see cref=""Class1""/&gt;
-        //    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
-        //    /// See &lt;see cref=""global::{declaredNamespace}.Class1""/&gt;
-        //    /// See &lt;see cref=""global::{declaredNamespace}.Class1.M1""/&gt;
-        //    /// &lt;/summary&gt;
-        //    class RefClass
-        //    {{
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
+            var code2 = $@"
+        namespace NS1
+        {{
+            using {declaredNamespace};
 
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    /// <summary>
-        //    /// See <see cref=""Class1""/>
-        //    /// See <see cref=""Class1""/>
-        //    /// See <see cref=""global::A.B.C.Class1""/>
-        //    /// See <see cref=""global::A.B.C.Class1.M1""/>
-        //    /// </summary>
-        //    public class Class1
-        //    {
-        //        public void M1() { }
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //namespace Foo
-        //{
-        //    using A.B.C;
+            class Class2
+            {{
+                Class1 c2;
+            }}
 
-        //    /// <summary>
-        //    /// See <see cref=""Class1""/>
-        //    /// See <see cref=""A.B.C.Class1""/>
-        //    /// See <see cref=""global::A.B.C.Class1""/>
-        //    /// See <see cref=""global::A.B.C.Class1.M1""/>
-        //    /// </summary>
-        //    class RefClass
-        //    {
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
+            namespace NS2
+            {{
+                using Foo.Bar.Baz;
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_WithCrefReferencesInVB()
-        //        {
-        //            var defaultNamespace = "A.B.C";
-        //            var declaredNamespace = "A.B.C.D";
+                class Class2
+                {{
+                    Class1 c1;
+                }}
+            }}
+        }}";
 
-        //            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    /// &lt;summary&gt;
-        //    /// See &lt;see cref=""Class1""/&gt;
-        //    /// See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
-        //    /// &lt;/summary&gt;
-        //    public class Class1
-        //    {{
-        //    }}
-        //}}</Document>
-        //    </Project>    
-        //<Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        //        <Document> 
-        //Imports {declaredNamespace}
+            var fixed1 =
+@"namespace A.B.C
+        {
+            class Class1
+            {
+            }
+        }";
 
-        //''' &lt;summary&gt;
-        //''' See &lt;see cref=""Class1""/&gt;
-        //''' See &lt;see cref=""{declaredNamespace}.Class1""/&gt;
-        //''' &lt;/summary&gt;
-        //Public Class VBClass
-        //    Public ReadOnly Property C1 As Class1
-        //End Class</Document>
-        //    </Project>
-        //</Workspace>";
+            var fixed2 =
+@"
+        namespace NS1
+        {
+            using A.B.C;
 
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    /// <summary>
-        //    /// See <see cref=""Class1""/>
-        //    /// See <see cref=""Class1""/>
-        //    /// </summary>
-        //    public class Class1
-        //    {
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //Imports A.B.C
+            class Class2
+            {
+                Class1 c2;
+            }
 
-        //''' <summary>
-        //''' See <see cref=""Class1""/>
-        //''' See <see cref=""Class1""/>
-        //''' </summary>
-        //Public Class VBClass
-        //    Public ReadOnly Property C1 As Class1
-        //End Class";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
+            namespace NS2
+            {
+                class Class2
+                {
+                    Class1 c1;
+                }
+            }
+        }";
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
+            var originalSources = new[]
+            {
+                (Path.Combine(folder, "Class1.cs"), code1),
+                (Path.Combine(folder, "Class2.cs"), code2)
+            };
 
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    class Class1 
-        //    {{ 
-        //        private Class2 c2;
-        //        private Class3 c3;
-        //        private Class4 c4;
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //namespace Foo
-        //{{
-        //    class Class2 {{}}
+            var fixedSources = new[]
+            {
+                (Path.Combine(folder, "Class1.cs"), fixed1),
+                (Path.Combine(folder, "Class2.cs"), fixed2)
+            };
 
-        //    namespace Bar
-        //    {{
-        //        class Class3 {{}}
+            await RunTestAsync(originalSources, fixedSources);
+        }
 
-        //        namespace Baz
-        //        {{
-        //            class Class4 {{}}    
-        //        }}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
+        [Fact]
+        public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
+        {
+            var declaredNamespace = "Bar.Baz";
 
-        //            var expectedSourceOriginal =
-        //@"using Foo;
-        //using Foo.Bar;
-        //using Foo.Bar.Baz;
+            var folder = CreateFolderPath("B", "C");
+            var code1 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class1
+    {{
+    }}
+}}";
 
-        //namespace A.B.C
-        //{
-        //    class Class1
-        //    {
-        //        private Class2 c2;
-        //        private Class3 c3;
-        //        private Class4 c4;
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        //        }
+            var code2 = $@"
+using System;
+using {declaredNamespace};
+using Class1Alias = {declaredNamespace}.Class1;
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
+namespace Foo
+{{
+    class RefClass
+    {{
+        private Class1Alias c1;
 
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    class Class1 
-        //    {{ 
-        //        private Foo.Class2 c2;
-        //        private Foo.Bar.Class3 c3;
-        //        private Foo.Bar.Baz.Class4 c4;
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //namespace Foo
-        //{{
-        //    class Class2 {{}}
+        void M1()
+        {{
+            Class2 c2 = null;
+        }}
+    }}
+}}";
 
-        //    namespace Bar
-        //    {{
-        //        class Class3 {{}}
+            var fixed1 =
+@"namespace A.B.C
+{
+    class Class1
+    {
+    }
+}";
 
-        //        namespace Baz
-        //        {{
-        //            class Class4 {{}}    
-        //        }}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
+            var fixed2 =
+@"
+using System;
+using A.B.C;
+using Class1Alias = A.B.C.Class1;
 
-        //            var expectedSourceOriginal =
-        //@"using Foo;
-        //using Foo.Bar;
-        //using Foo.Bar.Baz;
+namespace Foo
+{
+    class RefClass
+    {
+        private Class1Alias c1;
 
-        //namespace A.B.C
-        //{
-        //    class Class1
-        //    {
-        //        private Class2 c2;
-        //        private Class3 c3;
-        //        private Class4 c4;
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        //        }
+        void M1()
+        {
+            Class2 c2 = null;
+        }
+    }
+}";
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_WithReferencesInOtherDocument()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
+            var originalSources = new[]
+            {
+                (Path.Combine(folder, "Class1.cs"), code1),
+                (Path.Combine(folder, "Class2.cs"), code2)
+            };
 
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    class Class1 
-        //    {{ 
-        //    }}
+            var fixedSources = new[]
+            {
+                (Path.Combine(folder, "Class1.cs"), fixed1),
+                (Path.Combine(folder, "Class2.cs"), fixed2)
+            };
 
-        //    class Class2 
-        //    {{ 
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //using Foo.Bar.Baz;
-
-        //namespace Foo
-        //{{
-        //    class RefClass
-        //    {{
-        //        private Class1 c1;
-
-        //        void M1()
-        //        {{
-        //            Bar.Baz.Class2 c2 = null;
-        //        }}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
-
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    class Class1
-        //    {
-        //    }
-
-        //    class Class2
-        //    {
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //using A.B.C;
-
-        //namespace Foo
-        //{
-        //    class RefClass
-        //    {
-        //        private Class1 c1;
-
-        //        void M1()
-        //        {
-        //            Class2 c2 = null;
-        //        }
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
-
-        //        [Fact]
-        //        public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
-
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    interface Interface1 
-        //    {{
-        //        void M1(Interface1 c1);   
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //namespace Foo
-        //{{
-        //    using {declaredNamespace};
-
-        //    class RefClass : Interface1
-        //    {{
-        //        void {declaredNamespace}.Interface1.M1(Interface1 c1){{}}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
-
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    interface Interface1
-        //    {
-        //        void M1(Interface1 c1);
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //namespace Foo
-        //{
-        //    using A.B.C;
-
-        //    class RefClass : Interface1
-        //    {
-        //        void Interface1.M1(Interface1 c1){}
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
-
-        //        [Fact]
-        //        public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
-
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    class Class1
-        //    {{
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-        //namespace NS1
-        //{{
-        //    using Foo.Bar.Baz;
-
-        //    class Class2
-        //    {{
-        //        Class1 c2;
-        //    }}
-
-        //    namespace NS2
-        //    {{
-        //        using Foo.Bar.Baz;
-
-        //        class Class2
-        //        {{
-        //            Class1 c1;
-        //        }}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
-
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    class Class1
-        //    {
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //namespace NS1
-        //{
-        //    using A.B.C;
-
-        //    class Class2
-        //    {
-        //        Class1 c2;
-        //    }
-
-        //    namespace NS2
-        //    {
-        //        class Class2
-        //        {
-        //            Class1 c1;
-        //        }
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
-
-        //        [Fact]
-        //        public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar.Baz";
-
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    class Class1 
-        //    {{ 
-        //    }}
-
-        //    class Class2 
-        //    {{ 
-        //    }}
-        //}}</Document>
-        //<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"">
-        //using System;
-        //using Class1Alias = Foo.Bar.Baz.Class1;
-
-        //namespace Foo
-        //{{
-        //    class RefClass
-        //    {{
-        //        private Class1Alias c1;
-
-        //        void M1()
-        //        {{
-        //            Bar.Baz.Class2 c2 = null;
-        //        }}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
-
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    class Class1
-        //    {
-        //    }
-
-        //    class Class2
-        //    {
-        //    }
-        //}";
-        //            var expectedSourceReference =
-        //@"
-        //using System;
-        //using A.B.C;
-        //using Class1Alias = A.B.C.Class1;
-
-        //namespace Foo
-        //{
-        //    class RefClass
-        //    {
-        //        private Class1Alias c1;
-
-        //        void M1()
-        //        {
-        //            Class2 c2 = null;
-        //        }
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
-        //        }
+            await RunTestAsync(originalSources, fixedSources);
+        }
 
         //        [Fact]
         //        public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
