@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
-    Public Class RudeEditStatementTests
+    Public Class StatementEditingTests
         Inherits EditingTestBase
 
 #Region "Matching"

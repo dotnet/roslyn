@@ -2248,17 +2248,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // If the new type has a parameterless ctor of the same accessibility then UPDATE.
                             // Error otherwise.
 
-                            Debug.Assert(AsParameterlessConstructor(oldSymbol) != null);
+                            Contract.ThrowIfNull(AsParameterlessConstructor(oldSymbol));
 
                             var oldTypeSyntax = TryGetContainingTypeDeclaration(edit.OldNode);
-                            RoslynDebug.Assert(oldTypeSyntax != null);
+                            Contract.ThrowIfNull(oldTypeSyntax);
 
                             var newType = TryGetPartnerType(oldTypeSyntax, editScript.Match, newModel, cancellationToken);
 
                             // If the type has been deleted we would have reported a rude edit based on syntax analysis and not get here.
-                            RoslynDebug.Assert(newType != null);
+                            Contract.ThrowIfNull(newType);
 
                             newSymbol = TryGetParameterlessConstructor(newType, oldSymbol.IsStatic);
+
+                            // If the new constructor is explicitly declared then it must be in another part of a partial type declaration.
+                            // A type can't have more than one parameterless constructor declaration. The current edit is deleting it.
+                            // The new type symbol has a parameterless constructor. Therefore this must be either implicitly declared 
+                            // or it is now declared in another part of a partial type declaration. The former case results in
+                            // an update of the constructor symbol. The latter is skipped since the update edit of the constructor will be 
+                            // created when the part where the declaration is inserted is analyzed.
+                            if (newSymbol != null && !newSymbol.IsImplicitlyDeclared)
+                            {
+                                continue;
+                            }
+
                             if (newSymbol == null || newSymbol.DeclaredAccessibility != oldSymbol.DeclaredAccessibility)
                             {
                                 diagnostics.Add(new RudeEditDiagnostic(
@@ -2317,8 +2329,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             var oldType = TryGetPartnerType(newTypeSyntax, editScript.Match, oldModel, cancellationToken);
 
                             // There has to be a matching old type syntax since the containing type hasn't been inserted.
-                            RoslynDebug.Assert(oldType != null);
-                            RoslynDebug.Assert(newType != null);
+                            Contract.ThrowIfNull(oldType);
+                            Contract.ThrowIfNull(newType);
 
                             // Validate that the type declarations are correct. If not we can't reason about their members.
                             // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
@@ -2383,9 +2395,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
                             }
 
-                            bool isConstructorWithMemberInitializers;
-                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
-                                IsDeclarationWithInitializer(edit.NewNode))
+                            var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode);
+                            if (isConstructorWithMemberInitializers || IsDeclarationWithInitializer(edit.NewNode))
                             {
                                 if (DeferConstructorEdit(
                                     oldType,
@@ -2410,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     else
                                     {
                                         // A semantic edit to create the field/property is gonna be added.
-                                        Debug.Assert(editKind == SemanticEditKind.Insert);
+                                        Contract.ThrowIfFalse(editKind == SemanticEditKind.Insert);
                                     }
                                 }
                             }
@@ -2430,7 +2441,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
 
                             oldSymbol = GetSymbolForEdit(oldModel, edit.OldNode, edit.Kind, editMap, cancellationToken);
-                            RoslynDebug.Assert(oldSymbol != null);
+                            Contract.ThrowIfNull(oldSymbol);
 
                             var oldContainingType = oldSymbol.ContainingType;
                             var newContainingType = newSymbol.ContainingType;
@@ -2490,8 +2501,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             // If a constructor changes from including initializers to not including initializers
                             // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
-                            bool isConstructorWithMemberInitializers;
-                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
+                            var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode);
+                            if (isConstructorWithMemberInitializers ||
                                 IsDeclarationWithInitializer(edit.OldNode) ||
                                 IsDeclarationWithInitializer(edit.NewNode))
                             {
@@ -2561,8 +2572,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(IsConstructorWithMemberInitializers(oldNode) == IsConstructorWithMemberInitializers(newNode));
                 Debug.Assert(IsDeclarationWithInitializer(oldNode) == IsDeclarationWithInitializer(newNode));
 
-                bool isConstructorWithMemberInitializers;
-                if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(newNode)) ||
+                var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(newNode);
+                if (isConstructorWithMemberInitializers ||
                     IsDeclarationWithInitializer(newNode))
                 {
                     if (DeferConstructorEdit(
@@ -2840,6 +2851,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return method.Parameters.Length == 0 ? method : null;
         }
 
+        /// <summary>
+        /// Called when a body of a constructor or an initializer of a member is updated or inserted.
+        /// </summary>
         private bool DeferConstructorEdit(
             INamedTypeSymbol oldType,
             INamedTypeSymbol newType,
@@ -2873,14 +2887,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // TODO (bug https://github.com/dotnet/roslyn/issues/2504)
-                if (editKind == SemanticEditKind.Insert && HasMemberInitializerContainingLambda(oldType, newSymbol.IsStatic, cancellationToken))
+                if (editKind == SemanticEditKind.Insert)
                 {
-                    // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
-                    return false;
+                    if (HasMemberInitializerContainingLambda(oldType, newSymbol.IsStatic, cancellationToken))
+                    {
+                        // rude edit: Adding a constructor to a type with a field or property initializer that contains an anonymous function
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, GetDiagnosticSpan(newDeclaration, EditKind.Insert)));
+                        return false;
+                    }
+
+                    syntaxMap = null;
+                }
+                else
+                {
+                    syntaxMap = CreateSyntaxMapForPartialTypeConstructor(oldType, newType, newModel, syntaxMap);
                 }
 
-                syntaxMap = CreateSyntaxMapForPartialTypeConstructor(oldType, newType, newModel, syntaxMap);
                 return false;
             }
 
@@ -2894,12 +2916,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 constructorEdits = instanceConstructorEdits ??= new();
             }
 
-            if (!constructorEdits.TryGetValue(newType, out var edit))
+            if (!constructorEdits.TryGetValue(newType, out var constructorEdit))
             {
-                constructorEdits.Add(newType, edit = new ConstructorEdit(oldType));
+                constructorEdits.Add(newType, constructorEdit = new ConstructorEdit(oldType));
             }
 
-            edit.ChangedDeclarations.Add(newDeclaration, syntaxMap);
+            constructorEdit.ChangedDeclarations.Add(newDeclaration, syntaxMap);
 
             return true;
         }
@@ -3821,9 +3843,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return reverseMap.TryGetValue(newScopeOpt, out var mappedScope) && mappedScope == oldScopeOpt;
         }
 
-        #endregion
+#endregion
 
-        #region State Machines
+#region State Machines
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
@@ -3859,11 +3881,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
-        #region Helpers 
+#region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
             => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
@@ -3882,9 +3904,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-        #endregion
+#endregion
 
-        #region Testing
+#region Testing
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -3975,6 +3997,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        #endregion
+#endregion
     }
 }

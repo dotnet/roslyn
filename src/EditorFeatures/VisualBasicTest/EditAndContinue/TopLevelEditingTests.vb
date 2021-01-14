@@ -2659,12 +2659,49 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub InstanceCtorInsert_Partial_Public_Implicit()
+            Dim srcA1 = "Partial Class C" & vbLf & "End Class"
+            Dim srcB1 = "Partial Class C" & vbLf & "End Class"
+
+            Dim srcA2 = "Partial Class C" & vbLf & "End Class"
+            Dim srcB2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+                })
+        End Sub
+
+        <Fact>
         Public Sub InstanceCtorInsert_Public_NoImplicit()
             Dim src1 = "Class C" & vbLf & "Sub New(a As Integer) : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub New(a As Integer) : End Sub : " & vbLf & "Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                expectedSemanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))
+                })
+        End Sub
+
+        <Fact>
+        Public Sub InstanceCtorInsert_Partial_Public_NoImplicit()
+            Dim srcA1 = "Partial Class C" & vbLf & "End Class"
+            Dim srcB1 = "Partial Class C" & vbLf & "Sub New(a As Integer) : End Sub : End Class"
+
+            Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C" & vbLf & "Sub New(a As Integer) : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))
+                })
         End Sub
 
         <Fact>
@@ -2756,7 +2793,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub StaticCtor_Partial_Delete()
+        Public Sub StaticCtor_Partial_DeleteInsert()
             Dim srcA1 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim srcB1 = "Partial Class C : End Class"
 
@@ -2765,7 +2802,7 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2778,11 +2815,11 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_DeletePrivate()
+        Public Sub InstanceCtor_Partial_DeletePrivateInsertPrivate()
             Dim srcA1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
             Dim srcB1 = "Partial Class C : End Class"
 
@@ -2791,11 +2828,11 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_DeletePublic()
+        Public Sub InstanceCtor_Partial_DeletePublicInsertPublic()
             Dim srcA1 = "Partial Class C" & vbLf & "Public Sub New() : End Sub : End Class"
             Dim srcB1 = "Partial Class C : End Class"
 
@@ -2804,11 +2841,11 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_DeletePrivateToPublic()
+        Public Sub InstanceCtor_Partial_DeletePrivateInsertPublic()
             Dim srcA1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
             Dim srcB1 = "Partial Class C : End Class"
 
@@ -2817,11 +2854,11 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedDiagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", FeaturesResources.constructor)})
+                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Public Sub New()")})
         End Sub
 
         <Fact>
-        Public Sub StaticCtor_Partial_Insert()
+        Public Sub StaticCtor_Partial_InsertDelete()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
 
@@ -2834,7 +2871,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ModuleCtor_Partial_Insert()
+        Public Sub ModuleCtor_Partial_InsertDelete()
             Dim srcA1 = "Partial Module C : End Module"
             Dim srcB1 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
 
@@ -2847,7 +2884,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_InsertPublic()
+        Public Sub InstanceCtor_Partial_InsertPublicDeletePublic()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
 
@@ -2860,7 +2897,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_InsertPrivate()
+        Public Sub InstanceCtor_Partial_InsertPrivateDeletePrivate()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
@@ -2873,7 +2910,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_InsertInternal()
+        Public Sub InstanceCtor_Partial_DeleteInternalInsertInternal()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
 
@@ -2886,7 +2923,20 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_InsertPrivateToPublic()
+        Public Sub InstanceCtor_Partial_InsertInternalDeleteInternal_WithBody()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
+
+            Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New()" & vbLf & "Console.WriteLine(1) : End Sub : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+        End Sub
+
+        <Fact>
+        Public Sub InstanceCtor_Partial_InsertPublicDeletePrivate()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
@@ -2899,7 +2949,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub InstanceCtor_Partial_InsertPrivateToInternal()
+        Public Sub InstanceCtor_Partial_InsertInternalDeletePrivate()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
@@ -2908,7 +2958,7 @@ End Class
 
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedDiagnostics:=Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
+                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()")})
         End Sub
 
         <Fact>
