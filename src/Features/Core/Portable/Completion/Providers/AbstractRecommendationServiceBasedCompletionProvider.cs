@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         {
                             if (TryFindFirstSymbolMatchesTargetTypes(_ => context, bestSymbols, typeConvertibilityCache, out var index) && index > 0)
                             {
-                                // This would ensure a symbol matches target types to be used for description (if any).
+                                // Since the first symbol is used to get the item description by default,
+                                // this would ensure the displayed one matches target types (if there's any).
                                 var firstMatch = bestSymbols[index];
                                 bestSymbols.RemoveAt(index);
                                 bestSymbols.Insert(0, firstMatch);
