@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -33,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
@@ -72,6 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
+            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
 
@@ -106,12 +109,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If formatHandler Is Nothing Then
                 sigHelpHandler.ExecuteCommand(
                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
+                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context)
             Else
                 formatHandler.ExecuteCommand(
                     args, Sub() sigHelpHandler.ExecuteCommand(
                                     args, Sub() completionCommandHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
+                                                    args, Sub() CompleteStatementCommandHandler.ExecuteCommand(args, finalHandler, context), context), context), context)
             End If
         End Sub
 
