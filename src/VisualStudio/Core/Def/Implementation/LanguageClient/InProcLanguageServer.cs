@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
-        private static async Task<ILspLogger> CreateLoggerAsync(
+        private async Task<ILspLogger> CreateLoggerAsync(
             string serverName,
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             CancellationToken cancellationToken)
@@ -125,6 +125,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
 
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+
+            _jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
 
             return new LogHubLspLogger(configuration, traceSource);
         }
