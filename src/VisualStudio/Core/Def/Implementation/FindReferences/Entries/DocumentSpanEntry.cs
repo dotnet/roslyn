@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry
+        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
@@ -199,6 +200,25 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return Span.FromBounds(
                     sourceText.Lines[firstLineNumber].Start,
                     sourceText.Lines[lastLineNumber].End);
+            }
+
+            bool ISupportsNavigation.TryNavigateTo(bool isPreview)
+            {
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+                if (_excerptResult.Document is SourceGeneratedDocument)
+                {
+                    var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                    var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
+
+                    if (documentNavigationService != null)
+                    {
+                        return documentNavigationService.TryNavigateToSpan(workspace, _excerptResult.Document.Id, _excerptResult.Span);
+                    }
+                }
+
+                return false;
             }
         }
     }

@@ -340,8 +340,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                    this,
+                    definitionBucket,
+                    spanKind,
+                    projectName,
+                    guid,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
