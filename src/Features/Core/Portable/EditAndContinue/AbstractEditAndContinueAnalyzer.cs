@@ -305,6 +305,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
+        protected abstract void ReportMethodBodySyntaxRudeEditsForLambda(SyntaxNode oldLambda, SyntaxNode newLambda, Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics);
+
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
@@ -1259,6 +1261,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         if (newLambdaBody1 != null)
                         {
                             lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody1, newLambdaBody1, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+
+                            ReportMethodBodySyntaxRudeEditsForLambda(GetLambda(oldLambdaBody1), GetLambda(newLambdaBody1), bodyMatch, diagnostics);
                         }
 
                         if (oldLambdaBody2 != null)
@@ -1267,6 +1271,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (newLambdaBody2 != null)
                             {
                                 lambdaBodyMatches.Add(ComputeLambdaBodyMatch(oldLambdaBody2, newLambdaBody2, activeNodes, lazyActiveOrMatchedLambdas, diagnostics));
+
+                                ReportMethodBodySyntaxRudeEditsForLambda(GetLambda(oldLambdaBody2), GetLambda(newLambdaBody2), bodyMatch, diagnostics);
                             }
                         }
                     }

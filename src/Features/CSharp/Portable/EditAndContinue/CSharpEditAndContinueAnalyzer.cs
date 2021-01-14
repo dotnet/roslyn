@@ -1139,6 +1139,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        protected override void ReportMethodBodySyntaxRudeEditsForLambda(SyntaxNode oldLambda, SyntaxNode newLambda, Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics)
+        {
+            // We're only interested in local functions here
+            if (!IsLocalFunction(oldLambda))
+            {
+                return;
+            }
+
+            var bodyEditsForLambda = bodyMatch.GetTreeEdits();
+            var editMap = BuildEditMap(bodyEditsForLambda);
+            foreach (var edit in bodyEditsForLambda.Edits)
+            {
+                // We are processing edits on the method body that contains the lambda as
+                // things like local function attributes are actually edits in the containing method, not the actual
+                // lambda body.
+                // We only want to consider the edits that are related to the lambda (ie, descendants).
+                if ((edit.OldNode != null && oldLambda.Contains(edit.OldNode)) ||
+                    (edit.NewNode != null && newLambda.Contains(edit.NewNode)))
+                {
+                    if (HasParentEdit(editMap, edit))
+                    {
+                        return;
+                    }
+
+                    var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch, isTopLevelEdit: false);
+                    classifier.ClassifyEdit();
+                }
+            }
+        }
+
         protected override void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
