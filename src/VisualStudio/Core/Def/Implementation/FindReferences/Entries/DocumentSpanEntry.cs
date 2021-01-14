@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
@@ -105,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return inlines;
             }
 
-            public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 if (base.TryCreateColumnContent(columnName, out content))
                 {
@@ -113,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // solution is never supposed to be kept alive for long time, meaning there is bunch of conditional weaktable or weak reference
                     // keyed by solution/project/document or corresponding states. this will cause all those to be kept alive in memory as well.
                     // probably we need to dig in to see how expensvie it is to support this
-                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                    var controlService = _excerptResult.Document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
                     controlService.AttachToolTipToControl(content, () =>
                         CreateDisposableToolTip(_excerptResult.Document, _excerptResult.Span));
 
@@ -123,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            protected override object GetValueWorker(string keyName)
+            protected override object? GetValueWorker(string keyName)
             {
                 if (keyName == StandardTableKeyNames2.SymbolKind)
                 {
@@ -142,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 Presenter.AssertIsForeground();
 
-                var controlService = document.Project.Solution.Workspace.Services.GetService<IContentControlService>();
+                var controlService = document.Project.Solution.Workspace.Services.GetRequiredService<IContentControlService>();
                 var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
                 var excerptService = document.Services.GetService<IDocumentExcerptService>();
