@@ -30,8 +30,8 @@ build_property.ProjectDir = {Directory}
             fixedCode ??= fileContents;
 
             return RunTestAsync(
-                new [] { (filePath, fileContents)}, 
-                new [] { (filePath, fixedCode)},
+                new[] { (filePath, fileContents) },
+                new[] { (filePath, fixedCode) },
                 editorconfig);
         }
 
@@ -211,7 +211,7 @@ namespace a.b
     }
 }";
 
-            var code2 = 
+            var code2 =
 @"namespace A.B
 {
     partial class ABClass

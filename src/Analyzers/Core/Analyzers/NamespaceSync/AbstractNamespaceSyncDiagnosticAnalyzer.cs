@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 
-            if (string.IsNullOrEmpty(expectedNamespace) || expectedNamespace.Equals(GetNamespaceName(namespaceDeclaration, rootNamespace), StringComparison.OrdinalIgnoreCase))
+            if (RoslynString.IsNullOrWhiteSpace(expectedNamespace) || expectedNamespace.Equals(GetNamespaceName(namespaceDeclaration, rootNamespace), StringComparison.OrdinalIgnoreCase))
             {
                 // The namespace currently matches the folder structure or is invalid, in which case we don't want
                 // to provide a diagnostic.
