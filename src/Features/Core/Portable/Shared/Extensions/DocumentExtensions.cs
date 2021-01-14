@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +30,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.Project.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
         }
 
-        public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode
+        public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+            where TNode : SyntaxNode
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return document.ReplaceNode(root, oldNode, newNode);
+        }
+
+        public static Document ReplaceNodeSynchronously<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+            where TNode : SyntaxNode
+        {
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            return document.ReplaceNode(root, oldNode, newNode);
+        }
+
+        public static Document ReplaceNode<TNode>(this Document document, SyntaxNode root, TNode oldNode, TNode newNode)
+            where TNode : SyntaxNode
+        {
+            Debug.Assert(document.GetRequiredSyntaxRootSynchronously(CancellationToken.None) == root);
             var newRoot = root.ReplaceNode(oldNode, newNode);
             return document.WithSyntaxRoot(newRoot);
         }
