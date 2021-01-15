@@ -382,7 +382,8 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(lazyLogger: null, registrationService, serverName: "Tests", clientName: "Tests");
+            return new RequestExecutionQueue(
+                new AsyncLazy<ILspLogger>(NoOpLspLogger.Instance), registrationService, serverName: "Tests", clientName: "Tests");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

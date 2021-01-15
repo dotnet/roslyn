@@ -89,10 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            var serverName = languageClient.Name;
-            var lazyLogger = new AsyncLazy<ILspLogger>(ct => CreateLoggerAsync(serverName, asyncServiceProvider, ct), cacheResult: true);
+            var lazyLogger = new AsyncLazy<ILspLogger>(ct => CreateLoggerAsync(asyncServiceProvider, ct), cacheResult: true);
 
-            _queue = new RequestExecutionQueue(lazyLogger, lspWorkspaceRegistrationService, serverName, clientName);
+            _queue = new RequestExecutionQueue(lazyLogger, lspWorkspaceRegistrationService, languageClient.Name, clientName);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -108,14 +107,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         private async Task<ILspLogger> CreateLoggerAsync(
-            string serverName,
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             CancellationToken cancellationToken)
         {
             if (asyncServiceProvider == null)
                 return NoOpLspLogger.Instance;
 
-            var cleaned = string.Concat(serverName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
+            var cleaned = string.Concat(_languageClient.Name.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
             var logId = new LogId(cleaned, new ServiceMoniker("Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient"));
 
             var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
