@@ -2297,6 +2297,37 @@ unsafe
             );
         }
 
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ThroughMethodGroup()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    Test1(0, converter);
+    Test2(0, converter);
+
+    static int converter(string v) => 0;
+    static void Test1<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+    static void Test2<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0411: The type arguments for method 'Test1<T1, T2>(T1, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(0, converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(T1, delegate*<T1, T2>)").WithLocation(4, 5),
+                // (5,5): error CS0411: The type arguments for method 'Test2<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test2(0, converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test2").WithArguments("Test2<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(5, 5),
+                // (8,17): warning CS8321: The local function 'Test1' is declared but never used
+                //     static void Test1<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test1").WithArguments("Test1").WithLocation(8, 17),
+                // (9,17): warning CS8321: The local function 'Test2' is declared but never used
+                //     static void Test2<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test2").WithArguments("Test2").WithLocation(9, 17)
+            );
+        }
+
         [Fact]
         public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
         {

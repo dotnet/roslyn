@@ -501,10 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _exactBounds[methodTypeParameterIndex] != null;
         }
 
-        private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateType)
+        private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateOrFunctionPointerType)
         {
-            Debug.Assert((object)delegateType != null);
-            Debug.Assert(delegateType.IsDelegateType() || delegateType is FunctionPointerTypeSymbol);
+            Debug.Assert((object)delegateOrFunctionPointerType != null);
+            Debug.Assert(delegateOrFunctionPointerType.IsDelegateType() || delegateOrFunctionPointerType is FunctionPointerTypeSymbol);
 
             // We have a delegate where the input types use no unfixed parameters.  Create
             // a substitution context; we can substitute unfixed parameters for themselves
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
-            return typeMap.SubstituteType(delegateType).Type;
+            return typeMap.SubstituteType(delegateOrFunctionPointerType).Type;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -867,7 +867,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // No input types.
             }
 
-            if (argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup or BoundKind.UnconvertedAddressOfOperator))
+            var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
+            if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
+                (!isFunctionPointer && argument.Kind is not BoundKind.UnboundLambda or BoundKind.MethodGroup))
             {
                 return false; // No input types.
             }
@@ -921,7 +923,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup or BoundKind.UnconvertedAddressOfOperator))
+            var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
+            if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
+                (!isFunctionPointer && argument.Kind is not BoundKind.UnboundLambda or BoundKind.MethodGroup))
             {
                 return false;
             }
@@ -1294,6 +1298,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateOrFunctionPointerType = target.GetDelegateOrFunctionPointerType();
             if ((object)delegateOrFunctionPointerType == null)
+            {
+                return false;
+            }
+
+
+            if (delegateOrFunctionPointerType.IsFunctionPointer() != (source.Kind == BoundKind.UnconvertedAddressOfOperator))
             {
                 return false;
             }
