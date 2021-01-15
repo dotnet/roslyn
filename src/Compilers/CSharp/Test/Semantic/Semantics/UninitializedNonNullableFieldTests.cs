@@ -1679,7 +1679,7 @@ public interface I
     public static object F3 { get; set; } // 3
     public static event System.Action E1; // 4, 5
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp30);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0525: Interfaces cannot contain instance fields
                 //     public object F1; // 1
@@ -1725,7 +1725,7 @@ public interface I
         E3 = () => {};
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp30);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,39): warning CS0067: The event 'I.E1' is never used
                 //     public static event System.Action E1; // 1
