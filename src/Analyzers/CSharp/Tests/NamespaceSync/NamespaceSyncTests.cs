@@ -315,7 +315,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var code2 = 
+            var code2 =
 $@"namespace NS1
 {{
     using {declaredNamespace};
