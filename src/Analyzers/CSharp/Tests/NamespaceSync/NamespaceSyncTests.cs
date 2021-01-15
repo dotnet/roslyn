@@ -306,74 +306,73 @@ namespace [|{@namespace}|]
         {
             var declaredNamespace = "Bar.Baz";
 
-            var folder = CreateFolderPath("B", "C");
+            var folder = CreateFolderPath("A", "B", "C");
             var code1 =
 $@"namespace [|{declaredNamespace}|]
+{{
+    class Class1
+    {{
+    }}
+}}";
+
+            var code2 = 
+$@"namespace NS1
+{{
+    using {declaredNamespace};
+
+    class Class2
+    {{
+        Class1 c2;
+    }}
+
+    namespace NS2
+    {{
+        using {declaredNamespace};
+
+        class Class2
         {{
-            class Class1
-            {{
-            }}
-        }}";
-
-            var code2 = $@"
-        namespace NS1
-        {{
-            using {declaredNamespace};
-
-            class Class2
-            {{
-                Class1 c2;
-            }}
-
-            namespace NS2
-            {{
-                using Foo.Bar.Baz;
-
-                class Class2
-                {{
-                    Class1 c1;
-                }}
-            }}
-        }}";
+            Class1 c1;
+        }}
+    }}
+}}";
 
             var fixed1 =
 @"namespace A.B.C
-        {
-            class Class1
-            {
-            }
-        }";
+{
+    class Class1
+    {
+    }
+}";
 
             var fixed2 =
-@"
-        namespace NS1
+@"namespace NS1
+{
+    using A.B.C;
+
+    class Class2
+    {
+        Class1 c2;
+    }
+
+    namespace NS2
+    {
+        class Class2
         {
-            using A.B.C;
-
-            class Class2
-            {
-                Class1 c2;
-            }
-
-            namespace NS2
-            {
-                class Class2
-                {
-                    Class1 c1;
-                }
-            }
-        }";
+            Class1 c1;
+        }
+    }
+}";
 
             var originalSources = new[]
             {
                 (Path.Combine(folder, "Class1.cs"), code1),
-                (Path.Combine(folder, "Class2.cs"), code2)
+                ("Class2.cs", code2)
             };
 
             var fixedSources = new[]
             {
                 (Path.Combine(folder, "Class1.cs"), fixed1),
-                (Path.Combine(folder, "Class2.cs"), fixed2)
+                ("Class2.cs", fixed2)
             };
 
             await RunTestAsync(originalSources, fixedSources);
@@ -384,7 +383,7 @@ $@"namespace [|{declaredNamespace}|]
         {
             var declaredNamespace = "Bar.Baz";
 
-            var folder = CreateFolderPath("B", "C");
+            var folder = CreateFolderPath("A", "B", "C");
             var code1 =
 $@"namespace [|{declaredNamespace}|]
 {{
@@ -403,11 +402,6 @@ namespace Foo
     class RefClass
     {{
         private Class1Alias c1;
-
-        void M1()
-        {{
-            Class2 c2 = null;
-        }}
     }}
 }}";
 
@@ -422,7 +416,6 @@ namespace Foo
             var fixed2 =
 @"
 using System;
-using A.B.C;
 using Class1Alias = A.B.C.Class1;
 
 namespace Foo
@@ -430,24 +423,19 @@ namespace Foo
     class RefClass
     {
         private Class1Alias c1;
-
-        void M1()
-        {
-            Class2 c2 = null;
-        }
     }
 }";
 
             var originalSources = new[]
             {
                 (Path.Combine(folder, "Class1.cs"), code1),
-                (Path.Combine(folder, "Class2.cs"), code2)
+                ("Class2.cs", code2)
             };
 
             var fixedSources = new[]
             {
                 (Path.Combine(folder, "Class1.cs"), fixed1),
-                (Path.Combine(folder, "Class2.cs"), fixed2)
+                ("Class2.cs", fixed2)
             };
 
             await RunTestAsync(originalSources, fixedSources);
