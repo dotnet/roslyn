@@ -98,8 +98,8 @@ internal static class Program
                 });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
-        public void FindReferencesAndNavigateToReferenceInGeneratedFile()
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void FindReferencesAndNavigateToReferenceInGeneratedFile(bool isPreview)
         {
             VisualStudio.Editor.SetText(@"using System;
 internal static class Program
@@ -116,10 +116,11 @@ internal static class Program
             string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
             var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
-            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: false);
+            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview);
 
             // Assert we are in the right file now
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal(isPreview, VisualStudio.Shell.IsActiveTabProvisional());
         }
     }
 }

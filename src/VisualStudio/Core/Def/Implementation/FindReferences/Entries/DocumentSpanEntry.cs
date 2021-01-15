@@ -214,7 +214,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                     if (documentNavigationService != null)
                     {
-                        return documentNavigationService.TryNavigateToSpan(workspace, _excerptResult.Document.Id, _excerptResult.Span);
+                        return documentNavigationService.TryNavigateToSpan(
+                            workspace,
+                            _excerptResult.Document.Id,
+                            _excerptResult.Span,
+                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
                     }
                 }
 
