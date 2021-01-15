@@ -344,7 +344,7 @@ namespace System
         Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
         <Document><![CDATA[
 using System;
 

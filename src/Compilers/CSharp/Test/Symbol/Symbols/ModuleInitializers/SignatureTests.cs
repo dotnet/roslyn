@@ -55,7 +55,7 @@ interface i
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyEmitDiagnostics(
                 // (6,6): error CS8815: Module initializer method 'M1' must be static, must have no parameters, and must return 'void'
                 //     [ModuleInitializer]
