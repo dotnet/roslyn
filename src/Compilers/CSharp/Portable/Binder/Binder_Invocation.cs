@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var token = syntax switch
             {
                 InvocationExpressionSyntax invocation => invocation.ArgumentList.OpenParenToken,
-                ObjectCreationExpressionSyntax objectCreation => objectCreation.NewKeyword,
+                BaseObjectCreationExpressionSyntax objectCreation => objectCreation.NewKeyword,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList.OpenParenToken,
                 PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType => primaryConstructorBaseType.ArgumentList.OpenParenToken,
                 ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList.OpenBracketToken,
