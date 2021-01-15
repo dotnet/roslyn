@@ -177,9 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ShouldBeNullableAnnotated(ISymbol symbol, FlowAnalysisAnnotations annotations)
         {
-            var flowAnalysisAnnotations = symbol.GetSymbol<Symbol>().GetFlowAnalysisAnnotations();
-            // Is any flag in flowAnalysisAnnotations also present in annotations?
-            return (annotations & flowAnalysisAnnotations) > 0;
+            if (symbol is Symbols.PublicModel.Symbol csharpSymbol)
+            {
+                var flowAnalysisAnnotations = csharpSymbol.UnderlyingSymbol.GetFlowAnalysisAnnotations();
+                // Is any flag in flowAnalysisAnnotations also present in annotations?
+                return (annotations & flowAnalysisAnnotations) > 0;
+            }
+
+            return false;
         }
 
         private static bool IsInitOnly(IMethodSymbol symbol)
