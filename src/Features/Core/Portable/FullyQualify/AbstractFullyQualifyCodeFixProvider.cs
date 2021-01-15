@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
         }
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not supported by this code fix
             // https://github.com/dotnet/roslyn/issues/34465
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             var project = document.Project;
             var diagnostic = diagnostics.First();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(span.Start).GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
 
             using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return;
                 }
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var matchingTypes = await GetMatchingTypesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
                 var matchingNamespaces = await GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
@@ -112,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 string memberName;
                 if (IgnoreCase)
                 {
+
                     var member = container.GetMembers(name).FirstOrDefault();
                     memberName = member != null ? member.Name : name;
                 }
@@ -130,8 +129,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private static string GetNodeName(Document document, SyntaxNode node)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out _);
+
+            Contract.ThrowIfNull(name, "node isn't a SimpleNameSyntax? CanFullyQualify should have returned false.");
             return name;
         }
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
             syntaxFacts.GetNameAndArityOfSimpleName(node, out var name, out var arity);
             var looksGeneric = syntaxFacts.LooksGeneric(node);
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             SyntaxNode simpleName,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
             if (syntaxFacts.IsAttributeName(simpleName))
             {
                 return ImmutableArray<SymbolResult>.Empty;
@@ -255,11 +256,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             // We'll want to order them such that we prefer the namespace that will correctly
             // bind Z off of Y as well.
 
-            string rightName = null;
+            string? rightName = null;
             var isAttributeName = false;
             if (syntaxFacts.IsLeftSideOfDot(simpleName))
             {
                 var rightSide = syntaxFacts.GetRightSideOfDot(simpleName.Parent);
+                Contract.ThrowIfNull(rightSide);
+
                 syntaxFacts.GetNameAndArityOfSimpleName(rightSide, out rightName, out arityUnused);
                 isAttributeName = syntaxFacts.IsAttributeName(rightSide);
             }
@@ -274,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return namespaces.ToImmutableArray();
         }
 
-        private bool BindsWithoutErrors(INamespaceSymbol ns, string rightName, bool isAttributeName)
+        private bool BindsWithoutErrors(INamespaceSymbol ns, string? rightName, bool isAttributeName)
         {
             // If there was no name on the right, then this binds without any problems.
             if (rightName == null)
