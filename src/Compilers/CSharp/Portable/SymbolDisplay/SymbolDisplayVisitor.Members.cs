@@ -143,7 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var symbolType = ShouldBeNullableAnnotated(symbol, FlowAnalysisAnnotations.MaybeNull)
+                    ? symbol.Type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)
+                    : symbol.Type;
+                symbolType.Accept(this.NotFirstVisitor);
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.TypeCustomModifiers);
@@ -170,6 +173,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 AddPunctuation(SyntaxKind.CloseBraceToken);
             }
+        }
+
+        private static bool ShouldBeNullableAnnotated(ISymbol symbol, FlowAnalysisAnnotations annotations)
+        {
+            var flowAnalysisAnnotations = symbol.GetSymbol<Symbol>().GetFlowAnalysisAnnotations();
+            // Is any flag in flowAnalysisAnnotations also present in annotations?
+            return (annotations & flowAnalysisAnnotations) > 0;
         }
 
         private static bool IsInitOnly(IMethodSymbol symbol)
