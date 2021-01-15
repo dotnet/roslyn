@@ -7652,5 +7652,140 @@ record Person(string First, string Last);
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.RecordClassName);
         }
+
+        [Fact]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        public void NullableAttributes_MayBeNullOnClassProperty()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{
+    [MaybeNull]
+    public T P { get; }
+}
+
+public class B
+{
+    void M()
+    {
+        var a = new A<object>();
+        _ = a.P;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            // look for memberAccess "a.P"
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
+            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                symbol.ToDisplayParts(format),
+                "Object? P",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
+
+        [Fact]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        public void NullableAttributes_MayBeNullOnClassProperty_WithoutNullableModifier()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{
+    [MaybeNull]
+    public T P { get; }
+}
+
+public class B
+{
+    void M()
+    {
+        var a = new A<object>();
+        _ = a.P;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            // look for memberAccess "a.P"
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
+            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.None); // without SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+
+            Verify(
+                symbol.ToDisplayParts(format),
+                "Object P",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
+
+        [Fact]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        public void NullableAttributes_MayBeNullOnStructProperty()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{
+    [MaybeNull]
+    public T P { get; }
+}
+
+public class B
+{
+    void M()
+    {
+        var a = new A<int>();
+        _ = a.P;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
+            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                symbol.ToDisplayParts(format),
+                "Int32 P",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
     }
 }
