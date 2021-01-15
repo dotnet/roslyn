@@ -37,6 +37,11 @@
         <target state="translated">目標執行階段不支援對介面成員的 'Protected'、'Protected Friend' 或 'Private Protected' 存取範圍。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行接續符號後註解</target>
