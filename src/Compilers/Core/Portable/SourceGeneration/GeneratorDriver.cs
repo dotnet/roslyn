@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(context);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                     {
                         ex = e;
                     }
@@ -241,12 +241,12 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection());
+                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection(), cancellationToken);
                 try
                 {
                     generator.Execute(context);
                 }
-                catch (Exception e)
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
                     continue;
