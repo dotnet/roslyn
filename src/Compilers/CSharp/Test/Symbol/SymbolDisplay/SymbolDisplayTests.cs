@@ -7745,7 +7745,7 @@ public class A<T>
                 SymbolDisplayPartKind.PropertyName);
         }
 
-        [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
         [Fact]
         public void NullableAttributes_VisualBasicReferencesCSharp()
         {
@@ -7797,6 +7797,65 @@ End Class";
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName);
+        }
+
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        [Fact]
+        public void NullableAttributes_CSharpReferencesVisualBasic()
+        {
+            var sourceVB =
+@"
+Namespace System.Diagnostics.CodeAnalysis
+    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.[Property] Or AttributeTargets.ReturnValue)>
+    Public NotInheritable Class MaybeNullAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+
+Namespace N
+    Public Class A(Of T)
+        <System.Diagnostics.CodeAnalysis.MaybeNull>
+        Public ReadOnly Property P As T
+    End Class
+End Namespace
+";
+            var sourceCS =
+@"
+#nullable enable
+
+namespace N
+{
+    public class C
+    {
+        void M()
+        {
+            var a = new A<object>();
+            _ = a.P;
+        }
+    }
+}
+";
+            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef });
+            var refVB = compVB.EmitToImageReference();
+            var compCS = CreateCompilation(sourceCS, references: new[] { refVB });
+
+            var tree = compCS.SyntaxTrees[0];
+            var model = compCS.GetSemanticModel(tree);
+
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                symbol.ToDisplayParts(format),
+                "Object P",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
         }
     }
 }
