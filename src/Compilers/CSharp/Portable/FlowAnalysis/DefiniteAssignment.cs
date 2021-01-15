@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
         /// be given slot 1. When referring to VariableIdentifier.ContainingSlot, slot 0 indicates
         /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
-        /// tracked variable. Slots &lt; 0 are illegal.
+        /// tracked variable. Slots less than 0 are illegal.
         /// </summary>
-        protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
 
         /// <summary>
         /// Variable slots are allocated to local variables sequentially and never reused.  This is
@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            variableBySlot.Free();
             _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
@@ -238,11 +239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int slot = nextVariableSlot++;
             _variableSlot.Add(identifier, slot);
-            if (slot >= variableBySlot.Length)
+            while (slot >= variableBySlot.Count)
             {
-                Array.Resize(ref this.variableBySlot, slot * 2);
+                variableBySlot.Add(default);
             }
-
             variableBySlot[slot] = identifier;
             return slot;
         }

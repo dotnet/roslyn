@@ -78,16 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
 
             /// <summary>
-            /// A mapping from the local variable slot to the symbol for the local variable itself.  This
-            /// is used in the implementation of region analysis (support for extract method) to compute
-            /// the set of variables "always assigned" in a region of code.
+            /// A mapping from the local variable slot to the symbol for the local variable itself.
             ///
             /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
             /// be given slot 1. When referring to VariableIdentifier.ContainingSlot, slot 0 indicates
             /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
-            /// tracked variable. Slots &lt; 0 are illegal.
+            /// tracked variable. Slots less than 0 are illegal.
             /// </summary>
-            private readonly ArrayBuilder<VariableIdentifier> _variableBySlot;
+            private readonly ArrayBuilder<VariableIdentifier> _variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
 
             internal static Variables Create(Symbol? symbol)
             {
@@ -130,15 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private Variables(NextId nextId, int id, Variables? container, Symbol? symbol)
             {
-                Debug.Assert(container is null || container.Id < nextId.Value);
+                Debug.Assert(container is null || container.Id < id);
                 Debug.Assert(id < nextId.Value);
                 _nextId = nextId;
                 // PROTOTYPE: Handle > 64K nested methods (distinct ids). See NullableStateTooManyNestedFunctions().
                 Id = id;
                 Container = container;
                 Symbol = symbol;
-                _variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance();
-                _variableBySlot.Add(default); // slot 0 reserved for reachability
             }
 
             internal void Free()

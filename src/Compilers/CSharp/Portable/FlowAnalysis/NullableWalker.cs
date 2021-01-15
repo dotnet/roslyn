@@ -9603,7 +9603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        internal sealed class LocalState : ILocalDataFlowState // PROTOTYPE: Pool instances.
+        internal sealed class LocalState : ILocalDataFlowState // PROTOTYPE: Reduce allocations.
         {
             internal readonly int Id;
             internal LocalState? Container;
