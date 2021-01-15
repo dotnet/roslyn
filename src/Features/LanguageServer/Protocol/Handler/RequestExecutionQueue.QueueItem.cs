@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -46,7 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
+                Guid activityId,
                 Func<RequestContext, CancellationToken, Task> callbackAsync,
+                ILspLogger logger,
                 CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
@@ -56,6 +59,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 TextDocument = textDocument;
                 CallbackAsync = callbackAsync;
                 CancellationToken = cancellationToken;
+
+                CallbackAsync = async (context, cancellationToken) =>
+                {
+                    // Restore our activity id so that tracking works.
+                    Trace.CorrelationManager.ActivityId = activityId;
+                    logger.TraceInformation($"{methodName} - Roslyn start");
+                    try
+                    {
+                        await callbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        logger.TraceInformation($"{methodName} - Roslyn End");
+                    }
+                };
             }
         }
     }

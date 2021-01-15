@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -130,7 +131,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, methodName, textDocument,
+            var item = new QueueItem(
+                mutatesSolutionState,
+                clientCapabilities,
+                clientName,
+                methodName,
+                textDocument,
+                Trace.CorrelationManager.ActivityId,
+                _logger,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -176,11 +184,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             try
             {
-                var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
-                    await ProcessSingleWorkItemAsync(work, requestId++).ConfigureAwait(false);
+                    await ProcessSingleWorkItemAsync(work).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
@@ -194,12 +201,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private async Task ProcessSingleWorkItemAsync(QueueItem work, int requestId)
+        private async Task ProcessSingleWorkItemAsync(QueueItem work)
         {
             // Create a linked cancellation token to cancel any requests in progress when this shuts down
             var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-            var context = CreateRequestContext(work, requestId);
+            var context = CreateRequestContext(work);
 
             if (work.MutatesSolutionState)
             {
@@ -245,10 +252,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem, int requestId)
+        private RequestContext CreateRequestContext(QueueItem queueItem)
         {
-            var logPrefix = $"{requestId++:00000000}.{queueItem.MethodName}: ";
-
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
@@ -256,13 +261,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return RequestContext.Create(
                 queueItem.TextDocument,
                 queueItem.ClientName,
-                TraceInformation,
+                _logger.TraceInformation,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
                 trackerToUse);
-
-            void TraceInformation(string m) => _logger.TraceInformation(logPrefix + m);
         }
     }
 }
