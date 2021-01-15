@@ -1,6 +1,6 @@
 ### Contributing Code
 
-Before submitting a feature or substantial code contribution, please discuss it with the team and ensure it follows the product [[roadmap|Roadmap]]. The team rigorously reviews and tests all code submissions. The submissions must meet an extremely high bar for quality, design, and roadmap appropriateness.
+Before submitting a feature or substantial code contribution, please discuss it with the team and ensure it follows the product [roadmap](Roadmap.md). The team rigorously reviews and tests all code submissions. The submissions must meet an extremely high bar for quality, design, and roadmap appropriateness.
 
 The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
 
@@ -13,7 +13,7 @@ For now, the team has set the following limits on pull requests:
 - Submissions must follow the [.editorconfig](http://editorconfig.org/) settings for each directory. For the most part, these follow the rules stated in the [.NET Foundation Coding Guidelines](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/coding-style.md) with the exception that most Roslyn projects prefer to use 'var' everywhere.
 - Contributors must sign the [.NET CLA](https://cla.dotnetfoundation.org/)
 
-When you are ready to proceed with making a change, get set up to [[build|Building Testing and Debugging]] the code and familiarize yourself with our workflow and our coding conventions. These two blogs posts on contributing code to open source projects are good too: Open Source Contribution Etiquette by Miguel de Icaza and Don’t “Push” Your Pull Requests by Ilya Grigorik.
+When you are ready to proceed with making a change, get set up to [build](Building-Testing-and-Debugging.md) the code and familiarize yourself with our workflow and our coding conventions. These two blogs posts on contributing code to open source projects are good too: Open Source Contribution Etiquette by Miguel de Icaza and Don’t “Push” Your Pull Requests by Ilya Grigorik.
 
 You must sign a [Contributor License Agreement (CLA)](http://cla.dotnetfoundation.org) before submitting your pull request. To complete the CLA, submit a request via the form and electronically sign the CLA when you receive the email containing the link to the document. You need to complete the CLA only once to cover all .NET Foundation projects.
 
