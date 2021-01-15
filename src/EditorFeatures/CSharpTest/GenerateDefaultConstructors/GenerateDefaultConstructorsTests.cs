@@ -1340,7 +1340,6 @@ sealed class Program : Base
     }
 }");
         }
-    }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRecord()
@@ -1370,4 +1369,5 @@ record B
     }
 }");
         }
+    }
 }
