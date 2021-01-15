@@ -97,6 +97,26 @@ namespace A.B
         }
 
         [Fact]
+        public Task InvalidFolderName3_NoDiagnostic()
+        {
+            // No change namespace action because the folder name is not valid identifier
+            var folder = CreateFolderPath(new[] { ".folder", "..subfolder", "name" });
+            var code =
+@"
+namespace A.B
+{    
+    class Class1
+    {
+    }
+}";
+
+            return RunTestAsync(
+                "File1.cs",
+                code,
+                directory: folder);
+        }
+
+        [Fact]
         public Task CaseInsensitiveMatch_NoDiagnostic()
         {
             var folder = CreateFolderPath(new[] { "A", "B" });
