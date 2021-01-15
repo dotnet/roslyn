@@ -244,8 +244,8 @@
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
     <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="THIRD-PARTY-NOTICES.txt" Visible="false" Pack="true"/>
   </ItemGroup>
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <None Include="$(PackageLicensePath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
+  <ItemGroup>
+    <None Include="$(PackageLicenseFullPath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
   </ItemGroup>
 
   <!-- Make sure additional files show up in Solution Explorer -->

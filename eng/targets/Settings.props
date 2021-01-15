@@ -4,11 +4,13 @@
   <PropertyGroup>
     <Copyright>© SharpCrafters s.r.o. All rights reserved.</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageLicensePath>$(MSBuildThisFileDirectory)..\..\LICENSE.md</PackageLicensePath>
+    <PackageLicenseFullPath>$(MSBuildThisFileDirectory)..\..\LICENSE.md</PackageLicenseFullPath>
 
     <RepositoryUrl>https://github.com/postsharp/Caravela</RepositoryUrl>
     <PackageTags>PostSharp Caravela</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\THIRD-PARTY-NOTICES.txt</ThirdPartyNoticesFilePath>
+
+    <DotNetUseShippingVersions>true</DotNetUseShippingVersions>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
