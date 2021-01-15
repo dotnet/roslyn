@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var codeAction = new MyCodeAction(
                     $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbolIsType, c));
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbol, c));
 
                 yield return codeAction;
             }
@@ -135,9 +135,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return name;
         }
 
-        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, INamespaceOrTypeSymbol? originalSymbol, CancellationToken cancellationToken)
         {
-            var newRoot = await ReplaceNodeAsync(node, containerName, resultingSymbolIsType, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(originalSymbol, "Original symbol information missing. Haven't called GetContainers?");
+
+            var newRoot = await ReplaceNodeAsync(node, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     s => !currentSymbolInfo.CandidateSymbols.Contains(s));
             }
 
-            return validSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight, originalSymbolIsType: true));
+            return validSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight));
         }
 
         private static bool IsValidNamedTypeSearchResult(
@@ -270,8 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 .OfType<INamespaceSymbol>()
                 .Where(n => !n.IsGlobalNamespace && HasAccessibleTypes(n, semanticModel, cancellationToken))
                 .Select(n => new SymbolResult(n,
-                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight,
-                    originalSymbolIsType: false));
+                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight));
 
             return namespaces.ToImmutableArray();
         }

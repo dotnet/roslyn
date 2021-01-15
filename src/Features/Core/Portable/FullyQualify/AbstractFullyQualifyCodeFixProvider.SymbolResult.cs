@@ -15,20 +15,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             public readonly INamespaceOrTypeSymbol Symbol;
             public readonly int Weight;
+            public readonly INamespaceOrTypeSymbol? OriginalSymbol;
             public readonly IReadOnlyList<string> NameParts;
 
-            /// <summary>
-            /// Whether the original symbol at the time of creation was a type. This is unchanged by
-            /// the <see cref="WithSymbol(INamespaceOrTypeSymbol)"/> method and doesn't affect comparisons.
-            /// </summary>
-            public readonly bool OriginalSymbolIsType;
+            public SymbolResult(INamespaceOrTypeSymbol symbol, int weight)
+                : this(symbol, weight, originalSymbol: null)
+            {
+            }
 
-            public SymbolResult(INamespaceOrTypeSymbol symbol, int weight, bool originalSymbolIsType)
+            private SymbolResult(INamespaceOrTypeSymbol symbol, int weight, INamespaceOrTypeSymbol? originalSymbol)
             {
                 Symbol = symbol;
                 Weight = weight;
                 NameParts = INamespaceOrTypeSymbolExtensions.GetNameParts(symbol);
-                OriginalSymbolIsType = originalSymbolIsType;
+                OriginalSymbol = originalSymbol;
             }
 
             public override bool Equals(object? obj)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 => Symbol.GetHashCode();
 
             public SymbolResult WithSymbol(INamespaceOrTypeSymbol other)
-                => new(other, Weight, OriginalSymbolIsType);
+                => new(other, Weight, Symbol);
 
             public int CompareTo(SymbolResult other)
             {
