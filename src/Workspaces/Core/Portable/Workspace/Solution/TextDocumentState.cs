@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+        public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(out textAndVersion);
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)

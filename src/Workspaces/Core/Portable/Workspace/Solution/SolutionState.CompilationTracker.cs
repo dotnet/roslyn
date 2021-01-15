@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -784,13 +783,22 @@ namespace Microsoft.CodeAnalysis
                                 {
                                     foreach (var generatedSource in generatorResult.GeneratedSources)
                                     {
+                                        var existing = FindExistingGeneratedDocumentState(
+                                            nonAuthoritativeGeneratedDocuments,
+                                            generatorResult.Generator,
+                                            generatedSource.HintName);
+
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
-                                                generatedSource,
+                                                existing,
+                                                generatedSource.HintName,
+                                                generatedSource.SourceText,
+                                                generatedSource.SyntaxTree,
                                                 CreateStableSourceGeneratedDocumentId(ProjectState.Id, generatorResult.Generator, generatedSource.HintName),
                                                 generatorResult.Generator,
                                                 this.ProjectState.LanguageServices,
-                                                solution.Services));
+                                                solution.Services,
+                                                cancellationToken));
                                     }
                                 }
                             }
@@ -818,6 +826,26 @@ namespace Microsoft.CodeAnalysis
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+
+                // Local functions
+                static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
+                    ImmutableArray<SourceGeneratedDocumentState> states,
+                    ISourceGenerator generator,
+                    string hintName)
+                {
+                    foreach (var state in states)
+                    {
+                        if (state.SourceGenerator != generator)
+                            continue;
+
+                        if (state.HintName != hintName)
+                            continue;
+
+                        return state;
+                    }
+
+                    return null;
                 }
             }
 

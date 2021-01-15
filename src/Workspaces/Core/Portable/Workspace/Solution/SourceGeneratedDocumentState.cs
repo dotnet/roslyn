@@ -16,34 +16,75 @@ namespace Microsoft.CodeAnalysis
         public ISourceGenerator SourceGenerator { get; }
 
         public static SourceGeneratedDocumentState Create(
-            GeneratedSourceResult generatedSourceResult,
+            SourceGeneratedDocumentState? previousState,
+            string hintName,
+            SourceText generatedSourceText,
+            SyntaxTree generatedSyntaxTree,
             DocumentId documentId,
             ISourceGenerator sourceGenerator,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices)
+            SolutionServices solutionServices,
+            CancellationToken cancellationToken)
         {
-            var textAndVersion = TextAndVersion.Create(generatedSourceResult.SourceText, VersionStamp.Create());
-            ValueSource<TextAndVersion> textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
+            var tree = generatedSyntaxTree;
+            var options = tree.Options;
+            var filePath = tree.FilePath;
 
-            var tree = generatedSourceResult.SyntaxTree;
+            bool sourceChanged;
+            ValueSource<TextAndVersion> textSource;
 
-            // Since the tree is coming directly from the generator, this tree is strongly held so GetRoot() doesn't need a CancellationToken.
-            var root = tree.GetRoot(CancellationToken.None);
-            Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
-
-            if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
+            // We can reuse the previous TextAndVersion if the checksum from the text matches.
+            if (previousState is null
+                || !previousState.TryGetTextAndVersion(out var textAndVersion)
+                || Checksum.From(textAndVersion.Text.GetChecksum()) != Checksum.From(generatedSourceText.GetChecksum()))
             {
-                // We will only create recoverable text if we can create a recoverable tree; if we created a recoverable text
-                // but not a new tree, it would mean tree.GetText() could still potentially return the non-recoverable text,
-                // but asking the document directly for it's text would give a recoverable text with a different object identity.
-                textSource = CreateRecoverableText(textAndVersion, solutionServices);
-                tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
-                    documentId.ProjectId,
-                    filePath: tree.FilePath,
-                    tree.Options,
-                    textSource,
-                    generatedSourceResult.SourceText.Encoding,
-                    root);
+                sourceChanged = true;
+                textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
+                textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
+            }
+            else
+            {
+                sourceChanged = false;
+                textSource = previousState.TextAndVersionSource;
+            }
+
+            // We can reuse the previous tree if the options haven't changed
+            bool treeChanged;
+            if (!sourceChanged && Equals(previousState!.ParseOptions, generatedSyntaxTree.Options))
+            {
+                treeChanged = false;
+                tree = previousState.SyntaxTree.WithFilePath(tree.FilePath);
+            }
+            else
+            {
+                treeChanged = true;
+            }
+
+            if (treeChanged)
+            {
+                var root = tree.GetRoot(cancellationToken);
+                Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
+
+                if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
+                {
+                    // We will only create recoverable text if we can create a recoverable tree; if we created a
+                    // recoverable text but not a new tree, it would mean tree.GetText() could still potentially return
+                    // the non-recoverable text, but asking the document directly for it's text would give a recoverable
+                    // text with a different object identity. We only need to create a recoverable text if the source
+                    // changed; otherwise, the reused text source would be recoverable.
+                    if (sourceChanged)
+                    {
+                        textSource = CreateRecoverableText(textAndVersion, solutionServices);
+                    }
+
+                    tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
+                        documentId.ProjectId,
+                        filePath: tree.FilePath,
+                        options,
+                        textSource,
+                        generatedSourceText.Encoding,
+                        root);
+                }
             }
 
             var treeAndVersion = TreeAndVersion.Create(tree, textAndVersion.Version);
@@ -54,18 +95,18 @@ namespace Microsoft.CodeAnalysis
                 documentServiceProvider: null,
                 new DocumentInfo.DocumentAttributes(
                     documentId,
-                    name: generatedSourceResult.HintName,
+                    name: hintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
-                    tree.Options.Kind,
-                    filePath: tree.FilePath,
+                    options.Kind,
+                    filePath: filePath,
                     isGenerated: true,
                     designTimeOnly: false),
-                tree.Options,
+                options,
                 sourceText: null, // don't strongly hold the text
                 textSource,
                 treeAndVersion,
                 sourceGenerator,
-                generatedSourceResult.HintName);
+                hintName);
         }
 
         private SourceGeneratedDocumentState(
