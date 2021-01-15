@@ -395,9 +395,6 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0083
 dotnet_diagnostic.IDE0083.severity = %value%
 
-# IDE0085
-dotnet_diagnostic.IDE0085.severity = %value%
-
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
@@ -946,11 +943,8 @@ No editorconfig based code style option
 # IDE0083, PreferNotPattern
 csharp_style_prefer_not_pattern = true
 
-# IDE0085, PreferNamespaceMatchFolderStructure
-csharp_namespace_match_folder_structure_preference = true
-
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
-csharp_style_namespace_match_folder_structure = true
+csharp_style_implicit_object_creation_when_type_is_apparent = true
 
 # IDE0110
 No editorconfig based code style option
