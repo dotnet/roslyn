@@ -5,7 +5,9 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -54939,9 +54941,15 @@ class Test : C0, I1
                 );
         }
 
-        private static string BuildAssemblyExternClause(PortableExecutableReference reference)
+        private static string BuildAssemblyExternClause(MetadataReference reference)
         {
-            AssemblyIdentity assemblyIdentity = ((AssemblyMetadata)reference.GetMetadata()).GetAssembly().Identity;
+            AssemblyIdentity assemblyIdentity = reference switch
+            {
+                PortableExecutableReference peReference => ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity,
+                CompilationReference compilationReference => compilationReference.Compilation.Assembly.Identity,
+                _ => throw new Exception()
+            };
+
             Version version = assemblyIdentity.Version;
             var publicKeyToken = assemblyIdentity.PublicKeyToken;
 
@@ -54963,13 +54971,75 @@ class Test : C0, I1
 ";
         }
 
+        /// <summary>
+        /// The reference assembly System.Runtime.InteropServices.WindowsRuntime was removed in net5.0. This builds
+        /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
+        /// reference by the compiler.
+        /// </summary>
+        private CompilationReference CreateWindowsRuntimeReference()
+        {
+            var source = @"
+namespace System.Runtime.InteropServices.WindowsRuntime
+{
+    public struct EventRegistrationToken { }
+
+    public sealed class EventRegistrationTokenTable<T> where T : class
+    {
+        public T InvocationList { get; set; }
+
+        public static EventRegistrationTokenTable<T> GetOrCreateEventRegistrationTokenTable(ref EventRegistrationTokenTable<T> refEventTable)
+        {
+            throw null;
+        }
+
+        public void RemoveEventHandler(EventRegistrationToken token)
+        {
+        }
+
+        public void RemoveEventHandler(T handler)
+        {
+        }
+    }
+
+    public static class WindowsRuntimeMarshal
+    {
+        public static void AddEventHandler<T>(Func<T, EventRegistrationToken> addMethod, Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+
+        public static void RemoveAllEventHandlers(Action<EventRegistrationToken> removeMethod)
+        {
+        }
+
+        public static void RemoveEventHandler<T>(Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+    }
+}
+";
+
+            var publicKey = MetadataHelpers.ConvertPublicKeyStringToBytes("b03f5f7f11d50a3a");
+            var identity = new AssemblyIdentity(
+                "System.Runtime.InteropServices.WindowsRuntime",
+                new Version("4.0.4.0"),
+
+                publicKeyOrToken: publicKey);
+            var compilation = CreateCompilation(
+                identity: identity,
+                new[] { source },
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp).ToArray());
+            compilation.VerifyEmitDiagnostics();
+            return compilation.ToMetadataReference();
+        }
+
         [Fact]
         [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_01()
         {
+            var windowsRuntimeRef = CreateWindowsRuntimeReference();
             var ilSource =
 BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntimeInteropServicesWindowsRuntime) +
+BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
        extends [System.Runtime]System.MulticastDelegate
@@ -55052,7 +55122,7 @@ class C1 : I1, Interface<int>
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
             {
-                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp);
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });;
 
                 void Validate(ModuleSymbol m)
                 {
@@ -55125,7 +55195,7 @@ class C1 : I1
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CreateWindowsRuntimeReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -55178,7 +55248,7 @@ interface I1 : Interface
 class C1 : I1, Interface
 {}
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CreateWindowsRuntimeReference() });;
 
             void Validate(ModuleSymbol m)
             {
