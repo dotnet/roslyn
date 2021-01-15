@@ -7667,10 +7667,7 @@ public class A<T>
 {
     [MaybeNull]
     public T P { get; }
-}
 
-public class B
-{
     void M()
     {
         var a = new A<object>();
@@ -7713,10 +7710,7 @@ public class A<T>
 {
     [MaybeNull]
     public T P { get; }
-}
 
-public class B
-{
     void M()
     {
         var a = new A<object>();
@@ -7758,10 +7752,7 @@ public class A<T>
 {
     [MaybeNull]
     public T P { get; }
-}
 
-public class B
-{
     void M()
     {
         var a = new A<int>();
