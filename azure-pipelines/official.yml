@@ -68,7 +68,7 @@ stages:
       inputs:
         SymbolsFeatureName: $(SymbolsFeatureName)
         SymbolsSymwebProject: VS
-        SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildNumber)\Symbols.Archival
+        SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
         SymbolsEmailContacts: vsidemicrobuild
         SymbolsAgentPath: $(Pipeline.Workspace)/symbols-Windows
     - task: MicroBuildCleanup@1
