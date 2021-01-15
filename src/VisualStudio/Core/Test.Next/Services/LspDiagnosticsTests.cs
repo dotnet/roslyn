@@ -397,20 +397,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
-            diagnosticServiceMock.Setup(d => d.GetPushDiagnostics(
+            diagnosticServiceMock.Setup(d => d.GetPushDiagnosticsAsync(
                 It.IsAny<Workspace>(),
                 It.IsAny<ProjectId>(),
                 documentId,
                 It.IsAny<object>(),
                 It.IsAny<bool>(),
                 It.IsAny<Option2<DiagnosticMode>>(),
-                It.IsAny<CancellationToken>())).Returns(diagnostics);
+                It.IsAny<CancellationToken>())).Returns(new ValueTask<ImmutableArray<DiagnosticData>>(diagnostics));
         }
 
         private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
             ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
-            diagnosticServiceMock.SetupSequence(d => d.GetPushDiagnostics(
+            diagnosticServiceMock.SetupSequence(d => d.GetPushDiagnosticsAsync(
                 It.IsAny<Workspace>(),
                 It.IsAny<ProjectId>(),
                 documentId,
@@ -418,8 +418,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 It.IsAny<bool>(),
                 It.IsAny<Option2<DiagnosticMode>>(),
                 It.IsAny<CancellationToken>()))
-                .Returns(firstDiagnostics)
-                .Returns(secondDiagnostics);
+                .Returns(new ValueTask<ImmutableArray<DiagnosticData>>(firstDiagnostics))
+                .Returns(new ValueTask<ImmutableArray<DiagnosticData>>(secondDiagnostics));
         }
 
         private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
