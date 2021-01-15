@@ -41,12 +41,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal ImmutableArray<ActiveStatementExceptionRegions> _lazyBaseActiveExceptionRegions;
 
         /// <summary>
-        /// Results of changed documents analysis. 
-        /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
-        /// Contains analyses of the latest observed document versions.
+        /// Cache of document EnC analyses. 
         /// </summary>
-        private readonly Dictionary<DocumentId, (Document Document, AsyncLazy<DocumentAnalysisResults> Results)> _analyses = new();
-        private readonly object _analysesGuard = new();
+        private readonly EditAndContinueDocumentAnalysesCache _analysesCache;
 
         /// <summary>
         /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
@@ -71,6 +68,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true);
+            _analysesCache = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
 
         internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
@@ -393,65 +391,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            var result = ImmutableArray<(Document, AsyncLazy<DocumentAnalysisResults>)>.Empty;
-            if (builder.Count != 0)
-            {
-                lock (_analysesGuard)
-                {
-                    result = builder.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New, change.NewActiveStatementSpans)));
-                }
-            }
-
-            return (result, documentDiagnostics.ToImmutable());
+            return (_analysesCache.GetDocumentAnalyses(builder), documentDiagnostics.ToImmutable());
         }
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans)
-        {
-            lock (_analysesGuard)
-            {
-                return GetDocumentAnalysisNoLock(baseDocument, document, activeStatementSpans);
-            }
-        }
-
-        /// <summary>
-        /// Returns a document analysis or kicks off a new one if one is not available for the specified document snapshot.
-        /// </summary>
-        /// <param name="baseDocument">Base document or null if the document did not exist in the baseline.</param>
-        /// <param name="document">Document snapshot to analyze.</param>
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document? baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans)
-        {
-            if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
-            {
-                return analysis.Results;
-            }
-
-            var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
-
-            var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
-                asynchronousComputeFunction: async cancellationToken =>
-                {
-                    try
-                    {
-                        var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        if (!baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentBaseActiveStatements))
-                        {
-                            documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
-                        }
-
-                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                },
-                cacheResult: true);
-
-            // TODO: this will replace potentially running analysis with another one.
-            // Consider cancelling the replaced one.
-            _analyses[document.Id] = (document, lazyResults);
-            return lazyResults;
-        }
+            => _analysesCache.GetDocumentAnalysis(baseDocument, document, activeStatementSpans);
 
         internal ImmutableArray<DocumentId> GetDocumentsWithReportedDiagnostics()
         {
