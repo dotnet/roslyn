@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext Create(
             TextDocumentIdentifier? textDocument,
             string? clientName,
+            Action<string> traceInformation,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // document text. If document id is null here, this will just return null
             document = lspSolution.GetDocument(document?.Id);
 
-            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, traceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -148,13 +149,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        /// <summary>
+        /// Tracing object that can be used to log information about the status of requests.
+        /// </summary>
+        private readonly Action<string> _traceInformation;
+
+        public RequestContext(
+            Solution solution,
+            Action<string> traceInformation,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            Document? document,
+            IDocumentChangeTracker documentChangeTracker)
         {
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
             _documentChangeTracker = documentChangeTracker;
+            _traceInformation = traceInformation;
         }
 
         /// <summary>
@@ -177,6 +190,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public bool IsTracking(Uri documentUri)
             => _documentChangeTracker.IsTracking(documentUri);
+
+        /// <summary>
+        /// Logs an informational message.
+        /// </summary>
+        public void TraceInformation(string message)
+            => _traceInformation(message);
 
         private class NoOpDocumentChangeTracker : IDocumentChangeTracker
         {
