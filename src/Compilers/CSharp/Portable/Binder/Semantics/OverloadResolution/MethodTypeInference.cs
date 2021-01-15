@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
             if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
-                (!isFunctionPointer && argument.Kind is not BoundKind.UnboundLambda or BoundKind.MethodGroup))
+                (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
             {
                 return false; // No input types.
             }
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isFunctionPointer = delegateOrFunctionPointerType.IsFunctionPointer();
             if ((isFunctionPointer && argument.Kind != BoundKind.UnconvertedAddressOfOperator) ||
-                (!isFunctionPointer && argument.Kind is not BoundKind.UnboundLambda or BoundKind.MethodGroup))
+                (!isFunctionPointer && argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup)))
             {
                 return false;
             }
