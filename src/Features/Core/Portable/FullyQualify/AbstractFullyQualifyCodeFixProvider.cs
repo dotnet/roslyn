@@ -99,10 +99,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private IEnumerable<CodeAction> CreateActions(
             Document document, SyntaxNode node, SemanticModel semanticModel,
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers)
+            IEnumerable<SymbolResult> proposedContainers)
         {
-            foreach (var container in proposedContainers)
+            foreach (var symbolResult in proposedContainers)
             {
+                var container = symbolResult.Symbol;
                 var containerName = container.ToMinimalDisplayString(semanticModel, node.SpanStart);
 
                 var name = GetNodeName(document, node);
@@ -318,13 +319,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
         }
 
-        private static IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
+        private static IEnumerable<SymbolResult> FilterAndSort(IEnumerable<SymbolResult> symbols)
         {
             symbols ??= SpecializedCollections.EmptyList<SymbolResult>();
             symbols = symbols.Distinct()
                              .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                              .Order();
-            return symbols.Select(n => n.Symbol).ToList();
+            return symbols.ToList();
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
