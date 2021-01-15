@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -52,7 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly string _serverName;
-        private readonly string? _clientName;
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -62,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
-        private readonly Roslyn.Utilities.AsyncLazy<ILspLogger> _lazyLogger;
+        private readonly ILspLogger _logger;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
@@ -78,15 +74,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(
-            Roslyn.Utilities.AsyncLazy<ILspLogger> lazyLogger,
+            ILspLogger logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
-            string serverName,
-            string? clientName)
+            string serverName)
         {
-            _lazyLogger = lazyLogger;
+            _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
-            _clientName = clientName;
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
@@ -182,14 +176,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             try
             {
-                var logIdName = $"{_serverName}.{_clientName ?? "Default"}";
-                using var logger = await _lazyLogger.GetValueAsync(_cancelSource.Token).ConfigureAwait(false);
-
                 var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
-                    await ProcessSingleWorkItemAsync(logger, work, requestId++).ConfigureAwait(false);
+                    await ProcessSingleWorkItemAsync(work, requestId++).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
@@ -203,12 +194,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private async Task ProcessSingleWorkItemAsync(ILspLogger logger, QueueItem work, int requestId)
+        private async Task ProcessSingleWorkItemAsync(QueueItem work, int requestId)
         {
             // Create a linked cancellation token to cancel any requests in progress when this shuts down
             var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-            var context = CreateRequestContext(logger, work, requestId);
+            var context = CreateRequestContext(work, requestId);
 
             if (work.MutatesSolutionState)
             {
@@ -254,7 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(ILspLogger logger, QueueItem queueItem, int requestId)
+        private RequestContext CreateRequestContext(QueueItem queueItem, int requestId)
         {
             var logPrefix = $"{requestId++:00000000}.{queueItem.MethodName}: ";
 
@@ -271,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _lspSolutionCache,
                 trackerToUse);
 
-            void TraceInformation(string m) => logger.TraceInformation(logPrefix + m);
+            void TraceInformation(string m) => _logger.TraceInformation(logPrefix + m);
         }
     }
 }

@@ -355,7 +355,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
+            var languageServer = await CreateLanguageServerAsync(serverStream, serverStream, workspace, diagnosticService).ConfigureAwait(false);
 
             // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
@@ -376,13 +376,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
+            static async Task<InProcLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
                 var protocol = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
 
-                var languageServer = new InProcLanguageServer(
+                var languageServer = await InProcLanguageServer.CreateAsync(
                     languageClient: new TestLanguageClient(),
                     inputStream,
                     outputStream,
@@ -392,7 +392,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     listenerProvider,
                     lspWorkspaceRegistrationService,
                     asyncServiceProvider: null,
-                    clientName: null);
+                    clientName: null,
+                    CancellationToken.None).ConfigureAwait(false);
                 return languageServer;
             }
         }
