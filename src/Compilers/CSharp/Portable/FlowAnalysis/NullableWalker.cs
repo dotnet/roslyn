@@ -2603,16 +2603,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var state = TopState();
             var startingState = localFunctionState.StartingState;
             startingState.ForEach(
-                static (slot, arg) =>
+                (slot, variables) =>
                 {
-                    var (variables, state, localFunc, startingState) = arg;
                     var symbol = variables[variables.RootSlot(slot)].Symbol;
                     if (Symbol.IsCaptured(symbol, localFunc))
                     {
                         state[slot] = startingState[slot];
                     }
                 },
-                (_variables, state, localFunc, startingState));
+                _variables);
             localFunctionState.Visited = true;
 
             AnalyzeLocalFunctionOrLambda(
@@ -9584,32 +9583,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        internal sealed class LocalState : ILocalDataFlowState // PROTOTYPE: Reduce allocations.
+        internal struct LocalState : ILocalDataFlowState
         {
+            private sealed class Boxed
+            {
+                internal LocalState Value;
+
+                internal Boxed(LocalState value)
+                {
+                    Value = value;
+                }
+            }
+
             internal readonly int Id;
-            internal LocalState? Container;
+            private readonly Boxed? _container;
 
             // The representation of a state is a bit vector with two bits per slot:
             // (false, false) => NotNull, (false, true) => MaybeNull, (true, true) => MaybeDefault.
             // Slot 0 is used to represent whether the state is reachable (true) or not.
             private BitVector _state;
 
-            private LocalState(int id, LocalState? container, BitVector state)
+            private LocalState(int id, Boxed? container, BitVector state)
             {
                 Id = id;
-                Container = container;
+                _container = container;
                 _state = state;
             }
 
             internal static LocalState Create(LocalStateSnapshot snapshot)
             {
-                var container = snapshot.Container is null ? null : Create(snapshot.Container);
+                var container = snapshot.Container is null ? null : new Boxed(Create(snapshot.Container));
                 return new LocalState(snapshot.Id, container, snapshot.State.Clone());
             }
 
             internal LocalStateSnapshot CreateSnapshot()
             {
-                return new LocalStateSnapshot(Id, Container?.CreateSnapshot(), _state.Clone());
+                return new LocalStateSnapshot(Id, _container?.Value.CreateSnapshot(), _state.Clone());
             }
 
             public bool Reachable => _state[0];
@@ -9630,7 +9639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var container = variables.Container is null ?
                     null :
-                    CreateReachableOrUnreachableState(variables.Container, reachable);
+                    new Boxed(CreateReachableOrUnreachableState(variables.Container, reachable));
                 int capacity = reachable ? variables.Count : 1;
                 return new LocalState(variables.Id, container, CreateBitVector(capacity, reachable));
             }
@@ -9638,7 +9647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState CreateNestedFunction(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
-                return new LocalState(variables.Id, container: this, CreateBitVector(capacity: variables.Count, reachable: true));
+                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.Count, reachable: true));
             }
 
             private static BitVector CreateBitVector(int capacity, bool reachable)
@@ -9672,7 +9681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Id > id)
                 {
-                    return Container!.HasValue(id, index);
+                    return _container!.Value.HasValue(id, index);
                 }
                 else
                 {
@@ -9695,7 +9704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Id != id)
                 {
                     Debug.Assert(Id > id);
-                    return Container!.HasValue(id, index);
+                    return _container!.Value.HasValue(id, index);
                 }
                 else
                 {
@@ -9712,7 +9721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Container?.Normalize(walker, variables.Container!);
+                    _container?.Value.Normalize(walker, variables.Container!);
                     int start = Capacity;
                     EnsureCapacity(variables.Count);
                     Populate(walker, start);
@@ -9721,7 +9730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void PopulateAll(NullableWalker walker)
             {
-                Container?.PopulateAll(walker);
+                _container?.Value.PopulateAll(walker);
                 Populate(walker, start: 1);
             }
 
@@ -9754,7 +9763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Id != id)
                 {
                     Debug.Assert(Id > id);
-                    return Container!.GetValue(id, index);
+                    return _container!.Value.GetValue(id, index);
                 }
                 else
                 {
@@ -9779,7 +9788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Id != id)
                 {
                     Debug.Assert(Id > id);
-                    Container!.SetValue(id, index, value);
+                    _container!.Value.SetValue(id, index, value);
                 }
                 else
                 {
@@ -9793,7 +9802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void ForEach<TArg>(Action<int, TArg> action, TArg arg)
             {
-                Container?.ForEach(action, arg);
+                _container?.Value.ForEach(action, arg);
                 for (int index = 1; index < Capacity; index++)
                 {
                     action(Variables.ConstructSlot(Id, index), arg);
@@ -9805,7 +9814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var state = this;
                 while (state.Id != id)
                 {
-                    state = state.Container!;
+                    state = state._container!.Value;
                 }
                 return state;
             }
@@ -9816,7 +9825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns></returns>
             public LocalState Clone()
             {
-                var container = Container?.Clone();
+                var container = _container is null ? null : new Boxed(_container.Value.Clone());
                 return new LocalState(Id, container, _state.Clone());
             }
 
@@ -9824,7 +9833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(Id == other.Id);
                 bool result = false;
-                if (Container is { } && Container.Join(in other.Container!))
+                if (_container is { } && _container.Value.Join(in other._container!.Value))
                 {
                     result = true;
                 }
@@ -9839,7 +9848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(Id == other.Id);
                 bool result = false;
-                if (Container is { } && Container.Meet(in other.Container!))
+                if (_container is { } && _container.Value.Meet(in other._container!.Value))
                 {
                     result = true;
                 }
@@ -9877,7 +9886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void Dump(StringBuilder builder, Variables variables)
             {
-                Container?.Dump(builder, variables.Container!);
+                _container?.Value.Dump(builder, variables.Container!);
 
                 for (int index = 1; index < Capacity; index++)
                 {
