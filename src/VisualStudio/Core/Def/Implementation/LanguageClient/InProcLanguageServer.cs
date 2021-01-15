@@ -152,6 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
 
+            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
+            // with our callers and the operations they are performing.
             jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
 
             return new LogHubLspLogger(configuration, traceSource);
