@@ -16,7 +16,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly struct QueueItem
         {
+            /// <summary>
+            /// Callback to call into underlying <see cref="IRequestHandler"/> to perform the actual work of this item.
+            /// </summary>
             private readonly Func<RequestContext, CancellationToken, Task> _callbackAsync;
+
+            /// <summary>
+            /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
+            /// tracing/logging subsystem.
+            /// </summary>
             private readonly Guid _activityId;
             private readonly ILspLogger _logger;
 
