@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             public override bool Equals(object? obj)
-                => Equals((SymbolResult)obj);
+                => obj is SymbolResult result && Equals(result);
 
             public bool Equals(SymbolResult other)
                 => Equals(Symbol, other.Symbol);
