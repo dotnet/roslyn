@@ -4,9 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousType
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTypeToClass
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousType
     Public Class ConvertAnonymousTypeToClassTests
         Inherits AbstractVisualBasicCodeActionTest
 

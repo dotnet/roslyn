@@ -2,53 +2,53 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
+namespace Microsoft.CodeAnalysis.ConvertAnonymousType
 {
-    internal abstract class AbstractConvertAnonymousTypeToTupleCodeFixProvider<
+    internal abstract class AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
         TExpressionSyntax,
         TTupleExpressionSyntax,
         TAnonymousObjectCreationExpressionSyntax>
-        : SyntaxEditorBasedCodeFixProvider
+        : AbstractConvertAnonymousTypeCodeRefactoringProvider<TAnonymousObjectCreationExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTupleExpressionSyntax : TExpressionSyntax
         where TAnonymousObjectCreationExpressionSyntax : TExpressionSyntax
     {
+        protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
         protected abstract TTupleExpressionSyntax ConvertToTuple(TAnonymousObjectCreationExpressionSyntax anonCreation);
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(c => FixAllWithEditorAsync(context.Document,
-                    e => FixInCurrentMemberAsync(context.Document, e, context.Diagnostics[0], c), c)),
-                context.Diagnostics);
+            var (document, span, cancellationToken) = context;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return Task.CompletedTask;
+            var (anonymousNode, _) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
+            if (anonymousNode == null)
+                return;
+
+            // Analysis is trivial.  All anonymous types with more than two fields are marked as being
+            // convertible to a tuple.
+            if (GetInitializerCount(anonymousNode) < 2)
+                return;
+
+            context.RegisterRefactoring(
+                new MyCodeAction(c => FixInCurrentMemberAsync(document, anonymousNode, c)),
+                span);
         }
 
-        private async Task FixInCurrentMemberAsync(
-            Document document, SyntaxEditor editor,
-            Diagnostic diagnostic, CancellationToken cancellationToken)
+        private async Task<Document> FixInCurrentMemberAsync(
+            Document document, TAnonymousObjectCreationExpressionSyntax creationNode, CancellationToken cancellationToken)
         {
             // For the standard invocation of the code-fix, we want to fixup all creations of the
             // "same" anonymous type within the containing method.  We define same-ness as meaning
@@ -58,23 +58,17 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             // then combining them in interesting ways (i.e. checking them for equality, using them
             // in collections, etc.).  The language guarantees within a method boundary that these
             // will be the same type and can be used together in this fashion.
-
-            var creationNode = TryGetCreationNode(diagnostic, cancellationToken);
-            if (creationNode == null)
-            {
-                Debug.Fail("We should always be able to find the anonymous creation we were invoked from.");
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var anonymousType = semanticModel.GetTypeInfo(creationNode, cancellationToken).Type;
             if (anonymousType == null)
             {
                 Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
-                return;
+                return document;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var editor = new SyntaxEditor(root, SyntaxGenerator.GetGenerator(document));
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? creationNode;
 
             var childCreationNodes = containingMember.DescendantNodesAndSelf()
@@ -89,32 +83,10 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 }
 
                 if (anonymousType.Equals(childType))
-                {
                     ReplaceWithTuple(editor, childCreation);
-                }
-            }
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                // During a fix-all we don't need to bother with the work to go to the containing
-                // method.  Because it's a fix-all, by definition, we'll always be processing all
-                // the anon-creation nodes for any given method that is within our scope.
-                var node = TryGetCreationNode(diagnostic, cancellationToken);
-                if (node == null)
-                {
-                    Debug.Fail("We should always be able to find the anonymous creation we were invoked from.");
-                    continue;
-                }
-
-                ReplaceWithTuple(editor, node);
             }
 
-            return Task.CompletedTask;
+            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
         private void ReplaceWithTuple(SyntaxEditor editor, TAnonymousObjectCreationExpressionSyntax node)
@@ -123,16 +95,11 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 {
                     // Use the callback form as anonymous types may be nested, and we want to
                     // properly replace them even in that case.
-                    if (!(current is TAnonymousObjectCreationExpressionSyntax anonCreation))
-                    {
+                    if (current is not TAnonymousObjectCreationExpressionSyntax anonCreation)
                         return current;
-                    }
 
                     return ConvertToTuple(anonCreation).WithAdditionalAnnotations(Formatter.Annotation);
                 });
-
-        private static TAnonymousObjectCreationExpressionSyntax TryGetCreationNode(Diagnostic diagnostic, CancellationToken cancellationToken)
-            => diagnostic.Location.FindToken(cancellationToken).Parent as TAnonymousObjectCreationExpressionSyntax;
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

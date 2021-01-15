@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
+namespace Microsoft.CodeAnalysis.ConvertAnonymousType
 {
     internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         TExpressionSyntax,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         TObjectCreationExpressionSyntax,
         TAnonymousObjectCreationExpressionSyntax,
         TNamespaceDeclarationSyntax>
-        : CodeRefactoringProvider
+        : AbstractConvertAnonymousTypeCodeRefactoringProvider<TAnonymousObjectCreationExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
         where TNameSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TNameSyntax
@@ -67,26 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             context.RegisterRefactoring(new MyCodeAction(
                 c => ConvertToClassAsync(document, textSpan, c)),
                 anonymousObject.Span);
-        }
-
-        private static async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(
-            Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            // Gets a `TAnonymousObjectCreationExpressionSyntax` for current selection.
-            // Due to the way `TryGetSelectedNodeAsync` works and how `TAnonymousObjectCreationExpressionSyntax` is e.g. for C# constructed
-            // it matches even when caret is next to some tokens within the anonymous object creation node.
-            // E.g.: `var a = new [||]{ b=1,[||] c=2 };` both match due to the caret being next to `,` and `{`.
-            var anonymousObject = await document.TryGetRelevantNodeAsync<TAnonymousObjectCreationExpressionSyntax>(
-                span, cancellationToken).ConfigureAwait(false);
-            if (anonymousObject == null)
-            {
-                return default;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var anonymousType = semanticModel.GetTypeInfo(anonymousObject, cancellationToken).Type as INamedTypeSymbol;
-
-            return (anonymousObject, anonymousType);
         }
 
         private async Task<Document> ConvertToClassAsync(Document document, TextSpan span, CancellationToken cancellationToken)

@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseConditionalExpressionForAssignment = /*IDE0045*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseConditionalExpressionForReturn = /*IDE0046*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryParentheses = /*IDE0047*/ EnforceOnBuild.Recommended;
-        public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseExpressionBodyForLambdaExpressions = /*IDE0053*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCompoundAssignment = /*IDE0054*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseIndexOperator = /*IDE0056*/ EnforceOnBuild.Recommended;
