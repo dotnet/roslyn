@@ -15,16 +15,12 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
-    internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocationExpressionSyntax, TSimpleNameSyntax, TExpressionSyntax, TArgumentListSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocationExpressionSyntax, TSimpleNameSyntax, TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
-        where TArgumentListSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TSimpleNameSyntax : TExpressionSyntax
     {
-        private const string SimplyfyLinqAnnotationKind = "linqTracking";
 
-        protected abstract TSimpleNameSyntax GetName(TInvocationExpressionSyntax invocationExpression);
-        protected abstract SeparatedSyntaxList<SyntaxNode> GetArguments(TArgumentListSyntax invocationExpression);
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -46,46 +42,19 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                                             CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
-
-            // Track all the arguments into linq methods as they could be lambdas and the contents of their bodies may change
-            var invocationsAndTheirArguments = diagnostics.Select(d => (Invocation: GetInvocation(root, d), ArgumentList: GetArgumentList(root, d)));
-            var argumentLookup = invocationsAndTheirArguments
-                .Select(x => (ArgumentSpanStart: x.ArgumentList.SpanStart, InvocationSpanStart: x.Invocation.SpanStart))
-                .ToImmutableDictionary(x => x.ArgumentSpanStart, x => x.InvocationSpanStart);
-            var annotatedRoot = root.ReplaceNodes(
-                invocationsAndTheirArguments.Select(x => x.ArgumentList),
-                (original, current) =>
+            var expressionsToReWrite = diagnostics.Select(d => GetInvocation(root, d)).OrderByDescending(i => i.SpanStart);
+            foreach (var original in expressionsToReWrite)
+            {
+                editor.ReplaceNode(original, (current, generator) =>
                 {
-                    // add the original span that the diagnostic was about in the data section of the annotation to use as a key later
-                    var annotation = new SyntaxAnnotation(SimplyfyLinqAnnotationKind, argumentLookup[original.SpanStart].ToString());
-                    return current.WithAdditionalAnnotations(annotation);
-                });
-
-            // Find the related nodes in the annotated tree
-            var newNodes = diagnostics.Select(d => GetNodes(d, annotatedRoot));
-            var relatedNodesByInvocationSpanStart = newNodes.ToImmutableDictionary(n => n.Invocation.SpanStart, n => (n.Expression, n.Name, n.ArgumentList));
-
-            // Rewrite the expressions
-            var expressionsToReWrite = newNodes.Select(x => x.Invocation).OrderByDescending(x => x.SpanStart);
-            var generator = editor.Generator;
-            var updatedRoot = annotatedRoot.ReplaceNodes(
-                expressionsToReWrite,
-                (original, current) =>
-                {
-                    var (expression, name, argumentList) = relatedNodesByInvocationSpanStart[original.SpanStart];
-                    if (original != current)
-                    {
-                        // Retireve arguments to the invocation by looking at the annotations and matching them via the span start
-                        argumentList = (TArgumentListSyntax)current.GetAnnotatedNodes(SimplyfyLinqAnnotationKind)
-                            .Single(x => x.GetAnnotations(SimplyfyLinqAnnotationKind).Single().Data == original.SpanStart.ToString());
-                    }
-
+                    var invocation = (TInvocationExpressionSyntax)current;
+                    var (expression, name, arguments) = FindNodes(invocation);
                     return generator.InvocationExpression(
                             generator.MemberAccessExpression(expression, name),
-                            GetArguments(argumentList)).WithTriviaFrom(current);
+                            arguments);
                 });
+            }
 
-            editor.ReplaceNode(root, updatedRoot);
             return Task.CompletedTask;
 
             static TInvocationExpressionSyntax GetInvocation(SyntaxNode root, Diagnostic diagnostic)
@@ -93,20 +62,14 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return (TInvocationExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             }
 
-            TArgumentListSyntax GetArgumentList(SyntaxNode root, Diagnostic diagnostic)
+            (TExpressionSyntax Expression, TSimpleNameSyntax Name, SeparatedSyntaxList<SyntaxNode> Arguments) FindNodes(TInvocationExpressionSyntax current)
             {
-                return (TArgumentListSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
-            }
-
-            (TInvocationExpressionSyntax Invocation, TExpressionSyntax Expression, TSimpleNameSyntax Name, TArgumentListSyntax ArgumentList) GetNodes(Diagnostic diagnostic, SyntaxNode root)
-            {
-                var invocation = GetInvocation(root, diagnostic);
-                var name = GetName(invocation);
-                var invocationExpression = (TInvocationExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var memberAccessExpression = SyntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                var expression = (TExpressionSyntax)SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression)!;
-                var arguments = GetArgumentList(root, diagnostic);
-                return (invocation, expression, name, arguments);
+                var memberAccess = SyntaxFacts.GetExpressionOfInvocationExpression(current);
+                var name = (TSimpleNameSyntax)SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+                var whereExpression = (TInvocationExpressionSyntax)SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
+                var arguments = SyntaxFacts.GetArgumentsOfInvocationExpression(whereExpression);
+                var expression = (TExpressionSyntax)SyntaxFacts.GetExpressionOfMemberAccessExpression(SyntaxFacts.GetExpressionOfInvocationExpression(whereExpression))!;
+                return (expression, name, arguments);
             }
         }
 

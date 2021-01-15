@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSimplifyLinqExpressionCodeFixProvider
         Inherits AbstractSimplifyLinqExpressionCodeFixProvider(Of
-            InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax, ArgumentListSyntax)
+            InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -26,14 +26,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
                 Return VisualBasicSyntaxFacts.Instance
             End Get
         End Property
-
-        Protected Overrides Function GetArguments(argumentList As ArgumentListSyntax) As SeparatedSyntaxList(Of SyntaxNode)
-            Return argumentList.Arguments
-        End Function
-
-        Protected Overrides Function GetName(invocationExpression As InvocationExpressionSyntax) As SimpleNameSyntax
-            Return invocationExpression.Expression.GetRightmostName()
-        End Function
-
     End Class
 End Namespace

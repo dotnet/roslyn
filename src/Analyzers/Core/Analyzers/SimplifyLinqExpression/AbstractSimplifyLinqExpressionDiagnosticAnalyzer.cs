@@ -142,15 +142,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 targetTypeSymbol.MemberNames.Contains(name))
             {
                 // Do not offer to transpose if there is already a member on the collection named the same as the linq extension method
-                // example: list.Where(x => x != null).Count() cannot be changed to list.Count(x => x != null)
-                return;
-            }
-
-            var memberAccessExpressionLocation = invocation.Syntax.GetLocation();
-            var argumentListLocation = TryGetArgumentListLocation(invocation.Arguments);
-            if (argumentListLocation is null)
-            {
-                // unable to find an argument list location
+                // example: list.Where(x => x != null).Count() cannot be changed to list.Count(x => x != null) as List<T> already has a member named Count
                 return;
             }
 
@@ -159,7 +151,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     Descriptor,
                     nextInvocation.Syntax.GetLocation(),
                     Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                    additionalLocations: new[] { memberAccessExpressionLocation, argumentListLocation },
+                    additionalLocations: null,
                     properties: null));
 
             return;
