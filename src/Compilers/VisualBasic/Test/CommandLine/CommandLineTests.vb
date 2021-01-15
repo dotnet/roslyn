@@ -2027,8 +2027,6 @@ End Module").Path
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
-            ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
-            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},

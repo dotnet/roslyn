@@ -242,6 +242,7 @@ public class C : System.Attribute
     public int Property6 { init; get; }
     public int Property7 { init; get; }
     public int Property8 { init; get; }
+    public int Property9 { init => throw new System.InvalidOperationException(); get => 0; }
 }
 "
             Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
@@ -269,10 +270,10 @@ Public Class Test
         System.Console.Write(" "c)
         System.Console.Write(DirectCast(b.GetType().GetCustomAttributes(False)(0), C).Property7)
         System.Console.Write(" "c)
-
-        B.Init(b.Property8, 492)
-        B.Init((b.Property8), 493)
         System.Console.Write(b.Property8)
+
+        B.Init(b.Property9, 492)
+        B.Init((b.Property9), 493)
     End Sub
 End Class
 
@@ -295,23 +296,23 @@ Class B
 
         With Me
             Init(.Property8, 49)
-            Init((.Property8), 494)
+            Init((.Property9), 494)
         End With
 
         Dim b = Me
-        Init(b.Property8, 490)
-        Init((b.Property8), 491)
+        Init(b.Property9, 490)
+        Init((b.Property9), 491)
 
         With b
-            Init(.Property8, 499)
-            Init((.Property8), 450)
+            Init(.Property9, 499)
+            Init((.Property9), 450)
         End With
 
         Test()
 
         Dim d = Sub()
-                    Init(Property8, 600)
-                    Init((Property8), 601)
+                    Init(Property9, 600)
+                    Init((Property9), 601)
                 End Sub
 
         d()
@@ -319,18 +320,18 @@ Class B
 
     Public Sub Test()
         With Me
-            Init(.Property8, 495)
-            Init((.Property8), 496)
+            Init(.Property9, 495)
+            Init((.Property9), 496)
         End With
 
-        Init(Property8, 497)
-        Init((Property8), 498)
+        Init(Property9, 497)
+        Init((Property9), 498)
 
         Dim b = Me
 
         With b
-            Init(.Property8, 451)
-            Init((.Property8), 452)
+            Init(.Property9, 451)
+            Init((.Property9), 452)
         End With
     End Sub
 
@@ -353,7 +354,7 @@ BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' proper
         Dim b = new B() With { .Property1 = 42 }
                                ~~~~~~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-        B.Init(b.Property8, 492)
+        B.Init(b.Property9, 492)
                ~~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
 <C(Property7:= 48)>
@@ -380,22 +381,22 @@ BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' proper
             Init(.Property8, 49)
                  ~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-        Init(b.Property8, 490)
+        Init(b.Property9, 490)
              ~~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-            Init(.Property8, 499)
+            Init(.Property9, 499)
                  ~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-                    Init(Property8, 600)
+                    Init(Property9, 600)
                          ~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-            Init(.Property8, 495)
+            Init(.Property9, 495)
                  ~~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-        Init(Property8, 497)
+        Init(Property9, 497)
              ~~~~~~~~~
 BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
-            Init(.Property8, 451)
+            Init(.Property9, 451)
                  ~~~~~~~~~~
 ]]></expected>)
 
@@ -737,7 +738,20 @@ BC37311: Init-only property 'Item' can only be assigned by an object member init
 public class C : System.Attribute
 {
     private int[] _item = new int[36];
-    public int this[int x] { init => _item[x] = value; get => _item[x]; }
+    public int this[int x]
+    {
+        init
+        {
+            if (x > 8)
+            {
+                throw new System.InvalidOperationException();
+            }
+
+            _item[x] = value;
+        }
+
+        get => _item[x];
+    }
 }
 "
             Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
@@ -1999,8 +2013,6 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void System.Object::.ctor()
       IL_0006: ret
@@ -2009,7 +2021,6 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2017,7 +2028,6 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2030,7 +2040,6 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2038,7 +2047,6 @@ BC30362: 'Public Overrides ReadOnly Property P2 As Integer' cannot override 'Pub
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2092,8 +2100,6 @@ End Class
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void System.Object::.ctor()
       IL_0006: ret
@@ -2102,7 +2108,6 @@ End Class
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2110,7 +2115,6 @@ End Class
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2123,7 +2127,6 @@ End Class
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2131,7 +2134,6 @@ End Class
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2186,8 +2188,6 @@ End Class
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void System.Object::.ctor()
       IL_0006: ret
@@ -2196,7 +2196,6 @@ End Class
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2204,7 +2203,6 @@ End Class
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2217,7 +2215,6 @@ End Class
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2225,7 +2222,6 @@ End Class
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2286,8 +2282,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void System.Object::.ctor()
       IL_0006: ret
@@ -2296,7 +2290,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2304,7 +2297,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2317,7 +2309,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 get_P() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2325,7 +2316,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void set_P(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2386,8 +2376,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void System.Object::.ctor()
       IL_0006: ret
@@ -2396,7 +2384,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P1() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2404,7 +2391,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P1(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2417,7 +2403,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 get_P1() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2425,7 +2410,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void set_P1(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2438,7 +2422,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 get_P2() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2446,7 +2429,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void set_P2(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2459,7 +2441,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P2() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2467,7 +2448,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig newslot virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P2(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2493,8 +2473,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void CL1::.ctor()
       IL_0006: ret
@@ -2503,7 +2481,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P1() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2511,7 +2488,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P1(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2524,7 +2500,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance int32 modopt(System.Runtime.CompilerServices.IsExternalInit) get_P2() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2532,7 +2507,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P2(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2549,8 +2523,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig specialname rtspecialname
             instance void  .ctor() cil managed
     {
-      // Code size       7 (0x7)
-      .maxstack  1
       IL_0000: ldarg.0
       IL_0001: call instance void CL1::.ctor()
       IL_0006: ret
@@ -2559,7 +2531,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance int32 get_P1() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2567,7 +2538,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance void set_P1(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
@@ -2580,7 +2550,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance int32 get_P2() cil managed
     {
-      .maxstack  8
       ldc.i4.s   123
       ret
     } 
@@ -2588,7 +2557,6 @@ BC30935: Member 'Public Overridable Overloads Property P As Integer' that matche
     .method public hidebysig virtual
             instance void set_P2(int32 x) cil managed
     {
-      .maxstack  8
       ret
     } 
 
