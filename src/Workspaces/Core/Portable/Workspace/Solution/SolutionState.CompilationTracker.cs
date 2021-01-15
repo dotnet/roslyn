@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -755,7 +756,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var generatedDocumentsBuilder);
+                        using var generatedDocumentsBuilder = new TemporaryArray<SourceGeneratedDocumentState>();
 
                         if (generators.Any())
                         {
@@ -788,7 +789,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        generatedDocuments = generatedDocumentsBuilder.ToImmutable();
+                        generatedDocuments = generatedDocumentsBuilder.ToImmutableAndClear();
                     }
 
                     compilation = compilation.AddSyntaxTrees(generatedDocuments.Select(d => d.SyntaxTree));
