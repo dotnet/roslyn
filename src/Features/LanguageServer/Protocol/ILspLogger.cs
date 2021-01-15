@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         void TraceInformation(string message);
         void TraceException(Exception exception);
+        void TraceStart(string message);
+        void TraceStop(string message);
     }
 
     internal class NoOpLspLogger : ILspLogger
@@ -25,6 +27,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public void TraceInformation(string message)
+        {
+        }
+
+        public void TraceStart(string message)
+        {
+        }
+
+        public void TraceStop(string message)
         {
         }
     }

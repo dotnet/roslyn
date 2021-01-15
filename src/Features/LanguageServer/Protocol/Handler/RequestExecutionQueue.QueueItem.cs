@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // Restore our activity id so that logging/tracking works.
                 Trace.CorrelationManager.ActivityId = _activityId;
-                _logger.TraceInformation($"{MethodName} - Roslyn start");
+                _logger.TraceStart($"{MethodName} - Roslyn");
                 try
                 {
                     await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
                 finally
                 {
-                    _logger.TraceInformation($"{MethodName} - Roslyn End");
+                    _logger.TraceStop($"{MethodName} - Roslyn");
                 }
             }
         }
