@@ -7694,42 +7694,8 @@ public class A<T>
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
-        }
 
-        [Fact]
-        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
-        public void NullableAttributes_MayBeNullOnClassProperty_WithoutNullableModifier()
-        {
-            var source =
-@"
-using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
-
-public class A<T>
-{
-    [MaybeNull]
-    public T P { get; }
-
-    void M()
-    {
-        var a = new A<object>();
-        _ = a.P;
-    }
-}
-";
-            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-
-            // look for memberAccess "a.P"
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
-            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
-            var format = new SymbolDisplayFormat(
-                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.None); // without SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
-
+            format = format.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.None); // without SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
             Verify(
                 symbol.ToDisplayParts(format),
                 "Object P",
