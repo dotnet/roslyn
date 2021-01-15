@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
@@ -12,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertAnonymousTy
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicConvertAnonymousTypeToTupleCodeRefactoringProvider()
+        End Function
+
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
@@ -156,7 +162,7 @@ end class
             Dim text = "
 class Test
     sub Method(b as integer)
-        dim t1 = {|FixAllInDocument:|}new with { .a = 1, .b = 2 }
+        dim t1 = [||]new with { .a = 1, .b = 2 }
         dim t2 = new with { .a = 3, b }
         dim t3 = new with { .a = 4 }
         dim t4 = new with { .b = 5, .a = 6 }
@@ -173,7 +179,7 @@ class Test
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
@@ -212,7 +218,7 @@ end class
             Dim text = "
 class Test
     sub Method()
-        dim t1 = {|FixAllInDocument:|}new with { .a = 1, .b = new with { .c = 1, .d = 2 } }
+        dim t1 = [||]new with { .a = 1, .b = new with { .c = 1, .d = 2 } }
     end sub
 end class
 "
@@ -223,7 +229,7 @@ class Test
     end sub
 end class
 "
-            Await TestInRegularAndScriptAsync(text, expected)
+            Await TestInRegularAndScriptAsync(text, expected, Index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>

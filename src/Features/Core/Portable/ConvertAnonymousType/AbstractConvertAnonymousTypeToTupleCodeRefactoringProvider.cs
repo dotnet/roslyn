@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             var (document, span, cancellationToken) = context;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var (anonymousNode, _) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
-            if (anonymousNode == null)
+            var (anonymousNode, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
+            if (anonymousNode == null || anonymousType == null)
                 return;
 
             // Analysis is trivial.  All anonymous types with more than two fields are marked as being
@@ -42,13 +44,54 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             if (GetInitializerCount(anonymousNode) < 2)
                 return;
 
-            context.RegisterRefactoring(
-                new MyCodeAction(c => FixInCurrentMemberAsync(document, anonymousNode, c)),
-                span);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var allAnonymousNodes = GetAllAnonymousTypesInContainer(document, semanticModel, anonymousNode, cancellationToken);
+
+            // If we have multiple different anonymous types in this member, then offer two fixes, one to just fixup this
+            // anonymous type, and one to fixup all anonymous types.
+            if (allAnonymousNodes.Any(t => !anonymousType.Equals(t.symbol, SymbolEqualityComparer.Default)))
+            {
+                context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+                    FeaturesResources.Convert_to_tuple,
+                    ImmutableArray.Create<CodeAction>(
+                        new MyCodeAction(FeaturesResources.just_this_anonymous_type, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c)),
+                        new MyCodeAction(FeaturesResources.all_anonymous_types_in_container, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: true, c))),
+                    isInlinable: false),
+                    span);
+            }
+            else
+            {
+                // otherwise, just offer the change to the single tuple type.
+                context.RegisterRefactoring(
+                    new MyCodeAction(FeaturesResources.Convert_to_tuple, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c)),
+                    span);
+            }
+        }
+
+        private IEnumerable<(TAnonymousObjectCreationExpressionSyntax node, INamedTypeSymbol symbol)> GetAllAnonymousTypesInContainer(
+            Document document,
+            SemanticModel semanticModel,
+            TAnonymousObjectCreationExpressionSyntax anonymousNode,
+            CancellationToken cancellationToken)
+        {
+            // Now see if we have any other anonymous types (with a different shape) in the containing member.
+            // If so, offer to fix those up as well.
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var containingMember = anonymousNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? anonymousNode;
+
+            var childCreationNodes = containingMember.DescendantNodesAndSelf()
+                .OfType<TAnonymousObjectCreationExpressionSyntax>()
+                .Where(s => this.GetInitializerCount(s) >= 2);
+
+            foreach (var childNode in childCreationNodes)
+            {
+                if (semanticModel.GetTypeInfo(childNode, cancellationToken).Type is INamedTypeSymbol childType)
+                    yield return (childNode, childType);
+            }
         }
 
         private async Task<Document> FixInCurrentMemberAsync(
-            Document document, TAnonymousObjectCreationExpressionSyntax creationNode, CancellationToken cancellationToken)
+            Document document, TAnonymousObjectCreationExpressionSyntax creationNode, INamedTypeSymbol anonymousType, bool allAnonymousTypes, CancellationToken cancellationToken)
         {
             // For the standard invocation of the code-fix, we want to fixup all creations of the
             // "same" anonymous type within the containing method.  We define same-ness as meaning
@@ -58,32 +101,17 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             // then combining them in interesting ways (i.e. checking them for equality, using them
             // in collections, etc.).  The language guarantees within a method boundary that these
             // will be the same type and can be used together in this fashion.
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var anonymousType = semanticModel.GetTypeInfo(creationNode, cancellationToken).Type;
-            if (anonymousType == null)
-            {
-                Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
-                return document;
-            }
-
             var editor = new SyntaxEditor(root, SyntaxGenerator.GetGenerator(document));
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? creationNode;
 
-            var childCreationNodes = containingMember.DescendantNodesAndSelf()
-                                                     .OfType<TAnonymousObjectCreationExpressionSyntax>();
-            foreach (var childCreation in childCreationNodes)
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var otherAnonymousNodes = GetAllAnonymousTypesInContainer(document, semanticModel, creationNode, cancellationToken);
+
+            foreach (var (node, symbol) in otherAnonymousNodes)
             {
-                var childType = semanticModel.GetTypeInfo(childCreation, cancellationToken).Type;
-                if (childType == null)
-                {
-                    Debug.Fail("We should always be able to get an anonymous type for any anonymous creation node.");
-                    continue;
-                }
-
-                if (anonymousType.Equals(childType))
-                    ReplaceWithTuple(editor, childCreation);
+                if (allAnonymousTypes || anonymousType.Equals(symbol, SymbolEqualityComparer.Default))
+                    ReplaceWithTuple(editor, node);
             }
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
@@ -103,8 +131,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Convert_to_tuple, createChangedDocument, AnalyzersResources.Convert_to_tuple)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -15,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider();
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
         public async Task ConvertSingleAnonymousType()
@@ -194,7 +199,7 @@ class Test
 {
     void Method(int b)
     {
-        var t1 = {|FixAllInDocument:|}new { a = 1, b = 2 };
+        var t1 = [||]new { a = 1, b = 2 };
         var t2 = new { a = 3, b };
         var t3 = new { a = 4 };
         var t4 = new { b = 5, a = 6 };
@@ -213,7 +218,7 @@ class Test
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
@@ -286,7 +291,7 @@ class Test
 {
     void Method()
     {
-        var t1 = {|FixAllInDocument:|}new { a = 1, b = new { c = 1, d = 2 } };
+        var t1 = [||]new { a = 1, b = new { c = 1, d = 2 } };
     }
 }
 ";
@@ -299,7 +304,7 @@ class Test
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]

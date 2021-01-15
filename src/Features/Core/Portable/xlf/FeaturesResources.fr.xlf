@@ -250,6 +250,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Convertir en struct</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Convertir le type en '{0}'</target>
@@ -2326,6 +2331,11 @@ Si le spécificateur de format "H" est utilisé sans autres spécificateurs de f
         <target state="translated">Le spécificateur de format personnalisé "HH" (plus n'importe quel nombre de spécificateurs "H" supplémentaires) représente les heures sous la forme d'un nombre compris entre 00 et 23. En d'autres termes, les heures sont représentées par une horloge de 24 heures de base zéro, qui compte les heures écoulées depuis minuit. Une heure à un chiffre est présentée dans un format qui comporte un zéro de début.</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">séparateur de date</target>
@@ -2460,6 +2470,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">dans la source (attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
