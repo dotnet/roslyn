@@ -1,8 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -41,13 +39,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// <remarks>
         /// This overload is required for compatibility with existing extensions.
         /// </remarks>
-        protected static SignatureHelpItems CreateSignatureHelpItems(
+        protected static SignatureHelpItems? CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
             return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
         }
 
-        protected static SignatureHelpItems CreateSignatureHelpItems(
+        protected static SignatureHelpItems? CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
         {
             if (items == null || !items.Any() || state == null)
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
 
-        protected static SignatureHelpItems CreateCollectionInitializerSignatureHelpItems(
+        protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
             // We will have added all the accessible '.Add' methods that take at least one
@@ -117,8 +115,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public async Task<SignatureHelpState> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return GetCurrentArgumentState(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts = null)
+            IList<SymbolDisplayPart>? descriptionParts = null)
         {
             return CreateItem(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -154,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts = null)
+            IList<SymbolDisplayPart>? descriptionParts = null)
         {
             return CreateItemImpl(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts)
+            IList<SymbolDisplayPart>? descriptionParts)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
             separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var directAnonymousTypeReferences =
                 from part in allParts
                 where part.Symbol.IsNormalAnonymousType()
-                select (INamedTypeSymbol)part.Symbol;
+                select (INamedTypeSymbol)part.Symbol!;
 
             var info = anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position);
@@ -253,7 +251,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
 
-        public async Task<SignatureHelpItems> GetItemsAsync(
+        public async Task<SignatureHelpItems?> GetItemsAsync(
             Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
