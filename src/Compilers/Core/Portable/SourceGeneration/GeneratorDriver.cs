@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, syntaxTreeProvider: null, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -125,12 +125,6 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver RemoveAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.RemoveRange(additionalTexts));
-            return FromState(newState);
-        }
-
-        public GeneratorDriver WithSyntaxTreeProvider(SyntaxTreeProvider? syntaxTreeProvider)
-        {
-            var newState = _state.With(syntaxTreeProvider: syntaxTreeProvider);
             return FromState(newState);
         }
 
@@ -346,43 +340,9 @@ namespace Microsoft.CodeAnalysis
             var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
-                trees.Add(GetOrParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
+                trees.Add(ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
             }
             return trees.ToImmutableAndFree();
-        }
-
-        private SyntaxTree GetOrParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
-        {
-            SyntaxTree? tree = null;
-            if (_state.SyntaxTreeProvider is not null
-                && _state.SyntaxTreeProvider.TryGetSyntaxTree(input.Text, out tree))
-            {
-                // We have a syntax tree, but still need to make sure it matches the expected options
-                if (Equals(_state.ParseOptions, tree.Options))
-                {
-                    var treeWithUpdatedPath = tree.WithFilePath(fileName);
-                    if (treeWithUpdatedPath == tree)
-                    {
-                        // The provided tree does not need updating, so return it
-                        return treeWithUpdatedPath;
-                    }
-                    else
-                    {
-                        // Use the tree with the correct path. Code below will update the provider to use it in future
-                        // calls.
-                        tree = treeWithUpdatedPath;
-                    }
-                }
-                else
-                {
-                    // Ignore the previous tree
-                    tree = null;
-                }
-            }
-
-            tree ??= ParseGeneratedSourceText(input, fileName, cancellationToken);
-            _state.SyntaxTreeProvider?.AddOrUpdate(input.Text, tree);
-            return tree;
         }
 
         private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)

@@ -201,6 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cloneRoot:=False)
         End Function
 
+        Friend Shared Function ParseTextLazy(text As SourceText,
+                                         Optional options As VisualBasicParseOptions = Nothing,
+                                         Optional path As String = "",
+                                         Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+            Return New LazySyntaxTree(text, path, If(options, VisualBasicParseOptions.Default), Nothing)
+        End Function
+
         ''' <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
         Public Shared Function ParseText(text As String,
                                          Optional options As VisualBasicParseOptions = Nothing,
