@@ -7667,28 +7667,19 @@ public class A<T>
 {
     [MaybeNull]
     public T P { get; }
-
-    void M()
-    {
-        var a = new A<object>();
-        _ = a.P;
-    }
 }
+
+public class Test: A<object> { }
 ";
             var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-
-            // look for memberAccess "a.P"
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
-            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+            var memmber = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                symbol.ToDisplayParts(format),
+                memmber.ToDisplayParts(format),
                 "Object? P",
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
@@ -7697,7 +7688,7 @@ public class A<T>
 
             format = format.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.None); // without SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
             Verify(
-                symbol.ToDisplayParts(format),
+                memmber.ToDisplayParts(format),
                 "Object P",
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Space,
@@ -7718,27 +7709,19 @@ public class A<T>
 {
     [MaybeNull]
     public T P { get; }
-
-    void M()
-    {
-        var a = new A<int>();
-        _ = a.P;
-    }
 }
+
+public class Test: A<int> { }
 ";
             var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
-            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+            var member = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                symbol.ToDisplayParts(format),
+                member.ToDisplayParts(format),
                 "Int32 P",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
@@ -7766,29 +7749,20 @@ namespace N
             var sourceVB =
 @"
 Imports N
-Public Class C
-    Public Sub M()
-        Dim a = New A(Of Object)()
-        Dim p = a.P
-    End Sub
+Public Class Test
+    Inherits A(Of Object)
 End Class";
             var compCS = CreateCompilation(new[] { sourceCS, MaybeNullAttributeDefinition });
             var refCS = compCS.EmitToImageReference();
             var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef, refCS });
-
-            var tree = compVB.SyntaxTrees[0];
-            var model = compVB.GetSemanticModel(tree);
-
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.MemberAccessExpressionSyntax>().Single();
-            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
-
+            var member = compVB.GetTypeByMetadataName("Test").BaseType.GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                symbol.ToDisplayParts(format),
+                member.ToDisplayParts(format),
                 "Overloads P As Object",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7825,33 +7799,20 @@ End Namespace
 
 namespace N
 {
-    public class C
-    {
-        void M()
-        {
-            var a = new A<object>();
-            _ = a.P;
-        }
-    }
+    public class Test: A<object> { }
 }
 ";
             var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef });
             var refVB = compVB.EmitToImageReference();
             var compCS = CreateCompilation(sourceCS, references: new[] { refVB });
-
-            var tree = compCS.SyntaxTrees[0];
-            var model = compCS.GetSemanticModel(tree);
-
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
-            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
-
+            var member = compCS.GetTypeByMetadataName("N.Test").BaseType().GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                symbol.ToDisplayParts(format),
+                member.ToDisplayParts(format),
                 "Object P",
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Space,
