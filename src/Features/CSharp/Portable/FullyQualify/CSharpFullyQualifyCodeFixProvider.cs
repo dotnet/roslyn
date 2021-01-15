@@ -109,10 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
                 return root.ReplaceNode(usingDirective, newUsingDirective);
             }
-            else
-            {
-                return root.ReplaceNode(simpleName, qualifiedName);
-            }
+
+            return root.ReplaceNode(simpleName, qualifiedName);
         }
     }
 }

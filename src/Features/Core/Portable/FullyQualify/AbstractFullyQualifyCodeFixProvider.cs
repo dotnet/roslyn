@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 string memberName;
                 if (IgnoreCase)
                 {
-
                     var member = container.GetMembers(name).FirstOrDefault();
                     memberName = member != null ? member.Name : name;
                 }
@@ -323,13 +322,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private static IEnumerable<SymbolResult> FilterAndSort(IEnumerable<SymbolResult> symbols)
-        {
-            symbols ??= SpecializedCollections.EmptyList<SymbolResult>();
-            symbols = symbols.Distinct()
-                             .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
-                             .Order();
-            return symbols.ToList();
-        }
+            => symbols.Distinct()
+               .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
+               .Order();
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
