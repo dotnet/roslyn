@@ -37,6 +37,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             return argumentLists[0].GetLocation();
         }
 
+        protected override string? TryGetMethodName(IInvocationOperation invocation)
+        {
+            if (invocation.Syntax is InvocationExpressionSyntax invocationNode &&
+                invocationNode.Expression is MemberAccessExpressionSyntax memberAccess)
+            {
+                return memberAccess.Name.WithoutTrivia().GetText().ToString();
+            }
+
+            return null;
+        }
+
         protected override IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation)
         {
             if (invocation.Parent is IArgumentOperation argument &&
@@ -46,6 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             }
 
             return null;
+        }
+
+        protected override INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
+        {
+            if (invocation.Syntax is not InvocationExpressionSyntax invocationNode ||
+                invocationNode.Expression is not MemberAccessExpressionSyntax memberAccess ||
+                memberAccess.Expression is null)
+            {
+                return null;
+            }
+
+            var model = invocation.SemanticModel;
+            return model.GetTypeInfo(memberAccess.Expression).Type as INamedTypeSymbol;
         }
     }
 }

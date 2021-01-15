@@ -464,8 +464,8 @@ namespace demo
 {
     class Test
     {
-        static IEnumerable<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-        int test2 = test1.Where(x => x > 0).Max();
+        static List<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
+        int test2 = test1.Where(x => x > 0).Count();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source);

@@ -118,7 +118,7 @@ class C
         var test1 = [|test.Where(x => x.Equals('!')).Any()|];
         var test2 = [|test.Where(x => x.Equals('!')).SingleOrDefault()|];
         var test3 = [|test.Where(x => x.Equals('!')).Last()|];
-        var test4 = [|test.Where(x => x.Equals('!')).Count()|];
+        var test4 = test.Where(x => x.Equals('!')).Count();
         var test5 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).FirstOrDefault()|].Equals(""hello"")).FirstOrDefault()|];
     }
 }",
@@ -135,7 +135,7 @@ class C
         var test1 = test.Any(x => x.Equals('!'));
         var test2 = test.SingleOrDefault(x => x.Equals('!'));
         var test3 = test.Last(x => x.Equals('!'));
-        var test4 = test.Count(x => x.Equals('!'));
+        var test4 = test.Where(x => x.Equals('!')).Count();
         var test5 = test.FirstOrDefault(a => a.FirstOrDefault(s => s.Equals(""hello"")).Equals(""hello""));
     }
 }",

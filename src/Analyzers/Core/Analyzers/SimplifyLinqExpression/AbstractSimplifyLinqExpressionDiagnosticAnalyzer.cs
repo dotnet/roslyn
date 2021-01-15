@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         protected abstract Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments);
         protected abstract IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation);
+        protected abstract INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation);
+        protected abstract string? TryGetMethodName(IInvocationOperation invocation);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             }
 
             context.RegisterOperationAction(
-                context => AnalyzeInvocationOperation(context, whereMethodSymbol, linqMethodSymbols),
+                context => AnalyzeInvocationOperation(context, enumerableType, whereMethodSymbol, linqMethodSymbols),
                 OperationKind.Invocation);
 
             return;
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             }
         }
 
-        public void AnalyzeInvocationOperation(OperationAnalysisContext context, IMethodSymbol whereMethod, ImmutableArray<IMethodSymbol> linqMethods)
+        public void AnalyzeInvocationOperation(OperationAnalysisContext context, INamedTypeSymbol enumerableType, IMethodSymbol whereMethod, ImmutableArray<IMethodSymbol> linqMethods)
         {
             if (context.Operation.Syntax.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
@@ -127,6 +129,20 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 !IsInvocationNonEnumerableReturningLinqMethod(nextInvocation))
             {
                 // Invocation is not part of a chain of invocations (i.e. Where(x => x is not null).First())
+                return;
+            }
+
+            if (TryGetSymbolOfMemberAccess(invocation) is not INamedTypeSymbol targetTypeSymbol ||
+                TryGetMethodName(nextInvocation) is not string name)
+            {
+                return;
+            }
+
+            if (!targetTypeSymbol.Equals(enumerableType, SymbolEqualityComparer.Default) &&
+                targetTypeSymbol.MemberNames.Contains(name))
+            {
+                // Do not offer to transpose if there is already a member on the collection named the same as the linq extension method
+                // example: list.Where(x => x != null).Count() cannot be changed to list.Count(x => x != null)
                 return;
             }
 
@@ -149,10 +165,10 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             return;
 
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
-                => linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
+                => linqMethods.Any(m => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
 
             bool IsWhereLinqMethod(IInvocationOperation invocation)
-                => whereMethod.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
+                => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
         }
     }
 }
