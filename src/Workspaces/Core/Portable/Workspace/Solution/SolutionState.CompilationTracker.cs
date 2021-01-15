@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -529,6 +530,8 @@ namespace Microsoft.CodeAnalysis
                 ImmutableArray<SourceGeneratedDocumentState>? authoritativeGeneratedDocuments =
                     state.GeneratedDocumentsAreFinal ? state.GeneratedDocuments : null;
 
+                var nonAuthoritativeGeneratedDocuments = state.GeneratedDocuments;
+
                 if (compilation == null)
                 {
                     // this can happen if compilation is already kicked out from the cache.
@@ -536,7 +539,7 @@ namespace Microsoft.CodeAnalysis
                     if (state.DeclarationOnlyCompilation != null)
                     {
                         // we have declaration only compilation. build final one from it.
-                        return FinalizeCompilationAsync(solution, state.DeclarationOnlyCompilation, authoritativeGeneratedDocuments, cancellationToken);
+                        return FinalizeCompilationAsync(solution, state.DeclarationOnlyCompilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, cancellationToken);
                     }
 
                     // We've got nothing.  Build it from scratch :(
@@ -546,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                 if (state is FullDeclarationState or FinalState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
-                    return FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments, cancellationToken);
+                    return FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, cancellationToken);
                 }
                 else
                 {
@@ -562,7 +565,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
-                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, nonAuthoritativeGeneratedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
@@ -625,7 +628,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
-                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, cancellationToken).ConfigureAwait(false);
+                    return await FinalizeCompilationAsync(solution, compilation, authoritativeGeneratedDocuments: null, nonAuthoritativeGeneratedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
@@ -681,10 +684,14 @@ namespace Microsoft.CodeAnalysis
             /// known to be correct for the given state. This would be non-null in cases where we had computed everything and
             /// ran generators, but then the compilation was garbage collected and are re-creating a compilation but we
             /// still had the prior generated result available.</param>
+            /// <param name="nonAuthoritativeGeneratedDocuments">The generated documents from a previous pass which may
+            /// or may not be correct for the current compilation. These states may be used to access cached results, if
+            /// and when applicable for the current compilation.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
                 SolutionState solution,
                 Compilation compilation,
                 ImmutableArray<SourceGeneratedDocumentState>? authoritativeGeneratedDocuments,
+                ImmutableArray<SourceGeneratedDocumentState> nonAuthoritativeGeneratedDocuments,
                 CancellationToken cancellationToken)
             {
                 try
