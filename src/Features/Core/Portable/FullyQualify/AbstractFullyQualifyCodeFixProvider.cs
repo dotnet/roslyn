@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     s => !currentSymbolInfo.CandidateSymbols.Contains(s));
             }
 
-            return validSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight));
+            return validSymbols.SelectAsArray(s => new SymbolResult(s, weight: TypeWeight, originalSymbolIsType: true));
         }
 
         private static bool IsValidNamedTypeSearchResult(
@@ -267,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 .OfType<INamespaceSymbol>()
                 .Where(n => !n.IsGlobalNamespace && HasAccessibleTypes(n, semanticModel, cancellationToken))
                 .Select(n => new SymbolResult(n,
-                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight));
+                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight,
+                    originalSymbolIsType: false));
 
             return namespaces.ToImmutableArray();
         }
