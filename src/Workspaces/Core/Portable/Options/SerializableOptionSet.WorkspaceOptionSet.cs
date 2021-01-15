@@ -70,13 +70,11 @@ namespace Microsoft.CodeAnalysis.Options
                     yield break;
                 }
 
-                foreach (var kvp in _values)
+                foreach (var (key, value) in _values)
                 {
-                    var currentValue = optionSet?.GetOption(kvp.Key);
-                    if (!object.Equals(currentValue, kvp.Value))
-                    {
-                        yield return kvp.Key;
-                    }
+                    var currentValue = optionSet?.GetOption(key);
+                    if (!object.Equals(currentValue, value))
+                        yield return key;
                 }
             }
         }

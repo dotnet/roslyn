@@ -1166,6 +1166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool AreLocalsZeroed { get; }
 
+        internal abstract bool IsNullableAnalysisEnabled();
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;

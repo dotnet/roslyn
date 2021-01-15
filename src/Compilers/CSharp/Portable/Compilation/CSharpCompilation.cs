@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -130,18 +129,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
 
         /// <summary>
-        /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
-        /// context option is set, or if any file enables nullable or just the nullable warnings.
-        /// </summary>
-        private ThreeState _lazyShouldRunNullableAnalysis;
-
-        /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes,
-        /// and the value is the number of entries tracked during analysis of that key.
+        /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
         /// </summary>
-        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
+        internal ConcurrentDictionary<object, NullableWalker.Data>? NullableAnalysisData;
 
         public override string Language
         {
@@ -202,36 +194,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
-        /// Returns true if nullable analysis is enabled in this compilation.
+        /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
         /// <remarks>
-        /// Returns false if analysis is explicitly disabled for all methods; otherwise
-        /// returns true if the nullable context is enabled in the compilation options
-        /// or if there are any nullable-enabled contexts in the compilation.
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
         /// </remarks>
-        internal bool IsNullableAnalysisEnabled
+        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
-            get
-            {
-                if (!_lazyShouldRunNullableAnalysis.HasValue())
-                {
-                    _lazyShouldRunNullableAnalysis = isEnabled().ToThreeState();
-                }
-                return _lazyShouldRunNullableAnalysis.Value();
+            return IsNullableAnalysisEnabledIn((CSharpSyntaxTree)syntax.SyntaxTree, syntax.Span);
+        }
 
-                bool isEnabled()
-                {
-                    if (GetNullableAnalysisValue() == false)
-                    {
-                        return false;
-                    }
-                    if (Options.NullableContextOptions != NullableContextOptions.Disable)
-                    {
-                        return true;
-                    }
-                    return SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
-                }
-            }
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(CSharpSyntaxTree tree, TextSpan span)
+        {
+            return GetNullableAnalysisValue() ??
+                tree.IsNullableAnalysisEnabled(span) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
+        }
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled for the method. For constructors, the
+        /// region considered may include other constructors and field and property initializers.
+        /// </summary>
+        /// <remarks>
+        /// This overload is intended for callers that rely on symbols rather than syntax. The overload
+        /// uses the cached value calculated during binding (from potentially several spans)
+        /// from <see cref="IsNullableAnalysisEnabledIn(CSharpSyntaxTree, TextSpan)"/>.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
+        {
+            return GetNullableAnalysisValue() ??
+                method.IsNullableAnalysisEnabled();
         }
 
         /// <summary>

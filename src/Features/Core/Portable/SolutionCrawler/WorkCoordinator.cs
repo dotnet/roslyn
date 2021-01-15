@@ -762,6 +762,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(project.Language);
                             }
+
                             break;
                         case DocumentId documentId:
                             var document = solution.GetDocument(documentId);
@@ -769,6 +770,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(document.Project.Language);
                             }
+
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
@@ -808,6 +810,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 count += project.DocumentIds.Count;
                             }
+
                             break;
                         case DocumentId documentId:
                             count++;
@@ -853,6 +856,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                         yield return document;
                                     }
                                 }
+
                                 break;
                             }
                         case DocumentId documentId:
@@ -862,6 +866,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     yield return document;
                                 }
+
                                 break;
                             }
                     }

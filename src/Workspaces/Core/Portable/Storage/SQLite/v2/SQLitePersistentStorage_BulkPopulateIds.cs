@@ -153,10 +153,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                     // We succeeded inserting all the strings.  Ensure our local cache has all the
                     // values we added.
-                    foreach (var kvp in idToString.Object)
-                    {
-                        _stringToIdMap[kvp.Value] = kvp.Key;
-                    }
+                    foreach (var (id, value) in idToString.Object)
+                        _stringToIdMap[value] = id;
                 }
 
                 return true;

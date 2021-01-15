@@ -4252,9 +4252,9 @@ oneMoreTime:
                     : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
-                                    requiresRuntimeConversion: !info.KnownToImplementIDisposable && !info.IsPatternDispose,
+                                    requiresRuntimeConversion: !info.KnownToImplementIDisposable && info.PatternDisposeMethod == null,
                                     iDisposable,
-                                    info.DisposeMethod,
+                                    info.PatternDisposeMethod,
                                     info.DisposeArguments,
                                     isAsynchronous);
 

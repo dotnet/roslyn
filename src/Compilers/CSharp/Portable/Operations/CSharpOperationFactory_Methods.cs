@@ -200,7 +200,6 @@ namespace Microsoft.CodeAnalysis.Operations
                         var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
                         Debug.Assert(property is not null);
                         return DeriveArguments(
-                                    boundObjectInitializerMember.Binder,
                                     property,
                                     boundObjectInitializerMember.Arguments,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
@@ -221,9 +220,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.IndexerAccess:
                     {
                         var boundIndexer = (BoundIndexerAccess)containingExpression;
-                        Debug.Assert(boundIndexer.BinderOpt is not null);
-                        return DeriveArguments(boundIndexer.BinderOpt,
-                                               boundIndexer.Indexer,
+                        return DeriveArguments(boundIndexer.Indexer,
                                                boundIndexer.Arguments,
                                                boundIndexer.ArgsToParamsOpt,
                                                boundIndexer.DefaultArguments,
@@ -233,9 +230,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.ObjectCreationExpression:
                     {
                         var objectCreation = (BoundObjectCreationExpression)containingExpression;
-                        Debug.Assert(objectCreation.BinderOpt is not null);
-                        return DeriveArguments(objectCreation.BinderOpt,
-                                               objectCreation.Constructor,
+                        return DeriveArguments(objectCreation.Constructor,
                                                objectCreation.Arguments,
                                                objectCreation.ArgsToParamsOpt,
                                                objectCreation.DefaultArguments,
@@ -245,9 +240,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
-                        Debug.Assert(boundCall.BinderOpt is not null);
-                        return DeriveArguments(boundCall.BinderOpt,
-                                               boundCall.Method,
+                        return DeriveArguments(boundCall.Method,
                                                boundCall.Arguments,
                                                boundCall.ArgsToParamsOpt,
                                                boundCall.DefaultArguments,
@@ -258,9 +251,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.CollectionElementInitializer:
                     {
                         var boundCollectionElementInitializer = (BoundCollectionElementInitializer)containingExpression;
-                        Debug.Assert(boundCollectionElementInitializer.BinderOpt is not null);
-                        return DeriveArguments(boundCollectionElementInitializer.BinderOpt,
-                                               boundCollectionElementInitializer.AddMethod,
+                        return DeriveArguments(boundCollectionElementInitializer.AddMethod,
                                                boundCollectionElementInitializer.Arguments,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
                                                boundCollectionElementInitializer.DefaultArguments,
@@ -275,7 +266,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private ImmutableArray<IArgumentOperation> DeriveArguments(
-            Binder binder,
             Symbol methodOrIndexer,
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<int> argumentsToParametersOpt,
@@ -294,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
-                 binder: binder,
+                 compilation: (CSharpCompilation)_semanticModel.Compilation,
                  syntax: invocationSyntax,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,

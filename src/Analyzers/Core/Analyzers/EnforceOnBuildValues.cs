@@ -86,9 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ExpressionValueIsUnused = /*IDE0058*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild DisposeObjectsBeforeLosingScope = /*IDE0067*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild UseRecommendedDisposePattern = /*IDE0068*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild DisposableFieldsShouldBeDisposed = /*IDE0069*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
@@ -101,13 +98,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild PreferBuiltInOrFrameworkType = /*IDE0049*/ EnforceOnBuild.Never;
         public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
-        // Analyzer error Ids
-        public const EnforceOnBuild IntellisenseBuildFailed = /*IDE0006*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild AnalyzerChanged = /*IDE1001*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild AnalyzerDependencyConflict = /*IDE1002*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild MissingAnalyzerReference = /*IDE1003*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild ErrorReadingRuleset = /*IDE1004*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild UnboundIdentifier = /*IDE1007*/ EnforceOnBuild.Never;
-        public const EnforceOnBuild UnboundConstructor = /*IDE1008*/ EnforceOnBuild.Never;
     }
 }

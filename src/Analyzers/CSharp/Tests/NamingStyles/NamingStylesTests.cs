@@ -1365,5 +1365,22 @@ $@"class C
     }}
 }}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
+
+        [Fact]
+        [WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        public async Task TestGlobalDirectiveAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface I
+{
+    int X { get; }
+}
+
+class C : I
+{
+    int [|global::I.X|] => 0;
+}", new TestParameters(options: s_options.PropertyNamesArePascalCase));
+        }
     }
 }
