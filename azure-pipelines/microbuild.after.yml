@@ -1,5 +1,5 @@
 steps:
-- task: MicroBuildCodesignVerify@2
+- task: MicroBuildCodesignVerify@3
   displayName: Verify Signed Files
   inputs:
     TargetFolders: |
