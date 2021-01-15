@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             return true;
         }
 
-        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
         {
             var simpleName = (SimpleNameSyntax)node;
 

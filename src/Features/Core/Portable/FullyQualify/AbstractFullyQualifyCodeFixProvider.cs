@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         protected abstract bool IgnoreCase { get; }
         protected abstract bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node);
-        protected abstract Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var codeAction = new MyCodeAction(
                     $"{containerName}.{memberName}",
-                    c => ProcessNodeAsync(document, node, containerName, c));
+                    c => ProcessNodeAsync(document, node, containerName, symbolResult.OriginalSymbolIsType, c));
 
                 yield return codeAction;
             }
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return name;
         }
 
-        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
         {
-            var newRoot = await ReplaceNodeAsync(node, containerName, cancellationToken).ConfigureAwait(false);
+            var newRoot = await ReplaceNodeAsync(node, containerName, resultingSymbolIsType, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
