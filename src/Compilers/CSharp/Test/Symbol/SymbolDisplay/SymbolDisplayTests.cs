@@ -7744,5 +7744,59 @@ public class A<T>
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
         }
+
+        [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
+        [Fact]
+        public void NullableAttributes_VisualBasicReferencesCSharp()
+        {
+            var sourceCS =
+@"using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+namespace N
+{
+    public class A<T>
+    {
+        [MaybeNull]
+        public T P { get; }
+    }
+}
+";
+            var sourceVB =
+@"
+Imports N
+Public Class C
+    Public Sub M()
+        Dim a = New A(Of Object)()
+        Dim p = a.P
+    End Sub
+End Class";
+            var compCS = CreateCompilation(new[] { sourceCS, MaybeNullAttributeDefinition });
+            var refCS = compCS.EmitToImageReference();
+            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef, refCS });
+
+            var tree = compVB.SyntaxTrees[0];
+            var model = compVB.GetSemanticModel(tree);
+
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<VisualBasic.Syntax.MemberAccessExpressionSyntax>().Single();
+            var symbol = model.GetSymbolInfo(memberAccess).Symbol;
+
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                symbol.ToDisplayParts(format),
+                "Overloads P As Object",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName);
+        }
     }
 }
