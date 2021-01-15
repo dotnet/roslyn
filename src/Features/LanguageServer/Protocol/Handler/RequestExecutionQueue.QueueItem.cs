@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 Guid activityId,
-                Func<RequestContext, CancellationToken, Task> callbackAsync,
                 ILspLogger logger,
+                Func<RequestContext, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     finally
                     {
-                        logger.TraceInformation($"{methodName} - Roslyn End");
+                        logger.TraceInformation($"{methodName} - Roslyn End - {(cancellationToken.IsCancellationRequested ? "canceled" : "")}");
                     }
                 };
             }
