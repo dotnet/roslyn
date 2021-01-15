@@ -40,6 +40,7 @@ build_property.ProjectDir = {Directory}
             var testState = new VerifyCS.Test
             {
                 EditorConfig = editorconfig ?? EditorConfig,
+                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck
             };
 
             foreach (var (fileName, content) in originalSources)
@@ -459,6 +460,106 @@ namespace Foo
             };
 
             await RunTestAsync(originalSources, fixedSources);
+        }
+
+        [Fact]
+        public async Task FixAll()
+        {
+            var declaredNamespace = "Bar.Baz";
+
+            var folder1 = CreateFolderPath("A", "B", "C");
+            var fixedNamespace1 = "A.B.C";
+
+            var folder2 = CreateFolderPath("Second", "Folder", "Path");
+            var fixedNamespace2 = "Second.Folder.Path";
+
+            var folder3 = CreateFolderPath("Third", "Folder", "Path");
+            var fixedNamespace3 = "Third.Folder.Path";
+
+            var code1 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class1
+    {{
+        Class2 C2 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var fixed1 =
+$@"using {fixedNamespace2};
+using {fixedNamespace3};
+
+namespace {fixedNamespace1}
+{{
+    class Class1
+    {{
+        Class2 C2 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var code2 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class2
+    {{
+        Class1 C1 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var fixed2 =
+$@"using {fixedNamespace1};
+using {fixedNamespace3};
+
+namespace {fixedNamespace2}
+{{
+    class Class2
+    {{
+        Class1 C1 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var code3 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class3
+    {{
+        Class1 C1 {{ get; }}
+        Class2 C2 {{ get; }}
+    }}
+}}";
+
+            var fixed3 =
+$@"using {fixedNamespace1};
+using {fixedNamespace2};
+
+namespace {fixedNamespace3}
+{{
+    class Class3
+    {{
+        Class1 C1 {{ get; }}
+        Class2 C2 {{ get; }}
+    }}
+}}";
+
+            var sources = new[]
+            {
+                (Path.Combine(folder1, "Class1.cs"), code1),
+                (Path.Combine(folder2, "Class2.cs"), code2),
+                (Path.Combine(folder3, "Class3.cs"), code3),
+            };
+
+            var fixedSources = new[]
+            {
+                (Path.Combine(folder1, "Class1.cs"), fixed1),
+                (Path.Combine(folder2, "Class2.cs"), fixed2),
+                (Path.Combine(folder3, "Class3.cs"), fixed3),
+            };
+
+            await RunTestAsync(sources, fixedSources);
         }
     }
 }
