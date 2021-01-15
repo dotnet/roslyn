@@ -95,7 +95,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
             var syntaxTree = simpleName.SyntaxTree;
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.ReplaceNode(simpleName, qualifiedName);
+
+            // If the name is a type that is part of a using directive, eg. "using Math" then we can go further and
+            // instead of just changing to "using System.Math", we can make it "using static System.Math"
+            // and avoid the CS0138 that would result from the former.
+            if (resultingSymbolIsType &&
+                node.Parent is UsingDirectiveSyntax usingDirective &&
+                usingDirective.StaticKeyword == default)
+            {
+                var newUsingDirective = usingDirective
+                    .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                    .WithName(qualifiedName);
+
+                return root.ReplaceNode(usingDirective, newUsingDirective);
+            }
+            else
+            {
+                return root.ReplaceNode(simpleName, qualifiedName);
+            }
         }
     }
 }
