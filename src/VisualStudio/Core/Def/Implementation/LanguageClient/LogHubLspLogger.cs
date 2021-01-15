@@ -14,8 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     {
         private class LogHubLspLogger : ILspLogger
         {
-            private TraceConfiguration? _configuration;
-            private TraceSource? _traceSource;
+            private readonly TraceConfiguration _configuration;
+            private readonly TraceSource _traceSource;
+            private bool _disposed;
 
             public LogHubLspLogger(TraceConfiguration configuration, TraceSource traceSource)
             {
@@ -25,22 +26,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             public void Dispose()
             {
-                if (_traceSource == null || _configuration == null)
+                if (_disposed)
                 {
                     Contract.Fail($"{GetType().FullName} was double disposed");
                     return;
                 }
 
+                _disposed = true;
                 _traceSource.Flush();
                 _traceSource.Close();
                 _configuration.Dispose();
-
-                _traceSource = null;
-                _configuration = null;
             }
 
             public void TraceInformation(string message)
-                => _traceSource?.TraceInformation(message);
+                => _traceSource.TraceInformation(message);
+
+            public void TraceException(Exception exception)
+                => _traceSource.TraceEvent(TraceEventType.Error, id: 0, $@"{exception.Message}
+{exception.StackTrace}");
         }
     }
 }

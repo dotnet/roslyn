@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly struct QueueItem
         {
-            /// <summary>
-            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
-            /// </summary>
-            public readonly Func<RequestContext, CancellationToken, Task> CallbackAsync;
+            private readonly Func<RequestContext, CancellationToken, Task> _callbackAsync;
+            private readonly Guid _activityId;
+            private readonly ILspLogger _logger;
 
             /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
@@ -52,28 +51,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Func<RequestContext, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
+                _callbackAsync = callbackAsync;
+                _activityId = activityId;
+                _logger = logger;
+
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 MethodName = methodName;
                 TextDocument = textDocument;
-                CallbackAsync = callbackAsync;
                 CancellationToken = cancellationToken;
+            }
 
-                CallbackAsync = async (context, cancellationToken) =>
+            /// <summary>
+            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
+            /// </summary>
+            public async Task CallbackAsync(RequestContext context, CancellationToken cancellationToken)
+            {
+                // Restore our activity id so that logging/tracking works.
+                Trace.CorrelationManager.ActivityId = _activityId;
+                _logger.TraceInformation($"{MethodName} - Roslyn start");
+                try
                 {
-                    // Restore our activity id so that tracking works.
-                    Trace.CorrelationManager.ActivityId = activityId;
-                    logger.TraceInformation($"{methodName} - Roslyn start");
-                    try
-                    {
-                        await callbackAsync(context, cancellationToken).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        logger.TraceInformation($"{methodName} - Roslyn End - {(cancellationToken.IsCancellationRequested ? "canceled" : "")}");
-                    }
-                };
+                    await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.TraceInformation($"{MethodName} - Canceled");
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.TraceException(ex);
+                    throw;
+                }
+                finally
+                {
+                    _logger.TraceInformation($"{MethodName} - Roslyn End");
+                }
             }
         }
     }

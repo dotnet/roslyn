@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
+        private readonly LogHubLspLogger? _logger;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -70,11 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             string? clientName,
             JsonRpc jsonRpc,
-            ILspLogger logger)
+            LogHubLspLogger? logger)
         {
             _languageClient = languageClient;
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
+            _logger = logger;
 
             _jsonRpc = jsonRpc;
             _jsonRpc.AddLocalRpcTarget(this);
@@ -84,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(logger, lspWorkspaceRegistrationService, languageClient.Name);
+            _queue = new RequestExecutionQueue(logger ?? NoOpLspLogger.Instance, lspWorkspaceRegistrationService, languageClient.Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -131,14 +133,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 logger);
         }
 
-        private static async Task<ILspLogger> CreateLoggerAsync(
+        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             string? clientName,
             JsonRpc jsonRpc,
             CancellationToken cancellationToken)
         {
             if (asyncServiceProvider == null)
-                return NoOpLspLogger.Instance;
+                return null;
 
             var logId = new LogId($"Roslyn.{clientName ?? "Default"}", new ServiceMoniker(typeof(InProcLanguageServer).FullName));
 
@@ -720,6 +722,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 await _errorShutdownTask.ConfigureAwait(false);
             }
+
+            _logger?.Dispose();
         }
 
         internal TestAccessor GetTestAccessor() => new(this);

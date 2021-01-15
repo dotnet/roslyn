@@ -6,9 +6,10 @@ using System;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILspLogger : IDisposable
+    internal interface ILspLogger
     {
         void TraceInformation(string message);
+        void TraceException(Exception exception);
     }
 
     internal class NoOpLspLogger : ILspLogger
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public void Dispose()
+        public void TraceException(Exception exception)
         {
         }
 
