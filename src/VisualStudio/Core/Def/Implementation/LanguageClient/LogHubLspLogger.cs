@@ -42,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 => _traceSource.TraceInformation(message);
 
             public void TraceException(Exception exception)
-                => _traceSource.TraceEvent(TraceEventType.Error, id: 0, $@"{exception.Message}
-{exception.StackTrace}");
+                => _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
 
             public void TraceStart(string message)
                 => _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
