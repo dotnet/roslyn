@@ -2681,25 +2681,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
 
-            var location = lambdaOrFunctionSymbol.Locations.FirstOrNone();
-            LeaveParameters(lambdaOrFunctionSymbol.Parameters, lambdaOrFunction.Syntax, location);
-
-            // Intersect the state of all branches out of the local function
-            var stateAtReturn = this.State;
-            foreach (PendingBranch pending in pendingReturns)
-            {
-                this.State = pending.State;
-                BoundNode branch = pending.Branch;
-
-                // Pass the local function identifier as a location if the branch
-                // is null or compiler generated.
-                LeaveParameters(lambdaOrFunctionSymbol.Parameters,
-                  branch?.Syntax,
-                  branch?.WasCompilerGenerated == false ? null : location);
-
-                Join(ref stateAtReturn, ref this.State);
-            }
-
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             _variables = _variables.Container!;
             this.State = oldState;
