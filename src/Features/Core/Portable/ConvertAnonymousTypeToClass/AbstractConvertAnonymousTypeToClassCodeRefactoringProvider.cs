@@ -58,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             if (containsAnonymousType)
                 return;
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts.SupportsRecord(anonymousObject.SyntaxTree.Options))
+            {
+                context.RegisterRefactoring(new MyCodeAction(
+                    FeaturesResources.Convert_to_record,
+                    c => ConvertAsync(document, textSpan, isRecord: true, c)),
+                    anonymousObject.Span);
+            }
+
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToClassAsync(document, textSpan, c)),
+                    FeaturesResources.Convert_to_class,
+                c => ConvertAsync(document, textSpan, isRecord: false, c)),
                 anonymousObject.Span);
         }
 
@@ -81,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             return (anonymousObject, anonymousType);
         }
 
-        private async Task<Document> ConvertToClassAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private async Task<Document> ConvertAsync(Document document, TextSpan span, bool isRecord, CancellationToken cancellationToken)
         {
             var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 
@@ -96,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Generate a unique name for the class we're creating.  We'll also add a rename
             // annotation so the user can pick the right name for the type afterwards.
             var className = NameGenerator.GenerateUniqueName(
-                "NewClass", n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
+                isRecord ? "NewRecord" : "NewClass",
+                n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
 
             // First, create the set of properties this class will have based on the properties the
             // anonymous type has itself.  Also, get a mapping of the original anonymous type's
@@ -107,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // Next, generate the full class that will be used to replace all instances of this
             // anonymous type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
-                document, className, properties, cancellationToken).ConfigureAwait(false);
+                document, className, isRecord, properties, cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var editor = new SyntaxEditor(root, generator);
@@ -248,9 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         }
 
         private static async Task<INamedTypeSymbol> GenerateFinalNamedTypeAsync(
-            Document document, string className,
-            ImmutableArray<IPropertySymbol> properties, CancellationToken cancellationToken)
+            Document document, string typeName, bool isRecord,
+            ImmutableArray<IPropertySymbol> properties,
+            CancellationToken cancellationToken)
         {
+            var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Next, see if any of the properties ended up using any type parameters from the
@@ -262,47 +275,63 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                           .Distinct()
                           .ToImmutableArray();
 
-            // Now try to generate all the members that will go in the new class. This is a bit
-            // circular.  In order to generate some of the members, we need to know about the type.
-            // But in order to create the type, we need the members.  To address this we do two
-            // passes. First, we create an empty version of the class.  This can then be used to
-            // help create members like Equals/GetHashCode.  Then, once we have all the members we
-            // create the final type.
-            var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, members: default);
-
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var constructor = CreateConstructor(semanticModel, className, properties, generator);
-
-            // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
-            // methods.  We can defer to our existing language service for this so that we
-            // generate the same Equals/GetHashCode that our other IDE features generate.
-            var readonlyProperties = ImmutableArray<ISymbol>.CastUp(
-                properties.WhereAsArray(p => p.SetMethod == null));
-
-            var equalsAndGetHashCodeService = document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
-
-            var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
-                document, namedTypeWithoutMembers, readonlyProperties,
-                localNameOpt: SyntaxGeneratorExtensions.OtherName, cancellationToken).ConfigureAwait(false);
-            var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
-                document, namedTypeWithoutMembers,
-                readonlyProperties, cancellationToken).ConfigureAwait(false);
-
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
-            members.AddRange(properties);
-            members.Add(constructor);
-            members.Add(equalsMethod);
-            members.Add(getHashCodeMethod);
 
-            return CreateNamedType(className, capturedTypeParameters, members.ToImmutable());
+            if (isRecord)
+            {
+                var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                    attributes: default,
+                    Accessibility.Public,
+                    modifiers: default,
+                    typeName,
+                    properties.SelectAsArray(prop => CodeGenerationSymbolFactory.CreateParameterSymbol(prop.Type, prop.Name)),
+                    isPrimaryConstructor: true);
+
+                members.Add(constructor);
+            }
+            else
+            {
+                // Now try to generate all the members that will go in the new class. This is a bit
+                // circular.  In order to generate some of the members, we need to know about the type.
+                // But in order to create the type, we need the members.  To address this we do two
+                // passes. First, we create an empty version of the class.  This can then be used to
+                // help create members like Equals/GetHashCode.  Then, once we have all the members we
+                // create the final type.
+                var namedTypeWithoutMembers = CreateNamedType(typeName, isRecord: false, capturedTypeParameters, members: default);
+
+                var constructor = CreateClassConstructor(semanticModel, typeName, properties, generator);
+
+                // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
+                // methods.  We can defer to our existing language service for this so that we
+                // generate the same Equals/GetHashCode that our other IDE features generate.
+                var readonlyProperties = ImmutableArray<ISymbol>.CastUp(
+                    properties.WhereAsArray(p => p.SetMethod == null));
+
+                var equalsAndGetHashCodeService = document.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
+
+                var equalsMethod = await equalsAndGetHashCodeService.GenerateEqualsMethodAsync(
+                    document, namedTypeWithoutMembers, readonlyProperties,
+                    localNameOpt: SyntaxGeneratorExtensions.OtherName, cancellationToken).ConfigureAwait(false);
+                var getHashCodeMethod = await equalsAndGetHashCodeService.GenerateGetHashCodeMethodAsync(
+                    document, namedTypeWithoutMembers,
+                    readonlyProperties, cancellationToken).ConfigureAwait(false);
+
+                members.AddRange(properties);
+                members.Add(constructor);
+                members.Add(equalsMethod);
+                members.Add(getHashCodeMethod);
+
+            }
+
+            return CreateNamedType(typeName, isRecord, capturedTypeParameters, members.ToImmutable());
         }
 
         private static INamedTypeSymbol CreateNamedType(
-            string className, ImmutableArray<ITypeParameterSymbol> capturedTypeParameters, ImmutableArray<ISymbol> members)
+            string className, bool isRecord, ImmutableArray<ITypeParameterSymbol> capturedTypeParameters, ImmutableArray<ISymbol> members)
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, Accessibility.Internal, modifiers: default,
-                TypeKind.Class, className, capturedTypeParameters, members: members);
+                isRecord: isRecord, TypeKind.Class, className, capturedTypeParameters, members: members);
         }
 
         private static (ImmutableArray<IPropertySymbol> properties, ImmutableDictionary<IPropertySymbol, string> propertyMap) GenerateProperties(
@@ -361,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                    prop.Type, refKind: default, explicitInterfaceImplementations: default,
                    name: "", typeParameters: default, parameters: default, methodKind: kind);
 
-        private static IMethodSymbol CreateConstructor(
+        private static IMethodSymbol CreateClassConstructor(
             SemanticModel semanticModel, string className,
             ImmutableArray<IPropertySymbol> properties, SyntaxGenerator generator)
         {
@@ -391,8 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_class, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }
