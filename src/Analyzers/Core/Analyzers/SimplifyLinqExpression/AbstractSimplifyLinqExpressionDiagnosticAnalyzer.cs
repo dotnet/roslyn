@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         public AbstractSimplifyLinqExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
-                   EnforceOnBuildValues.SimplifyLinq,
+                   EnforceOnBuildValues.SimplifyLinqExpression,
                    option: null,
                    title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Linq_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
