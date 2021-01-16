@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TSimpleNameSyntax : TExpressionSyntax
     {
-
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
