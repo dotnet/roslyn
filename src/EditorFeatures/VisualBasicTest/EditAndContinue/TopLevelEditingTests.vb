@@ -3257,8 +3257,10 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(ERRID.ERR_ConstructorCannotBeDeclaredPartial, "Partial").WithArguments("Partial").WithLocation(3, 5))
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Skip(1).First(), preserveLocalVariables:=True)
+            })
         End Sub
 
 #End Region
@@ -5919,7 +5921,7 @@ End Class"
         Public Sub PropertyWithInitializer_SemanticError_Partial()
             Dim src1 = "
 Partial Class C
-    Partial Public ReadOnly Property NewProperty() As String
+    Partial Public ReadOnly Property P() As String
         Get
             Return 1
         End Get
@@ -5927,7 +5929,7 @@ Partial Class C
 End Class
 
 Partial Class C
-    Partial Public ReadOnly Property NewProperty() As String
+    Partial Public ReadOnly Property P() As String
         Get
             Return 1
         End Get
@@ -5936,7 +5938,7 @@ End Class
 "
             Dim src2 = "
 Partial Class C
-    Partial Public ReadOnly Property NewProperty() As String
+    Partial Public ReadOnly Property P() As String
         Get
             Return 1
         End Get
@@ -5944,9 +5946,9 @@ Partial Class C
 End Class
 
 Partial Class C
-    Partial Public ReadOnly Property NewProperty() As String
+    Partial Public ReadOnly Property P() As String
         Get
-            Return 1
+            Return 2
         End Get
     End Property
 
@@ -5955,8 +5957,11 @@ Partial Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(ERRID.ERR_BadPropertyFlags1, "Partial").WithArguments("Partial").WithLocation(3, 5))
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True),
+                SemanticEdit(SemanticEditKind.Update, Function(c) CType(c.GetMember(Of NamedTypeSymbol)("C").GetMembers("P").Skip(1).First(), IPropertySymbol).GetMethod)
+            })
         End Sub
 
 #End Region

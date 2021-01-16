@@ -4769,8 +4769,7 @@ class B
                 expectedSemanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)
-                },
-                expectedDeclarationError: null);
+                });
         }
 
         [Fact]
@@ -5283,10 +5282,10 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                // (4,18): error CS0542: 'C': member names cannot be the same as their enclosing type
-                //     partial void C(int x);
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 18));
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits: new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("C").PartialImplementationPart)
+            });
         }
 
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
@@ -6899,16 +6898,18 @@ partial class C
 
 partial class C
 {
-    partial int P => 1;
+    partial int P => 2;
 
     public C() { }
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                //     partial int P => 1;
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits: new[]
+            {
+                SemanticEdit(SemanticEditKind.Update, c => ((IPropertySymbol)c.GetMember<INamedTypeSymbol>("C").GetMembers("P").Skip(1).First()).GetMethod),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
+            });
         }
 
         #endregion
