@@ -156,12 +156,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public ImmutableDictionary<(INamedTypeSymbol, bool), string> HazardousUsageTypesToNames { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
         {
-            addPart(TypeToTrackMetadataNames.GetHashCode());
-            addPart(ConstructorMapper.GetHashCode());
-            addPart(PropertyMappers.GetHashCode());
-            addPart(HazardousUsageEvaluators.GetHashCode());
+            builder(TypeToTrackMetadataNames.GetHashCode());
+            builder(ConstructorMapper.GetHashCode());
+            builder(PropertyMappers.GetHashCode());
+            builder(HazardousUsageEvaluators.GetHashCode());
         }
 #pragma warning restore CA1307 // Specify StringComparison
     }

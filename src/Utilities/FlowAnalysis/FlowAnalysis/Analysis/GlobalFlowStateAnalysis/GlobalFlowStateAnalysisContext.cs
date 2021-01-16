@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
         {
         }
     }

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
         public override DisposeAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
-            ControlFlowGraph invokedControlFlowGraph,
+            ControlFlowGraph invokedCfg,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(copyAnalysisResult == null);
             Debug.Assert(valueContentAnalysisResult == null);
 
-            return new DisposeAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
+            return new DisposeAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 ExceptionPathsAnalysis, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, DisposeOwnershipTransferAtConstructor,
                 DisposeOwnershipTransferAtMethodCall, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate, IsConfiguredToSkipAnalysis);
         }
@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal bool TrackInstanceFields { get; }
         internal Func<ISymbol, bool> IsConfiguredToSkipAnalysis { get; }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
         {
-            addPart(TrackInstanceFields.GetHashCode());
-            addPart(DisposeOwnershipTransferAtConstructor.GetHashCode());
-            addPart(DisposeOwnershipTransferAtMethodCall.GetHashCode());
-            addPart(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
+            builder(TrackInstanceFields.GetHashCode());
+            builder(DisposeOwnershipTransferAtConstructor.GetHashCode());
+            builder(DisposeOwnershipTransferAtMethodCall.GetHashCode());
+            builder(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
         }
     }
 }

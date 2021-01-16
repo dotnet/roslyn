@@ -70,18 +70,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 #endif
         }
 
-        public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
+        public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> value1, DictionaryAnalysisData<AnalysisEntity, TValue> value2)
         {
-            AssertValidAnalysisData(map1);
-            AssertValidAnalysisData(map2);
+            AssertValidAnalysisData(value1);
+            AssertValidAnalysisData(value2);
 
             var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();
             using var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
             using var valuesToMergeBuilder = ArrayBuilder<TValue>.GetInstance(5);
 
-            var map2LookupIgnoringInstanceLocation = map2.Keys.Where(IsAnalysisEntityForFieldOrProperty)
+            var map2LookupIgnoringInstanceLocation = value2.Keys.Where(IsAnalysisEntityForFieldOrProperty)
                                                               .ToLookup(entity => entity.EqualsIgnoringInstanceLocationId);
-            foreach (var entry1 in map1)
+            foreach (var entry1 in value1)
             {
                 AnalysisEntity key1 = entry1.Key;
                 TValue value1 = entry1.Value;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (!equivalentKeys2.Any())
                     {
                         TValue mergedValue = GetMergedValueForEntityPresentInOneMap(key1, value1);
-                        Debug.Assert(!map2.ContainsKey(key1));
+                        Debug.Assert(!value2.ContainsKey(key1));
                         Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
                         AddNewEntryToResultMap(key1, mergedValue);
                         continue;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             continue;
                         }
 
-                        TValue value2 = map2[key2];
+                        TValue value2 = value2[key2];
 
                         valuesToMergeBuilder.Clear();
                         valuesToMergeBuilder.Add(value1);
@@ -136,13 +136,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                                 isExistingKeyInResult = true;
                             }
 
-                            if (map1.TryGetValue(mergedKey, out existingValue))
+                            if (value1.TryGetValue(mergedKey, out existingValue))
                             {
                                 valuesToMergeBuilder.Add(existingValue);
                                 isExistingKeyInInput = true;
                             }
 
-                            if (map2.TryGetValue(mergedKey, out existingValue))
+                            if (value2.TryGetValue(mergedKey, out existingValue))
                             {
                                 valuesToMergeBuilder.Add(existingValue);
                                 isExistingKeyInInput = true;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
                 }
-                else if (map2.TryGetValue(key1, out var value2))
+                else if (value2.TryGetValue(key1, out var value2))
                 {
                     TValue mergedValue = ValueDomain.Merge(value1, value2);
                     Debug.Assert(ValueDomain.Compare(value1, mergedValue) <= 0);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            foreach (var kvp in map2)
+            foreach (var kvp in value2)
             {
                 var key2 = kvp.Key;
                 var value2 = kvp.Value;
@@ -206,8 +206,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (var newKey in newKeys)
             {
-                Debug.Assert(!map1.ContainsKey(newKey));
-                Debug.Assert(!map2.ContainsKey(newKey));
+                Debug.Assert(!value1.ContainsKey(newKey));
+                Debug.Assert(!value2.ContainsKey(newKey));
                 var value = resultMap[newKey];
                 if (ReferenceEquals(value, GetDefaultValue(newKey)))
                 {
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
             }
 
-            Debug.Assert(Compare(map1, resultMap) <= 0);
-            Debug.Assert(Compare(map2, resultMap) <= 0);
+            Debug.Assert(Compare(value1, resultMap) <= 0);
+            Debug.Assert(Compare(value2, resultMap) <= 0);
             AssertValidAnalysisData(resultMap);
 
             return resultMap;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             void AddNewEntryToResultMap(AnalysisEntity key, TValue value, bool isNewKey = false)
             {
-                Debug.Assert(isNewKey == (!map1.ContainsKey(key) && !map2.ContainsKey(key)));
+                Debug.Assert(isNewKey == (!value1.ContainsKey(key) && !value2.ContainsKey(key)));
                 AssertValidEntryForMergedMap(key, value);
                 resultMap[key] = value;
                 if (!isNewKey)

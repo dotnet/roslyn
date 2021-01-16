@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
-            ControlFlowGraph invokedControlFlowGraph,
+            ControlFlowGraph invokedCfg,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
@@ -79,15 +79,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
             Debug.Assert(valueContentAnalysisResult == null);
 
-            return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
+            return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult,
                 AdditionalSupportedValueTypes, GetValueForAdditionalSupportedValueTypeOperation, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
         {
-            addPart(HashUtilities.Combine(AdditionalSupportedValueTypes));
+            builder(HashUtilities.Combine(AdditionalSupportedValueTypes));
         }
     }
 }

@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 _getDefaultCopyValue = getDefaultCopyValue;
             }
 
-            public override CoreCopyAnalysisData Merge(CoreCopyAnalysisData map1, CoreCopyAnalysisData map2)
+            public override CoreCopyAnalysisData Merge(CoreCopyAnalysisData value1, CoreCopyAnalysisData value2)
             {
-                CopyAnalysisData.AssertValidCopyAnalysisData(map1);
-                CopyAnalysisData.AssertValidCopyAnalysisData(map2);
+                CopyAnalysisData.AssertValidCopyAnalysisData(value1);
+                CopyAnalysisData.AssertValidCopyAnalysisData(value2);
 
                 var result = new DictionaryAnalysisData<AnalysisEntity, CopyAbstractValue>();
-                foreach (var kvp in map1)
+                foreach (var kvp in value1)
                 {
                     var key = kvp.Key;
                     var value1 = kvp.Value;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     // If the key exists in both maps, use the merged value.
                     // Otherwise, use the default value.
                     CopyAbstractValue mergedValue;
-                    if (map2.TryGetValue(key, out var value2))
+                    if (value2.TryGetValue(key, out var value2))
                     {
                         mergedValue = ValueDomain.Merge(value1, value2);
                     }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     result.Add(key, mergedValue);
                 }
 
-                foreach (var kvp in map2)
+                foreach (var kvp in value2)
                 {
                     if (!result.ContainsKey(kvp.Key))
                     {
