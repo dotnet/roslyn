@@ -7,14 +7,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
-    internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvocationExpressionSyntax, TMemberAccessExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TInvocationExpressionSyntax : SyntaxNode
+        where TMemberAccessExpressionSyntax : SyntaxNode
     {
-        private static readonly IImmutableSet<string> _nonEnumerableReturningLinqMethodNames =
+        private static readonly IImmutableSet<string> s_nonEnumerableReturningLinqMethodNames =
             ImmutableHashSet.Create(
                 nameof(Enumerable.First),
                 nameof(Enumerable.Last),
@@ -25,6 +28,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 nameof(Enumerable.FirstOrDefault),
                 nameof(Enumerable.LastOrDefault));
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+
         public AbstractSimplifyLinqExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
                    EnforceOnBuildValues.SimplifyLinqExpression,
@@ -33,10 +38,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         {
         }
 
-        protected abstract Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments);
         protected abstract IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation);
-        protected abstract INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation);
-        protected abstract string? TryGetMethodName(IInvocationOperation invocation);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
                 foreach (var method in enumerableType.GetMembers().OfType<IMethodSymbol>())
                 {
-                    if (_nonEnumerableReturningLinqMethodNames.Contains(method.Name) &&
+                    if (s_nonEnumerableReturningLinqMethodNames.Contains(method.Name) &&
                         method.Parameters is { Length: 1 })
                     {
                         linqMethodSymbolsBuilder.AddRange(method);
@@ -156,11 +158,24 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
             return;
 
+            bool IsWhereLinqMethod(IInvocationOperation invocation)
+                => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
+
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
                 => linqMethods.Any(m => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
 
-            bool IsWhereLinqMethod(IInvocationOperation invocation)
-                => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
+            INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
+                => (invocation.Syntax is not TInvocationExpressionSyntax invocationNode ||
+                    SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess ||
+                    SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess) is not SyntaxNode expression)
+                        ? null
+                        : invocation.SemanticModel?.GetTypeInfo(expression).Type as INamedTypeSymbol;
+
+            string? TryGetMethodName(IInvocationOperation invocation)
+                => invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
+                   SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess
+                       ? SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess).GetText().ToString()
+                       : null;
         }
     }
 }
