@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -54941,102 +54942,47 @@ class Test : C0, I1
                 );
         }
 
-        private static string BuildAssemblyExternClause(MetadataReference reference)
+        private static string BuildAssemblyExternClause(PortableExecutableReference reference)
         {
-            AssemblyIdentity assemblyIdentity = reference switch
-            {
-                PortableExecutableReference peReference => ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity,
-                CompilationReference compilationReference => compilationReference.Compilation.Assembly.Identity,
-                _ => throw new Exception()
-            };
-
+            AssemblyIdentity assemblyIdentity = ((AssemblyMetadata)reference.GetMetadata()).GetAssembly().Identity;
             Version version = assemblyIdentity.Version;
             var publicKeyToken = assemblyIdentity.PublicKeyToken;
 
-            return @"
-.assembly extern " + assemblyIdentity.Name + @"
-{
-  .publickeytoken = (" +
-  publicKeyToken[0].ToString("X2") +
-  publicKeyToken[1].ToString("X2") +
-  publicKeyToken[2].ToString("X2") +
-  publicKeyToken[3].ToString("X2") +
-  publicKeyToken[4].ToString("X2") +
-  publicKeyToken[5].ToString("X2") +
-  publicKeyToken[6].ToString("X2") +
-  publicKeyToken[7].ToString("X2") +
-@" )
-  .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
-}
-";
-        }
-
-        /// <summary>
-        /// The reference assembly System.Runtime.InteropServices.WindowsRuntime was removed in net5.0. This builds
-        /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
-        /// reference by the compiler.
-        /// </summary>
-        private CompilationReference CreateWindowsRuntimeReference()
-        {
-            var source = @"
-namespace System.Runtime.InteropServices.WindowsRuntime
-{
-    public struct EventRegistrationToken { }
-
-    public sealed class EventRegistrationTokenTable<T> where T : class
+            if (publicKeyToken.Length > 0)
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
     {
-        public T InvocationList { get; set; }
-
-        public static EventRegistrationTokenTable<T> GetOrCreateEventRegistrationTokenTable(ref EventRegistrationTokenTable<T> refEventTable)
-        {
-            throw null;
-        }
-
-        public void RemoveEventHandler(EventRegistrationToken token)
-        {
-        }
-
-        public void RemoveEventHandler(T handler)
-        {
-        }
+      .publickeytoken = (" +
+      publicKeyToken[0].ToString("X2") +
+      publicKeyToken[1].ToString("X2") +
+      publicKeyToken[2].ToString("X2") +
+      publicKeyToken[3].ToString("X2") +
+      publicKeyToken[4].ToString("X2") +
+      publicKeyToken[5].ToString("X2") +
+      publicKeyToken[6].ToString("X2") +
+      publicKeyToken[7].ToString("X2") +
+    @" )
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
     }
-
-    public static class WindowsRuntimeMarshal
-    {
-        public static void AddEventHandler<T>(Func<T, EventRegistrationToken> addMethod, Action<EventRegistrationToken> removeMethod, T handler)
-        {
-        }
-
-        public static void RemoveAllEventHandlers(Action<EventRegistrationToken> removeMethod)
-        {
-        }
-
-        public static void RemoveEventHandler<T>(Action<EventRegistrationToken> removeMethod, T handler)
-        {
-        }
-    }
-}
 ";
-
-            var publicKey = MetadataHelpers.ConvertPublicKeyStringToBytes("b03f5f7f11d50a3a");
-            var identity = new AssemblyIdentity(
-                "System.Runtime.InteropServices.WindowsRuntime",
-                new Version("4.0.4.0"),
-
-                publicKeyOrToken: publicKey);
-            var compilation = CreateCompilation(
-                identity: identity,
-                new[] { source },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp).ToArray());
-            compilation.VerifyEmitDiagnostics();
-            return compilation.ToMetadataReference();
+            }
+            else
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
+    {
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+    }
+";
+            }
         }
 
         [Fact]
         [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_01()
         {
-            var windowsRuntimeRef = CreateWindowsRuntimeReference();
+            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
 BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 BuildAssemblyExternClause(windowsRuntimeRef) +
@@ -55195,7 +55141,7 @@ class C1 : I1
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CreateWindowsRuntimeReference() });
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -55248,7 +55194,7 @@ interface I1 : Interface
 class C1 : I1, Interface
 {}
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CreateWindowsRuntimeReference() });;
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });;
 
             void Validate(ModuleSymbol m)
             {

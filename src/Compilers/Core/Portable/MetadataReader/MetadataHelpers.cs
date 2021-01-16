@@ -1005,24 +1005,6 @@ DoneWithSequence:
 
         internal static bool IsValidPublicKey(ImmutableArray<byte> bytes) => CryptoBlobParser.IsValidPublicKey(bytes);
 
-        internal static ImmutableArray<byte> ConvertPublicKeyStringToBytes(string publicKey)
-        {
-            Debug.Assert(publicKey.Length % 2 == 0);
-            var builder = ArrayBuilder<byte>.GetInstance(publicKey.Length / 2);
-            var span = publicKey.AsSpan();
-            for (int i = 0; i < publicKey.Length; i += 2)
-            {
-#if NETCOREAPP
-                var b = byte.Parse(publicKey.AsSpan().Slice(i, length: 2), style: NumberStyles.HexNumber, provider: null);
-#else
-                var b = byte.Parse(publicKey.Substring(i, length: 2), style: NumberStyles.HexNumber, provider: null);
-#endif
-                builder.Add(b);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
         /// <summary>
         /// Given an input string changes it to be acceptable as a part of a type name.
         /// </summary>

@@ -11805,7 +11805,11 @@ public interface I2 : I1
     }
 }
 "
-            Dim csCompilation = GetCSharpCompilation(csSource, compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)).EmitToImageReference()
+            Dim csCompilation = GetCSharpCompilation(
+                csSource,
+                compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata),
+                targetFramework:=TargetFramework.NetCoreApp,
+                additionalReferences:=New MetadataReference() {CompilationExtensions.CreateWindowsRuntimeMetadataReference()}).EmitToImageReference()
 
             Dim source1 =
 <compilation>
@@ -11840,7 +11844,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
+            Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation, CompilationExtensions.CreateWindowsRuntimeMetadataReference()})
 
             Dim validator = Sub(m As ModuleSymbol)
                                 Dim c1 = m.GlobalNamespace.GetTypeMember("C1")
