@@ -1301,6 +1301,9 @@
   <data name="ERR_SharedEventNeedsSharedHandler" xml:space="preserve">
     <value>Events of shared WithEvents variables cannot be handled by non-shared methods.</value>
   </data>
+  <data name="ERR_SharedEventNeedsHandlerInTheSameType" xml:space="preserve">
+    <value>Events of shared WithEvents variables cannot be handled by methods in a different type.</value>
+  </data>
   <data name="ERR_ExpectedMinus" xml:space="preserve">
     <value>'-' expected.</value>
   </data>

@@ -1384,7 +1384,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'ERR_QueryStartsWithLet = 36608
         'ERR_NoQueryExpressionsInDebugger = 36609
         ERR_QueryNameNotDeclared = 36610
-        '// Available 36611
+
+        ERR_SharedEventNeedsHandlerInTheSameType = 36611
 
         ERR_NestedFunctionArgumentNarrowing3 = 36612
 

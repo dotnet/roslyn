@@ -52,6 +52,11 @@
         <target state="translated">Die Zielruntime bietet keine Unterstützung für die Zugriffsmöglichkeiten "Protected", "Protected Friend" oder "Private Protected" für einen Member einer Schnittstelle.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">Kommentare nach Zeilenfortsetzung</target>

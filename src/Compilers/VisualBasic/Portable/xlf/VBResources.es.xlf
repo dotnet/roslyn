@@ -52,6 +52,11 @@
         <target state="translated">El entorno de ejecución de destino no admite la accesibilidad de tipo "Protected", "Protected Friend" o "Private Protected" para un miembro de una interfaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">comentarios después de la continuación de línea</target>

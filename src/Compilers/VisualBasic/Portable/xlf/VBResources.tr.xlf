@@ -52,6 +52,11 @@
         <target state="translated">Hedef çalışma zamanı, bir arabirimin üyesi için 'Protected', 'Protected Friend' veya 'Private Protected' erişilebilirliğini desteklemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">satır devamı sonrası açıklamalar</target>
