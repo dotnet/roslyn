@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 languageServiceProvider: null,
                 projectionBuffer.CurrentSnapshot.GetText(),
                 path,
+                path,
                 mappedCaretLocation,
                 mappedSpans,
                 textBuffer: projectionBuffer);
