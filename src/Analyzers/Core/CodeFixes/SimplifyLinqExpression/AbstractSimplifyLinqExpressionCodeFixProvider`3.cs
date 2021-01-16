@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Simplify_Linq_expression, createChangedDocument, AnalyzersResources.Simplify_Linq_expression)
+                : base(AnalyzersResources.Simplify_LINQ_expression, createChangedDocument, AnalyzersResources.Simplify_LINQ_expression)
             {
             }
         }

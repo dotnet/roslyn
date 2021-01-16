@@ -272,7 +272,7 @@
         <target state="translated">Rimuovi i membri privati inutilizzati</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Linq_expression">
+      <trans-unit id="Simplify_LINQ_expression">
         <source>Simplify LINQ expression</source>
         <target state="new">Simplify LINQ expression</target>
         <note />

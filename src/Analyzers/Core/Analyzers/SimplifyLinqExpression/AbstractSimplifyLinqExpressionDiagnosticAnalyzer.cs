@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
     internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly ImmutableArray<string> _nonEnumerableReturningLinqMethodNames =
-            ImmutableArray.Create(
+        private static readonly IImmutableSet<string> _nonEnumerableReturningLinqMethodNames =
+            ImmutableHashSet.Create(
                 nameof(Enumerable.First),
                 nameof(Enumerable.Last),
                 nameof(Enumerable.Single),
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
                    EnforceOnBuildValues.SimplifyLinqExpression,
                    option: null,
-                   title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Linq_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                   title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_LINQ_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
