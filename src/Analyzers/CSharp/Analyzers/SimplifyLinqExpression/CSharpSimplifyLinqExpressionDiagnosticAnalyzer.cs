@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
     {
         protected override Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments)
         {
-            using var argumentLists = new TemporaryArray<ArgumentListSyntax>();
+            using var _ = ArrayBuilder<ArgumentListSyntax>.GetInstance(out var argumentLists);
             foreach (var argument in arguments)
             {
                 if (argument.Syntax is ArgumentSyntax argumentNode &&
@@ -28,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             }
 
             // verify that all these arguments come from the same sytax list
-            if (argumentLists.Count == 0 ||
-                !argumentLists.All(argList => argList == argumentLists[0]))
+            argumentLists.RemoveDuplicates();
+            if (argumentLists.Count != 1)
             {
                 return null;
             }
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             if (invocation.Syntax is InvocationExpressionSyntax invocationNode &&
                 invocationNode.Expression is MemberAccessExpressionSyntax memberAccess)
             {
-                return memberAccess.Name.WithoutTrivia().GetText().ToString();
+                return memberAccess.Name.GetText().ToString();
             }
 
             return null;
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
                 return null;
             }
 
-            var model = invocation.SemanticModel;
-            return model.GetTypeInfo(memberAccess.Expression).Type as INamedTypeSymbol;
+            return invocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type as INamedTypeSymbol;
         }
     }
 }
