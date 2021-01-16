@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -179,7 +180,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             IEnumerable<EditScript<SyntaxNode>> editScripts,
             ActiveStatementsDescription? activeStatements = null,
             SemanticEditDescription[]? expectedSemanticEdits = null,
-            DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             activeStatements ??= ActiveStatementsDescription.Empty;
@@ -253,19 +253,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     newModel,
                     actualSemanticEdits,
                     diagnostics,
-                    out var firstDeclarationError,
                     CancellationToken.None);
-
-                if (firstDeclarationError != null)
-                {
-                    actualDeclarationErrors.Add(firstDeclarationError);
-                }
 
                 actualDiagnosticDescriptions.AddRange(diagnostics.ToDescription(newSource, includeFirstLineInDiagnostics));
             }
-
-            var expectedDeclarationErrors = (expectedDeclarationError != null) ? new[] { expectedDeclarationError } : Array.Empty<DiagnosticDescription>();
-            actualDeclarationErrors.Verify(expectedDeclarationErrors);
 
             actualDiagnosticDescriptions.Verify(expectedDiagnostics);
 

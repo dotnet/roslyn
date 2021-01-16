@@ -608,8 +608,11 @@ class C
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray<TextSpan>.Empty, CancellationToken.None);
 
             Assert.True(result.HasChanges);
-            Assert.True(result.HasChangesAndErrors);
-            Assert.True(result.HasChangesAndCompilationErrors);
+
+            // No errors reported: EnC analyzer is resilient against semantic errors.
+            // They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
+            Assert.False(result.HasChangesAndErrors);
+            Assert.False(result.HasChangesAndCompilationErrors);
         }
 
         [Fact]

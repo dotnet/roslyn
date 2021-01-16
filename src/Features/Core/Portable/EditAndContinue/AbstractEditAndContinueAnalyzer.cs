@@ -416,18 +416,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var newRoot = await newTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var hasChanges = !oldText.ContentEquals(newText);
 
                 _testFaultInjector?.Invoke(newRoot);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
-                var syntaxErrorCount = syntaxDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error);
+                var hasSyntaxError = syntaxDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
+                if (hasSyntaxError)
+                {
+                    // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
+                    // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
+                    DocumentAnalysisResults.Log.Write("{0}: syntax errors", document.Name);
+                    return DocumentAnalysisResults.CompilationErrors(hasChanges);
+                }
 
                 var newActiveStatements = new ActiveStatement[baseActiveStatements.Length];
-                var newExceptionRegions = (syntaxErrorCount == 0) ? new ImmutableArray<LinePositionSpan>[baseActiveStatements.Length] : null;
+                var newExceptionRegions = new ImmutableArray<LinePositionSpan>[baseActiveStatements.Length];
 
-                if (oldText.ContentEquals(newText))
+                if (!hasChanges)
                 {
                     // The document might have been closed and reopened, which might have triggered analysis. 
                     // If the document is unchanged don't continue the analysis since 
@@ -441,28 +449,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         newActiveStatements,
                         newExceptionRegions);
 
-                    if (syntaxErrorCount > 0)
-                    {
-                        DocumentAnalysisResults.Log.Write("{0}: unchanged with syntax errors", document.Name);
-                    }
-                    else
-                    {
-                        DocumentAnalysisResults.Log.Write("{0}: unchanged", document.Name);
-                    }
-
-                    return DocumentAnalysisResults.Unchanged(newActiveStatements.AsImmutable(), newExceptionRegions.AsImmutableOrNull());
+                    DocumentAnalysisResults.Log.Write("{0}: unchanged", document.Name);
+                    return DocumentAnalysisResults.Unchanged(newActiveStatements.AsImmutable(), newExceptionRegions.AsImmutable());
                 }
-
-                if (syntaxErrorCount > 0)
-                {
-                    // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
-                    // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                    DocumentAnalysisResults.Log.Write("Syntax errors: {0} total", syntaxErrorCount);
-
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray<RudeEditDiagnostic>.Empty);
-                }
-
-                RoslynDebug.Assert(newExceptionRegions != null);
 
                 // Disallow modification of a file with experimental features enabled.
                 // These features may not be handled well by the analysis below.
@@ -470,7 +459,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", document.Name);
 
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
+                    return DocumentAnalysisResults.Errors(ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)));
                 }
 
@@ -480,7 +469,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // 2) If there are syntactic rude edits we'll report them faster without waiting for semantic analysis.
                 //    The user may fix them before they address all the semantic errors.
 
-                var updatedMethods = new List<UpdatedMemberInfo>();
+                var updatedMembers = new List<UpdatedMemberInfo>();
                 var diagnostics = new List<RudeEditDiagnostic>();
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -498,7 +487,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatementSpans,
                     newActiveStatements,
                     newExceptionRegions,
-                    updatedMethods,
+                    updatedMembers,
                     diagnostics);
 
                 ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
@@ -506,7 +495,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                    return DocumentAnalysisResults.Errors(diagnostics.AsImmutable());
                 }
 
                 // Disallow addition of a new file.
@@ -515,7 +504,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (oldDocument == null)
                 {
                     DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
-                    return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(
+                    return DocumentAnalysisResults.Errors(ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.InsertFile, default)));
                 }
 
@@ -539,7 +528,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span.Start);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                    return DocumentAnalysisResults.Errors(diagnostics.AsImmutable());
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -559,28 +548,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         oldText,
                         baseActiveStatements,
                         triviaEdits,
-                        updatedMethods,
+                        updatedMembers,
                         oldModel,
                         newModel,
                         semanticEdits,
                         diagnostics,
-                        out var firstDeclaratingError,
                         cancellationToken);
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (firstDeclaratingError != null)
-                    {
-                        var location = firstDeclaratingError.Location;
-                        DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree!.FilePath : location.MetadataModule!.Name);
-
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray<RudeEditDiagnostic>.Empty, hasSemanticErrors: true);
-                    }
-
                     if (diagnostics.Count > 0)
                     {
                         DocumentAnalysisResults.Log.Write("{0}@{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                        return DocumentAnalysisResults.Errors(diagnostics.AsImmutable());
                     }
                 }
 
@@ -590,7 +570,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     semanticEdits.AsImmutableOrEmpty(),
                     newExceptionRegions.AsImmutable(),
                     lineEdits.AsImmutable(),
-                    hasSemanticErrors: false);
+                    hasChanges: true,
+                    hasCompilationErrors: false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -602,7 +583,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { document.FilePath }) :
                     new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { document.FilePath, e.ToString() });
 
-                return DocumentAnalysisResults.SyntaxErrors(ImmutableArray.Create(diagnostic));
+                return DocumentAnalysisResults.Errors(ImmutableArray.Create(diagnostic));
             }
         }
 
@@ -649,18 +630,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<TextSpan> newActiveStatementSpans,
             [Out] ActiveStatement[] newActiveStatements,
             [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out] List<UpdatedMemberInfo> updatedMethods,
+            [Out] List<UpdatedMemberInfo> updatedMembers,
             [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(!newActiveStatementSpans.IsDefault);
             Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
-            Debug.Assert(updatedMethods.Count == 0);
+            Debug.Assert(updatedMembers.Count == 0);
 
             for (var i = 0; i < script.Edits.Length; i++)
             {
-                AnalyzeChangedMemberBody(script, i, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+                AnalyzeChangedMemberBody(script, i, editMap, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, updatedMembers, diagnostics);
             }
 
             AnalyzeUnchangedMemberBodies(diagnostics, script.Match, oldText, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions);
@@ -2195,7 +2176,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             [Out] List<SemanticEdit> semanticEdits,
             [Out] List<RudeEditDiagnostic> diagnostics,
-            out Diagnostic? firstDeclarationError,
             CancellationToken cancellationToken)
         {
             // { new type -> constructor update }
@@ -2205,7 +2185,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             INamedTypeSymbol? lazyLayoutAttribute = null;
             var newSymbolsWithEdit = new HashSet<ISymbol>();
             var updatedMemberIndex = 0;
-            firstDeclarationError = null;
             for (var i = 0; i < editScript.Edits.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -2326,16 +2305,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             Contract.ThrowIfNull(oldType);
                             Contract.ThrowIfNull(newType);
 
-                            // Validate that the type declarations are correct. If not we can't reason about their members.
-                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                            firstDeclarationError =
-                                GetFirstDeclarationError(oldModel, oldType, cancellationToken) ??
-                                GetFirstDeclarationError(newModel, newType, cancellationToken);
-
-                            if (firstDeclarationError != null)
-                            {
-                                continue;
-                            }
+                            ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol);
+                            ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
 
                             // Inserting a parameterless constructor needs special handling:
                             // 1) static ctor
@@ -2383,12 +2354,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 }
                             }
 
-                            if (editKind == SemanticEditKind.Insert)
-                            {
-                                ReportInsertedMemberSymbolRudeEdits(diagnostics, newSymbol);
-                                ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
-                            }
-
                             var isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode);
                             if (isConstructorWithMemberInitializers || IsDeclarationWithInitializer(edit.NewNode))
                             {
@@ -2427,10 +2392,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             editKind = SemanticEditKind.Update;
 
+                            // An updated member info was added for a subset of edits in the order of the edits.
+                            // Fetch the next info if it matches the current edit ordinal.
+                            UpdatedMemberInfo? updatedMemberOpt;
+                            if (updatedMemberIndex < updatedMembers.Count && updatedMembers[updatedMemberIndex].EditOrdinal == i)
+                            {
+                                updatedMemberOpt = updatedMembers[updatedMemberIndex++];
+                            }
+                            else
+                            {
+                                updatedMemberOpt = null;
+                            }
+
                             newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, cancellationToken);
                             if (newSymbol == null)
                             {
                                 // node doesn't represent a symbol
+                                Contract.ThrowIfTrue(updatedMemberOpt.HasValue);
                                 continue;
                             }
 
@@ -2440,20 +2418,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             var oldContainingType = oldSymbol.ContainingType;
                             var newContainingType = newSymbol.ContainingType;
 
-                            // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
-                            // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                            firstDeclarationError =
-                                GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
-                                GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
-
-                            if (firstDeclarationError != null)
+                            if (updatedMemberOpt.HasValue)
                             {
-                                continue;
-                            }
-
-                            if (updatedMemberIndex < updatedMembers.Count && updatedMembers[updatedMemberIndex].EditOrdinal == i)
-                            {
-                                var updatedMember = updatedMembers[updatedMemberIndex];
+                                var updatedMember = updatedMemberOpt.Value;
 
                                 ReportStateMachineRudeEdits(oldModel.Compilation, updatedMember, oldSymbol, diagnostics);
 
@@ -2485,8 +2452,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 {
                                     syntaxMap = null;
                                 }
-
-                                updatedMemberIndex++;
                             }
                             else
                             {
@@ -2542,17 +2507,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var oldContainingType = oldSymbol.ContainingType;
                 var newContainingType = newSymbol.ContainingType;
-
-                // Validate that the type declarations are correct to avoid issues with invalid partial declarations, etc.
-                // Declaration diagnostics are cached on compilation, so we don't need to cache them here.
-                firstDeclarationError =
-                    GetFirstDeclarationError(oldModel, oldContainingType, cancellationToken) ??
-                    GetFirstDeclarationError(newModel, newContainingType, cancellationToken);
-
-                if (firstDeclarationError != null)
-                {
-                    continue;
-                }
 
                 // We need to provide syntax map to the compiler if the member is active (see member update above):
                 var isActiveMember =
@@ -2619,31 +2573,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     diagnostics: diagnostics,
                     cancellationToken: cancellationToken);
             }
-        }
-
-        private static Diagnostic? GetFirstDeclarationError(SemanticModel primaryModel, ISymbol symbol, CancellationToken cancellationToken)
-        {
-            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
-            {
-                SemanticModel model;
-                if (primaryModel.SyntaxTree == syntaxReference.SyntaxTree)
-                {
-                    model = primaryModel;
-                }
-                else
-                {
-                    model = primaryModel.Compilation.GetSemanticModel(syntaxReference.SyntaxTree, ignoreAccessibility: false);
-                }
-
-                var diagnostics = model.GetDeclarationDiagnostics(syntaxReference.Span, cancellationToken);
-                var firstError = diagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-                if (firstError != null)
-                {
-                    return firstError;
-                }
-            }
-
-            return null;
         }
 
         #region Type Layout Update Validation 
@@ -3837,9 +3766,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return reverseMap.TryGetValue(newScopeOpt, out var mappedScope) && mappedScope == oldScopeOpt;
         }
 
-#endregion
+        #endregion
 
-#region State Machines
+        #region State Machines
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
@@ -3854,7 +3783,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Only methods, local functions and anonymous functions can be async/iterators machines, 
             // but don't assume so to be resiliant against errors in code.
-            if (!(oldMember is IMethodSymbol oldMethod))
+            if (oldMember is not IMethodSymbol oldMethod)
             {
                 return;
             }
@@ -3865,6 +3794,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We assume that the attributes, if exist, are well formed.
             // If not an error will be reported during EnC delta emit.
+
+            // Report rude edit if the type is not found in the compilation.
+            // Consider: This diagnostic is cached in the document analysis,
+            // so it could happen that the attribute type is added later to
+            // the compilation and we continue to report the diagnostic.
+            // We could report rude edit when adding these types or flush all
+            // (or specific) document caches. This is not a common scenario though,
+            // since the attribute has been long defined in the BCL.
             if (oldCompilation.GetTypeByMetadataName(stateMachineAttributeQualifiedName) == null)
             {
                 diagnostics.Add(new RudeEditDiagnostic(
@@ -3875,11 +3812,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
 
-#endregion
+        #endregion
 
-#region Helpers 
+        #region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
             => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
@@ -3898,9 +3835,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-#endregion
+        #endregion
 
-#region Testing
+        #region Testing
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -3984,13 +3921,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SemanticModel newModel,
                 [Out] List<SemanticEdit> semanticEdits,
                 [Out] List<RudeEditDiagnostic> diagnostics,
-                out Diagnostic? firstDeclarationError,
                 CancellationToken cancellationToken)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, out firstDeclarationError, cancellationToken);
+                _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, cancellationToken);
             }
         }
 
-#endregion
+        #endregion
     }
 }

@@ -5,6 +5,8 @@
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
+Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -4501,7 +4503,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Lambdas_Signature_SemanticErrors()
+        Public Sub Lambdas_Signature_MatchingErrorType()
             Dim src1 = "
 Imports System
 
@@ -4529,8 +4531,50 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(ERRID.ERR_UndefinedType1, "Unknown").WithArguments("Unknown").WithLocation(6, 24))
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                expectedSemanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMembers("F").Single(), preserveLocalVariables:=True)
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Lambdas_Signature_NonMatchingErrorType()
+            Dim src1 = "
+Imports System
+
+Class C
+
+    Sub G1(f As Func(Of Unknown1, Unknown1))
+    End Sub
+
+    Sub G2(f As Func(Of Unknown2, Unknown2))
+    End Sub
+
+    Sub F()
+        G1(Function(a) 1)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+
+    Sub G1(f As Func(Of Unknown1, Unknown1))
+    End Sub
+
+    Sub G2(f As Func(Of Unknown2, Unknown2))
+    End Sub
+
+    Sub F()
+        G2(Function(a) 2)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
         End Sub
 
 #End Region
@@ -6015,8 +6059,7 @@ End Class
                 editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
                 expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
-                expectedDeclarationError:=Nothing)
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
         End Sub
 
         <Fact>
@@ -6044,8 +6087,7 @@ End Class
                 editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
                 expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:=Nothing,
-                expectedDeclarationError:=Nothing)
+                expectedDiagnostics:=Nothing)
         End Sub
 
 #End Region
@@ -6129,8 +6171,7 @@ End Class
                 editScripts:={edits},
                 activeStatements:=ActiveStatementsDescription.Empty,
                 expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
-                expectedDeclarationError:=Nothing)
+                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
         End Sub
 
         <Fact>

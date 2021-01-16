@@ -79,17 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 expectedDiagnostics: expectedDiagnostics);
         }
 
-        internal static void VerifySemanticDiagnostics(
-            this EditScript<SyntaxNode> editScript,
-            DiagnosticDescription expectedDeclarationError,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
-        {
-            VerifySemantics(
-                new[] { editScript },
-                expectedDeclarationError: expectedDeclarationError,
-                expectedDiagnostics: expectedDiagnostics);
-        }
-
         internal static void VerifySemantics(
             this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
@@ -107,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ActiveStatementsDescription? activeStatements = null,
             TargetFramework[]? targetFrameworks = null,
             SemanticEditDescription[]? expectedSemanticEdits = null,
-            DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp })
@@ -116,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     editScripts,
                     activeStatements,
                     expectedSemanticEdits,
-                    expectedDeclarationError,
                     expectedDiagnostics);
             }
         }

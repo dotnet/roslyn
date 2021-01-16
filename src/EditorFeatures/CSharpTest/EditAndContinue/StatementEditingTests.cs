@@ -5,9 +5,12 @@
 #nullable disable
 
 using System.IO;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3118,7 +3121,7 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Signature_SemanticErrors()
+        public void Lambdas_Signature_MatchingErrorType()
         {
             var src1 = @"
 using System;
@@ -3148,10 +3151,49 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                expectedSemanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("F").Single(), preserveLocalVariables: true)
+                });
+        }
+
+        [Fact]
+        public void Lambdas_Signature_NonMatchingErrorType()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G1(Func<Unknown1, Unknown1> f) {}
+    void G2(Func<Unknown2, Unknown2> f) {}
+
+    void F()
+    {
+        G1(a => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<Unknown1, Unknown1> f) {}
+    void G2(Func<Unknown2, Unknown2> f) {}
+
+    void F()
+    {
+        G2(a => 2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
             edits.VerifySemanticDiagnostics(
-                // (6,17): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //     void G(Func<Unknown, Unknown> f) {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"));
         }
 
         [Fact]
@@ -7408,6 +7450,87 @@ class C
     void F()
     {
         var result = from a in new[] {1} group a by a + 1.0 into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy_MatchingErrorTypes()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown G1(int a) => null;
+    Unknown G2(int a) => null;
+
+    void F()
+    {
+        var result = from a in new[] {1} group G1(a) by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown G1(int a) => null;
+    Unknown G2(int a) => null;
+    
+    void F()
+    {
+        var result = from a in new[] {1} group G2(a) by a into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy_NonMatchingErrorTypes()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown1 G1(int a) => null;
+    Unknown2 G2(int a) => null;
+
+    void F()
+    {
+        var result = from a in new[] {1} group G1(a) by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown1 G1(int a) => null;
+    Unknown2 G2(int a) => null;
+    
+    void F()
+    {
+        var result = from a in new[] {1} group G2(a) by a into z select z;
     }
 }
 ";
