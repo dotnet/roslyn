@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis
@@ -262,6 +263,8 @@ namespace Microsoft.CodeAnalysis
         /// null.
         /// </summary>
         IMethodSymbol? PartialImplementationPart { get; }
+
+        MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.

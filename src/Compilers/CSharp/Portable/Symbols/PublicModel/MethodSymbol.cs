@@ -309,6 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
 
+        System.Reflection.MethodImplAttributes IMethodSymbol.ImplementationAttributes => _underlying.ImplementationAttributes;
+
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 
         bool IMethodSymbol.IsCheckedBuiltin => _underlying.IsCheckedBuiltin;

@@ -875,6 +875,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ImplementationAttributes As System.Reflection.MethodImplAttributes Implements IMethodSymbol.ImplementationAttributes
+            Get
+                Return Me.ImplementationAttributes
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_IsExtensionMethod As Boolean Implements IMethodSymbol.IsExtensionMethod
             Get
                 Return Me.IsExtensionMethod
