@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             static bool TryGetLinqMethodsThatDoNotReturnEnumerables(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> linqMethods)
             {
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
-                foreach (var method in enumerableType.GetMembers().Where(x => x.Kind == SymbolKind.Method).OfType<IMethodSymbol>())
+                foreach (var method in enumerableType.GetMembers().OfType<IMethodSymbol>())
                 {
                     if (_nonEnumerableReturningLinqMethodNames.Any(name => name == method.Name) &&
                         method.Parameters is { Length: 1 })
