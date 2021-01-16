@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
                 foreach (var method in enumerableType.GetMembers().OfType<IMethodSymbol>())
                 {
-                    if (_nonEnumerableReturningLinqMethodNames.Any(name => name == method.Name) &&
+                    if (_nonEnumerableReturningLinqMethodNames.Contains(method.Name) &&
                         method.Parameters is { Length: 1 })
                     {
                         linqMethodSymbolsBuilder.AddRange(method);
