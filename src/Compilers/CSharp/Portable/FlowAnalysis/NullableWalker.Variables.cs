@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(container is null || container.Id < id);
                 Debug.Assert(id < nextId.Value);
                 _nextId = nextId;
-                // PROTOTYPE: Handle > 64K nested methods (distinct ids). See NullableStateTooManyNestedFunctions().
                 Id = id;
                 Container = container;
                 Symbol = symbol;
@@ -249,10 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (int id, int index) = DeconstructSlot(containingSlot);
                 var variables = GetVariablesForId(id)!;
-
-                for (index++; index < variables.Count; index++)
+                var variableBySlot = variables._variableBySlot;
+                for (index++; index < variableBySlot.Count; index++)
                 {
-                    var variable = variables._variableBySlot[index];
+                    var variable = variableBySlot[index];
                     if (variable.ContainingSlot == containingSlot)
                     {
                         builder.Add((variable, ConstructSlot(id, index)));

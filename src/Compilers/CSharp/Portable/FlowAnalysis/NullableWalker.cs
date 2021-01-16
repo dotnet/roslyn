@@ -1293,8 +1293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState initialState,
-            ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
-            SnapshotManager.Builder? snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt)
         {
             var symbol = lambda.Symbol;
@@ -1310,12 +1308,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 variables,
                 returnTypesOpt,
-                analyzedNullabilityMapOpt,
-                snapshotBuilderOpt);
+                analyzedNullabilityMapOpt: null,
+                snapshotBuilderOpt: null);
             try
             {
                 var localState = LocalState.Create(initialState.VariableNullableStates).CreateNestedFunction(variables);
-                Analyze(walker, symbol, diagnostics, localState, snapshotBuilderOpt);
+                Analyze(walker, symbol, diagnostics, localState, snapshotBuilderOpt: null);
             }
             finally
             {

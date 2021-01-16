@@ -461,7 +461,35 @@ class Program
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
-        public void NullableStateTooManyLocals()
+        public void NullableStateTooManyLocals_01()
+        {
+            const int nLocals = 65536;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#pragma warning disable 168");
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 1; i < nLocals; i++)
+            {
+                builder.AppendLine($"        object i{i};");
+            }
+            builder.AppendLine("        object i0 = arg;");
+            builder.AppendLine("        if (i0 == null) i0.ToString();");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            // No warning for i0.ToString() because the local is not tracked
+            // by the NullableWalker.Variables instance (too many locals).
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void NullableStateTooManyLocals_02()
         {
             const int nLocals = 65536;
 
@@ -482,7 +510,9 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Perf: NullableWalker.Variables.GetMembers() is O(n^2).
+            // PROTOTYPE: Each assignment results in a call to NullableWalker.InheritDefaultState().
+            // InheritDefaultState() is O(n) where n is the number of locals, and since there is one
+            // assignment per local, the overall perf is O(n^2).
 #if false
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -494,7 +524,7 @@ class Program
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void NullableStateTooManyNestedFunctions()
         {
-            const int nFunctions = 65536;
+            const int nFunctions = 32768;
 
             var builder = new StringBuilder();
             builder.AppendLine("#nullable enable");
@@ -515,7 +545,7 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Investigate performance.
+            // PROTOTYPE: Handle 32K nested methods (distinct ids) gracefully in NullableWalker.Variables.
 #if false
             comp.VerifyDiagnostics();
 #endif
