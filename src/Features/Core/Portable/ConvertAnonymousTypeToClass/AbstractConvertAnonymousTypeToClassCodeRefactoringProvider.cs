@@ -279,6 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
             if (isRecord)
             {
+                // Create a record with a single primary constructor, containing a parameter for all the properties
+                // we're generating.
                 var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     Accessibility.Public,
