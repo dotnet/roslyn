@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
             var allVariables = walker.variableBySlot;
 
-            walker.Free();
-
             if (lazyDisallowedCaptures != null)
             {
                 foreach (var kvp in lazyDisallowedCaptures)
@@ -112,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Hoist anything determined to be live across an await or yield
             variablesToHoist.AddRange(walker._variablesToHoist);
+
+            walker.Free();
 
             return variablesToHoist;
         }
