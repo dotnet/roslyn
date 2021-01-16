@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 attributes: default, Accessibility.Internal, modifiers: default,
-                isRecord: isRecord, TypeKind.Class, className, capturedTypeParameters, members: members);
+                isRecord, TypeKind.Class, className, capturedTypeParameters, members: members);
         }
 
         private static (ImmutableArray<IPropertySymbol> properties, ImmutableDictionary<IPropertySymbol, string> propertyMap) GenerateProperties(
