@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild SimplifyLinq = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
