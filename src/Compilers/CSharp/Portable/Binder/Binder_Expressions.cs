@@ -5973,6 +5973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the RHS of a member access expression, given the bound LHS.
         /// It is assumed that CheckValue has not been called on the LHS.
         /// </summary>
+        /// <remarks>
+        /// If new checks are added to this method, they will also need to be added to <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, DiagnosticBag)"/>.
+        /// </remarks>
         private BoundExpression BindMemberAccessWithBoundLeft(
             ExpressionSyntax node,
             BoundExpression boundLeft,
