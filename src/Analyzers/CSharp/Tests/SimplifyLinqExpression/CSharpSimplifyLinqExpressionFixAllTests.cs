@@ -119,7 +119,8 @@ class C
         var test2 = [|test.Where(x => x.Equals('!')).SingleOrDefault()|];
         var test3 = [|test.Where(x => x.Equals('!')).Last()|];
         var test4 = test.Where(x => x.Equals('!')).Count();
-        var test5 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).FirstOrDefault()|].Equals(""hello"")).FirstOrDefault()|];
+        var test5 = from x in test where x.Equals('!') select x;
+        var test6 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).FirstOrDefault()|].Equals(""hello"")).FirstOrDefault()|];
     }
 }",
                 FixedCode = @"
@@ -136,7 +137,8 @@ class C
         var test2 = test.SingleOrDefault(x => x.Equals('!'));
         var test3 = test.Last(x => x.Equals('!'));
         var test4 = test.Where(x => x.Equals('!')).Count();
-        var test5 = test.FirstOrDefault(a => a.FirstOrDefault(s => s.Equals(""hello"")).Equals(""hello""));
+        var test5 = from x in test where x.Equals('!') select x;
+        var test6 = test.FirstOrDefault(a => a.FirstOrDefault(s => s.Equals(""hello"")).Equals(""hello""));
     }
 }",
             }.RunAsync();
