@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -42,8 +43,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
+
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(oldActiveStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
 
             Analyzer.GetTestAccessor().AnalyzeUnchangedDocument(
                 oldActiveStatements.AsImmutable(),
@@ -56,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertSpansEqual(expectedNewActiveStatements, actualNewActiveStatements.Select(s => s.Span), source, text);
 
             // check new exception regions:
-            Assert.Equal(expectedNewExceptionRegions.Length, actualNewExceptionRegions.Length);
+            Assert.Equal(expectedNewExceptionRegions.Length, actualNewExceptionRegions.Count);
             for (var i = 0; i < expectedNewExceptionRegions.Length; i++)
             {
                 AssertSpansEqual(expectedNewExceptionRegions[i], actualNewExceptionRegions[i], source, text);
@@ -81,10 +85,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldText = SourceText.From(oldSource);
             var newText = SourceText.From(newSource);
 
-            var diagnostics = new List<RudeEditDiagnostic>();
-            var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
+            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
+            var updatedActiveMethodMatches = new ArrayBuilder<UpdatedMemberInfo>();
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(oldActiveStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
             var editMap = BuildEditMap(editScript);
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
@@ -125,7 +131,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 // check new exception regions:
-                Assert.Equal(description.NewRegions.Length, actualNewExceptionRegions.Length);
+                Assert.Equal(description.NewRegions.Length, actualNewExceptionRegions.Count);
                 for (var i = 0; i < description.NewRegions.Length; i++)
                 {
                     AssertSpansEqual(description.NewRegions[i], actualNewExceptionRegions[i], newSource, newText);
@@ -152,11 +158,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldText = SourceText.From(oldSource);
             var newText = SourceText.From(newSource);
 
-            var diagnostics = new List<RudeEditDiagnostic>();
+            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
             var editMap = BuildEditMap(editScript);
 
+<<<<<<< HEAD
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
             var actualLineEdits = new List<SourceLineUpdate>();
+=======
+            var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
+            var actualLineEdits = new ArrayBuilder<LineChange>();
+>>>>>>> b14da14d6d2 (Use ArrayBuilder/ImmutableArray.Builder instead of List/Array)
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
@@ -191,15 +202,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newCompilation = CreateLibraryCompilation("New", newTrees);
 
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
-            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<SourceLineUpdate>();
-            var actualSemanticEdits = new List<SemanticEdit>();
+            var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
+            var actualLineEdits = new ArrayBuilder<SourceLineUpdate>();
+            var actualSemanticEdits = new ArrayBuilder<SemanticEdit>();
             var includeFirstLineInDiagnostics = expectedDiagnostics?.Any(d => d.FirstLine != null) == true;
-            var actualDiagnosticDescriptions = new List<RudeEditDiagnosticDescription>();
-            var actualDeclarationErrors = new List<Diagnostic>();
+            var actualDiagnosticDescriptions = new ArrayBuilder<RudeEditDiagnosticDescription>();
+            var actualDeclarationErrors = new ArrayBuilder<Diagnostic>();
 
-            var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[activeStatements.OldStatements.Length];
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(activeStatements.OldStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
+
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(activeStatements.OldStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
+
             var testAccessor = Analyzer.GetTestAccessor();
 
             foreach (var editScript in editScripts)
@@ -215,8 +230,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
                 var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
-                var diagnostics = new List<RudeEditDiagnostic>();
-                var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
+                var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
+                var updatedActiveMethodMatches = new ArrayBuilder<UpdatedMemberInfo>();
 
                 testAccessor.AnalyzeMemberBodiesSyntax(
                     editScript,
@@ -325,7 +340,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new ArrayBuilder<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)
