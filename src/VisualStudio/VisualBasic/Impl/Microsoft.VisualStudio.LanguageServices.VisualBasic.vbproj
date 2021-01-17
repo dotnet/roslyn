@@ -39,6 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

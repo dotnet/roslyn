@@ -3375,11 +3375,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
-                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any() &&
-                !SynthesizedRecordCopyCtor.IsCopyConstructor(this.ContainingMember()))
+                ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
             {
-                // Note: we check the constructor initializer of copy constructors elsewhere
-                Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                var constructorSymbol = (MethodSymbol)this.ContainingMember();
+                if (!constructorSymbol.IsStatic &&
+                    !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                {
+                    // Note: we check the constructor initializer of copy constructors elsewhere
+                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                }
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel

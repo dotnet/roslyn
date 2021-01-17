@@ -2740,8 +2740,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newFieldDeclaration = fieldDeclaration.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(fieldDeclaration, newFieldDeclaration, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(fieldDeclaration, newFieldDeclaration, CancellationToken.None);
             }
         }
 
@@ -2762,8 +2761,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 newEnumDeclaration = newEnumDeclaration.ReplaceNode(lastMember, lastMember.WithTrailingTrivia(trailingTrivia));
             }
 
-            return document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(enumDeclaration, newEnumDeclaration, CancellationToken.None);
         }
 
         private Document Delete(Document document, AttributeSyntax node)
@@ -2773,8 +2771,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             // If we don't have anything left, then just delete the whole attribute list.
             if (attributeList.Attributes.Count == 1)
             {
-                var text = document.GetTextAsync(CancellationToken.None)
-                                   .WaitAndGetResult_CodeModel(CancellationToken.None);
+                var text = document.GetTextSynchronously(CancellationToken.None);
 
                 // Note that we want to keep all leading trivia and delete all trailing trivia.
                 var deletionStart = attributeList.SpanStart;
@@ -2788,8 +2785,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(attributeList, newAttributeList, CancellationToken.None);
             }
         }
 
@@ -2798,8 +2794,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var argumentList = node.FirstAncestorOrSelf<AttributeArgumentListSyntax>();
             var newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None);
         }
 
         private Document Delete(Document document, ParameterSyntax node)
@@ -2807,14 +2802,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var parameterList = node.FirstAncestorOrSelf<ParameterListSyntax>();
             var newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None);
         }
 
         private Document DeleteMember(Document document, SyntaxNode node)
         {
-            var text = document.GetTextAsync(CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             // We want to delete all the leading trivia from the node back to,
             // but not including:
