@@ -7800,33 +7800,20 @@ End Class";
         public void NullableAttributes_CSharpReferencesVisualBasic()
         {
             var sourceVB = @"
-Namespace System.Diagnostics.CodeAnalysis
-    <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.[Property] Or AttributeTargets.ReturnValue)>
-    Public NotInheritable Class MaybeNullAttribute
-        Inherits Attribute
-    End Class
-End Namespace
-
-Namespace N
-    Public Class A(Of T)
-        <System.Diagnostics.CodeAnalysis.MaybeNull>
-        Public ReadOnly Property P As T
-    End Class
-End Namespace
+Public Class A(Of T)
+    Public ReadOnly Property P As T
+End Class
 ";
             var sourceCS = @"
 #nullable enable
 
-namespace N
-{
-    public class Test: A<object> { }
-}
+public class Test: A<object> { }
 ";
             var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef });
             var refVB = compVB.EmitToImageReference();
             var compCS = CreateCompilation(sourceCS, references: new[] { refVB });
-            var closedGenericMember = compCS.GetTypeByMetadataName("N.Test").BaseType().GetMember("P");
-            var openGenericMember = compCS.GetTypeByMetadataName("N.A`1").GetMember("P");
+            var closedGenericMember = compCS.GetTypeByMetadataName("Test").BaseType().GetMember("P");
+            var openGenericMember = compCS.GetTypeByMetadataName("A`1").GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
