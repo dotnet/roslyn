@@ -81,36 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                                .ToImmutableArray();
             if (namedType.IsRecord)
             {
-                var recordDeclaration = (RecordDeclarationSyntax)declaration;
-
-                // For a record, add record parameters if we have a primary constructor.
-                var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
-                if (primaryConstructor != null)
-                {
-                    var parameterList = ParameterGenerator.GenerateParameterList(primaryConstructor.Parameters, isExplicit: false, options);
-                    recordDeclaration = recordDeclaration.WithParameterList(parameterList);
-
-                    // remove the primary constructor from the list of members to generate.
-                    members = members.Remove(primaryConstructor);
-
-                    // remove any properties that were created by the primary constructor
-                    members = members.WhereAsArray(m => m is not IPropertySymbol property || !primaryConstructor.Parameters.Any(p => p.Name == property.Name));
-                }
-
-                // remove any implicit overrides to generate.
-                members = members.WhereAsArray(m => !m.IsImplicitlyDeclared);
-
-                // If there are no members, just make a simple record with no body
-                if (members.Length == 0)
-                {
-                    declaration = recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                }
-                else
-                {
-                    // Otherwise, give the record a body.
-                    declaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
-                                                   .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-                }
+                declaration = GenerateRecordMembers(service, options, (RecordDeclarationSyntax)declaration, members, cancellationToken);
             }
             else
             {
@@ -118,13 +89,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // reordering of members.
                 if (namedType.IsComImport)
                     options = options.With(autoInsertionLocation: false, sortMembers: false);
+
+                if (options.GenerateMembers && namedType.TypeKind != TypeKind.Delegate)
+                    declaration = service.AddMembers(declaration, members, options, cancellationToken);
             }
 
-            declaration = options.GenerateMembers && namedType.TypeKind != TypeKind.Delegate
-                ? service.AddMembers(declaration, members, options, cancellationToken)
-                : declaration;
-
             return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, namedType, options, cancellationToken));
+        }
+
+        private static RecordDeclarationSyntax GenerateRecordMembers(
+            ICodeGenerationService service,
+            CodeGenerationOptions options,
+            RecordDeclarationSyntax recordDeclaration,
+            ImmutableArray<ISymbol> members,
+            CancellationToken cancellationToken)
+        {
+            // For a record, add record parameters if we have a primary constructor.
+            var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
+            if (primaryConstructor != null)
+            {
+                var parameterList = ParameterGenerator.GenerateParameterList(primaryConstructor.Parameters, isExplicit: false, options);
+                recordDeclaration = recordDeclaration.WithParameterList(parameterList);
+
+                // remove the primary constructor from the list of members to generate.
+                members = members.Remove(primaryConstructor);
+
+                // remove any properties that were created by the primary constructor
+                members = members.WhereAsArray(m => m is not IPropertySymbol property || !primaryConstructor.Parameters.Any(p => p.Name == property.Name));
+            }
+
+            // remove any implicit overrides to generate.
+            members = members.WhereAsArray(m => !m.IsImplicitlyDeclared);
+
+            // If there are no members, just make a simple record with no body
+            if (members.Length == 0)
+            {
+                recordDeclaration = recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            }
+            else
+            {
+                // Otherwise, give the record a body.
+                recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
+                                                     .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            }
+
+            if (options.GenerateMembers)
+                recordDeclaration = service.AddMembers(recordDeclaration, members, options, cancellationToken);
+
+            return recordDeclaration;
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
