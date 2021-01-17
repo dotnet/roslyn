@@ -7672,25 +7672,39 @@ public class A<T>
 public class Test: A<object> { }
 ";
             var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
-            var memmber = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
+            var closedGenericMemmber = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
+            var openGenericMemmber = compilation.GetTypeByMetadataName("A`1").GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                memmber.ToDisplayParts(format),
+                closedGenericMemmber.ToDisplayParts(format),
                 "Object? P",
                 SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                openGenericMemmber.ToDisplayParts(format),
+                "T? P",
+                SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
 
             format = format.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.None); // without SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
             Verify(
-                memmber.ToDisplayParts(format),
+                closedGenericMemmber.ToDisplayParts(format),
                 "Object P",
                 SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                openGenericMemmber.ToDisplayParts(format),
+                "T P",
+                SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
         }
@@ -7714,14 +7728,14 @@ public class A<T>
 public class Test: A<int> { }
 ";
             var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
-            var member = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
+            var closedGenericMember = compilation.GetTypeByMetadataName("Test").BaseType().GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                member.ToDisplayParts(format),
+                closedGenericMember.ToDisplayParts(format),
                 "Int32 P",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
