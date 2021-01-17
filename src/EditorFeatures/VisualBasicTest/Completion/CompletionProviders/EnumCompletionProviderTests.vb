@@ -120,7 +120,7 @@ Enum Goo
     AMember
     BMember
     CMember
-End Enum
+End
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
@@ -142,7 +142,7 @@ Enum Goo
     AMember
     BMember
     CMember
-End Enum
+End
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
@@ -408,7 +408,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "E.A")
+            Await VerifyItemExistsAsync(markup, "e")
             Await VerifyItemIsAbsentAsync(markup, "e As E")
         End Function
 
@@ -426,7 +426,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "E.A")
+            Await VerifyItemExistsAsync(markup, "E")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
