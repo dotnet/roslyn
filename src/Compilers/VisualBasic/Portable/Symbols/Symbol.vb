@@ -992,7 +992,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function DeriveUseSiteErrorInfoFromCustomModifiers(
-            customModifiers As ImmutableArray(Of CustomModifier)
+            customModifiers As ImmutableArray(Of CustomModifier),
+            Optional allowIsExternalInit As Boolean = False
         ) As DiagnosticInfo
             Dim modifiersErrorInfo As DiagnosticInfo = Nothing
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
@@ -1001,11 +1002,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim errorInfo As DiagnosticInfo
 
-                If modifier.IsOptional Then
-                    errorInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
-                Else
+                If Not modifier.IsOptional AndAlso
+                   (Not allowIsExternalInit OrElse Not DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol.IsWellKnownTypeIsExternalInit()) Then
+
                     errorInfo = If(GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
+
+                    If errorInfo.Code = highestPriorityUseSiteError Then
+                        Return errorInfo
+                    End If
+
+                    If modifiersErrorInfo Is Nothing Then
+                        modifiersErrorInfo = errorInfo
+                    End If
                 End If
+
+                errorInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
 
                 If errorInfo IsNot Nothing Then
                     If errorInfo.Code = highestPriorityUseSiteError Then

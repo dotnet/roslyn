@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -22,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private const string NonBreakingSpaceString = "\x00A0";
-
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
 
         // -1 would disable timebox, whereas 0 means always timeout.
@@ -1985,8 +1986,61 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
-        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
-            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+        [InlineData("int", true, "int a")]
+        [InlineData("int[]", true, "int a, int b")]
+        [InlineData("bool", false, null)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTargetTypedCompletion(string targetType, bool matchTargetType, string expectedParameterList)
+        {
+            var refDoc = @"
+using System;
+
+namespace NS2
+{
+    public static class Extensions
+    {
+        public static int ExtentionMethod(this int t, int a) => 0;
+        public static int[] ExtentionMethod(this int t, int a, int b) => null;
+        public static string ExtentionMethod(this int t, int a, int b, int c) => false;
+    }
+}";
+            var srcDoc = $@"
+namespace NS1
+{{
+    public class C
+    {{
+        public void M(int x)
+        {{
+            {targetType} y = x.$$
+        }}
+    }}
+}}";
+
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            var markup = CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp);
+
+            string expectedDescription = null;
+            var expectedFilters = new List<CompletionFilter>()
+            {
+                FilterSet.ExtensionMethodFilter
+            };
+
+            if (matchTargetType)
+            {
+                expectedFilters.Add(FilterSet.TargetTypedFilter);
+                expectedDescription = $"({CSharpFeaturesResources.extension}) {targetType} int.ExtentionMethod({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})";
+            }
+
+            await VerifyImportItemExistsAsync(
+                markup,
+                "ExtentionMethod",
+                expectedFilters: expectedFilters,
+                inlineDescription: "NS2",
+                expectedDescriptionOrNull: expectedDescription);
+        }
+
+        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, int? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, matchingFilters: expectedFilters);
 
         private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
             => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
