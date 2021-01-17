@@ -175,6 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool ShouldBeNullableAnnotated(IPropertySymbol propertySymbol, FlowAnalysisAnnotations annotations)
+            => !propertySymbol.Type.IsValueType
+            && ShouldBeNullableAnnotated((ISymbol)propertySymbol, annotations);
+
         private static bool ShouldBeNullableAnnotated(ISymbol symbol, FlowAnalysisAnnotations annotations)
         {
             if (symbol is Symbols.PublicModel.Symbol csharpSymbol)
