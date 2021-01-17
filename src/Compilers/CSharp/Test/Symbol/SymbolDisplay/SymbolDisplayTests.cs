@@ -7657,8 +7657,7 @@ record Person(string First, string Last);
         [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
         public void NullableAttributes_MayBeNullOnClassProperty()
         {
-            var source =
-@"
+            var source = @"
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -7713,8 +7712,7 @@ public class Test: A<object> { }
         [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
         public void NullableAttributes_MayBeNullOnStructProperty()
         {
-            var source =
-@"
+            var source = @"
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -7746,8 +7744,8 @@ public class Test: A<int> { }
         [Fact]
         public void NullableAttributes_VisualBasicReferencesCSharp()
         {
-            var sourceCS =
-@"using System.Diagnostics.CodeAnalysis;
+            var sourceCS = @"
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -7760,8 +7758,7 @@ namespace N
     }
 }
 ";
-            var sourceVB =
-@"
+            var sourceVB = @"
 Imports N
 Public Class Test
     Inherits A(Of Object)
@@ -7769,14 +7766,15 @@ End Class";
             var compCS = CreateCompilation(new[] { sourceCS, MaybeNullAttributeDefinition });
             var refCS = compCS.EmitToImageReference();
             var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef, refCS });
-            var member = compVB.GetTypeByMetadataName("Test").BaseType.GetMember("P");
+            var closedGenericMember = compVB.GetTypeByMetadataName("Test").BaseType.GetMember("P");
+            var openGenericMember = compVB.GetTypeByMetadataName("N.A`1").GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                member.ToDisplayParts(format),
+                closedGenericMember.ToDisplayParts(format),
                 "Overloads P As Object",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -7785,14 +7783,23 @@ End Class";
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName);
+            Verify(
+                openGenericMember.ToDisplayParts(format),
+                "Overloads P As T",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName);
         }
 
         [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
         [Fact]
         public void NullableAttributes_CSharpReferencesVisualBasic()
         {
-            var sourceVB =
-@"
+            var sourceVB = @"
 Namespace System.Diagnostics.CodeAnalysis
     <AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter Or AttributeTargets.[Property] Or AttributeTargets.ReturnValue)>
     Public NotInheritable Class MaybeNullAttribute
@@ -7807,8 +7814,7 @@ Namespace N
     End Class
 End Namespace
 ";
-            var sourceCS =
-@"
+            var sourceCS = @"
 #nullable enable
 
 namespace N
@@ -7819,16 +7825,23 @@ namespace N
             var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef });
             var refVB = compVB.EmitToImageReference();
             var compCS = CreateCompilation(sourceCS, references: new[] { refVB });
-            var member = compCS.GetTypeByMetadataName("N.Test").BaseType().GetMember("P");
+            var closedGenericMember = compCS.GetTypeByMetadataName("N.Test").BaseType().GetMember("P");
+            var openGenericMember = compCS.GetTypeByMetadataName("N.A`1").GetMember("P");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             Verify(
-                member.ToDisplayParts(format),
+                closedGenericMember.ToDisplayParts(format),
                 "Object P",
                 SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                openGenericMember.ToDisplayParts(format),
+                "T P",
+                SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
         }
