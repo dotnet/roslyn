@@ -514,6 +514,16 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
+        /// Creates an enum declaration
+        /// </summary>
+        internal abstract SyntaxNode EnumDeclaration(
+            string name,
+            SyntaxNode underlyingType,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default,
+            IEnumerable<SyntaxNode> members = null);
+
+        /// <summary>
         /// Creates an enum member
         /// </summary>
         public abstract SyntaxNode EnumMember(string name, SyntaxNode expression = null);
@@ -606,6 +616,7 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
+                                type.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32 ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
                                 accessibility: type.DeclaredAccessibility,
                                 members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
                             break;
