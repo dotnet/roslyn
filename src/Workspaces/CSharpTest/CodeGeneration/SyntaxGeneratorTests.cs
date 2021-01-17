@@ -1823,20 +1823,6 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [Fact]
-        public void TestEnumWithUnderlyingTypeFromSymbol()
-        {
-            VerifySyntax<EnumDeclarationSyntax>(
-                    Generator.Declaration(
-                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
-@"public enum SecurityRuleSet : byte
-{
-    None = 0,
-    Level1 = 1,
-    Level2 = 2
-}");
-        }
-
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements
