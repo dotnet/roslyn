@@ -66,94 +66,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (tree.IsInNonUserCode(position, cancellationToken))
-                {
                     return;
-                }
 
                 var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                 .GetPreviousTokenIfTouchingWord(position);
 
                 if (token.IsMandatoryNamedParameterPosition())
-                {
                     return;
-                }
 
                 // Don't show up within member access
                 // This previously worked because the type inferrer didn't work
                 // in member access expressions.
                 // The regular SymbolCompletionProvider will handle completion after .
                 if (token.IsKind(SyntaxKind.DotToken))
-                {
                     return;
-                }
 
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                var types = typeInferenceService.InferTypes(semanticModel, position,
-                    cancellationToken: cancellationToken);
+                var types = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
 
                 if (types.Length == 0)
-                {
                     types = ImmutableArray.Create<ITypeSymbol>(semanticModel.Compilation.ObjectType);
-                }
 
-                foreach (var typeIterator in types)
-                {
-                    var type = typeIterator;
-
-                    // If we have a Nullable<T>, unwrap it.
-                    if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-                    {
-                        type = type.GetTypeArguments().FirstOrDefault();
-
-                        if (type == null)
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (type.TypeKind != TypeKind.Enum)
-                    {
-                        type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
-                               TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
-
-                        if (type == null)
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
-                    {
-                        continue;
-                    }
-
-                    // Does type have any aliases?
-                    var alias = await type.FindApplicableAliasAsync(position, semanticModel, cancellationToken).ConfigureAwait(false);
-
-                    var displayText = alias != null
-                        ? alias.Name
-                        : type.ToMinimalDisplayString(semanticModel, position);
-
-                    var workspace = document.Project.Solution.Workspace;
-                    var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    var item = SymbolCompletionItem.CreateWithSymbolId(
-                        displayText: displayText,
-                        displayTextSuffix: "",
-                        symbols: ImmutableArray.Create(alias ?? type),
-                        rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
-                        contextPosition: position);
-
-                    context.AddItem(item);
-                }
+                foreach (var type in types)
+                    await HandleSingleTypeAsync(context, token, type, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static async Task HandleSingleTypeAsync(CompletionContext context, SyntaxToken token, ITypeSymbol type, CancellationToken cancellationToken)
+        {
+            // If we have a Nullable<T>, unwrap it.
+            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                type = type.GetTypeArguments().FirstOrDefault();
+
+                if (type == null)
+                    return;
+            }
+
+            var document = context.Document;
+            var position = context.Position;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (type.TypeKind != TypeKind.Enum)
+            {
+                type = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
+                       TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+
+                if (type == null)
+                    return;
+            }
+
+            var options = context.Options;
+            if (!type.IsEditorBrowsable(options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language), semanticModel.Compilation))
+                return;
+
+            // Does type have any aliases?
+            var alias = await type.FindApplicableAliasAsync(position, semanticModel, cancellationToken).ConfigureAwait(false);
+
+            var displayText = alias != null
+                ? alias.Name
+                : type.ToMinimalDisplayString(semanticModel, position);
+
+            var item = SymbolCompletionItem.CreateWithSymbolId(
+                displayText: displayText,
+                displayTextSuffix: "",
+                symbols: ImmutableArray.Create(alias ?? type),
+                rules: s_rules.WithMatchPriority(MatchPriority.Preselect),
+                contextPosition: position);
+
+            context.AddItem(item);
         }
 
         private static ITypeSymbol TryGetEnumTypeInEnumInitializer(
