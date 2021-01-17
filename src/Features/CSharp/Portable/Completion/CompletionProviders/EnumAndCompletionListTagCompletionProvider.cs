@@ -159,7 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // We'll want to build a list of the actual enum members and all accessible instances of that enum, too
                 var index = 0;
-                foreach (var field in GetSortedEnumMembers(type))
+
+                var fields = type.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsConst).Where(f => f.HasConstantValue);
+                foreach (var field in fields.OrderBy(f => IntegerUtilities.ToInt64(f.ConstantValue)))
                 {
                     index++;
                     if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
@@ -174,12 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         sortText = $"{sortText}_{index:0000}"));
                 }
             }
-        }
-
-        private static IEnumerable<IFieldSymbol> GetSortedEnumMembers(ITypeSymbol type)
-        {
-            var fields = type.GetMembers().OfType<IFieldSymbol>().Where(f => f.IsConst).Where(f => f.HasConstantValue);
-            return fields.OrderBy(f => IntegerUtilities.ToInt64(f.ConstantValue));
         }
 
         private static ITypeSymbol? TryGetEnumTypeInEnumInitializer(
