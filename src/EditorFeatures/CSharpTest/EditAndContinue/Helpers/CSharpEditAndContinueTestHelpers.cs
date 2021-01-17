@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Text;
@@ -22,19 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private readonly ImmutableArray<MetadataReference> _fxReferences;
         private readonly CSharpEditAndContinueAnalyzer _analyzer;
 
-        public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework, Action<SyntaxNode> faultInjector = null)
+        public CSharpEditAndContinueTestHelpers(
+            TargetFramework targetFramework = TargetFramework.NetCoreApp,
+            Action<SyntaxNode> faultInjector = null)
         {
             _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
             _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
         }
 
-        internal static CSharpEditAndContinueTestHelpers CreateInstance(Action<SyntaxNode> faultInjector = null)
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended, faultInjector);
-
-        internal static CSharpEditAndContinueTestHelpers CreateInstance40(Action<SyntaxNode> faultInjector = null)
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore, faultInjector);
-
         public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
+        public override string LanguageName => LanguageNames.CSharp;
+        public override TreeComparer<SyntaxNode> TopSyntaxComparer => EditAndContinue.TopSyntaxComparer.Instance;
 
         public override Compilation CreateLibraryCompilation(string name, IEnumerable<SyntaxTree> trees)
             => CSharpCompilation.Create("New", trees, _fxReferences, TestOptions.UnsafeReleaseDll);

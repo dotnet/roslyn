@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Cache of document EnC analyses. 
         /// </summary>
-        private readonly EditAndContinueDocumentAnalysesCache _analysesCache;
+        internal readonly EditAndContinueDocumentAnalysesCache Analyses;
 
         /// <summary>
         /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true);
-            _analysesCache = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
+            Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
 
         internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> DocumentDiagnostics)> AnalyzeDocumentsAsync(
+        private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedOrAddedDocuments, SolutionActiveStatementSpanProvider newDocumentActiveStatementSpanProvider, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
@@ -391,11 +392,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return (_analysesCache.GetDocumentAnalyses(builder), documentDiagnostics.ToImmutable());
+            var analyses = await Analyses.GetDocumentAnalysesAsync(builder, cancellationToken).ConfigureAwait(false);
+            return (analyses, documentDiagnostics.ToImmutable());
         }
-
-        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans)
-            => _analysesCache.GetDocumentAnalysis(baseDocument, document, activeStatementSpans);
 
         internal ImmutableArray<DocumentId> GetDocumentsWithReportedDiagnostics()
         {
@@ -476,7 +475,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return true;
                     }
 
-                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
+                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary != ProjectAnalysisSummary.NoChanges)
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: {2}", project.Id.DebugName, project.Id, projectSummary);
@@ -492,37 +491,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
-            ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
-            CancellationToken cancellationToken)
+        private static ProjectAnalysisSummary GetProjectAnalysisSymmary(ImmutableArray<DocumentAnalysisResults> documentAnalyses)
         {
             var hasChanges = false;
             var hasSignificantValidChanges = false;
 
             foreach (var analysis in documentAnalyses)
             {
-                var result = await analysis.Results.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
                 // skip documents that actually were not changed:
-                if (!result.HasChanges)
+                if (!analysis.HasChanges)
                 {
                     continue;
                 }
 
                 // rude edit detection wasn't completed due to errors in compilation:
-                if (result.HasChangesAndCompilationErrors)
+                if (analysis.HasChangesAndCompilationErrors)
                 {
                     return ProjectAnalysisSummary.CompilationErrors;
                 }
 
                 // rude edits detected:
-                if (!result.RudeEditErrors.IsEmpty)
+                if (!analysis.RudeEditErrors.IsEmpty)
                 {
                     return ProjectAnalysisSummary.RudeEdits;
                 }
 
                 hasChanges = true;
-                hasSignificantValidChanges |= result.HasSignificantValidChanges;
+                hasSignificantValidChanges |= analysis.HasSignificantValidChanges;
             }
 
             if (!hasChanges)
@@ -539,63 +534,146 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        private static async Task<ProjectChanges> GetProjectChangesAsync(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> changedDocumentAnalyses, CancellationToken cancellationToken)
+        private static ProjectChanges GetProjectChanges(Compilation newCompilation, ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses, CancellationToken cancellationToken)
         {
             try
             {
-                var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
-                var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<SourceLineUpdate>)>.GetInstance();
-                var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var allAddedSymbols);
+                using var _1 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var allEdits);
+                using var _2 = ArrayBuilder<(DocumentId, ImmutableArray<SourceLineUpdate>)>.GetInstance(out var allLineEdits);
+                using var _3 = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance(out var activeStatementsInChangedDocuments);
 
-                foreach (var (document, asyncResult) in changedDocumentAnalyses)
+                foreach (var analysis in changedDocumentAnalyses)
                 {
-                    var result = await asyncResult.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                    if (!result.HasSignificantValidChanges)
+                    if (!analysis.HasSignificantValidChanges)
                     {
                         continue;
                     }
 
                     // we shouldn't be asking for deltas in presence of errors:
-                    Debug.Assert(!result.HasChangesAndErrors);
+                    Contract.ThrowIfFalse(!analysis.HasChangesAndErrors);
 
-                    allEdits.AddRange(result.SemanticEdits);
+                    allEdits.AddRange(analysis.SemanticEdits);
 
-                    if (!result.HasChangesAndErrors)
+                    var documentId = analysis.DocumentState.Id;
+
+                    if (analysis.LineEdits.Length > 0)
                     {
-                        foreach (var edit in result.SemanticEdits)
-                        {
-                            if (edit.Kind == SemanticEditKind.Insert)
-                            {
-                                allAddedSymbols.Add(edit.NewSymbol!);
-                            }
-                        }
+                        allLineEdits.Add((documentId, analysis.LineEdits));
                     }
 
-                    if (result.LineEdits.Length > 0)
+                    if (analysis.ActiveStatements.Length > 0)
                     {
-                        allLineEdits.Add((document.Id, result.LineEdits));
-                    }
-
-                    if (result.ActiveStatements.Length > 0)
-                    {
-                        activeStatementsInChangedDocuments.Add((document.Id, result.ActiveStatements, result.ExceptionRegions));
+                        activeStatementsInChangedDocuments.Add((documentId, analysis.ActiveStatements, analysis.ExceptionRegions));
                     }
                 }
 
-                var allAddedSymbolResult = allAddedSymbols.ToImmutableHashSet();
+                MergePartialEdits(newCompilation, allEdits, out var mergedEdits, out var addedSymbols, cancellationToken);
 
                 return new ProjectChanges(
-                    allEdits.ToImmutableAndFree(),
-                    allLineEdits.ToImmutableAndFree(),
-                    allAddedSymbolResult,
-                    activeStatementsInChangedDocuments.ToImmutableAndFree());
+                    mergedEdits,
+                    allLineEdits.ToImmutable(),
+                    addedSymbols,
+                    activeStatementsInChangedDocuments.ToImmutable());
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static void MergePartialEdits(
+            Compilation newCompilation,
+            IReadOnlyList<SemanticEditInfo> edits,
+            out ImmutableArray<SemanticEdit> mergedEdits,
+            out ImmutableHashSet<ISymbol> addedSymbols,
+            CancellationToken cancellationToken)
+        {
+            using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
+            using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
+            using var _2 = ArrayBuilder<ISymbol>.GetInstance(edits.Count, out var resolvedSymbols);
+
+            foreach (var edit in edits)
+            {
+                var resolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                Contract.ThrowIfNull(resolution.Symbol);
+                resolvedSymbols.Add(resolution.Symbol);
+            }
+
+            for (var i = 0; i < edits.Count; i++)
+            {
+                var edit = edits[i];
+
+                if (edit.PartialType == null)
+                {
+                    var symbol = resolvedSymbols[i];
+
+                    if (edit.Kind == SemanticEditKind.Insert)
+                    {
+                        // Inserts do not need partial type merging.
+                        addedSymbolsBuilder.Add(symbol);
+                    }
+
+                    mergedEditsBuilder.Add(new SemanticEdit(
+                        edit.Kind,
+                        oldSymbol: null,
+                        newSymbol: symbol,
+                        syntaxMap: edit.SyntaxMap,
+                        preserveLocalVariables: edit.SyntaxMap != null));
+                }
+            }
+
+            // no partial type merging needed:
+            if (edits.Count == mergedEditsBuilder.Count)
+            {
+                mergedEdits = mergedEditsBuilder.ToImmutable();
+                addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
+                return;
+            }
+
+            // Calculate merged syntax map for each partial type symbol:
+
+            var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
+            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>>(symbolKeyComparer);
+
+            foreach (var partialTypeEdits in edits.Where(edit => edit.PartialType != null).GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer))
+            {
+                // the symbols may only be constructors, all of which have a single syntax declaration
+                Debug.Assert(partialTypeEdits.Select((edit, index) => resolvedSymbols[index]).All(symbol => symbol is IMethodSymbol
+                {
+                    MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.SharedConstructor,
+                    DeclaringSyntaxReferences: { Length: 1 }
+                }));
+
+                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMap != null));
+
+                var trees = partialTypeEdits.Select((edit, index) => resolvedSymbols[index].DeclaringSyntaxReferences.Single().SyntaxTree).ToImmutableArray();
+                var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+
+                mergedSyntaxMaps.Add(partialTypeEdits.Key, node => syntaxMaps[trees.IndexOf(node.SyntaxTree)](node));
+            }
+
+            // Deduplicate updates based on new symbol and use merged syntax map calculated above for a given partial type.
+
+            using var _3 = PooledHashSet<ISymbol>.GetInstance(out var visitedSymbols);
+
+            for (var i = 0; i < edits.Count; i++)
+            {
+                var edit = edits[i];
+
+                if (edit.PartialType != null)
+                {
+                    Contract.ThrowIfFalse(edit.Kind == SemanticEditKind.Update);
+
+                    var newSymbol = resolvedSymbols[i];
+                    if (visitedSymbols.Add(newSymbol))
+                    {
+                        mergedEditsBuilder.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol: null, newSymbol, mergedSyntaxMaps[edit.PartialType.Value], preserveLocalVariables: true));
+                    }
+                }
+            }
+
+            mergedEdits = mergedEditsBuilder.ToImmutable();
+            addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
         public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
@@ -675,7 +753,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         isBlocked = true;
                     }
 
-                    var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
+                    var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
                     {
                         isBlocked = true;
@@ -701,12 +779,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
 
+                    var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(currentCompilation);
+
+                    var projectChanges = GetProjectChanges(currentCompilation, changedDocumentAnalyses, cancellationToken);
+                    var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
                     // Exception regions of active statements in changed documents are calculated (non-default),
                     // since we already checked that no changed document is out-of-sync above.
                     var baseActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
-                    var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                    var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
                     var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, project) =>
                     {
                         var filePath = project.GetDocument(lineChange.DocumentId)!.FilePath;
@@ -719,8 +801,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     using var ilStream = SerializableBytes.CreateWritableStream();
 
                     var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-
-                    var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(currentCompilation);

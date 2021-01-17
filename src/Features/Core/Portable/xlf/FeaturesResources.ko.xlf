@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">튜플 요소 이름 '{0}' 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">인터페이스 메서드에 '{0}'을(를) 추가하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -203,6 +208,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하면 상태 시스템의 셰이프가 변경되므로 디버그 세션을 계속할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">"T" 표준 형식 지정자는 특정 문화권의 DateTimeFormatInfo.LongTimePattern 속성으로 정의되는 사용자 지정 날짜 및 시간 형식 문자열을 나타냅니다. 예를 들어, 고정 문화권의 사용자 지정 형식 문자열은 "HH:mm:ss"입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">분(1~2자리)</target>
@@ -2944,11 +2959,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">await 식이 포함된 복합 문을 업데이트하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">생성자 표시 여부를 변경하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">이전에 캡처되지 않았던 '{0}' 변수를 캡처하면 디버그 세션을 계속할 수 없습니다.</target>
@@ -3155,8 +3165,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">'{0}'을(를) 삭제하면 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" 형식 지정자의 목표는 날짜 및 시간 값을 기준으로 일관성 있게 오름차순 또는 내림차순으로 정렬되는 결과 문자열을 생성하는 것입니다. 그 결과 "s" 표준 형식 지정자는 일관성 있는 형식으로 날짜 및 시간 값을 나타내긴 하지만 형식 지정 연산은 형식 지정 대상인 날짜 및 시간 개체가 그 DateTime.Kind 속성 또는 DateTimeOffset.Offset 값을 반영하도록 수정하지 않습니다. 예를 들어, 날짜 및 시간 값 2014-11-15T18:32:17+00:00과 2014-11-15T18:32:17+08:00의 형식을 지정하여 생성되는 결과 문자열은 동일합니다.
 
 이 표준 형식 지정자를 사용하면 형식 지정 또는 구문 분석 연산에서 항상 고정 문화권이 사용됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

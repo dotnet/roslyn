@@ -473,8 +473,8 @@ End Class
                 Dim result = Await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newDocument, ImmutableArray(Of TextSpan).Empty, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
-                Assert.True(result.SemanticEdits(0).PreserveLocalVariables)
                 Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
+                Assert.NotNull(syntaxMap)
 
                 Dim newStatementSpan = result.ActiveStatements(0).Span
                 Dim newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan)

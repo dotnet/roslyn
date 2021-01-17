@@ -603,6 +603,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit)
         End Function
 
+        Protected Overrides Function ComputeTopLevelDeclarationMatch(oldDeclaration As SyntaxNode, newDeclaration As SyntaxNode) As Match(Of SyntaxNode)
+            Contract.ThrowIfNull(oldDeclaration.Parent)
+            Contract.ThrowIfNull(newDeclaration.Parent)
+            Dim comparer = New TopSyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, {oldDeclaration}, {newDeclaration})
+            Return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent)
+        End Function
+
         Protected Overrides Function ComputeBodyMatch(oldBody As SyntaxNode, newBody As SyntaxNode, knownMatches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As Match(Of SyntaxNode)
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda:=True)
             SyntaxUtilities.AssertIsBody(newBody, allowLambda:=True)
@@ -911,7 +918,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
-            Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)()
+            Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
+        End Function
+
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode) As SyntaxNode
+            Return If(node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock), node.Parent, Nothing)
         End Function
 
         Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
@@ -1001,6 +1012,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return memberAccess.Expression.IsKind(SyntaxKind.MyBaseKeyword)
         End Function
 
+        Private Shared Function IsPartialMethodDefinitionPart(node As SyntaxNode) As Boolean
+            ' TODO?
+            Return node.IsKind(SyntaxKind.SubBlock) AndAlso CType(node, MethodBlockSyntax).BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword)
+        End Function
+
         Friend Overrides Function IsPartial(type As INamedTypeSymbol) As Boolean
             Dim syntaxRefs = type.DeclaringSyntaxReferences
             Return syntaxRefs.Length > 1 OrElse
@@ -1008,6 +1024,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetSymbolForEdit(model As SemanticModel, node As SyntaxNode, editKind As EditKind, editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind), cancellationToken As CancellationToken) As ISymbol
+            ' Ignore partial method definition parts.
+            ' Partial method that does not have implementation part is not emitted to metadata.
+            ' Partial method without a definition part is a compilation error.
+            If IsPartialMethodDefinitionPart(node) Then
+                Return Nothing
+            End If
+
             ' Avoid duplicate semantic edits - don't return symbols for statements within blocks.
             Select Case node.Kind()
                 Case SyntaxKind.OperatorStatement,
@@ -1047,7 +1070,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return Nothing
                     End If
 
-                Case SyntaxKind.Parameter
+                Case SyntaxKind.Parameter,
+                     SyntaxKind.TypeParameter
                     Return Nothing
 
                 Case SyntaxKind.ModifiedIdentifier
@@ -1594,9 +1618,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.OperatorStatement
                     Return FeaturesResources.operator_
 
-                Case SyntaxKind.ConstructorBlock,
-                     SyntaxKind.SubNewStatement
-                    Return FeaturesResources.constructor
+                Case SyntaxKind.ConstructorBlock
+                    Return If(CType(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.shared_constructor, FeaturesResources.constructor)
+
+                Case SyntaxKind.SubNewStatement
+                    Return If(CType(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.Shared_constructor, FeaturesResources.constructor)
 
                 Case SyntaxKind.PropertyBlock
 
@@ -1923,91 +1949,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.ClassBlock,
-                         SyntaxKind.StructureBlock
-                        ClassifyTypeWithPossibleExternMembersInsert(DirectCast(node, TypeBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.InterfaceBlock
-                        ClassifyTypeInsert(DirectCast(node, TypeBlockSyntax).BlockStatement.Modifiers)
-                        Return
-
-                    Case SyntaxKind.EnumBlock
-                        ClassifyTypeInsert(DirectCast(node, EnumBlockSyntax).EnumStatement.Modifiers)
-                        Return
-
-                    Case SyntaxKind.ModuleBlock
-                        ' Modules can't be nested or private
-                        ReportError(RudeEditKind.Insert)
-                        Return
-
-                    Case SyntaxKind.DelegateSubStatement,
-                         SyntaxKind.DelegateFunctionStatement
-                        ClassifyTypeInsert(DirectCast(node, DelegateStatementSyntax).Modifiers)
-                        Return
-
-                    Case SyntaxKind.SubStatement,               ' interface method
-                         SyntaxKind.FunctionStatement           ' interface method
-                        ReportError(RudeEditKind.Insert)
-                        Return
-
-                    Case SyntaxKind.PropertyBlock
-                        ClassifyModifiedMemberInsert(DirectCast(node, PropertyBlockSyntax).PropertyStatement.Modifiers)
-                        Return
-
-                    Case SyntaxKind.PropertyStatement           ' autoprop or interface property
-                        ' We don't need to check whether the container is an interface, since we disallow 
-                        ' adding public methods And all methods in interface declarations are public.
-                        ClassifyModifiedMemberInsert(DirectCast(node, PropertyStatementSyntax).Modifiers)
-                        Return
-
-                    Case SyntaxKind.EventBlock
-                        ClassifyModifiedMemberInsert(DirectCast(node, EventBlockSyntax).EventStatement.Modifiers)
-                        Return
-
-                    Case SyntaxKind.EventStatement
-                        ClassifyModifiedMemberInsert(DirectCast(node, EventStatementSyntax).Modifiers)
-                        Return
-
-                    Case SyntaxKind.OperatorBlock
-                        ReportError(RudeEditKind.InsertOperator)
-                        Return
-
-                    Case SyntaxKind.SubBlock,
-                         SyntaxKind.FunctionBlock
-                        ClassifyMethodInsert(DirectCast(node, MethodBlockSyntax).SubOrFunctionStatement)
-                        Return
-
-                    Case SyntaxKind.DeclareSubStatement,
-                         SyntaxKind.DeclareFunctionStatement
-                        ' CLR doesn't support adding P/Invokes
-                        ReportError(RudeEditKind.Insert)
-                        Return
-
-                    Case SyntaxKind.ConstructorBlock
-                        If SyntaxUtilities.IsParameterlessConstructor(node) Then
-                            Return
-                        End If
-
-                        ClassifyModifiedMemberInsert(DirectCast(node, MethodBlockBaseSyntax).BlockStatement.Modifiers)
-                        Return
-
-                    Case SyntaxKind.GetAccessorBlock,
+                         SyntaxKind.StructureBlock,
+                         SyntaxKind.InterfaceBlock,
+                         SyntaxKind.EnumBlock,
+                         SyntaxKind.ModuleBlock,
+                         SyntaxKind.DelegateSubStatement,
+                         SyntaxKind.DelegateFunctionStatement,
+                         SyntaxKind.SubStatement,                 ' interface method
+                         SyntaxKind.FunctionStatement,           ' interface method
+                         SyntaxKind.PropertyBlock,
+                         SyntaxKind.PropertyStatement,           ' autoprop or interface property
+                         SyntaxKind.EventBlock,
+                         SyntaxKind.EventStatement,
+                         SyntaxKind.OperatorBlock,
+                         SyntaxKind.SubBlock,
+                         SyntaxKind.FunctionBlock,
+                         SyntaxKind.DeclareSubStatement,
+                         SyntaxKind.DeclareFunctionStatement,
+                         SyntaxKind.ConstructorBlock,
+                         SyntaxKind.GetAccessorBlock,
                          SyntaxKind.SetAccessorBlock,
                          SyntaxKind.AddHandlerAccessorBlock,
                          SyntaxKind.RemoveHandlerAccessorBlock,
-                         SyntaxKind.RaiseEventAccessorBlock
-                        Return
-
-                    Case SyntaxKind.FieldDeclaration
-                        ClassifyFieldInsert(DirectCast(node, FieldDeclarationSyntax))
+                         SyntaxKind.RaiseEventAccessorBlock,
+                         SyntaxKind.FieldDeclaration,
+                         SyntaxKind.ModifiedIdentifier
                         Return
 
                     Case SyntaxKind.VariableDeclarator
                         ' Ignore, errors will be reported for children (ModifiedIdentifier, AsClause)
-                        Return
-
-                    Case SyntaxKind.ModifiedIdentifier
-                        ClassifyFieldInsert(DirectCast(node, ModifiedIdentifierSyntax))
                         Return
 
                     Case SyntaxKind.EnumMemberDeclaration,
@@ -2035,80 +2005,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind())
                 End Select
-            End Sub
-
-            Private Function ClassifyModifiedMemberInsert(modifiers As SyntaxTokenList) As Boolean
-                If modifiers.Any(SyntaxKind.OverridableKeyword) OrElse
-                   modifiers.Any(SyntaxKind.MustOverrideKeyword) OrElse
-                   modifiers.Any(SyntaxKind.OverridesKeyword) Then
-
-                    ReportError(RudeEditKind.InsertVirtual)
-                    Return False
-                End If
-
-                Return True
-            End Function
-
-            Private Function ClassifyTypeInsert(modifiers As SyntaxTokenList) As Boolean
-                Return ClassifyModifiedMemberInsert(modifiers)
-            End Function
-
-            Private Sub ClassifyTypeWithPossibleExternMembersInsert(type As TypeBlockSyntax)
-                If Not ClassifyTypeInsert(type.BlockStatement.Modifiers) Then
-                    Return
-                End If
-
-                For Each member In type.Members
-                    Dim modifiers As SyntaxTokenList
-
-                    Select Case member.Kind
-                        Case SyntaxKind.DeclareFunctionStatement,
-                             SyntaxKind.DeclareSubStatement
-                            ReportError(RudeEditKind.Insert, member, member)
-
-                        Case SyntaxKind.PropertyStatement
-                            modifiers = DirectCast(member, PropertyStatementSyntax).Modifiers
-
-                        Case SyntaxKind.SubBlock,
-                             SyntaxKind.FunctionBlock
-                            modifiers = DirectCast(member, MethodBlockBaseSyntax).BlockStatement.Modifiers
-                    End Select
-
-                    ' TODO: DllImport/Declare?
-                    'If (modifiers.Any(SyntaxKind.MustOverrideKeyword)) Then
-                    '    ReportError(RudeEditKind.InsertMustOverride, member, member)
-                    'End If
-                Next
-            End Sub
-
-            Private Sub ClassifyMethodInsert(method As MethodStatementSyntax)
-                If method.TypeParameterList IsNot Nothing Then
-                    ReportError(RudeEditKind.InsertGenericMethod)
-                End If
-
-                If method.HandlesClause IsNot Nothing Then
-                    ReportError(RudeEditKind.InsertHandlesClause)
-                End If
-
-                ClassifyModifiedMemberInsert(method.Modifiers)
-            End Sub
-
-            Private Sub ClassifyFieldInsert(field As FieldDeclarationSyntax)
-                ' Can't insert WithEvents field since it is effectively a virtual property.
-                If field.Modifiers.Any(SyntaxKind.WithEventsKeyword) Then
-                    ReportError(RudeEditKind.Insert)
-                    Return
-                End If
-
-                Dim containingType = field.Parent
-                If containingType.IsKind(SyntaxKind.ModuleBlock) Then
-                    ReportError(RudeEditKind.Insert)
-                    Return
-                End If
-            End Sub
-
-            Private Sub ClassifyFieldInsert(fieldVariableName As ModifiedIdentifierSyntax)
-                ClassifyFieldInsert(DirectCast(fieldVariableName.Parent.Parent, FieldDeclarationSyntax))
             End Sub
 
             Private Sub ClassifyParameterInsert(parameterList As ParameterListSyntax)
@@ -2828,10 +2724,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
         End Structure
 
-        Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
-                                                      match As Match(Of SyntaxNode),
-                                                      edit As Edit(Of SyntaxNode),
-                                                      editMap As Dictionary(Of SyntaxNode, EditKind))
+        Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(
+            diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
+            match As Match(Of SyntaxNode),
+            edit As Edit(Of SyntaxNode),
+            editMap As Dictionary(Of SyntaxNode, EditKind))
 
             ' For most nodes we ignore Insert and Delete edits if their parent was also inserted or deleted, respectively.
             ' For ModifiedIdentifiers though we check the grandparent instead because variables can move across 
@@ -2876,26 +2773,72 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Semantic Rude Edits"
-        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol)
-            ' CLR doesn't support adding P/Invokes.
+        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol, newNode As SyntaxNode, insertingIntoExistingContainingType As Boolean)
+            Dim kind = RudeEditKind.None
 
-            ' VB needs to check if the type doesn't contain methods with DllImport attribute.
-            If newSymbol.IsKind(SymbolKind.NamedType) Then
-                For Each member In DirectCast(newSymbol, INamedTypeSymbol).GetMembers()
-                    ReportDllImportInsertRudeEdit(diagnostics, member)
-                Next
-            Else
-                ReportDllImportInsertRudeEdit(diagnostics, newSymbol)
+
+
+            Select Case newSymbol.Kind
+                Case SymbolKind.Method
+                    Dim method = DirectCast(newSymbol, IMethodSymbol)
+
+                    If method.GetDllImportData() IsNot Nothing Then
+                        ' CLR doesn't support adding P/Invokes.
+                        ' VB needs to check if the type doesn't contain methods with DllImport attribute.
+                        kind = RudeEditKind.InsertDllImport
+                    ElseIf (method.MethodKind = MethodKind.Conversion OrElse method.MethodKind = MethodKind.UserDefinedOperator) AndAlso insertingIntoExistingContainingType Then
+                        ' Inserting operator to an existing type is not allowed.
+                        kind = RudeEditKind.InsertOperator
+                    ElseIf method.Arity > 0 AndAlso insertingIntoExistingContainingType Then
+                        ' Inserting generic method into an existing type is not allowed.
+                        kind = RudeEditKind.InsertGenericMethod
+                    ElseIf Not method.HandledEvents.IsEmpty AndAlso insertingIntoExistingContainingType Then
+                        ' Inserting method with handles clause into an existing type is not allowed.
+                        kind = RudeEditKind.InsertHandlesClause
+                    End If
+
+                Case SymbolKind.Field
+                    Dim field = DirectCast(newSymbol, IFieldSymbol)
+
+                    ' TODO:
+                    ' Can't insert WithEvents field since it is effectively a virtual property.
+                    ' WithEvents X As C
+                    'If field.Modifiers.Any(SyntaxKind.WithEventsKeyword) Then
+                    '    ReportError(RudeEditKind.Insert)
+                    '    Return
+                    'End If
+
+                    'Dim containingType = field.Parent
+                    'If containingType.IsKind(SyntaxKind.ModuleBlock) Then
+                    '    ReportError(RudeEditKind.Insert)
+                    '    Return
+                    'End If
+            End Select
+
+            If kind = RudeEditKind.None Then
+                ' Inserting a member into a generic type is not allowed.
+                If newSymbol.ContainingType.Arity > 0 AndAlso newSymbol.Kind <> SymbolKind.NamedType Then
+                    kind = RudeEditKind.InsertIntoGenericType
+                End If
+
+                ' Inserting virtual or interface member is not allowed.
+                If (newSymbol.IsVirtual Or newSymbol.IsOverride Or newSymbol.IsAbstract) AndAlso newSymbol.Kind <> SymbolKind.NamedType Then
+                    kind = RudeEditKind.InsertVirtual
+                End If
+            End If
+
+            If kind <> RudeEditKind.None Then
+                diagnostics.Add(New RudeEditDiagnostic(
+                    kind,
+                    GetDiagnosticSpan(newNode, EditKind.Insert),
+                    newNode,
+                    arguments:={GetDisplayName(newNode, EditKind.Insert)}))
             End If
         End Sub
 
-        Private Shared Sub ReportDllImportInsertRudeEdit(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), member As ISymbol)
-            If member.IsKind(SymbolKind.Method) AndAlso
-               DirectCast(member, IMethodSymbol).GetDllImportData() IsNot Nothing Then
-
-                diagnostics.Add(New RudeEditDiagnostic(RudeEditKind.InsertDllImport,
-                                                       member.Locations.First().SourceSpan))
-            End If
+        Friend Overrides Sub ReportPartialTypeInsertDeleteRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldType As INamedTypeSymbol, newType As INamedTypeSymbol, newDeclaration As SyntaxNode, cancellationToken As CancellationToken)
+            ' TODO
+            Throw New NotImplementedException()
         End Sub
 #End Region
 

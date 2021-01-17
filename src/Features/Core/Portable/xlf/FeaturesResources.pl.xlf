@@ -90,6 +90,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Dodaj nazwę elementu krotki „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Dodanie elementu „{0}” do metody interfejsu uniemożliwi kontynuowanie sesji debugowania.</target>
@@ -203,6 +208,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Zmiana elementu „{0}” na „{1}” uniemożliwi kontynuowanie sesji debugowania, ponieważ powoduje zmianę kształtu automatu stanów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
         <target state="translated">Standardowy specyfikator formatu „T” reprezentuje niestandardowy ciąg formatu daty i godziny zdefiniowany przez właściwość DateTimeFormatInfo.LongTimePattern konkretnej kultury. Na przykład niestandardowy ciąg formatu dla kultury niezmiennej to „HH:mm:ss”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">minuta (1-2 cyfry)</target>
@@ -2944,11 +2959,6 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
         <target state="translated">Zaktualizowanie instrukcji złożonej zawierającej wyrażenie await uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Zmiana widoczności konstruktora uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Przechwycenie zmiennej „{0}”, która nie została przechwycona wcześniej, uniemożliwi kontynuowanie sesji debugowania.</target>
@@ -3155,8 +3165,8 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Usunięcie elementu „{0}” uniemożliwi kontynuowanie sesji debugowania.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Usunięcie elementu „{0}” uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 Specyfikator formatu „s” jest przeznaczony do tworzenia ciągów wyniku, które można spójnie sortować w kolejności rosnącej lub malejącej na podstawie wartości daty i godziny. Dlatego mimo że standardowy specyfikator formatu „s” reprezentuje wartość daty i godziny w spójnym formacie, operacja formatowania nie modyfikuje wartości formatowanego obiektu daty i godziny w celu odzwierciedlenia jego właściwości DateTime.Kind lub wartości DateTimeOffset.Offset. Na przykład ciągi wyniku generowane przez formatowanie wartości daty i godziny 2014-11-15T18:32:17+00:00 oraz 2014-11-15T18:32:17+08:00 są identyczne.
 
 Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lub analizowania zawsze używa kultury niezmiennej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

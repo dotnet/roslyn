@@ -102,6 +102,11 @@
         <target state="translated">모듈 멤버에서 'Shared' 키워드 제거</target>
         <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="new">Shared constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">여기에 이름을 입력하여 새 필드를 선언하세요.</target>

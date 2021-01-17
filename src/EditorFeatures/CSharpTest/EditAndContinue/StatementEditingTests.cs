@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class StatementEditingTests : EditingTestBase
     {
         #region Strings
@@ -8502,13 +8503,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                new[] { edits },
-                ActiveStatementsDescription.Empty,
-                expectedDiagnostics: new[]
-                {
-                    Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
-                });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute"));
         }
 
         [Fact]
@@ -8538,7 +8535,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(new[] { edits });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore });
         }
 
         #endregion

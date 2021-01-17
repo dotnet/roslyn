@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +15,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DocumentAnalysisResults
     {
         internal static readonly TraceLog Log = new(256, "EnC");
+
+        /// <summary>
+        /// The state of the document the results are calculated for.
+        /// </summary>
+        public DocumentState DocumentState { get; }
 
         /// <summary>
         /// Spans of active statements in the document, or null if the document has compilation errors or rude edits.
@@ -29,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Edits made in the document, or null if the document is unchanged, has compilation errors or rude edits.
         /// </summary>
-        public ImmutableArray<SemanticEdit> SemanticEdits { get; }
+        public ImmutableArray<SemanticEditInfo> SemanticEdits { get; }
 
         /// <summary>
         /// Exception regions -- spans of catch and finally handlers that surround the active statements.
@@ -73,9 +79,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly bool HasChanges;
 
         public DocumentAnalysisResults(
+            DocumentState documentState,
             ImmutableArray<ActiveStatement> activeStatementsOpt,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
-            ImmutableArray<SemanticEdit> semanticEditsOpt,
+            ImmutableArray<SemanticEditInfo> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
             ImmutableArray<SourceLineUpdate> lineEditsOpt,
             bool hasChanges,
@@ -119,6 +126,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(exceptionRegionsOpt.Length == activeStatementsOpt.Length);
             }
 
+            DocumentState = documentState;
             RudeEditErrors = rudeEdits;
             SemanticEdits = semanticEditsOpt;
             ActiveStatements = activeStatementsOpt;
@@ -137,8 +145,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public bool HasSignificantValidChanges
             => HasChanges && (!SemanticEdits.IsDefaultOrEmpty || !LineEdits.IsDefaultOrEmpty);
 
-        public static DocumentAnalysisResults CompilationErrors(bool hasChanges)
+        public static DocumentAnalysisResults CompilationErrors(DocumentState documentState, bool hasChanges)
             => new(
+                documentState,
                 activeStatementsOpt: default,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
                 semanticEditsOpt: default,
@@ -147,8 +156,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasChanges,
                 hasCompilationErrors: true);
 
-        public static DocumentAnalysisResults Errors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
+        public static DocumentAnalysisResults Errors(DocumentState documentState, ImmutableArray<RudeEditDiagnostic> rudeEdits)
             => new(
+                documentState,
                 activeStatementsOpt: default,
                 rudeEdits,
                 semanticEditsOpt: default,
@@ -157,11 +167,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasChanges: true,
                 hasCompilationErrors: false);
 
-        public static DocumentAnalysisResults Unchanged(ImmutableArray<ActiveStatement> activeStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegions)
+        public static DocumentAnalysisResults Unchanged(DocumentState documentState, ImmutableArray<ActiveStatement> activeStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegions)
             => new(
+                documentState,
                 activeStatements,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
-                semanticEditsOpt: ImmutableArray<SemanticEdit>.Empty,
+                semanticEditsOpt: ImmutableArray<SemanticEditInfo>.Empty,
                 exceptionRegions,
                 lineEditsOpt: ImmutableArray<SourceLineUpdate>.Empty,
                 hasChanges: false,

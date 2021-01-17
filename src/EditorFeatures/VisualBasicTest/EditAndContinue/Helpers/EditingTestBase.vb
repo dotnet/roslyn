@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -26,21 +27,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Iterator
         End Enum
 
+        Friend Shared NoSemanticEdits As SemanticEditDescription() = Array.Empty(Of SemanticEditDescription)
+
         Friend Overloads Shared Function Diagnostic(rudeEditKind As RudeEditKind, squiggle As String, ParamArray arguments As String()) As RudeEditDiagnosticDescription
             Return New RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine:=Nothing)
         End Function
 
-        Friend Shared Function SemanticEdit(kind As SemanticEditKind, symbolProvider As Func(Of Compilation, ISymbol), syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan))) As SemanticEditDescription
-            Assert.NotNull(syntaxMap)
-            Return New SemanticEditDescription(kind, symbolProvider, syntaxMap, preserveLocalVariables:=True)
+        Friend Shared Function SemanticEdit(kind As SemanticEditKind,
+                                            symbolProvider As Func(Of Compilation, ISymbol),
+                                            syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan)),
+                                            Optional partialType As String = Nothing) As SemanticEditDescription
+            Return New SemanticEditDescription(
+                kind,
+                symbolProvider,
+                If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
+                syntaxMap:=Nothing,
+                hasSyntaxMap:=syntaxMap IsNot Nothing)
         End Function
 
-        Friend Shared Function SemanticEdit(kind As SemanticEditKind, symbolProvider As Func(Of Compilation, ISymbol), Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
-            Return New SemanticEditDescription(kind, symbolProvider, Nothing, preserveLocalVariables)
+        Friend Shared Function SemanticEdit(kind As SemanticEditKind,
+                                            symbolProvider As Func(Of Compilation, ISymbol),
+                                            Optional partialType As String = Nothing,
+                                            Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
+            Return New SemanticEditDescription(
+                kind,
+                symbolProvider,
+                If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
+                syntaxMap:=Nothing,
+                hasSyntaxMap:=preserveLocalVariables)
+        End Function
+
+        Friend Shared Function DocumentResults(
+            Optional activeStatements As ActiveStatementsDescription = Nothing,
+            Optional semanticEdits As SemanticEditDescription() = Nothing,
+            Optional diagnostics As RudeEditDiagnosticDescription() = Nothing) As DocumentAnalysisResultsDescription
+            Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)
         End Function
 
         Private Shared Function ParseSource(source As String) As SyntaxTree
-            Return VisualBasicEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source))
+            Dim validator = New VisualBasicEditAndContinueTestHelpers()
+            Return validator.ParseText(ActiveStatementsDescription.ClearTags(source))
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)

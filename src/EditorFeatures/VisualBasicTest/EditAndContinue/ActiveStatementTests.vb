@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <UseExportProvider>
     Public Class ActiveStatementTests
         Inherits EditingTestBase
 

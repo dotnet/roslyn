@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -14,33 +14,79 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class TopSyntaxComparer : SyntaxComparer
     {
-        internal static readonly TopSyntaxComparer Instance = new TopSyntaxComparer();
+        internal static readonly TopSyntaxComparer Instance = new();
+
+        private readonly SyntaxNode? _oldRoot;
+        private readonly SyntaxNode? _newRoot;
+        private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
+        private readonly IEnumerable<SyntaxNode>? _newRootChildren;
 
         private TopSyntaxComparer()
         {
         }
 
-        #region Tree Traversal
-
-        protected internal override bool TryGetParent(SyntaxNode node, out SyntaxNode parent)
+        public TopSyntaxComparer(SyntaxNode oldRoot, SyntaxNode newRoot, IEnumerable<SyntaxNode> oldRootChildren, IEnumerable<SyntaxNode> newRootChildren)
         {
-            var parentNode = node.Parent;
-            parent = parentNode;
-            return parentNode != null;
+            // explicitly listed roots and all their children must be labeled:
+            Debug.Assert(HasLabel(oldRoot));
+            Debug.Assert(HasLabel(newRoot));
+            Debug.Assert(oldRootChildren.All(HasLabel));
+            Debug.Assert(newRootChildren.All(HasLabel));
+
+            _oldRoot = oldRoot;
+            _newRoot = newRoot;
+            _oldRootChildren = oldRootChildren;
+            _newRootChildren = newRootChildren;
+
+            // the virtual parent of root children must be the respective root:
+            Debug.Assert(!TryGetParent(oldRoot, out var _));
+            Debug.Assert(!TryGetParent(newRoot, out var _));
+            Debug.Assert(oldRootChildren.All(node => TryGetParent(node, out var parent) && parent == oldRoot));
+            Debug.Assert(newRootChildren.All(node => TryGetParent(node, out var parent) && parent == newRoot));
         }
 
-        protected internal override IEnumerable<SyntaxNode> GetChildren(SyntaxNode node)
+        #region Tree Traversal
+
+        protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
         {
-            Debug.Assert(GetLabel(node) != IgnoredNode);
+            if (node == _oldRoot || node == _newRoot)
+            {
+                parent = null;
+                return false;
+            }
+
+            parent = node.Parent;
+            while (parent != null && !HasLabel(parent))
+            {
+                parent = parent.Parent;
+            }
+
+            return parent != null;
+        }
+
+        protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
+        {
+            Debug.Assert(HasLabel(node));
+
+            if (node == _oldRoot)
+            {
+                return _oldRootChildren;
+            }
+
+            if (node == _newRoot)
+            {
+                return _newRootChildren;
+            }
+
             return HasChildren(node) ? EnumerateChildren(node) : null;
         }
 
-        private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
+        private static IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
         {
             foreach (var child in node.ChildNodesAndTokens())
             {
                 var childNode = child.AsNode();
-                if (childNode != null && GetLabel(childNode) != IgnoredNode)
+                if (childNode != null && HasLabel(childNode))
                 {
                     yield return childNode;
                 }
@@ -49,12 +95,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
+            var rootChildren = (node == _oldRoot) ? _oldRootChildren : (node == _newRoot) ? _newRootChildren : null;
+            return (rootChildren != null) ? EnumerateDescendants(rootChildren) : EnumerateDescendants(node);
+        }
+
+        private static IEnumerable<SyntaxNode> EnumerateDescendants(IEnumerable<SyntaxNode> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                yield return node;
+
+                foreach (var descendant in EnumerateDescendants(node))
+                {
+                    yield return descendant;
+                }
+            }
+        }
+
+        private static IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
+        {
             foreach (var descendant in node.DescendantNodesAndTokens(
                 descendIntoChildren: HasChildren,
                 descendIntoTrivia: false))
             {
                 var descendantNode = descendant.AsNode();
-                if (descendantNode != null && GetLabel(descendantNode) != IgnoredNode)
+                if (descendantNode != null && HasLabel(descendantNode))
                 {
                     yield return descendantNode;
                 }
@@ -260,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     isLeaf = true;
@@ -315,6 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal static bool HasLabel(SyntaxKind kind)
             => Classify(kind, out _) != Label.Ignored;
 
+        internal static bool HasLabel(SyntaxNode node)
+            => HasLabel(node.Kind());
+
         protected internal override int LabelCount
         {
             get { return (int)Label.Count; }
@@ -329,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public override bool ValuesEqual(SyntaxNode left, SyntaxNode right)
         {
-            Func<SyntaxKind, bool> ignoreChildFunction;
+            Func<SyntaxKind, bool>? ignoreChildFunction;
             switch (left.Kind())
             {
                 // all syntax kinds with a method body child:
@@ -340,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     // When comparing method bodies we need to NOT ignore VariableDeclaration and VariableDeclarator children,
@@ -372,12 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return SyntaxFactory.AreEquivalent(left, right, ignoreChildFunction);
         }
 
-        private static SyntaxNode GetBody(SyntaxNode node)
+        private static SyntaxNode? GetBody(SyntaxNode node)
         {
             switch (node)
             {
-                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody?.Expression;
-                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody?.Expression;
+                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode?)baseMethodDeclarationSyntax.ExpressionBody?.Expression;
+                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode?)accessorDeclarationSyntax.ExpressionBody?.Expression;
                 default: throw ExceptionUtilities.UnexpectedValue(node);
             }
         }
@@ -386,11 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var leftName = TryGetName(leftNode);
             var rightName = TryGetName(rightNode);
-            Debug.Assert(rightName.HasValue == leftName.HasValue);
+            Contract.ThrowIfFalse(rightName.HasValue == leftName.HasValue);
 
             if (leftName.HasValue)
             {
-                distance = ComputeDistance(leftName.Value, rightName.Value);
+                distance = ComputeDistance(leftName.Value, rightName!.Value);
                 return true;
             }
             else
@@ -462,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return null;
 
                 case SyntaxKind.TypeParameterConstraintClause:

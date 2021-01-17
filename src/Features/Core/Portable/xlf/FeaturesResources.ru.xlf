@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить имя элемента кортежа "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Добавление "{0}" в метод интерфейса сделает продолжение сеанса отладки невозможным.</target>
@@ -203,6 +208,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Изменение "{0}" на "{1}" сделает продолжение сеанса отладки невозможным, так как меняет форму конечной машины.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">Описатель стандартного формата "T" представляет строку пользовательского формата даты и времени, определяемую свойством DateTimeFormatInfo.LongTimePattern конкретных языка и региональных параметров. Например, строка пользовательского формата для инвариантных языка и региональных параметров имеет вид "HH:mm:ss".</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">минута (1–2 цифры)</target>
@@ -2944,11 +2959,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Обновление комплексной инструкции с выражением Await помешает продолжению сеанса отладки.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Изменение видимости конструктора помешает продолжению сеанса отладки.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Запись переменной "{0}", которая не была записана прежде, помешает продолжению сеанса отладки.</target>
@@ -3155,8 +3165,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Удаление "{0}" сделает продолжение сеанса отладки невозможным.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Удаление "{0}" сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 Описатель формата "s" предназначен для получения результирующих строк, которые согласованным образом сортируются по возрастанию или убыванию на основе значений даты и времени. В результате, хотя описатель стандартного формата "s" представляет значение даты и времени в согласованном формате, операция форматирования не изменяет значение объекта даты и времени, которое форматируется, чтобы отразить его свойство DateTime.Kind или его значение DateTimeOffset.Offset. Например, результирующие строки, полученные при форматировании значений даты и времени 2014-11-15T18:32:17+00:00 и 2014-11-15T18:32:17+08:00, идентичны.
 
 Когда используется этот описатель стандартного формата, операция форматирования или анализа всегда использует инвариантные язык и региональные параметры.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

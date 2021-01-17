@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.MethodKindUpdate,
                 RudeEditKind.DeclareLibraryUpdate,
                 RudeEditKind.DeclareAliasUpdate,
-                RudeEditKind.ChangingConstructorVisibility,
+                RudeEditKind.ChangingVisibility,
                 RudeEditKind.InsertDllImport,
                 RudeEditKind.MethodBodyAdd,
                 RudeEditKind.MethodBodyDelete,

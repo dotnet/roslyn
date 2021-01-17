@@ -90,6 +90,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' demet öğesi adını ekle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Arabirim yöntemine '{0}' eklenmesi, hata ayıklama oturumunun devam etmesini engeller.</target>
@@ -203,6 +208,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">'{0}' öğesini '{1}' olarak değiştirmek, durum makinesinin şeklini değiştirdiğinden hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">"T" standart biçim belirticisi, belirli bir kültürün DateTimeFormatInfo.LongTimePattern özelliği tarafından tanımlanan bir özel tarih ve saat biçimi dizesini temsil eder. Örneğin, sabit kültür için özel biçim dizesi "HH:mm:ss" şeklindedir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">dakika (1-2 rakam)</target>
@@ -2944,11 +2959,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Await ifadesi içeren bir karmaşık deyimin güncelleştirilmesi, hata ayıklama işleminin devam etmesini engeller.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Bir oluşturucunun görünürlüğünü değiştirmek, hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Daha önce yakalanmayan '{0}' değişkeninin yakalanması hata ayıklama oturumunun devam etmesini engeller.</target>
@@ -3155,8 +3165,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">'{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" biçim belirticisinin amacı, tarih ve saat değerlerine göre tutarlı olarak artan veya azalan düzende sıralanan sonuç dizeleri üretmelidir. Bu nedenle "s" standart biçim belirticisi bir tarih ve saat değerini tutarlı bir biçimde temsil etse de biçimlendirme işlemi biçimlendirilmekte olan tarih ve saat nesnesinin değerini nesnenin DateTime.Kind özelliğini veya DateTimeOffset.Offset değerini yansıtacak şekilde değiştirmez. Örneğin, 2014-11-15T18:32:17+00:00 ve 2014-11-15T18:32:17+08:00 tarih ve saat değerleri biçimlendirilerek oluşturulan sonuç dizeleri aynıdır.
 
 Bu standart biçim belirticisi kullanıldığında, biçimlendirme veya ayrıştırma işlemi her zaman sabit kültürü kullanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

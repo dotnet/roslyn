@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
-
+    <UseExportProvider>
     Public Class StatementEditingTests
         Inherits EditingTestBase
 
@@ -4533,7 +4533,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=
+                semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMembers("F").Single(), preserveLocalVariables:=True)
                 })
@@ -6055,11 +6055,10 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
+            VerifySemantics(
+                edits,
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
         End Sub
 
         <Fact>
@@ -6083,11 +6082,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:=Nothing)
+            VerifySemantics(
+                editScript:=edits,
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
         End Sub
 
 #End Region
@@ -6167,11 +6164,11 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
+
+            VerifySemantics(
+                edits,
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
+                targetFrameworks:={TargetFramework.MinimalAsync})
         End Sub
 
         <Fact>
@@ -6196,7 +6193,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics({edits})
+            VerifySemantics(
+                edits,
+                targetFrameworks:={TargetFramework.MinimalAsync})
         End Sub
 #End Region
     End Class

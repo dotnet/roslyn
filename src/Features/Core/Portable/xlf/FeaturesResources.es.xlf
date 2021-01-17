@@ -90,6 +90,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Agregar el nombre del elemento de tupla "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Agregar "{0}" a un método de interfaz impedirá que continúe la sesión de depuración.</target>
@@ -203,6 +208,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Si se cambia "{0}" a "{1}", la sesión de depuración no podrá continuar porque cambia la forma de la máquina de estados.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ El especificador de formato estándar "f" representa una combinación de los pat
         <target state="translated">El especificador de formato estándar "T" representa una cadena de formato de fecha y hora personalizado que está definida por la propiedad DateTimeFormatInfo.LongTimePattern de una referencia cultural específica. Por ejemplo, la cadena de formato personalizado para la referencia cultural invariable es "HH:mm:ss".</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">minuto (1-2 dígitos)</target>
@@ -2944,11 +2959,6 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
         <target state="translated">Si se actualiza una instrucción compleja que contiene una expresión await, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Si se cambia la visibilidad de un constructor, la sesión de depuración no podrá continuar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">La captura de una variable "{0}" que no se había capturado antes impedirá que continúe la sesión de depuración.</target>
@@ -3155,8 +3165,8 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Eliminar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Eliminar '{0}' impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 La finalidad del especificador de formato "s" es producir cadenas de resultados que se ordenen coherentemente de forma ascendente o descendente según los valores de fecha y hora. Como resultado, aunque el especificador de formato estándar "s" representa un valor de fecha y hora en un formato coherente, la operación de formato no modifica el valor del objeto de fecha y hora al que se está dando formato para reflejar su propiedad DateTime.Kind o DateTimeOffset.Offset. Por ejemplo, las cadenas de resultados generadas por el formato de los valores de fecha y hora 2014-11-15T18:32:17+00:00 y 2014-11-15T18:32:17+08:00 son idénticas.
 
 Cuando se usa este especificador de formato estándar, la operación de formato o análisis utiliza siempre la referencia cultural invariable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

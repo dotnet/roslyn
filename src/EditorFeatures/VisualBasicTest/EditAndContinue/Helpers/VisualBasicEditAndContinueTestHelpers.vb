@@ -8,38 +8,37 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Differencing
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
     Friend NotInheritable Class VisualBasicEditAndContinueTestHelpers
         Inherits EditAndContinueTestHelpers
 
-        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
+        Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
+        Private ReadOnly _fxReferences As ImmutableArray(Of MetadataReference)
 
-        Private ReadOnly _fxReferences As ImmutableArray(Of PortableExecutableReference)
-
-        Friend Shared Function CreateInstance() As VisualBasicEditAndContinueTestHelpers
-            Return New VisualBasicEditAndContinueTestHelpers(
-                ImmutableArray.Create(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore))
-        End Function
-
-        Friend Shared Function CreateInstance40() As VisualBasicEditAndContinueTestHelpers
-            Return New VisualBasicEditAndContinueTestHelpers(
-                ImmutableArray.Create(TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore))
-        End Function
-
-        Friend Shared Function CreateInstanceMinAsync() As VisualBasicEditAndContinueTestHelpers
-            Return New VisualBasicEditAndContinueTestHelpers(
-                ImmutableArray.Create(TestReferences.NetFx.Minimal.mincorlib, TestReferences.NetFx.Minimal.minasync))
-        End Function
-
-        Public Sub New(fxReferences As ImmutableArray(Of PortableExecutableReference))
-            _fxReferences = fxReferences
+        Public Sub New(Optional targetFramework As TargetFramework = TargetFramework.NetCoreApp,
+                       Optional faultInjector As Action(Of SyntaxNode) = Nothing)
+            _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework)
+            _analyzer = New VisualBasicEditAndContinueAnalyzer(faultInjector)
         End Sub
 
         Public Overrides ReadOnly Property Analyzer As AbstractEditAndContinueAnalyzer
             Get
                 Return _analyzer
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property LanguageName As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property TopSyntaxComparer As TreeComparer(Of SyntaxNode)
+            Get
+                Return CodeAnalysis.VisualBasic.EditAndContinue.TopSyntaxComparer.Instance
             End Get
         End Property
 

@@ -9,11 +9,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class ActiveStatementTests : EditingTestBase
     {
         #region Update
@@ -2087,8 +2089,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.field));
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
         }
 
         [Fact]
@@ -2221,9 +2223,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.Move, "int c", FeaturesResources.field),
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.field));
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
         }
 
         [Fact]
@@ -2272,8 +2274,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.field));
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.field, "a")));
         }
 
         [Fact]
@@ -2294,8 +2296,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.auto_property));
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.auto_property, "a")));
         }
 
         #endregion
@@ -10516,8 +10518,8 @@ class C
             var src2 = @"";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.class_, "C")));
         }
 
         [Fact]
@@ -10690,7 +10692,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
-            var validator = CSharpEditAndContinueTestHelpers.CreateInstance(node =>
+            var validator = new CSharpEditAndContinueTestHelpers(faultInjector: node =>
             {
                 if (node.Parent is MethodDeclarationSyntax methodDecl && methodDecl.Identifier.Text == "G")
                 {

@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">タプル要素名 '{0}' を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">'{0}' をインターフェイス メソッドに追加すると、デバッグ セッションは続行されません。</target>
@@ -203,6 +208,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">"T" 標準書式指定子は、特定のカルチャの DateTimeFormatInfo.LongTimePattern プロパティで定義されているカスタム日時書式指定文字列を表します。たとえば、インバリアント カルチャのカスタム書式指定文字列は "HH:mm:ss" です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">分 (1 - 2 桁)</target>
@@ -2944,11 +2959,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">Await 式を含む複雑なステートメントを更新すると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">コンストラクターの表示範囲を変更すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">以前にキャプチャされたことのない変数 '{0}' をキャプチャすると、デバッグ セッションは続行されません。</target>
@@ -3155,8 +3165,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' を削除すると、デバッグ セッションは続行されません。</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">'{0}' を削除すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" 書式指定子の目的は、書式設定後の文字列が、日付と時刻の値に基づいて、一貫して昇順または降順に並べ替えられるようにすることです。そのため、"s" 標準書式指定子は、一貫性のある形式で日付と時刻の値を表しますが、書式設定操作によって、書式設定の対象となる日付と時刻のオブジェクトの値が、DateTime.Kind プロパティまたは DateTimeOffset.Offset プロパティを反映するために変更されることはありません。たとえば、2014-11-15T18:32:17+00:00 日時値と 2014-11-15T18:32:17+08:00 日時値を書式設定すると、同じ文字列が生成されます。
 
 この標準書式指定子が使用されている場合、書式設定操作または解析操作では常にインバリアント カルチャが使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

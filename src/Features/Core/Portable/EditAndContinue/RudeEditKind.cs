@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ExperimentalFeaturesEnabled = 45,
 
         AwaitStatementUpdate = 46,
-        ChangingConstructorVisibility = 47,
+        ChangingVisibility = 47,
 
         CapturingVariable = 48,
         NotCapturingVariable = 49,
@@ -116,5 +116,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MemberBodyInternalError = 88,
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
+        InsertIntoGenericType = 91,
     }
 }

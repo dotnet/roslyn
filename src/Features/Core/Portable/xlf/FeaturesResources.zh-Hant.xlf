@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">新增元組元素名稱 ‘{0}’</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">將 '{0}' 新增至介面方法，會造成偵錯工作階段無法繼續。</target>
@@ -203,6 +208,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2492,6 +2502,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">"T" 標準格式規範代表由特定文化特性的 DateTimeFormatInfo.LongTimePattern 屬性所定義的自訂日期與時間格式字串。例如，不因文化特性而異的自訂格式字串為 "HH:mm:ss"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
+      </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
         <target state="translated">分鐘 (1-2 位數)</target>
@@ -2944,11 +2959,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">更新包含 await 運算式的複雜陳述式會阻礙偵錯工作階段繼續進行。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">變更建構函式的可見度會阻礙偵錯工作階段繼續進行。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">擷取先前從未擷取過的變數 '{0}'，會讓偵錯工作階段無法繼續。</target>
@@ -3155,8 +3165,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">刪除 '{0}' 會造成偵錯工作階段無法繼續。</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">刪除 '{0}' 會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" 格式規範的用途為產生依日期和時間值一致地遞增或遞減排序的結果字串。因此，儘管 "s" 標準格式規範以一致的格式表示日期和時間值，但格式化作業並不會修改要格式化的日期和時間物件值，以反映其 DateTime.Kind 屬性或其 DateTimeOffset.Offset 值。例如，將日期和時間值 2014-11-15T18:32:17+00:00 和 2014-11-15T18:32:17+08:00 格式化所產生的結果字串會完全相同。
 
 使用此標準格式規範時，格式化或剖析作業永遠不因文化特性而異。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

@@ -7,11 +7,13 @@
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class ActiveStatementTests_Methods : EditingTestBase
     {
         #region Methods
@@ -43,12 +45,17 @@ class C
 }
 ";
 
-            // TODO (bug 755959): better deleted active statement span
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
+            EditAndContinueValidation.VerifySemantics(
+                new[] { edits },
+                new[]
+                {
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int)")) })
+                });
         }
 
         [Fact]

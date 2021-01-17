@@ -292,8 +292,8 @@ class C
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
 
             Assert.True(result.HasChanges);
-            Assert.True(result.SemanticEdits[0].PreserveLocalVariables);
             var syntaxMap = result.SemanticEdits[0].SyntaxMap;
+            Assert.NotNull(syntaxMap);
 
             var newStatementSpan = result.ActiveStatements[0].Span;
             var newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan);

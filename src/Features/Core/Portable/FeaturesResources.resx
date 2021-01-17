@@ -363,8 +363,8 @@
   <data name="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating a complex statement containing an await expression will prevent the debug session from continuing.</value>
   </data>
-  <data name="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Changing visibility of a constructor will prevent the debug session from continuing.</value>
+  <data name="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing visibility of {0} will prevent the debug session from continuing.</value>
   </data>
   <data name="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</value>
@@ -407,6 +407,9 @@
   </data>
   <data name="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into an interface will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Adding '{0}' into a generic type will prevent the debug session from continuing.</value>
   </data>
   <data name="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Adding '{0}' into an interface method will prevent the debug session from continuing.</value>
@@ -496,7 +499,7 @@
     <value>Moving '{0}' will prevent the debug session from continuing.</value>
   </data>
   <data name="Deleting_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Deleting '{0}' will prevent the debug session from continuing.</value>
+    <value>Deleting {0} will prevent the debug session from continuing.</value>
   </data>
   <data name="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Deleting '{0}' around an active statement will prevent the debug session from continuing.</value>
@@ -790,6 +793,9 @@ Do you want to continue?</value>
   </data>
   <data name="constructor" xml:space="preserve">
     <value>constructor</value>
+  </data>
+  <data name="static_constructor" xml:space="preserve">
+    <value>static constructor</value>
   </data>
   <data name="auto_property" xml:space="preserve">
     <value>auto-property</value>
@@ -2807,5 +2813,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
+  </data>
+  <data name="member_kind_and_name" xml:space="preserve">
+    <value>{0} '{1}'</value>
+    <comment>e.g. "method 'M'"</comment>
   </data>
 </root>
