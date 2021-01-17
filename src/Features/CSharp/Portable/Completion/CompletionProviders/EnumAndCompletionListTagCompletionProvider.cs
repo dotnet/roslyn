@@ -167,15 +167,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                         continue;
 
+                    var memberDisplayName = $"{displayText}.{field.Name}";
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText: $"{displayText}.{field.Name}",
+                        displayText: memberDisplayName,
                         displayTextSuffix: "",
                         symbols: ImmutableArray.Create<ISymbol>(field),
                         rules: s_enumMemberRules,
                         contextPosition: position,
-                        sortText = $"{sortText}_{index:0000}"));
+                        sortText = $"{sortText}_{index:0000}",
+                        filterText: memberDisplayName));
                 }
             }
+        }
+
+        private static string GetFilterText(string enumMemberDisplayText)
+        {
+            // Remove the namespace part of an enum value:
+            // Namespace.EnumType.EnumValue -> EnumType.EnumValue
+            var typeAndValueSeparator = enumMemberDisplayText.LastIndexOf('.');
+            if (typeAndValueSeparator > 0)
+            {
+                var namespaceSeparator = enumMemberDisplayText.LastIndexOf('.', typeAndValueSeparator - 1);
+                if (namespaceSeparator > 0)
+                    return enumMemberDisplayText[(namespaceSeparator + 1)..];
+            }
+
+            return enumMemberDisplayText;
         }
 
         private static ITypeSymbol? TryGetEnumTypeInEnumInitializer(
