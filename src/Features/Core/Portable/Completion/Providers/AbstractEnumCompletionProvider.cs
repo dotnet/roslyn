@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override CompletionItem CreateItem(CompletionContext completionContext, string displayText,
             string displayTextSuffix, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect,
-            SupportedPlatformData supportedPlatformData)
+            SupportedPlatformData? supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols);
 

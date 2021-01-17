@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(EnumCompletionProvider))]
+    [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
     [Shared]
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
