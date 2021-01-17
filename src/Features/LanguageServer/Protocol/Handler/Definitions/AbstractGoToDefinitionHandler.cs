@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static async Task<IEnumerable<INavigableItem>?> GetDefinitions(Document document, int position, CancellationToken cancellationToken)
             {
+                // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
                 var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
                 if (findDefinitionService != null)
                 {
