@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     types = ImmutableArray.Create<ITypeSymbol>(semanticModel.Compilation.ObjectType);
 
                 foreach (var type in types)
-                    await HandleSingleTypeAsync(context, token, type, cancellationToken).ConfigureAwait(false);
+                    await HandleSingleTypeAsync(context, semanticModel, token, type, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static async Task HandleSingleTypeAsync(CompletionContext context, SyntaxToken token, ITypeSymbol type, CancellationToken cancellationToken)
+        private static async Task HandleSingleTypeAsync(CompletionContext context, SemanticModel semanticModel, SyntaxToken token, ITypeSymbol type, CancellationToken cancellationToken)
         {
             // If we have a Nullable<T>, unwrap it.
             if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
@@ -118,9 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = typeArg;
             }
 
-            var document = context.Document;
             var position = context.Position;
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (type.TypeKind != TypeKind.Enum)
             {
                 var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
