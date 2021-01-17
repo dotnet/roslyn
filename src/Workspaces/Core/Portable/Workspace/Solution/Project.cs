@@ -269,6 +269,11 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
+        internal async ValueTask<IEnumerable<Document>> GetAllRegularAndSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
+        {
+            return Documents.Concat(await GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
+        }
+
         public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
         {
             // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good

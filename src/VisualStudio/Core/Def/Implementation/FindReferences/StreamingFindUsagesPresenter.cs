@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -239,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             foreach (var columnState in window.TableControl.ColumnStates)
             {
                 var columnState2 = columnState as ColumnState2;
-                if (columnState?.Name == StandardTableColumnDefinitions2.Definition)
+                if (columnState2?.Name == StandardTableColumnDefinitions2.Definition)
                 {
                     newColumns.Add(new ColumnState2(
                         columnState2.Name,

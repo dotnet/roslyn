@@ -509,7 +509,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
-            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToHashSet();
+            using var _ = PooledHashSet<CompletionFilter>.GetInstance(out var textFilteredFilters);
+            textFilteredFilters.AddRange(filteredList.SelectMany(n => n.VSCompletionItem.Filters));
 
             // When no items are available for a given filter, it becomes unavailable.
             // Expanders always appear available as long as it's presented.

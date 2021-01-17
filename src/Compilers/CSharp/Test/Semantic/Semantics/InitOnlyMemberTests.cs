@@ -113,9 +113,9 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
                 references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
             comp.VerifyEmitDiagnostics(
-                // (6,45): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // (6,45): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 45),
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(6, 45),
                 // (6,70): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
                 //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 70)
@@ -2220,7 +2220,7 @@ public interface IWithInitWithExplicitImplementation : I1, I2
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2312,7 +2312,7 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3573,6 +3573,65 @@ public class D
         }
 
         [Fact]
+        public void ModReqOnStaticSet()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig newslot specialname
+            static void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    } 
+
+    .property instance int32 P()
+    {
+      .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_P(int32)
+    } 
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M2()
+    {
+        C.P = 2;
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0570: 'C.P.set' is not supported by the language
+                //         C.P = 2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "P").WithArguments("C.P.set").WithLocation(6, 11)
+                );
+
+            var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.set_P");
+            Assert.False(method.IsInitOnly);
+            Assert.False(method.GetPublicSymbol().IsInitOnly);
+            Assert.True(method.HasUseSiteError);
+            Assert.True(method.HasUnsupportedMetadata);
+        }
+
+        [Fact]
         public void ModReqOnMethodParameter()
         {
             string il = @"
@@ -4337,6 +4396,160 @@ I1 is 0");
   IL_0035:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_NewT()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M<T>(Person person) where T : Container, new()
+    {
+        Container c = new T()
+        {
+            Person = { FirstName = ""c"" }
+        };
+    }
+}
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source });
+            comp.VerifyEmitDiagnostics(
+                // (10,24): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingGenericType()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+var c = new Container<Person>(person)
+{
+    PropertyT = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container<T>(T PropertyT) where T : Person;
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,19): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     PropertyT = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNew()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = new Person(""j"", ""p"") { FirstName = ""c"" }
+};
+
+Console.Write(c.Person.FirstName);
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "c", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNewNoPia()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58277"")]
+[CoClass(typeof(ClassITest28))]
+public interface ITest28
+{
+    int Property { get; init; }
+}
+
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public abstract class ClassITest28 //: ITest28
+{
+    public ClassITest28(int x) { }
+}
+";
+
+            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+
+            CompileAndVerify(piaCompilation);
+
+            string source = @"
+class UsePia
+{
+    public ITest28 Property2 { get; init; }
+
+    public static void Main()
+    {
+        var x1 = new ITest28() { Property = 42 };
+        var x2 = new UsePia() { Property2 = { Property = 43 } };
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+                new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+                options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+                // (9,47): error CS8852: Init-only property or indexer 'ITest28.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         var x2 = new UsePia() { Property2 = { Property = 43 } };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("ITest28.Property").WithLocation(9, 47)
+                );
         }
     }
 }

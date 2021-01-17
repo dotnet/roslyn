@@ -2757,7 +2757,7 @@ namespace N1
 }
 ";
 
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetStandardLatest, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
                 // (16,34): error CS8801: Cannot use local variable or local function 'Test' declared in a top-level statement in this context.

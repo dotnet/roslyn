@@ -844,13 +844,9 @@ namespace Microsoft.CodeAnalysis
             {
                 RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
-                foreach (var kvp in metadataReferenceToProjectId)
+                foreach (var (metadataReference, projectId) in metadataReferenceToProjectId)
                 {
-                    var metadataReference = kvp.Key;
-                    var projectId = kvp.Value;
-
                     var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-
                     RecordSourceOfAssemblySymbol(symbol, projectId);
                 }
             }

@@ -86,10 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-            var workspaceRegistrationSerivce = this.ComponentModel.GetService<ILspWorkspaceRegistrationService>();
-            workspaceRegistrationSerivce.Register(this.Workspace);
-            workspaceRegistrationSerivce.Register(miscellaneousFilesWorkspace);
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
