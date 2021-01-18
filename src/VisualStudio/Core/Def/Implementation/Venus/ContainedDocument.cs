@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
+        private static bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
             => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
         private static bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
@@ -1093,7 +1093,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position, ch, tag);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag1, string tag2)
         {
             if (!CheckCode(snapshot, position, ch, tag2, checkAt: false))
             {

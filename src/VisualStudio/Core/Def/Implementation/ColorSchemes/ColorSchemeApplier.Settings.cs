@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 _workspace = visualStudioWorkspace;
             }
 
-            public ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
+            public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {

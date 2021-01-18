@@ -670,7 +670,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<INamedTypeSymbol> GetAccessibleTypes(INamespaceSymbol namespaceSymbol, Compilation compilation)
+        private static ImmutableArray<INamedTypeSymbol> GetAccessibleTypes(INamespaceSymbol namespaceSymbol, Compilation compilation)
         {
             var typeMembers = GetAccessibleTypeMembers(namespaceSymbol, compilation.Assembly);
             var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(typeMembers.Length);
