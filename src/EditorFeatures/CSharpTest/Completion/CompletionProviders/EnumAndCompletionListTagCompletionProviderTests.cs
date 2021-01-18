@@ -1119,7 +1119,7 @@ class C
 {
     public void M(DayOfWeek day)
     {
-        M(day:$$);
+        M(day: $$);
     }
 
     enum DayOfWeek

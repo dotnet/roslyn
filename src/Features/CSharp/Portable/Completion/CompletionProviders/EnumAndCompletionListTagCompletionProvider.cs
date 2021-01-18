@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
-        private static readonly CompletionItemRules s_enumMemberRules =
-            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')));
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EnumAndCompletionListTagCompletionProvider()
@@ -172,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         displayText: memberDisplayName,
                         displayTextSuffix: "",
                         symbols: ImmutableArray.Create<ISymbol>(field),
-                        rules: s_enumMemberRules,
+                        rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText = $"{sortText}_{index:0000}",
                         filterText: memberDisplayName));
