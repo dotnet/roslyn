@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(HandlesClauseCompletionProvider))>
     <[Shared]>
     Partial Friend Class PartialTypeCompletionProvider
-        Inherits AbstractPartialTypeCompletionProvider
+        Inherits AbstractPartialTypeCompletionProvider(Of VisualBasicSyntaxContext)
 
         Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
@@ -54,18 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return If(tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, statement), statement, Nothing)
         End Function
 
-        Protected Overrides Async Function CreateSyntaxContextAsync(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As INamedTypeSymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Dim displayText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_displayTextFormat)
             Dim insertionText = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, format:=_insertionTextFormatWithGenerics)
             Return (displayText, "", insertionText)
         End Function
 
-        Protected Overrides Function GetProperties(symbol As INamedTypeSymbol,
-                                                   context As SyntaxContext) As ImmutableDictionary(Of String, String)
+        Protected Overrides Function GetProperties(symbol As INamedTypeSymbol, context As VisualBasicSyntaxContext) As ImmutableDictionary(Of String, String)
             Return ImmutableDictionary(Of String, String).Empty.Add(
                 InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
         End Function
