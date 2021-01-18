@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(HandlesClauseCompletionProvider), LanguageNames.VisualBasic)>
@@ -26,7 +27,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As SyntaxContext,
+                position As Integer,
+                options As OptionSet,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+
+            Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
+            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+        End Function
+
+        Private Overloads Shared Function GetSymbolsAsync(context As SyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             Dim vbContext = DirectCast(context, VisualBasicSyntaxContext)
 
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse

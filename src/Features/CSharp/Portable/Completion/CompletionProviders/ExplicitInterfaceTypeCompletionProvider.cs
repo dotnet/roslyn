@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -18,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -74,16 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
-            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
+            CompletionContext? completionContext, SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var targetToken = context.TargetToken;
 
             // Don't want to offer this after "async" (even though the compiler may parse that as a type).
             if (SyntaxFacts.GetContextualKeywordKind(targetToken.ValueText) == SyntaxKind.AsyncKeyword)
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             var typeNode = targetToken.Parent as TypeSyntax;
 
@@ -100,38 +96,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             if (typeNode == null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             // We weren't after something that looked like a type.
             var tokenBeforeType = typeNode.GetFirstToken().GetPreviousToken();
 
             if (!IsPreviousTokenValid(tokenBeforeType))
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             var typeDeclaration = typeNode.GetAncestor<TypeDeclarationSyntax>();
             if (typeDeclaration == null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, bool preselect)>();
 
             // Looks syntactically good.  See what interfaces our containing class/struct/interface has
             Debug.Assert(IsClassOrStructOrInterfaceOrRecord(typeDeclaration));
 
             var semanticModel = context.SemanticModel;
             var namedType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+            Contract.ThrowIfNull(namedType);
 
-            var interfaceSet = new HashSet<INamedTypeSymbol>();
+            using var _ = PooledHashSet<ISymbol>.GetInstance(out var interfaceSet);
             foreach (var directInterface in namedType.Interfaces)
             {
                 interfaceSet.Add(directInterface);
                 interfaceSet.AddRange(directInterface.AllInterfaces);
             }
 
-            return Task.FromResult(interfaceSet.ToImmutableArray<ISymbol>());
+            return Task.FromResult(interfaceSet.SelectAsArray(t => (t, preselect: false)));
         }
 
         private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
@@ -144,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
             {
                 // Show us after the open brace for a class/struct/interface
-                return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.Parent);
+                return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.GetRequiredParent());
             }
 
             if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
@@ -153,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();
                 return memberDeclaration?.GetLastToken() == tokenBeforeType &&
-                       IsClassOrStructOrInterfaceOrRecord(memberDeclaration.Parent);
+                       IsClassOrStructOrInterfaceOrRecord(memberDeclaration.GetRequiredParent());
             }
 
             return false;
