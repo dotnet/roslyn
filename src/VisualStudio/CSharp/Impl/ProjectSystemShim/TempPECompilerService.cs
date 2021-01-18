@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return result.Success ? VSConstants.S_OK : VSConstants.S_FALSE;
         }
 
-        private CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
+        private static CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
         {
             Contract.ThrowIfFalse(optionNames.Length == optionValues.Length);
 

@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            private VirtualTreePoint GetBodyStartPoint(SourceText text, SyntaxToken openBrace)
+            private static VirtualTreePoint GetBodyStartPoint(SourceText text, SyntaxToken openBrace)
             {
                 Debug.Assert(!openBrace.IsMissing);
 
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            private VirtualTreePoint GetBodyEndPoint(SourceText text, SyntaxToken closeBrace)
+            private static VirtualTreePoint GetBodyEndPoint(SourceText text, SyntaxToken closeBrace)
             {
                 var closeBraceLine = text.Lines.GetLineFromPosition(closeBrace.SpanStart);
                 var textBeforeBrace = text.ToString(TextSpan.FromBounds(closeBraceLine.Start, closeBrace.SpanStart));
@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     : new VirtualTreePoint(closeBrace.SyntaxTree, text, closeBrace.SpanStart);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -266,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, AttributeArgumentSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, AttributeArgumentSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -423,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private AccessorDeclarationSyntax FindFirstAccessorNode(BasePropertyDeclarationSyntax node)
+            private static AccessorDeclarationSyntax FindFirstAccessorNode(BasePropertyDeclarationSyntax node)
             {
                 if (node.AccessorList == null)
                 {
@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, DelegateDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, DelegateDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -627,7 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, UsingDirectiveSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, UsingDirectiveSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -660,7 +660,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, VariableDeclaratorSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, VariableDeclaratorSyntax node, EnvDTE.vsCMPart part)
             {
                 var field = node.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
                 int startPosition;
@@ -701,7 +701,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, EnumMemberDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, EnumMemberDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -741,7 +741,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetStartPoint(SourceText text, ParameterSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetStartPoint(SourceText text, ParameterSyntax node, EnvDTE.vsCMPart part)
             {
                 int startPosition;
 
@@ -781,7 +781,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, startPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, ArrowExpressionClauseSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -799,7 +799,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, AttributeSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -832,7 +832,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, AttributeArgumentSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, AttributeArgumentSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -1076,7 +1076,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, DelegateDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, DelegateDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -1157,7 +1157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, UsingDirectiveSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, UsingDirectiveSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -1190,7 +1190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, EnumMemberDeclarationSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, EnumMemberDeclarationSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 
@@ -1231,7 +1231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, VariableDeclaratorSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, VariableDeclaratorSyntax node, EnvDTE.vsCMPart part)
             {
                 var field = node.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
                 int endPosition;
@@ -1273,7 +1273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return new VirtualTreePoint(node.SyntaxTree, text, endPosition);
             }
 
-            private VirtualTreePoint GetEndPoint(SourceText text, ParameterSyntax node, EnvDTE.vsCMPart part)
+            private static VirtualTreePoint GetEndPoint(SourceText text, ParameterSyntax node, EnvDTE.vsCMPart part)
             {
                 int endPosition;
 

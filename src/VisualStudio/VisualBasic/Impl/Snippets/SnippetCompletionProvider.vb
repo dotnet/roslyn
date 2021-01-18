@@ -68,7 +68,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
         End Function
 
-        Private Function ShouldBeExclusive(options As OptionSet) As Boolean
+        Private Shared Function ShouldBeExclusive(options As OptionSet) As Boolean
             Return options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic) = SnippetsRule.IncludeAfterTypingIdentifierQuestionTab
         End Function
 
@@ -79,7 +79,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private Shared ReadOnly s_tupleRules As CompletionItemRules = s_rules.
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
 
-        Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
+        Private Shared Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), isTupleContext As Boolean) As IEnumerable(Of CompletionItem)
 
             Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                        s.Shortcut,
