@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
     <[Shared]>
     Partial Friend Class SymbolCompletionProvider
-        Inherits AbstractRecommendationServiceBasedCompletionProvider
+        Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -73,11 +73,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Function GetFilterText(symbol As ISymbol, displayText As String, context As SyntaxContext) As String
+        Protected Overrides Function GetFilterText(symbol As ISymbol, displayText As String, context As VisualBasicSyntaxContext) As String
             ' Filter on New if we have a ctor
             If symbol.IsConstructor() Then
                 Return "New"
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetCompletionItemRules(symbols As List(Of ISymbol),
-                                                            context As SyntaxContext, preselect As Boolean) As CompletionItemRules
+                                                            context As VisualBasicSyntaxContext, preselect As Boolean) As CompletionItemRules
 
             Return If(cachedRules(
                         ValueTuple.Create(context.IsInImportsDirective, preselect, context.IsPossibleTupleContext)),
