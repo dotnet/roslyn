@@ -179,11 +179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return s_rules
         End Function
 
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            Dim insertionText As String = SymbolCompletionItem.GetInsertionText(selectedItem)
-            Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
-        End Function
-
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
         End Function

@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <param name="symbolToContext">The symbols recommended in the active context.</param>
         /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
         /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-        protected static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+        private static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
             Dictionary<(ISymbol symbol, bool preselect), SyntaxContext> symbolToContext,
             ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)> linkedContextSymbolLists)
         {
@@ -423,12 +423,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return missingSymbols;
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(
-            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(new TextChange(
-                selectedItem.Span, GetInsertionText(selectedItem, ch)));
-        }
+        public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+            => Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, GetInsertionText(selectedItem, ch)));
 
         private string GetInsertionText(CompletionItem item, char? ch)
         {
