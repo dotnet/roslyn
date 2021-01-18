@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return symbolBuilder.ToImmutable();
         }
 
-        private ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
+        private static ImmutableArray<ISymbol> GetInheritedMemberSymbols(INamedTypeSymbol namedTypeSymbol, Compilation compilation)
         {
             var symbolBuilder = ImmutableArray.CreateBuilder<ISymbol>();
 
@@ -552,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        private ImmutableArray<INamedTypeSymbol> GetAccessibleTypeMembers(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
+        private static ImmutableArray<INamedTypeSymbol> GetAccessibleTypeMembers(INamespaceOrTypeSymbol namespaceOrTypeSymbol, IAssemblySymbol assemblySymbol)
         {
             var typeMembers = namespaceOrTypeSymbol.GetTypeMembers();
             var builder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(typeMembers.Length);

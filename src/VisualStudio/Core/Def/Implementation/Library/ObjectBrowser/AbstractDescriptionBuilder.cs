@@ -450,7 +450,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 || symbol.Kind == SymbolKind.Property;
         }
 
-        private bool ShowValueDocumentation(ISymbol symbol)
+        private static bool ShowValueDocumentation(ISymbol symbol)
         {
             // <returns> is often used in places where <value> was originally intended. Allow either to be used in
             // documentation comments since they are not likely to be used together and it's not clear which one a

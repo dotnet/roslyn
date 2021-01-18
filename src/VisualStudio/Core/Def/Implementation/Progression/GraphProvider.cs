@@ -300,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private bool IsOverridable(GraphNode node)
+        private static bool IsOverridable(GraphNode node)
         {
             var modifiers = GetModifiers(node);
             return (modifiers.IsVirtual || modifiers.IsAbstract || modifiers.IsOverride) &&

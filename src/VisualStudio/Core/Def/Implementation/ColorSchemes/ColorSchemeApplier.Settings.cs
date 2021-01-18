@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
             }
 
-            private ColorScheme GetColorScheme(SchemeName schemeName)
+            private static ColorScheme GetColorScheme(SchemeName schemeName)
             {
                 using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);

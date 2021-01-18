@@ -406,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
             => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
-        private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
+        private static bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {
             if (text.Length == 0)
             {
@@ -589,7 +589,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return diffService.DiffStrings(leftTextWithReplacement, rightTextWithReplacement, s_venusEditOptions.DifferenceOptions);
         }
 
-        private void GetTextWithReplacements(
+        private static void GetTextWithReplacements(
             string leftText, string rightText,
             List<ValueTuple<int, int>> leftReplacementMap, List<ValueTuple<int, int>> rightReplacementMap,
             out string leftTextWithReplacement, out string rightTextWithReplacement)
@@ -858,7 +858,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return new BaseIndentationFormattingRule(root, span, indentation, _vbHelperFormattingRule);
         }
 
-        private void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
+        private static void GetVisibleAndTextSpan(SourceText text, List<TextSpan> spans, int spanIndex, out TextSpan visibleSpan, out TextSpan visibleTextSpan)
         {
             visibleSpan = spans[spanIndex];
 
@@ -1071,7 +1071,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return string.Equals(razorTag, tag, StringComparison.OrdinalIgnoreCase) && (!checkAt || snapshot[start - 1] == RazorExplicit);
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, string tag)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, string tag)
         {
             var i = position - 1;
             if (i < 0)

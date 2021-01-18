@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private bool ContainsRegionTag(ITextSnapshot textSnapshot)
+        private static bool ContainsRegionTag(ITextSnapshot textSnapshot)
         {
             foreach (var line in textSnapshot.Lines)
             {
