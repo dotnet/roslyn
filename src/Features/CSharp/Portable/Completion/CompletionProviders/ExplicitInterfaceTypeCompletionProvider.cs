@@ -44,14 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override async Task<SyntaxContext> CreateContextAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(
-                document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
-        }
-
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try

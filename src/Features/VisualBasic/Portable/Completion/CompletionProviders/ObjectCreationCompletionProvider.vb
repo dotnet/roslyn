@@ -51,11 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return newExpression
         End Function
 
-        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
-        End Function
-
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Create(
                 commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, " "c, "("c)),

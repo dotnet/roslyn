@@ -409,9 +409,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
+        protected static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-        private Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return await service.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             lock (s_cachedDocuments)
             {
