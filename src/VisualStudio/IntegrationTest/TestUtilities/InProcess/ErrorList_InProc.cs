@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private IVsEnumTaskItems GetErrorItems()
+        private static IVsEnumTaskItems GetErrorItems()
         {
             return InvokeOnUIThread(cancellationToken =>
             {

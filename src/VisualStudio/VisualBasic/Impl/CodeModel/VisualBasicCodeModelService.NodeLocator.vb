@@ -613,7 +613,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetMethodBlockEndPoint(text As SourceText, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetMethodBlockEndPoint(text As SourceText, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part

@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// Executes the specified action delegate and retries if Operation Not Supported is thrown.
         /// </summary>
         /// <param name="action">Action delegate to exectute.</param>
-        private void WaitForRaiseDebuggerDteCommand(Action action)
+        private static void WaitForRaiseDebuggerDteCommand(Action action)
         {
             var actionSucceeded = false;
 

@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        private EnvDTE.Property GetProperty()
+        private static EnvDTE.Property GetProperty()
             => GetDTE().Properties["Environment", "Startup"].Item("OnStartUp");
     }
 }
