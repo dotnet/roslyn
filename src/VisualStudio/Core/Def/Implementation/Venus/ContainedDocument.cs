@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return GetSubTextChanges(originalText, visibleSpanInOriginalText, leftText, rightText, offsetInOriginalText);
         }
 
-        private bool TryGetSubTextChanges(
+        private static bool TryGetSubTextChanges(
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText, List<TextChange> changes)
         {
             // these are expensive. but hopefully we don't hit this as much except the boundary cases.
