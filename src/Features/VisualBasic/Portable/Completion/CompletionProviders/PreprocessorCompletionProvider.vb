@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
 
-        Protected Overrides Async Function CreateContextAsync(Workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
+        Protected Overrides Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            Return Task.FromResult(Of SyntaxContext)(VisualBasicSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken))
         End Function
     End Class
 End Namespace
