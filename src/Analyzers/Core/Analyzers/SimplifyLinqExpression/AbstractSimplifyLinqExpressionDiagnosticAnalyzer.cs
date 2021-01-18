@@ -165,17 +165,27 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 => linqMethods.Any(m => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
 
             INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
-                => (invocation.Syntax is not TInvocationExpressionSyntax invocationNode ||
-                    SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess ||
-                    SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess) is not SyntaxNode expression)
-                        ? null
-                        : invocation.SemanticModel?.GetTypeInfo(expression).Type as INamedTypeSymbol;
+            {
+                if (invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
+                    SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess &&
+                    SyntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess) is SyntaxNode expression)
+                {
+                    return invocation.SemanticModel?.GetTypeInfo(expression).Type as INamedTypeSymbol;
+                }
+
+                return null;
+            }
 
             string? TryGetMethodName(IInvocationOperation invocation)
-                => invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
-                   SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess
-                       ? SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess).GetText().ToString()
-                       : null;
+            {
+                if (invocation.Syntax is TInvocationExpressionSyntax invocationNode &&
+                    SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is TMemberAccessExpressionSyntax memberAccess)
+                {
+                    return SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess).GetText().ToString();
+                }
+
+                return null;
+            }
         }
     }
 }
