@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _keywordRecommenders = keywordRecommenders;
         }
 
-        private static async Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
-            return (TContext)await service.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
-        }
-
         private class Comparer : IEqualityComparer<CompletionItem>
         {
             public bool Equals(CompletionItem x, CompletionItem y)
@@ -69,10 +62,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document doc, int position, CancellationToken ct)
+        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxContext = await CreateContextAsync(doc, position, ct).ConfigureAwait(false);
-            var keywords = await RecommendKeywordsAsync(doc, position, syntaxContext, ct).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var contextService = document.GetRequiredLanguageService<ISyntaxContextService>();
+            var syntaxContext = (TContext)await contextService.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords?.Select(k => CreateItem(k, syntaxContext));
         }
 
@@ -80,18 +75,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected static CompletionItemRules s_keywordRules = CompletionItemRules.Default;
 
-        protected virtual CompletionItem CreateItem(RecommendedKeyword keyword, TContext context)
-        {
-            return CommonCompletionItem.Create(
-                displayText: keyword.Keyword,
-                displayTextSuffix: "",
-                rules: s_keywordRules.WithMatchPriority(keyword.MatchPriority),
-                description: keyword.DescriptionFactory(CancellationToken.None),
-                glyph: Glyph.Keyword,
-                tags: s_Tags);
-        }
+        protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context);
 
-        protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
+        private async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
             int position,
             TContext context,
