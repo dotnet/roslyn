@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         symbols: ImmutableArray.Create<ISymbol>(field),
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
-                        sortText = $"{sortText}_{index:0000}",
+                        sortText: $"{sortText}_{index:0000}",
                         filterText: memberDisplayName));
                 }
             }

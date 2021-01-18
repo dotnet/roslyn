@@ -2326,9 +2326,9 @@ namespace B
     }
 }                              </Document>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors" AndAlso i.SortText = "Colors" AndAlso i.FilterText = "Colors")
-                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
-                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors" AndAlso i.FilterText = "Colors")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.FilterText = "A.Colors.Green")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.FilterText = "A.Colors.Red")
                 Await state.AssertSelectedCompletionItem("A.Colors", isHardSelected:=True)
             End Using
         End Function
@@ -2360,12 +2360,12 @@ class Program
                 Await state.AssertCompletionItemsContain("Colors.Red", "")
                 Await state.AssertSelectedCompletionItem("Colors", isHardSelected:=True)
 
-                state.SendDownKey() 'Select "Colors.Green"
-                state.SendTab() ' Insert "Colors.Green"
+                state.SendDownKey() 'Select "Colors.Red"
+                state.SendTab() ' Insert "Colors.Red"
                 state.SendUndo() 'Undo insert
                 state.SendInvokeCompletionList()
 
-                Await state.AssertSelectedCompletionItem("Colors.Green", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem("Colors", isHardSelected:=True)
             End Using
         End Function
 
@@ -2387,7 +2387,7 @@ public class Program
 }                              </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "AT" AndAlso i.SortText = "AT" AndAlso i.FilterText = "AT")
-                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "AT.All" AndAlso i.SortText = "AT.All" AndAlso i.FilterText = "AT.All")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "AT.All" AndAlso i.FilterText = "AT.All")
                 Await state.AssertSelectedCompletionItem("AT", isHardSelected:=True)
             End Using
         End Function
