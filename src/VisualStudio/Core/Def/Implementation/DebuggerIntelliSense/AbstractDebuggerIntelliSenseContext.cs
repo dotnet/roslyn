@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
         }
 
-        private int GetQuestionIndex(string text)
+        private static int GetQuestionIndex(string text)
         {
             for (var i = 0; i < text.Length; i++)
             {
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             return -1;
         }
 
-        private bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
+        private static bool IsImmediateWindow(IVsUIShell shellService, IVsTextView textView)
         {
             Marshal.ThrowExceptionForHR(shellService.GetToolWindowEnum(out var windowEnum));
             Marshal.ThrowExceptionForHR(textView.GetBuffer(out _));

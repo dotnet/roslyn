@@ -307,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private bool WhitespaceOnEdges(TextSpan visibleTextSpan, TextChange change)
+        private static bool WhitespaceOnEdges(TextSpan visibleTextSpan, TextChange change)
         {
             if (!string.IsNullOrWhiteSpace(change.NewText))
             {
@@ -460,7 +460,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return true;
         }
 
-        private bool TextAt(string text, int index, char ch1, char ch2 = default)
+        private static bool TextAt(string text, int index, char ch1, char ch2 = default)
         {
             if (index < 0 || text.Length <= index)
             {
@@ -481,7 +481,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool TryGetSubTextChange(
+        private static bool TryGetSubTextChange(
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
@@ -621,7 +621,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
         }
 
-        private string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
+        private static string GetTextWithReplacementMap(string text, string returnReplacement, string newLineReplacement, List<ValueTuple<int, int>> replacementMap)
         {
             var delta = 0;
             var returnLength = returnReplacement.Length;
@@ -652,7 +652,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return StringBuilderPool.ReturnAndFree(sb);
         }
 
-        private Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
+        private static Span AdjustSpan(Span span, List<ValueTuple<int, int>> replacementMap)
         {
             var start = span.Start;
             var end = span.End;
@@ -899,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return additionalIndentation;
         }
 
-        private TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
+        private static TextSpan GetVisibleTextSpan(SourceText text, TextSpan visibleSpan, bool uptoFirstAndLastLine = false)
         {
             var start = visibleSpan.Start;
             for (; start < visibleSpan.End; start++)
@@ -1059,7 +1059,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return false;
         }
 
-        private bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
+        private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
         {
             if (ch != tag[tag.Length - 1] || position < tag.Length)
             {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        private ISymbol GetTargetSymbol(ISymbol symbol)
+        private static ISymbol GetTargetSymbol(ISymbol symbol)
         {
             if (symbol is IMethodSymbol methodSymbol)
             {

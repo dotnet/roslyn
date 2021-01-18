@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _fileChangeWatcher.EnqueueWork(service => UnsubscribeFileChangeEventsAsync(service, typedToken));
             }
 
-            private Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
+            private static Task UnsubscribeFileChangeEventsAsync(IVsAsyncFileChangeEx service, FileWatchingToken typedToken)
                 => service.UnadviseFileChangeAsync(typedToken.Cookie!.Value);
 
             public event EventHandler<string>? FileChanged;

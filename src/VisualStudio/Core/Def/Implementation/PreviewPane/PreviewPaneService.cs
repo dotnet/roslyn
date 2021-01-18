@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 optionPageGuid: optionPageGuid);
         }
 
-        private Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
+        private static Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
         {
             if (optionName == nameof(NamingStyleOptions.NamingPreferences))
             {

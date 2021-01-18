@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
+        private static bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
         {
             if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
@@ -435,10 +435,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
+        private static bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
             => spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out _);
 
-        private IDisposable OpenNewDocumentStateScope(OptionSet options)
+        private static IDisposable OpenNewDocumentStateScope(OptionSet options)
         {
             var state = options.GetOption(NavigationOptions.PreferProvisionalTab)
                 ? __VSNEWDOCUMENTSTATE.NDS_Provisional

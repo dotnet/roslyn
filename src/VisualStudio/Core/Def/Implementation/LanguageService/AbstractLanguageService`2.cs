@@ -281,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return false;
         }
 
-        private bool StartsWithRegionTag(ITextSnapshotLine line)
+        private static bool StartsWithRegionTag(ITextSnapshotLine line)
         {
             var start = line.GetFirstNonWhitespacePosition();
             if (start != null)

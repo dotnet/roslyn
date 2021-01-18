@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private Stream GetColorSchemeXmlStream(SchemeName schemeName)
+            private static Stream GetColorSchemeXmlStream(SchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 foreach (var item in registryItems)
                 {
                     using var itemKey = registryRoot.CreateSubKey(item.SectionName);
-                    itemKey.SetValue(item.ValueName, item.ValueData);
+                    itemKey.SetValue(RegistryItem.ValueName, item.ValueData);
                     // Flush RegistryKeys out of paranoia
                     itemKey.Flush();
                 }

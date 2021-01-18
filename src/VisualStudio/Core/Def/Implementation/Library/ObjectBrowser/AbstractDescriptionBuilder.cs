@@ -443,7 +443,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        private bool ShowReturnsDocumentation(ISymbol symbol)
+        private static bool ShowReturnsDocumentation(ISymbol symbol)
         {
             return (symbol.Kind == SymbolKind.NamedType && ((INamedTypeSymbol)symbol).TypeKind == TypeKind.Delegate)
                 || symbol.Kind == SymbolKind.Method

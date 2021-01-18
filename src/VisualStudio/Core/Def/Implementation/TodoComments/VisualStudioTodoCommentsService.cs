@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             return Task.CompletedTask;
         }
 
-        private void AddFilteredInfos(
+        private static void AddFilteredInfos(
             ImmutableArray<DocumentAndComments> array,
             ArrayBuilder<DocumentAndComments> filteredArray)
         {

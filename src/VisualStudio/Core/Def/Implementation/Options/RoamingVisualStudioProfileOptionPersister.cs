@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        private bool DeserializeCodeStyleOption(ref object value, Type type)
+        private static bool DeserializeCodeStyleOption(ref object value, Type type)
         {
             if (value is string serializedValue)
             {

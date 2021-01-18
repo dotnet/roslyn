@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // full URI format (i.e. file://c:/...). This will allow us to get the 
                     // actual local in the normal path format.
                     if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out var uri) &&
-                        this.CanResolveType(assembly, fullyQualifiedTypeName))
+                        CanResolveType(assembly, fullyQualifiedTypeName))
                     {
                         return uri.LocalPath;
                     }
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            private bool CanResolveType(Assembly assembly, string? fullyQualifiedTypeName)
+            private static bool CanResolveType(Assembly assembly, string? fullyQualifiedTypeName)
             {
                 if (fullyQualifiedTypeName == null)
                 {

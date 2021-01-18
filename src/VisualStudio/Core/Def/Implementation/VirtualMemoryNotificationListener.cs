@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 _workspace.Options.GetOption(InternalFeatureOnOffOptions.BackgroundAnalysisMemoryMonitor);
         }
 
-        private void DisableBackgroundAnalysis()
+        private static void DisableBackgroundAnalysis()
         {
             // Force low VM minimal background analysis for the current VS session.
             SolutionCrawlerOptions.LowMemoryForcedMinimalBackgroundAnalysis = true;
