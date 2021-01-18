@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
             AssertValidId(id, Sub(value) Assert.False(value))
         End Sub
 
-        Private Sub AssertValidId(id As String, assertion As Action(Of Boolean))
+        Private Shared Sub AssertValidId(id As String, assertion As Action(Of Boolean))
             Using workspace = TestWorkspace.Create(
 <Workspace>
     <Project Language=<%= Language %> AssemblyName="Assembly" CommonReferences="true">

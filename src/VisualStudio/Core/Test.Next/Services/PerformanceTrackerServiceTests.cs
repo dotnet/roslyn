@@ -113,7 +113,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        private (Dictionary<string, double[]> matrix, int dataCount) CreateMatrix(string testFile)
+        private static (Dictionary<string, double[]> matrix, int dataCount) CreateMatrix(string testFile)
         {
             var matrix = new Dictionary<string, double[]>();
 
