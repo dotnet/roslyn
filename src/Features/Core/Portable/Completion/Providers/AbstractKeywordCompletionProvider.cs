@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
+        where TContext : SyntaxContext
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
@@ -28,7 +30,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _keywordRecommenders = keywordRecommenders;
         }
 
-        protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
+        private static async Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return (TContext)await service.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+        }
 
         private class Comparer : IEqualityComparer<CompletionItem>
         {
