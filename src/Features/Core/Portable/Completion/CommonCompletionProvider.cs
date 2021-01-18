@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract class CommonCompletionProvider : CompletionProvider
     {
+        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
+
         public override bool ShouldTriggerCompletion(SourceText text, int position, CompletionTrigger trigger, OptionSet options)
         {
             switch (trigger.Kind)
@@ -92,8 +94,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
             => SpecializedTasks.Default<TextChange?>();
-
-        private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
         protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
         {
