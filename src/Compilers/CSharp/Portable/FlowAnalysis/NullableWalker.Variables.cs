@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Variables
         {
-            private sealed class NextId
-            {
-                internal int Value;
-            }
-
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // MaxSlotDepth value is arbitrary but large enough to allow most scenarios.
             private const int MaxSlotDepth = 5;
@@ -62,7 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private const int IdOrIndexMask = (1 << IdOffset) - 1;
             private const int IndexMax = IdOrIndexMask;
 
-            private readonly NextId _nextId;
+#if DEBUG
+            /// <summary>
+            /// Used to offset child ids to help catch cases where Variables
+            /// and LocalState instances are mismatched.
+            /// </summary>
+            private readonly Random _nextIdOffset;
+#endif
+
             internal readonly int Id;
             internal readonly Variables? Container;
             internal readonly Symbol? Symbol;
@@ -89,20 +91,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static Variables Create(Symbol? symbol)
             {
-                return new Variables(new NextId() { Value = 1 }, id: 0, container: null, symbol);
+                return new Variables(id: 0, container: null, symbol);
             }
 
             internal static Variables Create(VariablesSnapshot snapshot)
             {
-                return CreateInternal(snapshot, new NextId() { Value = snapshot.Id + 1 });
-            }
-
-            private static Variables CreateInternal(VariablesSnapshot snapshot, NextId nextId)
-            {
-                var container = snapshot.Container is null ? null : CreateInternal(snapshot.Container, nextId);
-                var variables = new Variables(nextId, snapshot.Id, container, snapshot.Symbol);
+                var container = snapshot.Container is null ? null : Create(snapshot.Container);
+                var variables = new Variables(snapshot.Id, container, snapshot.Symbol);
                 variables.Populate(snapshot);
                 return variables;
+            }
+
+            private int GetNextId()
+            {
+                return Id +
+#if DEBUG
+                    _nextIdOffset.Next(maxValue: 7) +
+#endif
+                    1;
             }
 
             private void Populate(VariablesSnapshot snapshot)
@@ -126,11 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private Variables(NextId nextId, int id, Variables? container, Symbol? symbol)
+            private Variables(int id, Variables? container, Symbol? symbol)
             {
+                Debug.Assert(id >= 0);
                 Debug.Assert(container is null || container.Id < id);
-                Debug.Assert(id < nextId.Value);
-                _nextId = nextId;
+#if DEBUG
+                _nextIdOffset = container?._nextIdOffset ?? new Random();
+#endif
                 Id = id;
                 Container = container;
                 Symbol = symbol;
@@ -157,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal Variables CreateNestedFunction(MethodSymbol method)
             {
                 Debug.Assert(GetVariablesForSymbol(method) is null or { Symbol: null });
-                return new Variables(_nextId, id: _nextId.Value++, this, method);
+                return new Variables(id: GetNextId(), this, method);
             }
 
             internal int RootSlot(int slot)

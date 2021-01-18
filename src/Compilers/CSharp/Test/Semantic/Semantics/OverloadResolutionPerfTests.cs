@@ -483,12 +483,12 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            // No warning for i0.ToString() because the local is not tracked
+            // No warning for 'i0.ToString()' because the local is not tracked
             // by the NullableWalker.Variables instance (too many locals).
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
         public void NullableStateTooManyLocals_02()
         {
             const int nLocals = 65536;
@@ -510,19 +510,18 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Each assignment results in a call to NullableWalker.InheritDefaultState().
-            // InheritDefaultState() is O(n) where n is the number of locals, and since there is one
-            // assignment per local, the overall perf is O(n^2).
-#if false
+            // https://github.com/dotnet/roslyn/issues/50588: Improve performance of assignments to many variables.
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object i0 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 21));
-#endif
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 21),
+                // (65542,16): warning CS8603: Possible null reference return.
+                //         return i65535;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "i65535").WithLocation(65542, 16));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
-        public void NullableStateTooManyNestedFunctions()
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        public void NullableStateManyNestedFunctions()
         {
             const int nFunctions = 32768;
 
@@ -530,14 +529,16 @@ class Program
             builder.AppendLine("#nullable enable");
             builder.AppendLine("class Program");
             builder.AppendLine("{");
-            builder.AppendLine("    static T F1<T>(System.Func<T, T> f, T arg) => f(arg);");
+            builder.AppendLine("    static void F0(System.Action a) { }");
+            builder.AppendLine("    static U F1<T, U>(T arg, System.Func<T, U> f) => f(arg);");
             builder.AppendLine("    static object F2(object arg)");
             builder.AppendLine("    {");
             builder.AppendLine("        if (arg == null) { }");
             builder.AppendLine("        var value = arg;");
-            for (int i = 0; i < nFunctions; i++)
+            builder.AppendLine("        F0(() => { });");
+            for (int i = 0; i < nFunctions / 2; i++)
             {
-                builder.AppendLine("        value = F1(arg => arg, value);");
+                builder.AppendLine($"        F0(() => {{ value = F1(value, arg{i} => arg{i}?.ToString()); }});");
             }
             builder.AppendLine("        return value;");
             builder.AppendLine("    }");
@@ -545,10 +546,10 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Handle 32K nested methods (distinct ids) gracefully in NullableWalker.Variables.
-#if false
-            comp.VerifyDiagnostics();
-#endif
+            comp.VerifyDiagnostics(
+                // (16395,16): warning CS8603: Possible null reference return.
+                //         return value;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "value").WithLocation(16395, 16));
         }
     }
 }
