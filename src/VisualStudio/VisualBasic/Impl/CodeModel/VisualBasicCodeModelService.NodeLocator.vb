@@ -697,7 +697,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(methodStatement.SyntaxTree, text, endPosition)
             End Function
 
-            Private Function GetPropertyBlockStartPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyBlockStartPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetPropertyStatementStartPoint(text, propertyBlock.PropertyStatement, part)
             End Function
 
@@ -736,7 +736,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(propertyStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetPropertyBlockEndPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetPropertyBlockEndPoint(text As SourceText, propertyBlock As PropertyBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetPropertyStatementEndPoint(text, propertyBlock.PropertyStatement, part)
             End Function
 
@@ -858,7 +858,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(eventStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetEventBlockEndPoint(text As SourceText, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEventBlockEndPoint(text As SourceText, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Return GetEventStatementEndPoint(text, eventBlock.EventStatement, part)
             End Function
 
