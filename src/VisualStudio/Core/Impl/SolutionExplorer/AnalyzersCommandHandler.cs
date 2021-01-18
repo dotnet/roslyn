@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private string CreateCopyOfRuleSetForProject(string pathToRuleSet, EnvDTE.Project envDteProject)
+        private static string CreateCopyOfRuleSetForProject(string pathToRuleSet, EnvDTE.Project envDteProject)
         {
             var fileName = GetNewRuleSetFileNameForProject(envDteProject);
             var projectDirectory = Path.GetDirectoryName(envDteProject.FullName);
@@ -626,7 +626,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return selectedAction;
         }
 
-        private void SendUnableToOpenRuleSetNotification(Workspace workspace, string message)
+        private static void SendUnableToOpenRuleSetNotification(Workspace workspace, string message)
         {
             SendErrorNotification(
                 workspace,
@@ -634,7 +634,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 message);
         }
 
-        private void SendUnableToUpdateRuleSetNotification(Workspace workspace, string message)
+        private static void SendUnableToUpdateRuleSetNotification(Workspace workspace, string message)
         {
             SendErrorNotification(
                 workspace,
