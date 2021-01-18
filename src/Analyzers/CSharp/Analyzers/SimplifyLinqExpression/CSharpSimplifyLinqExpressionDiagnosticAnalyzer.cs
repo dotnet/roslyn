@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         protected override IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation)
+            // In C#, exention methods contain the methods they are being called from in the `this` parameter 
+            // So in the case of A().ExensionB() to get to ExensionB from A we do the following:
             => invocation.Parent is IArgumentOperation argument &&
                argument.Parent is IInvocationOperation nextInvocation
                     ? nextInvocation
