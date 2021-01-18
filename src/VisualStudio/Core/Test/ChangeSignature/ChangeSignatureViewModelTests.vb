@@ -341,7 +341,7 @@ class Goo
                 defaultValue:="default")
         End Function
 
-        Private Sub VerifyAlteredState(
+        Private Shared Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
            Optional canCommit As Boolean? = Nothing,

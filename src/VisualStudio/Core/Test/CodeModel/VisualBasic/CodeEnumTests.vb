@@ -312,7 +312,7 @@ End Enum
 
 #End Region
 
-        Private Function GetGenericExtender(codeElement As EnvDTE.CodeEnum) As IVBGenericExtender
+        Private Shared Function GetGenericExtender(codeElement As EnvDTE.CodeEnum) As IVBGenericExtender
             Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 

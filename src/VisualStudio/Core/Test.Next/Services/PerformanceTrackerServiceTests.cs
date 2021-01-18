@@ -78,7 +78,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(stddev, analyzer.AdjustedStandardDeviation, precision: 4);
         }
 
-        private List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
+        private static List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
         {
             var testFile = ReadTestFile(testFileName);
 

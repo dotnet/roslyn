@@ -638,7 +638,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             Return CreateClientMock(CreateFullDownloadElementStream())
         End Function
 
-        Private Function CreateClientMock(stream As Stream) As Mock(Of IRemoteControlClient)
+        Private Shared Function CreateClientMock(stream As Stream) As Mock(Of IRemoteControlClient)
             Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
@@ -677,7 +677,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, contents)))
         End Function
 
-        Private Function CreateStream(element As XElement) As Stream
+        Private Shared Function CreateStream(element As XElement) As Stream
             Dim stream = New MemoryStream()
             element.Save(stream)
             stream.Position = 0

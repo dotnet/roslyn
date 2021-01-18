@@ -835,7 +835,7 @@ namespace A
             End If
         End Function
 
-        Private Async Function GetViewModelAsync(
+        Private Shared Async Function GetViewModelAsync(
             content As XElement,
             languageName As String,
             Optional isNewFile As Boolean = False,

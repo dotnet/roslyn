@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
             End Using
         End Function
 
-        Private Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
+        Private Shared Function TestSuccessAsync(workspaceDefinition As XElement) As Tasks.Task
             Return TestAsync(workspaceDefinition, True)
         End Function
 

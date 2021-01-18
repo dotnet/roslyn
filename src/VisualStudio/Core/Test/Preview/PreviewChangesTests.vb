@@ -369,7 +369,7 @@ End Class
             Assert.Equal(text, actualText)
         End Sub
 
-        Private Sub AssertSomeChild(list As ChangeList, text As String)
+        Private Shared Sub AssertSomeChild(list As ChangeList, text As String)
             Dim count As UInteger = Nothing
             list.GetItemCount(count)
             For i As UInteger = 0 To count
