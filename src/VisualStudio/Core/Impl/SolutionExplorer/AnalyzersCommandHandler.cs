@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             UpdateOpenHelpLinkMenuItemVisibility();
         }
 
-        private MenuCommand AddCommandHandler(IMenuCommandService menuCommandService, int roslynCommand, EventHandler handler)
+        private static MenuCommand AddCommandHandler(IMenuCommandService menuCommandService, int roslynCommand, EventHandler handler)
         {
             var commandID = new CommandID(Guids.RoslynGroupId, roslynCommand);
             var menuCommand = new MenuCommand(handler, commandID);
@@ -533,7 +533,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return fullFilePath;
         }
 
-        private void UpdateProjectConfigurationsToUseRuleSetFile(EnvDTE.Project envDteProject, string fileName)
+        private static void UpdateProjectConfigurationsToUseRuleSetFile(EnvDTE.Project envDteProject, string fileName)
         {
             foreach (EnvDTE.Configuration config in envDteProject.ConfigurationManager)
             {
@@ -557,7 +557,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private string GetNewRuleSetFileNameForProject(EnvDTE.Project envDteProject)
+        private static string GetNewRuleSetFileNameForProject(EnvDTE.Project envDteProject)
         {
             var projectName = envDteProject.Name;
 
@@ -642,7 +642,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 message);
         }
 
-        private void SendErrorNotification(Workspace workspace, string message1, string message2)
+        private static void SendErrorNotification(Workspace workspace, string message1, string message2)
         {
             var notificationService = workspace.Services.GetService<INotificationService>();
 

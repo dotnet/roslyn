@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             modifiersListView.AddHandler(PreviewKeyDownEvent, (KeyEventHandler)HandleModifiersPreviewKeyDown, true);
         }
 
-        private AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)
+        private static AutomationDelegatingListView CreateAutomationDelegatingListView(string itemsSourceName)
         {
             var listView = new AutomationDelegatingListView();
             listView.SelectionMode = SelectionMode.Extended;
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         private void HandleModifiersPreviewKeyDown(object sender, KeyEventArgs e)
             => HandlePreviewKeyDown(e, modifiersListView.SelectedItems.OfType<SymbolSpecificationViewModel.ModifierViewModel>());
 
-        private void HandlePreviewKeyDown<T>(KeyEventArgs e, IEnumerable<T> selectedItems) where T : SymbolSpecificationViewModel.ISymbolSpecificationViewModelPart
+        private static void HandlePreviewKeyDown<T>(KeyEventArgs e, IEnumerable<T> selectedItems) where T : SymbolSpecificationViewModel.ISymbolSpecificationViewModelPart
         {
             if (e.Key == Key.Space)
             {

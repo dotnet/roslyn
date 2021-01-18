@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         ///  Using the find usages service is more expensive than using the definitions service because a lot of unnecessary information is computed. However,
         ///  TypeScript doesn't provide an <see cref="IGoToDefinitionService"/> implementation that will return definitions so we must use <see cref="IFindUsagesService"/>.
         /// </summary>
-        private async Task<ImmutableArray<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
         {
             var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
 

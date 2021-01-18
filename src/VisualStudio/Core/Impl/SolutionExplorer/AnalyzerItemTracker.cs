@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             return VSConstants.S_OK;
         }
 
-        private object[] GetSelectedObjects(ISelectionContainer? selectionContainer)
+        private static object[] GetSelectedObjects(ISelectionContainer? selectionContainer)
         {
             if (selectionContainer == null)
             {

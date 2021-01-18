@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return needMoreTime;
         }
 
-        private EnvDTE80.vsCMChangeKind ConvertToChangeKind(CodeModelEventType eventType)
+        private static EnvDTE80.vsCMChangeKind ConvertToChangeKind(CodeModelEventType eventType)
         {
             EnvDTE80.vsCMChangeKind result = 0;
 
