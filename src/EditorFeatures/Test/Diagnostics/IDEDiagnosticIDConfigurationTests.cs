@@ -427,6 +427,9 @@ dotnet_diagnostic.IDE2002.severity = %value%
 
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
+
+# IDE2004
+dotnet_diagnostic.IDE2004.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -993,6 +996,9 @@ csharp_style_allow_blank_lines_between_consecutive_braces = true
 
 # IDE2003, AllowStatementImmediatelyAfterBlock
 dotnet_style_allow_statement_immediately_after_block = true
+
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);

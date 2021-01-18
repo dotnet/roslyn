@@ -141,6 +141,7 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 csharp_using_directive_placement = outside_namespace
 
 # New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
 csharp_style_allow_blank_lines_between_consecutive_braces = true
 csharp_style_allow_embedded_statements_on_same_line = true
 
@@ -368,6 +369,7 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 csharp_using_directive_placement = outside_namespace
 
 # New line preferences
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
 csharp_style_allow_blank_lines_between_consecutive_braces = true
 csharp_style_allow_embedded_statements_on_same_line = true
 
