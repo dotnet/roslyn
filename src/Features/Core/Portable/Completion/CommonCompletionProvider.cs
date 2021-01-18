@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
             => SpecializedTasks.Default<TextChange?>();
 
-        protected static CompletionItem CreateSuggestionModeItem(string displayText, string description)
+        protected static CompletionItem CreateSuggestionModeItem(string? displayText, string? description)
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
                 displayTextSuffix: "",
-                description: description != null ? description.ToSymbolDisplayParts() : default,
+                description: description == null ? default : description.ToSymbolDisplayParts(),
                 rules: s_suggestionItemRules);
         }
     }
