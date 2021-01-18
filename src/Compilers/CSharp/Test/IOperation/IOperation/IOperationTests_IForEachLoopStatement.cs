@@ -5574,7 +5574,7 @@ class C
         public async Task<bool> MoveNextAsync() => throw null;
         public async ValueTask DisposeAsync() => throw null;
     }
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -5698,7 +5698,7 @@ class C
         public async Task<bool> MoveNextAsync() => throw null;
         public async ValueTask DisposeAsync() => throw null;
     }
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -5825,7 +5825,7 @@ class C
         public bool MoveNext() => throw null;
         public void Dispose() => throw null;
     }
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -5947,7 +5947,7 @@ class C
         public bool MoveNext() => throw null;
         public void Dispose() => throw null;
     }
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
@@ -6206,7 +6206,7 @@ class C
         public bool MoveNext() => throw null;
         public void Dispose(int a = 1, bool b = true, params object[] extras) => throw null;
     }
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')

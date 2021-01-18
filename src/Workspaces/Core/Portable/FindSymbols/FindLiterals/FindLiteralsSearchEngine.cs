@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 var documentTasks = new List<Task>();
-                foreach (var document in project.Documents)
+                foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(_cancellationToken).ConfigureAwait(false))
                 {
                     documentTasks.Add(ProcessDocumentAsync(document));
                 }

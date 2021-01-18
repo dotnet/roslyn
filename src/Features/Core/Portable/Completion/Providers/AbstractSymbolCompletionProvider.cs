@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new();
-        private static int s_cachedPosition;
-        private static readonly object s_cacheGate = new();
+        private static readonly ConditionalWeakTable<Document, Tuple<int, AsyncLazy<SyntaxContext>>> s_cachedDocuments = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
             => CompletionItemRules.Default;
 
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        protected bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
         {
             if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
@@ -101,21 +99,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return isConvertible;
             }
 
-            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
             return typeConvertibilityCache[type];
-        }
-
-        private static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
-        {
-            foreach (var targetType in targetTypes)
-            {
-                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -145,32 +130,55 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var symbolGroup in symbolGroups)
             {
+                var includeItemInTargetTypedCompletion = false;
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
-                var item = CreateItem(
-                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
-                    symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+                var symbolList = symbolGroup.ToList();
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
                     var tick = Environment.TickCount;
 
-                    foreach (var symbol in symbolGroup)
+                    includeItemInTargetTypedCompletion = TryFindFirstSymbolMatchesTargetTypes(contextLookup, symbolList, typeConvertibilityCache, out var index);
+                    if (includeItemInTargetTypedCompletion && index > 0)
                     {
-                        var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
-                        {
-                            item = item.AddTag(WellKnownTags.TargetTypeMatch);
-                            break;
-                        }
+                        // This would ensure a symbol matches target types to be used for description if there's any,
+                        // assuming the default implementation of GetDescriptionWorkerAsync is used.
+                        var firstMatch = symbolList[index];
+                        symbolList.RemoveAt(index);
+                        symbolList.Insert(0, firstMatch);
                     }
 
                     telemetryCounter.AddTick(Environment.TickCount - tick);
+                }
+
+                var item = CreateItem(
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
+                    symbolList, arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+
+                if (includeItemInTargetTypedCompletion)
+                {
+                    item = item.AddTag(WellKnownTags.TargetTypeMatch);
                 }
 
                 itemListBuilder.Add(item);
             }
 
             return itemListBuilder.ToImmutable();
+        }
+
+        protected static bool TryFindFirstSymbolMatchesTargetTypes(Func<ISymbol, SyntaxContext> contextLookup, List<ISymbol> symbolList, Dictionary<ITypeSymbol, bool> typeConvertibilityCache, out int index)
+        {
+            for (index = 0; index < symbolList.Count; ++index)
+            {
+                var symbol = symbolList[index];
+                var syntaxContext = contextLookup(symbol);
+                if (ShouldIncludeInTargetTypedCompletionList(symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                {
+                    break;
+                }
+            }
+
+            return index < symbolList.Count;
         }
 
         /// <summary>
@@ -301,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
             OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
-            var relatedDocumentIds = GetRelatedDocumentIds(document, position);
+            var relatedDocumentIds = document.GetLinkedDocumentIds();
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
@@ -316,29 +324,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
             return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, telemetryCounter);
-        }
-
-        private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
-        {
-            var relatedDocumentIds = document.GetLinkedDocumentIds();
-            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetRequiredDocument);
-            lock (s_cacheGate)
-            {
-                // Invalidate the cache if it's for a different position or a different set of Documents.
-                // It's fairly likely that we'll only have to check the first document, unless someone
-                // specially constructed a Solution with mismatched linked files.
-                if (s_cachedPosition != position ||
-                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out _)))
-                {
-                    s_cachedPosition = position;
-                    foreach (var related in relatedDocuments)
-                    {
-                        s_cachedDocuments.Remove(document);
-                    }
-                }
-            }
-
-            return relatedDocumentIds;
         }
 
         protected virtual bool IsExclusive()
@@ -384,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        protected async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbolsAsync(
+        private async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbolsAsync(
             Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
         {
             var perContextSymbols = ArrayBuilder<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>.GetInstance();
@@ -392,21 +377,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedDocumentId);
                 var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
-
-                if (IsCandidateProject(context, cancellationToken))
+                var symbols = await TryGetSymbolsForContextAsync(context, options, preselect, cancellationToken).ConfigureAwait(false);
+                if (symbols.HasValue)
                 {
-                    var symbols = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                    perContextSymbols.Add((relatedDocument.Id, context, symbols));
+                    // Only consider contexts that are in active region
+                    perContextSymbols.Add((relatedDocument.Id, context, symbols.Value));
                 }
             }
 
             return perContextSymbols.ToImmutableAndFree();
         }
 
-        private static bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
+        /// <summary>
+        /// If current context is in active region, returns available symbols. Otherwise, returns null.
+        /// </summary>
+        protected async Task<ImmutableArray<ISymbol>?> TryGetSymbolsForContextAsync(SyntaxContext context, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
-            return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
+            return syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken)
+                ? null
+                : await GetSymbolsAsync(context.Position, preselect, context, options, cancellationToken).ConfigureAwait(false);
         }
 
         protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
@@ -423,9 +413,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            lock (s_cacheGate)
+            lock (s_cachedDocuments)
             {
-                var lazyContext = s_cachedDocuments.GetValue(document, d => new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true));
+                var (cachedPosition, cachedLazyContext) = s_cachedDocuments.GetValue(
+                    document, d => Tuple.Create(position, new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
+
+                if (cachedPosition == position)
+                {
+                    return cachedLazyContext.GetValueAsync(cancellationToken);
+                }
+
+                var lazyContext = new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(document, position, ct), cacheResult: true);
+                s_cachedDocuments.Remove(document);
+                s_cachedDocuments.Add(document, Tuple.Create(position, lazyContext));
                 return lazyContext.GetValueAsync(cancellationToken);
             }
         }
