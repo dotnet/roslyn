@@ -16,7 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
+    internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
+        where TSyntaxContext : SyntaxContext
     {
         /// <summary>
         /// Return null if not in object creation type context.
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayTextSuffix,
             string insertionText,
             ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
-            SyntaxContext context,
+            TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
             return SymbolCompletionItem.CreateWithSymbolId(
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
@@ -103,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(ImmutableArray.Create(((ISymbol)type, preselect: !isArray)));
         }
 
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
-            ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context)
         {
             var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
             return (displayString, "", displayString);

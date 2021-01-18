@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ObjectCreationCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(ExplicitInterfaceTypeCompletionProvider))]
     [Shared]
-    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
+    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider<CSharpSyntaxContext>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,14 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
-        }
-
         protected override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, CSharpSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetSymbolsAsync(completionContext, context, position, options, cancellationToken).ConfigureAwait(false);
             if (result.Any())
@@ -83,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result;
         }
 
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
         {
             if (symbol is IAliasSymbol)
             {

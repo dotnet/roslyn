@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
@@ -216,20 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-        }
-
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, SyntaxContext context)
+        protected override CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, CSharpSyntaxContext context)
         {
             var preselect = symbols.Any(t => t.preselect);
-            s_cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            s_cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }
@@ -240,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             string displayTextSuffix,
             string insertionText,
             ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
-            SyntaxContext context,
+            CSharpSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
             var item = base.CreateItem(
@@ -263,16 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
             {
-                var isObjectCreationTypeContext = context switch
-                {
-                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
-                    _ => false
-                };
-
-                if (isObjectCreationTypeContext)
-                {
+                if (context.IsObjectCreationTypeContext)
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
-                }
             }
 
             return item;

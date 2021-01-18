@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -18,10 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
+    internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
+        where TSyntaxContext : SyntaxContext
     {
         protected abstract Task<bool> ShouldPreselectInferredTypesAsync(CompletionContext? completionContext, int position, OptionSet options, CancellationToken cancellationToken);
-        protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, SyntaxContext context);
+        protected abstract CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols, TSyntaxContext context);
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
         protected abstract bool IsInstrinsic(ISymbol symbol);
         protected abstract bool IsTriggerOnDot(SyntaxToken token, int characterPosition);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected sealed override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
 
         protected sealed override async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> GetSymbolsAsync(
-            CompletionContext? completionContext, SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CompletionContext? completionContext, TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             var recommendedSymbols = await recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken).ConfigureAwait(false);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayTextSuffix,
             string insertionText,
             ImmutableArray<(ISymbol symbol, bool preselect)> symbols,
-            SyntaxContext context,
+            TSyntaxContext context,
             SupportedPlatformData? supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 supportedPlatforms: supportedPlatformData);
         }
 
-        private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, SyntaxContext context, bool preselect)
+        private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, TSyntaxContext context, bool preselect)
         {
             return !preselect &&
                 completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&

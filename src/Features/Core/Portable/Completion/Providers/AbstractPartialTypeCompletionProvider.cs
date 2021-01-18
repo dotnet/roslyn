@@ -18,7 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : LSPCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxContext> : LSPCompletionProvider
+        where TSyntaxContext : SyntaxContext
     {
         protected AbstractPartialTypeCompletionProvider()
         {
@@ -38,10 +39,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (node != null)
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
-                    var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
+                    var service = document.GetRequiredLanguageService<ISyntaxContextService>();
 
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
+                        var syntaxContext = (TSyntaxContext)await service.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
                         var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                         var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
@@ -58,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private CompletionItem CreateCompletionItem(
-            INamedTypeSymbol symbol, SyntaxContext context)
+        private CompletionItem CreateCompletionItem(INamedTypeSymbol symbol, TSyntaxContext context)
         {
             var (displayText, suffix, insertionText) = GetDisplayAndSuffixAndInsertionText(symbol, context);
 
@@ -73,20 +74,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: CompletionItemRules.Default);
         }
 
-        protected abstract ImmutableDictionary<string, string> GetProperties(
-            INamedTypeSymbol symbol, SyntaxContext context);
-
-        protected abstract Task<SyntaxContext> CreateSyntaxContextAsync(
-            Document document,
-            SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken);
+        protected abstract ImmutableDictionary<string, string> GetProperties(INamedTypeSymbol symbol, TSyntaxContext context);
 
         protected abstract SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
-        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, SyntaxContext context);
+        protected abstract (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, TSyntaxContext context);
 
-        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(SyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected virtual IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(TSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             if (declaredSymbol == null)
             {
@@ -110,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
             => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
-        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
+        private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, TSyntaxContext context)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(reference => reference.GetSyntax())
