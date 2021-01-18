@@ -111,6 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(DisplayInlineTypeHints, InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForVariablesWithInferredTypes, InlineHintsOptions.ForImplicitVariableTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptions.ForLambdaParameterTypes, LanguageNames.CSharp);
+            BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptions.ForImplicitObjectCreation, LanguageNames.CSharp);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -172,6 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             var enabledForTypes = this.OptionStore.GetOption(InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp);
             ShowHintsForVariablesWithInferredTypes.IsEnabled = enabledForTypes;
             ShowHintsForLambdaParameterTypes.IsEnabled = enabledForTypes;
+            ShowHintsForImplicitObjectCreation.IsEnabled = enabledForTypes;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)

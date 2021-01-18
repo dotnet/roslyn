@@ -8372,7 +8372,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
@@ -8757,7 +8757,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             // note no sequence points emitted within the switch expression
@@ -9120,7 +9120,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             verifier.VerifyIL("Program.M", sequencePoints: "Program.M", expectedIL: @"

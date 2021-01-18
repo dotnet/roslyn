@@ -87,7 +87,7 @@
     <MicrosoftDiaSymReaderVersion>1.3.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterVersion>
     <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta2-20115-01</MicrosoftDiaSymReaderConverterXmlVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>16.9.0-beta1.21055.5</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetVersionToolsVersion>3.0.0-preview1-03617-02</MicrosoftDotNetVersionToolsVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
@@ -125,7 +125,7 @@
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
-    <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.30</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
+    <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>16.0.28226-alpha</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>16.8.30406.65-pre</MicrosoftVisualStudioImageCatalogVersion>
@@ -162,6 +162,7 @@
     <MicrosoftVisualStudioShellInterop110Version>11.0.61032</MicrosoftVisualStudioShellInterop110Version>
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop157DesignTimeVersion>15.7.1</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop169DesignTimeVersion>16.9.30627.243-pre</MicrosoftVisualStudioShellInterop169DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50729</MicrosoftVisualStudioShellInterop80Version>
     <MicrosoftVisualStudioShellInterop90Version>9.0.30731</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>16.3.59</MicrosoftVisualStudioTelemetryVersion>
