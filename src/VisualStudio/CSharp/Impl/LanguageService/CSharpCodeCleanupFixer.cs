@@ -267,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return solution;
         }
 
-        private async Task<Project> FixProjectAsync(
+        private static async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,

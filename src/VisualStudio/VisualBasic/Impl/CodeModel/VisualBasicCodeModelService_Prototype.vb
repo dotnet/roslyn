@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEUnexpected()
         End Function
 
-        Private Function GetEventPrototype(symbol As IEventSymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
+        Private Shared Function GetEventPrototype(symbol As IEventSymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
             If Not AreValidFunctionPrototypeFlags(flags) Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -77,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return builder.ToString()
         End Function
 
-        Private Function GetFunctionPrototype(symbol As ISymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
+        Private Shared Function GetFunctionPrototype(symbol As ISymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
             If Not AreValidFunctionPrototypeFlags(flags) Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If

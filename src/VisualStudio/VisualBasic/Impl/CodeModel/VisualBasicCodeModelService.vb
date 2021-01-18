@@ -3233,7 +3233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
+        Private Shared Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodBlock.GetLeadingTrivia()
             Dim trailingTrivia = methodBlock.GetTrailingTrivia()
@@ -3320,7 +3320,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
+        Private Shared Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
