@@ -70,7 +70,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
         }
 
-        private void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
+        private static void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
             Assert.Equal(lof, analyzer.LocalOutlierFactor, precision: 4);
@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             return badAnalyzerInfo;
         }
 
-        private IEnumerable<AnalyzerPerformanceInfo> CreateSnapshots(Dictionary<string, double[]> matrix, int index)
+        private static IEnumerable<AnalyzerPerformanceInfo> CreateSnapshots(Dictionary<string, double[]> matrix, int index)
         {
             foreach (var kv in matrix)
             {
@@ -151,23 +151,23 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             return (matrix, expectedDataCount);
         }
 
-        private string GetAnalyzerId(string line)
+        private static string GetAnalyzerId(string line)
         {
             return line.Substring(1, line.LastIndexOf('"') - 1);
         }
 
-        private int GetExpectedDataCount(string header)
+        private static int GetExpectedDataCount(string header)
         {
             var data = header.Split(',');
             return data.Length - 1;
         }
 
-        private string SkipAnalyzerId(string line)
+        private static string SkipAnalyzerId(string line)
         {
             return line.Substring(line.LastIndexOf('"') + 2);
         }
 
-        private string ReadTestFile(string name)
+        private static string ReadTestFile(string name)
         {
             var assembly = typeof(PerformanceTrackerServiceTests).Assembly;
             var resourceName = GetResourceName(assembly, name);

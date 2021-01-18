@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Go(bool waitForBreakMode) => _debugger.Go(waitForBreakMode);
 
-        public void StepOver(bool waitForBreakOrEnd) => this.WaitForRaiseDebuggerDteCommand(() => _debugger.StepOver(waitForBreakOrEnd));
+        public void StepOver(bool waitForBreakOrEnd) => WaitForRaiseDebuggerDteCommand(() => _debugger.StepOver(waitForBreakOrEnd));
 
         public void Stop(bool waitForDesignMode) => _debugger.Stop(WaitForDesignMode: waitForDesignMode);
 

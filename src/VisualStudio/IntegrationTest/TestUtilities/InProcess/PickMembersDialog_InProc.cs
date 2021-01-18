@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Application.Current.Windows.OfType<PickMembersDialog>().SingleOrDefault();
         }
 
-        private async Task ClickAsync(Func<PickMembersDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
+        private static async Task ClickAsync(Func<PickMembersDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             var dialog = await GetDialogAsync(cancellationToken);

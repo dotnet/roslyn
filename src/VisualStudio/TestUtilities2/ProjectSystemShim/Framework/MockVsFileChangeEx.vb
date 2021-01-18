@@ -103,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End If
         End Sub
 
-        Private Function FileNameMatchesFilter(filename As String, watchedDirectory As WatchedEntity) As Boolean
+        Private Shared Function FileNameMatchesFilter(filename As String, watchedDirectory As WatchedEntity) As Boolean
             If Not filename.StartsWith(watchedDirectory.Path, StringComparison.OrdinalIgnoreCase) Then
                 Return False
             End If
