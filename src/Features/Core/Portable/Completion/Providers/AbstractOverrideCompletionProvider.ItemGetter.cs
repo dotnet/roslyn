@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     symbol,
                     startToken,
                     position,
-                    rules: _provider.GetRules());
+                    rules: GetRules());
             }
 
             private bool TryDetermineOverridableMembers(
