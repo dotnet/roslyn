@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         private static readonly ImmutableArray<string> s_predefinedCallingConventions = ImmutableArray.Create("Cdecl", "Fastcall", "Thiscall", "Stdcall");
 

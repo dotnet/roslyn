@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return c == '<' || c == '"' || CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('<', '"', ' ');
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position,

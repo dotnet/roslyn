@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerCharsAndParen
 
         Protected Overrides Async Function CreateContextAsync(Workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)

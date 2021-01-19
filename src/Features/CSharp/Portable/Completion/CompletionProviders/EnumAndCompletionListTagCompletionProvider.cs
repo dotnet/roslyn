@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

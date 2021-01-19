@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
             => Workspace.TryGetWorkspace(text.Container, out var workspace) &&

@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
         Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,

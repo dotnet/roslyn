@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
+        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }

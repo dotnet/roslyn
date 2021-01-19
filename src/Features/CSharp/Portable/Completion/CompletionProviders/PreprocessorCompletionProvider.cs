@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         protected override Task<SyntaxContext> CreateContextAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));

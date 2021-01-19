@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
         Protected Overrides Function IsTriggerOnDot(token As SyntaxToken, characterPositoin As Integer) As Boolean
             If token.Kind() <> SyntaxKind.DotToken Then

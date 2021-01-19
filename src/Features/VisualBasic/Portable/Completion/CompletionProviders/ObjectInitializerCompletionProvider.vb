@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return text(characterPosition) = "."c
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c)
 
         Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
             ' Object initializers are explicitly indicated by "With", so we're always exclusive.

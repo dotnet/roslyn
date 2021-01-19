@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         protected override Tuple<ITypeSymbol, Location> GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)

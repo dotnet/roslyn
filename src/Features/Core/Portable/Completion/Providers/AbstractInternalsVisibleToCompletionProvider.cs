@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

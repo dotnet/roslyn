@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
             => tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
