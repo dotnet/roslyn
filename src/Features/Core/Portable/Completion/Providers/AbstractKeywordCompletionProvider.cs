@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var contextService = document.GetRequiredLanguageService<ISyntaxContextService>();
-            var syntaxContext = (TContext)await contextService.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = (TContext)contextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords?.Select(k => CreateItem(k, syntaxContext));
         }

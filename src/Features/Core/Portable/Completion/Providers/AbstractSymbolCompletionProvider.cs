@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<ISyntaxContextService>();
-            return (TSyntaxContext)await service.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            return (TSyntaxContext)service.CreateContext(workspace, semanticModel, position, cancellationToken);
         }
 
         private static Task<TSyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
