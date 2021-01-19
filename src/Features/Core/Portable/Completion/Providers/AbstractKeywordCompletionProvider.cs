@@ -114,7 +114,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
             => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
-
-        internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }
 }

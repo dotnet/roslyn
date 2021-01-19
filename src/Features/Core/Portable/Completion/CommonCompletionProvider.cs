@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => false;
 
         public override async Task<CompletionDescription?> GetDescriptionAsync(

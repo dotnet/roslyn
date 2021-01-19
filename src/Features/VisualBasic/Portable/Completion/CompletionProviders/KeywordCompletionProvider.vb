@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
@@ -195,10 +195,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Statements.YieldKeywordRecommender(),
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
             }.ToImmutableArray()
-        End Function
-
-        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
-            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
         End Function
     End Class
 End Namespace

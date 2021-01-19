@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Tuple.Create(symbol, initializerLocation)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = "."c
         End Function
 

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }.ToImmutableArray();
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -208,8 +208,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
-
-        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

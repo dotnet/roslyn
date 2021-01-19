@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 

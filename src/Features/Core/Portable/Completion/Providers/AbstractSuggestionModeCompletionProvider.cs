@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected static CompletionItem CreateEmptySuggestionModeItem()
             => CreateSuggestionModeItem(displayText: null, description: null);
 
-        internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
-
         public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }
