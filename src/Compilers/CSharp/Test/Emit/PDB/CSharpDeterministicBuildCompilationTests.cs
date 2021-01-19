@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Compilation compilation,
             EmitOptions emitOptions,
             BlobReader compilationOptionsBlobReader,
-            string langVersion)
+            string langVersion,
+            int sourceFileCount)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
 
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             pdbOptions.VerifyPdbOption("unsafe", originalOptions.AllowUnsafe);
 
             Assert.Equal(langVersion, pdbOptions["language-version"]);
+            Assert.Equal(sourceFileCount.ToString(), pdbOptions["source-file-count"]);
 
             var firstSyntaxTree = (CSharpSyntaxTree)compilation.SyntaxTrees.FirstOrDefault();
             pdbOptions.VerifyPdbOption("define", firstSyntaxTree.Options.PreprocessorSymbolNames, isDefault: v => v.IsEmpty(), toString: v => string.Join(",", v));
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationMetadataReferences, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion);
+                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion, sourceFileCount: syntaxTrees.Length);
                     DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
                 }
             }
