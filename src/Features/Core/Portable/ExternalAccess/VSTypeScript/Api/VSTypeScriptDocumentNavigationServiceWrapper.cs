@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => new(workspace.Services.GetRequiredService<IDocumentNavigationService>());
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet? options = null)
-            => _underlyingObject.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, CancellationToken.None);
+            => this.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, CancellationToken.None);
+
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
+            => _underlyingObject.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken);
     }
 }
