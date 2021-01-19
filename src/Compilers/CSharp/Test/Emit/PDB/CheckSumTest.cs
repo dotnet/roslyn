@@ -194,6 +194,7 @@ class C1
         }
 
         [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializers()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -288,6 +289,7 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void NoResolver()
         {
             var comp = CSharpCompilation.Create(

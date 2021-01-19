@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var hash3 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(true, false).GetBytesWithPreamble(tree3.ToString())).ToArray();
             var hash4 = CryptographicHashProvider.ComputeSha1(new UTF8Encoding(false, false).GetBytesWithPreamble(tree4.ToString())).ToArray();
 
-            // TODO: try to change implementation to avoid the need to adjust this baseline.
             comp.VerifyPdb(@"
 <symbols>
   <files>
@@ -4642,6 +4641,7 @@ public class Derived : Base
         #region Field and Property Initializers
 
         [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializers()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -4704,6 +4704,7 @@ public partial class C
         }
 
         [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
             var text1 = WithWindowsLineBreaks(@"
