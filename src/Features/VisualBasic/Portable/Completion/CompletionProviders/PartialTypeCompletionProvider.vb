@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return If(tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, statement), statement, Nothing)
         End Function
 
-        Protected Overrides Async Function CreateSyntaxContextAsync(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
+        Protected Overrides Function CreateSyntaxContextAsync(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            Return Task.FromResult(Of SyntaxContext)(VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken))
         End Function
 
         Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As INamedTypeSymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
