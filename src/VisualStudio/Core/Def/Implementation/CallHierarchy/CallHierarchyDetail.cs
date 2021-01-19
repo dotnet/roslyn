@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
                 var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
                                                 .WithChangedOption(NavigationOptions.ActivateTab, false);
+                // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                 navigator.TryNavigateToSpan(_workspace, document.Id, _span, options, CancellationToken.None);
             }
         }
