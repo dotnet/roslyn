@@ -26,12 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
-            : base(GetKeywordRecommenders())
-        {
-        }
-
-        private static ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
-            => ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
+            : base(ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
                 new AbstractKeywordRecommender(),
                 new AddKeywordRecommender(),
                 new AliasKeywordRecommender(),
@@ -174,7 +169,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
                 new WithKeywordRecommender(),
-                new YieldKeywordRecommender());
+                new YieldKeywordRecommender()))
+        {
+        }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -190,20 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context)
+        protected override CompletionItem CreateItem(RecommendedKeyword keyword, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var rules = context.IsPossibleTupleContext ? s_tupleRules : CompletionItemRules.Default;
 
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
                 displayTextSuffix: "",
-                description: keyword.DescriptionFactory(CancellationToken.None),
+                description: keyword.DescriptionFactory(cancellationToken),
                 glyph: Glyph.Keyword,
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
-
-        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

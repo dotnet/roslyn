@@ -22,38 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            MyBase.New(GetKeywordRecommenders())
-        End Sub
-
-        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
-            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
-        End Function
-
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            ' We show 'Of' after dim x as new list(
-            Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
-        End Function
-
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
-
-        Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
-            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
-
-        Protected Overrides Function CreateItem(keyword As RecommendedKeyword, context As VisualBasicSyntaxContext) As CompletionItem
-            Dim rules = If(context.IsPossibleTupleContext, s_tupleRules, CompletionItemRules.Default)
-
-            Return CommonCompletionItem.Create(
-                displayText:=keyword.Keyword,
-                displayTextSuffix:="",
-                description:=keyword.DescriptionFactory(CancellationToken.None),
-                glyph:=Glyph.Keyword,
-                tags:=s_Tags,
-                rules:=rules.WithMatchPriority(keyword.MatchPriority))
-        End Function
-
-        Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))
-            Return New IKeywordRecommender(Of VisualBasicSyntaxContext)() {
+            MyBase.New(ImmutableArray.Create(Of IKeywordRecommender(Of VisualBasicSyntaxContext))(
                 New KeywordRecommenders.ArrayStatements.EraseKeywordRecommender(),
                 New KeywordRecommenders.ArrayStatements.PreserveKeywordRecommender(),
                 New KeywordRecommenders.ArrayStatements.ReDimKeywordRecommender(),
@@ -193,12 +162,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Statements.WhileLoopKeywordRecommender(),
                 New KeywordRecommenders.Statements.WithKeywordRecommender(),
                 New KeywordRecommenders.Statements.YieldKeywordRecommender(),
-                New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
-            }.ToImmutableArray()
+                New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()))
+        End Sub
+
+        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
+            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
 
-        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
-            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+            ' We show 'Of' after dim x as new list(
+            Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
+        End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+
+        Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+
+        Protected Overrides Function CreateItem(keyword As RecommendedKeyword, context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As CompletionItem
+            Dim rules = If(context.IsPossibleTupleContext, s_tupleRules, CompletionItemRules.Default)
+
+            Return CommonCompletionItem.Create(
+                displayText:=keyword.Keyword,
+                displayTextSuffix:="",
+                description:=keyword.DescriptionFactory(cancellationToken),
+                glyph:=Glyph.Keyword,
+                tags:=s_Tags,
+                rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
     End Class
 End Namespace
