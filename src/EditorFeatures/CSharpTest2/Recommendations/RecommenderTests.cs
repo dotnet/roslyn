@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         protected string keywordText;
-        internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>> RecommendKeywordsAsync;
+        internal Func<int, CSharpSyntaxContext, ImmutableArray<RecommendedKeyword>> RecommendKeywords;
 
-        internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
+        internal void VerifyWorker(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
-            await VerifyAtPositionAsync(code, position, absent, options: options, matchPriority: matchPriority);
-            await VerifyInFrontOfCommentAsync(code, position, absent, options: options, matchPriority: matchPriority);
-            await VerifyAtEndOfFileAsync(code, position, absent, options: options, matchPriority: matchPriority);
-            await VerifyAtPosition_KeywordPartiallyWrittenAsync(code, position, absent, options: options, matchPriority: matchPriority);
-            await VerifyInFrontOfComment_KeywordPartiallyWrittenAsync(code, position, absent, options: options, matchPriority: matchPriority);
-            await VerifyAtEndOfFile_KeywordPartiallyWrittenAsync(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyAtPosition(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyInFrontOfComment(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyAtEndOfFile(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyAtPosition_KeywordPartiallyWritten(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyInFrontOfComment_KeywordPartiallyWritten(code, position, absent, options: options, matchPriority: matchPriority);
+            VerifyAtEndOfFile_KeywordPartiallyWritten(code, position, absent, options: options, matchPriority: matchPriority);
         }
 
-        private Task VerifyInFrontOfCommentAsync(
+        private void VerifyInFrontOfComment(
             string text,
             int position,
             bool absent,
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             position += insertText.Length;
 
-            return CheckResultAsync(text, position, absent, options, matchPriority);
+            CheckResult(text, position, absent, options, matchPriority);
         }
 
-        private Task CheckResultAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+        private void CheckResult(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: options);
             var compilation = CSharpCompilation.Create(
@@ -67,28 +67,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             var semanticModel = compilation.GetSemanticModel(tree);
             var context = CSharpSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None);
-            return CheckResultAsync(absent, position, context, matchPriority);
+            CheckResult(absent, position, context, matchPriority);
         }
 
-        private async Task CheckResultAsync(bool absent, int position, CSharpSyntaxContext context, int? matchPriority)
+        private void CheckResult(bool absent, int position, CSharpSyntaxContext context, int? matchPriority)
         {
             if (absent)
             {
-                if (RecommendKeywordsAsync != null)
+                if (RecommendKeywords != null)
                 {
-                    var keywords = await RecommendKeywordsAsync(position, context);
+                    var keywords = RecommendKeywords(position, context);
                     Assert.True(keywords == null || !keywords.Any(), "Keywords must be null or empty.");
                 }
             }
             else
             {
-                if (RecommendKeywordsAsync == null)
+                if (RecommendKeywords == null)
                 {
                     Assert.False(true, "No recommender for: " + keywordText);
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
+                    var result = RecommendKeywords(position, context).SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        private Task VerifyInFrontOfCommentAsync(string text, int cursorPosition, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyInFrontOfCommentAsync(text, cursorPosition, absent, string.Empty, options: options, matchPriority: matchPriority);
+        private void VerifyInFrontOfComment(string text, int cursorPosition, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyInFrontOfComment(text, cursorPosition, absent, string.Empty, options: options, matchPriority: matchPriority);
 
-        private Task VerifyInFrontOfComment_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyInFrontOfCommentAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
+        private void VerifyInFrontOfComment_KeywordPartiallyWritten(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyInFrontOfComment(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
-        private Task VerifyAtPositionAsync(
+        private void VerifyAtPosition(
             string text,
             int position,
             bool absent,
@@ -117,16 +117,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             position += insertText.Length;
 
-            return CheckResultAsync(text, position, absent, options, matchPriority);
+            CheckResult(text, position, absent, options, matchPriority);
         }
 
-        private Task VerifyAtPositionAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyAtPositionAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
+        private void VerifyAtPosition(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyAtPosition(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
-        private Task VerifyAtPosition_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyAtPositionAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
+        private void VerifyAtPosition_KeywordPartiallyWritten(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyAtPosition(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
-        private async Task VerifyAtEndOfFileAsync(
+        private void VerifyAtEndOfFile(
             string text,
             int position,
             bool absent,
@@ -144,52 +144,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             position += insertText.Length;
 
-            await CheckResultAsync(text, position, absent, options, matchPriority);
+            CheckResult(text, position, absent, options, matchPriority);
         }
 
-        private Task VerifyAtEndOfFileAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyAtEndOfFileAsync(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
+        private void VerifyAtEndOfFile(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyAtEndOfFile(text, position, absent, string.Empty, options: options, matchPriority: matchPriority);
 
-        private Task VerifyAtEndOfFile_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
-            => VerifyAtEndOfFileAsync(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
+        private void VerifyAtEndOfFile_KeywordPartiallyWritten(string text, int position, bool absent, CSharpParseOptions options, int? matchPriority)
+            => VerifyAtEndOfFile(text, position, absent, keywordText.Substring(0, 1), options: options, matchPriority: matchPriority);
 
-        internal async Task VerifyKeywordAsync(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
+        internal void VerifyKeyword(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
         {
             // run the verification in both context(normal and script)
-            await VerifyWorkerAsync(text, absent: false, options: options);
-            await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? Options.Script);
+            VerifyWorker(text, absent: false, options: options);
+            VerifyWorker(text, absent: false, options: scriptOptions ?? Options.Script);
         }
 
-        protected async Task VerifyKeywordAsync(SourceCodeKind kind, string text)
+        protected void VerifyKeyword(SourceCodeKind kind, string text)
         {
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: false);
+                    VerifyWorker(text, absent: false);
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Script);
+                    VerifyWorker(text, absent: false, options: Options.Script);
                     break;
             }
         }
 
-        protected async Task VerifyAbsenceAsync(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
+        protected void VerifyAbsence(string text, CSharpParseOptions options = null, CSharpParseOptions scriptOptions = null)
         {
             // run the verification in both context(normal and script)
-            await VerifyWorkerAsync(text, absent: true, options: options);
-            await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? Options.Script);
+            VerifyWorker(text, absent: true, options: options);
+            VerifyWorker(text, absent: true, options: scriptOptions ?? Options.Script);
         }
 
-        protected async Task VerifyAbsenceAsync(SourceCodeKind kind, string text)
+        protected void VerifyAbsence(SourceCodeKind kind, string text)
         {
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: true);
+                    VerifyWorker(text, absent: true);
                     break;
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Script);
+                    VerifyWorker(text, absent: true, options: Options.Script);
                     break;
             }
         }

@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -13,38 +12,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal abstract partial class AbstractSyntacticSingleKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
+        private readonly SyntaxKind _keywordKind;
         private readonly bool _isValidInPreprocessorContext;
-
-        protected internal SyntaxKind KeywordKind { get; }
-
-        internal bool ShouldFormatOnCommit { get; }
+        private readonly bool _shouldFormatOnCommit;
 
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
             bool isValidInPreprocessorContext = false,
             bool shouldFormatOnCommit = false)
         {
-            KeywordKind = keywordKind;
+            _keywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
-            ShouldFormatOnCommit = shouldFormatOnCommit;
+            _shouldFormatOnCommit = shouldFormatOnCommit;
         }
 
-        protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => Task.FromResult(IsValidContext(position, context, cancellationToken));
+        protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
 
-        protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
-
-        public async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(
             int position,
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = await RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
+            var syntaxKind = RecommendKeyword(position, context, cancellationToken);
             if (syntaxKind.HasValue)
             {
                 return ImmutableArray.Create(
                     new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
-                        shouldFormatOnCommit: ShouldFormatOnCommit,
+                        shouldFormatOnCommit: _shouldFormatOnCommit,
                         matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
             }
 
@@ -53,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
-        private async Task<SyntaxKind?> RecommendKeywordAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private SyntaxKind? RecommendKeyword(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
@@ -63,12 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            if (!await IsValidContextAsync(position, context, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return KeywordKind;
+            return IsValidContext(position, context, cancellationToken) ? _keywordKind : null;
         }
 
         internal TestAccessor GetTestAccessor()
@@ -81,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
                 => _recommender = recommender;
 
-            internal async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
+            internal ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context)
             {
-                var syntaxKind = await _recommender.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
+                var syntaxKind = _recommender.RecommendKeyword(position, context, CancellationToken.None);
                 if (syntaxKind.HasValue)
                 {
                     var matchPriority = _recommender.ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;

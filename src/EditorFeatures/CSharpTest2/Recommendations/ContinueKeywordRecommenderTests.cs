@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
@@ -30,7 +30,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
@@ -38,7 +38,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
@@ -46,21 +46,21 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestBeforeStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$
 return true;"));
         }
@@ -68,7 +68,7 @@ return true;"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"return true;
 $$"));
         }
@@ -76,7 +76,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterBlock()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"if (true) {
 }
 $$"));
@@ -85,7 +85,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIf()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"if (true) 
     $$"));
         }
@@ -93,7 +93,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterDo()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"do 
     $$"));
         }
@@ -101,7 +101,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterWhile()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"while (true) 
     $$"));
         }
@@ -109,7 +109,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterFor()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"for (int i = 0; i < 10; i++) 
     $$"));
         }
@@ -117,7 +117,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterForeach()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"foreach (var v in bar)
     $$"));
         }
@@ -125,7 +125,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInsideLambda()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"foreach (var v in bar) {
    var d = () => {
      $$"));
@@ -134,7 +134,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestOutsideLambda()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"foreach (var v in bar) {
    var d = () => {
    };
@@ -144,7 +144,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInsideAnonymousMethod()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"foreach (var v in bar) {
    var d = delegate {
      $$"));
@@ -153,7 +153,7 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInsideSwitch()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"switch (a) {
     case 0:
       $$"));
@@ -162,14 +162,14 @@ $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterContinue()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"continue $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
+            VerifyAbsence(@"class C
 {
   $$
 }");

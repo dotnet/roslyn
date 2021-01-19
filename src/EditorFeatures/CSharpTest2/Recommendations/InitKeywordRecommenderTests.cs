@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         public async Task TestNotAtRoot_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact]
         public async Task TestNotAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
@@ -31,7 +31,7 @@ $$");
         [Fact]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
@@ -39,7 +39,7 @@ $$");
         [Fact]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
@@ -47,21 +47,21 @@ $$");
         [Fact]
         public async Task TestNotInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact]
         public async Task TestNotInEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact]
         public async Task TestAfterProperty()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { $$");
         }
@@ -69,7 +69,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { private $$");
         }
@@ -77,7 +77,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { [Bar] $$");
         }
@@ -85,7 +85,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { [Bar] private $$");
         }
@@ -93,7 +93,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyGet()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get; $$");
         }
@@ -101,7 +101,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyGetAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get; private $$");
         }
@@ -109,7 +109,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyGetAndAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get; [Bar] $$");
         }
@@ -117,7 +117,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertyGetAndAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get; [Bar] private $$");
         }
@@ -125,7 +125,7 @@ $$");
         [Fact]
         public async Task TestAfterGetAccessorBlock()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get { } $$");
         }
@@ -133,7 +133,7 @@ $$");
         [Fact]
         public async Task TestAfterSetAccessorBlock()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { set { } $$");
         }
@@ -141,7 +141,7 @@ $$");
         [Fact]
         public async Task TestAfterGetAccessorBlockAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get { } private $$");
         }
@@ -149,7 +149,7 @@ $$");
         [Fact]
         public async Task TestAfterGetAccessorBlockAndAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get { } [Bar] $$");
         }
@@ -157,7 +157,7 @@ $$");
         [Fact]
         public async Task TestAfterGetAccessorBlockAndAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { get { } [Bar] private $$");
         }
@@ -165,7 +165,7 @@ $$");
         [Fact]
         public async Task TestNotAfterPropertySetKeyword()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
    int Goo { set $$");
         }
@@ -173,7 +173,7 @@ $$");
         [Fact]
         public async Task TestAfterPropertySetAccessor()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int Goo { set; $$");
         }
@@ -181,7 +181,7 @@ $$");
         [Fact]
         public async Task TestNotInEvent()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
    event Goo E { $$");
         }
@@ -189,7 +189,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexer()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { $$");
         }
@@ -197,7 +197,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { private $$");
         }
@@ -205,7 +205,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { [Bar] $$");
         }
@@ -213,7 +213,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { [Bar] private $$");
         }
@@ -221,7 +221,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGet()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get; $$");
         }
@@ -229,7 +229,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get; private $$");
         }
@@ -237,7 +237,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetAndAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get; [Bar] $$");
         }
@@ -245,7 +245,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetAndAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get; [Bar] private $$");
         }
@@ -253,7 +253,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetBlock()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get { } $$");
         }
@@ -261,7 +261,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetBlockAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get { } private $$");
         }
@@ -269,7 +269,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetBlockAndAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get { } [Bar] $$");
         }
@@ -277,7 +277,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerGetBlockAndAttributeAndPrivate()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { get { } [Bar] private $$");
         }
@@ -285,7 +285,7 @@ $$");
         [Fact]
         public async Task TestNotAfterIndexerSetKeyword()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
    int this[int i] { set $$");
         }
@@ -293,7 +293,7 @@ $$");
         [Fact]
         public async Task TestAfterIndexerSetAccessor()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"class C {
    int this[int i] { set; $$");
         }

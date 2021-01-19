@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
@@ -30,7 +30,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
@@ -38,7 +38,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
@@ -46,21 +46,21 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeInsideClass()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     [$$");
         }
@@ -68,7 +68,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeAfterAttributeInsideClass()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     [Goo]
     [$$");
@@ -77,7 +77,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeAfterMethod()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     void Goo() {
     }
@@ -87,7 +87,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeAfterProperty()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     int Goo {
         get;
@@ -98,7 +98,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeAfterField()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     int Goo;
     [$$");
@@ -107,7 +107,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInAttributeAfterEvent()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     event Action<int> Goo;
     [$$");
@@ -116,14 +116,14 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInOuterAttribute()
         {
-            await VerifyKeywordAsync(
+            VerifyKeyword(
 @"[$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInOuterAttributeInNamespace()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"namespace Goo {
      [$$");
         }
@@ -131,7 +131,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInParameterAttribute()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     void Goo([$$");
         }
@@ -139,7 +139,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInPropertyAttribute()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     int Goo { [$$");
         }
@@ -147,7 +147,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEventAttribute()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     event Action<int> Goo { [$$");
         }
@@ -155,21 +155,21 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInClassModuleParameters()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C<[$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInDelegateModuleParameters()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"delegate void D<[$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInMethodModuleParameters()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"class C {
     void M<[$$");
         }
@@ -177,7 +177,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInInterface()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"interface I {
     [$$");
         }
@@ -185,7 +185,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStruct()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"struct S {
     [$$");
         }
@@ -193,7 +193,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEnum()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"enum E {
     [$$");
         }

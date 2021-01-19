@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeContext()
         {
-            await VerifyAbsenceAsync(@"
+            VerifyAbsence(@"
 class Program
 {
     $$
@@ -27,7 +27,7 @@ class Program
         [CombinatorialData]
         public async Task TestStatementInMethod(bool isAsync, bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"$$", isAsync: isAsync, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -35,7 +35,7 @@ class Program
         [CombinatorialData]
         public async Task TestExpressionInAsyncMethod(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"var z = $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -43,19 +43,19 @@ class Program
         [CombinatorialData]
         public async Task TestUsingStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"using $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestUsingDirective()
-            => await VerifyAbsenceAsync("using $$");
+            => VerifyAbsence("using $$");
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestForeachStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"foreach $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -63,7 +63,7 @@ class Program
         [CombinatorialData]
         public async Task TestNotInQuery(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"var z = from a in ""char""
           select $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -73,7 +73,7 @@ class Program
         [CombinatorialData]
         public async Task TestInFinally(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"try { }
 finally { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -83,7 +83,7 @@ finally { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: 
         [CombinatorialData]
         public async Task TestInCatch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"try { }
 catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -92,7 +92,7 @@ catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CS
         [CombinatorialData]
         public async Task TestNotInLock(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"lock(this) { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -100,7 +100,7 @@ catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CS
         [CombinatorialData]
         public async Task TestInAsyncLambdaInCatch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"try { }
 catch { var z = async () => $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -109,7 +109,7 @@ catch { var z = async () => $$ }", isAsync: true, topLevelStatement: topLevelSta
         [CombinatorialData]
         public async Task TestAwaitInLock(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"lock($$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }

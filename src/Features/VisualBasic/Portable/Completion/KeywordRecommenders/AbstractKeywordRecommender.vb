@@ -8,19 +8,18 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
-
     Friend MustInherit Class AbstractKeywordRecommender
         Implements IKeywordRecommender(Of VisualBasicSyntaxContext)
 
-        Public Function RecommendKeywordsAsync(
+        Public Function RecommendKeywords(
             position As Integer,
             context As VisualBasicSyntaxContext,
-            cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of RecommendedKeyword)) Implements IKeywordRecommender(Of VisualBasicSyntaxContext).RecommendKeywordsAsync
+            cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword) Implements IKeywordRecommender(Of VisualBasicSyntaxContext).RecommendKeywords
 
-            Return Task.FromResult(RecommendKeywords(context, cancellationToken))
+            Return RecommendKeywords(context, cancellationToken)
         End Function
 
-        Friend Function RecommendKeywords_Test(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
+        Friend Function RecommendKeywords_Test(context As VisualBasicSyntaxContext) As ImmutableArray(Of RecommendedKeyword)
             Return RecommendKeywords(context, CancellationToken.None)
         End Function
 

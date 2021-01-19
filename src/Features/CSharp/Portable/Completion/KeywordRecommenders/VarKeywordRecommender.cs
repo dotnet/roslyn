@@ -4,10 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -30,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return context.IsLocalVariableDeclarationContext;
         }
 
-        public Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return IsValidContext(context)
-                ? Task.FromResult(ImmutableArray.Create(new RecommendedKeyword("var")))
-                : SpecializedTasks.EmptyImmutableArray<RecommendedKeyword>();
+                ? ImmutableArray.Create(new RecommendedKeyword("var"))
+                : ImmutableArray<RecommendedKeyword>.Empty;
         }
     }
 }

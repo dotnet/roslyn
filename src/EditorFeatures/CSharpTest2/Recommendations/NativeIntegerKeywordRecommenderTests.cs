@@ -18,29 +18,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         public NativeIntegerKeywordRecommenderTests()
         {
-            RecommendKeywordsAsync = (position, context) => _recommender.RecommendKeywordsAsync(position, context, CancellationToken.None);
+            RecommendKeywords = (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
         }
 
         private async Task VerifyKeywordAsync(string text)
         {
             _recommender = new NintKeywordRecommender();
             keywordText = "nint";
-            await base.VerifyKeywordAsync(text);
+            base.VerifyKeyword(text);
 
             _recommender = new NuintKeywordRecommender();
             keywordText = "nuint";
-            await base.VerifyKeywordAsync(text);
+            base.VerifyKeyword(text);
         }
 
         private async Task VerifyAbsenceAsync(string text)
         {
             _recommender = new NintKeywordRecommender();
             keywordText = "nint";
-            await base.VerifyAbsenceAsync(text);
+            base.VerifyAbsence(text);
 
             _recommender = new NintKeywordRecommender();
             keywordText = "nuint";
-            await base.VerifyAbsenceAsync(text);
+            base.VerifyAbsence(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

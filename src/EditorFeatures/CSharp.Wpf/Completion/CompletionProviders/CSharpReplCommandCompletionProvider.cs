@@ -74,10 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
-        protected override async Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
-        {
-            return await tree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(false) &&
-                   tree.IsPreProcessorKeywordContext(position, cancellationToken);
-        }
+        protected override Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            => Task.FromResult(
+                tree.IsBeforeFirstToken(position, cancellationToken) &&
+                tree.IsPreProcessorKeywordContext(position, cancellationToken));
     }
 }

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAtRoot()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"$$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass_Interactive()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+            VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
@@ -30,7 +30,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalStatement()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"System.Console.WriteLine();
 $$", options: CSharp9ParseOptions);
         }
@@ -38,7 +38,7 @@ $$", options: CSharp9ParseOptions);
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterGlobalVariableDeclaration()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"int i = 0;
 $$", options: CSharp9ParseOptions);
         }
@@ -46,7 +46,7 @@ $$", options: CSharp9ParseOptions);
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsingAlias()
         {
-            await VerifyAbsenceAsync(
+            VerifyAbsence(
 @"using Goo = $$");
         }
 
@@ -54,7 +54,7 @@ $$", options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -62,7 +62,7 @@ $$", options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestBeforeStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"$$
 return true;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -71,7 +71,7 @@ return true;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptio
         [CombinatorialData]
         public async Task TestAfterStatement(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"return true;
 $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -80,7 +80,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterBlock(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"if (true) {
 }
 $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -90,7 +90,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterIf(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"if (true) 
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -99,7 +99,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterDo(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"do 
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -108,7 +108,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterWhile(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"while (true) 
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -117,7 +117,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterFor(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"for (int i = 0; i < 10; i++) 
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -126,7 +126,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterForeach(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"foreach (var v in bar)
     $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -135,7 +135,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestNotInsideLambda(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"foreach (var v in bar) {
    var d = () => {
      $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -145,7 +145,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestNotInsideAnonymousMethod(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"foreach (var v in bar) {
    var d = delegate {
      $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -155,7 +155,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestInsideSwitch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"switch (a) {
     case 0:
        $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -165,7 +165,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestNotInsideSwitchWithLambda(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"switch (a) {
     case 0:
       var d = () => {
@@ -176,7 +176,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestInsideSwitchOutsideLambda(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"switch (a) {
     case 0:
       var d = () => {
@@ -188,14 +188,14 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestNotAfterBreak(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            VerifyAbsence(AddInsideMethod(
 @"break $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInClass()
         {
-            await VerifyAbsenceAsync(@"class C
+            VerifyAbsence(@"class C
 {
   $$
 }");
@@ -205,7 +205,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterYield(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"yield $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
@@ -213,7 +213,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterSwitchInSwitch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"switch (expr) {
     default:
       switch (expr) {
@@ -225,7 +225,7 @@ $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         [CombinatorialData]
         public async Task TestAfterBlockInSwitch(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            VerifyKeyword(AddInsideMethod(
 @"switch (expr) {
     default:
       {

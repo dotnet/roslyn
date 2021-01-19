@@ -4,12 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IKeywordRecommender<TContext>
     {
-        Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(int position, TContext context, CancellationToken cancellationToken);
+        ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, TContext context, CancellationToken cancellationToken);
     }
 }

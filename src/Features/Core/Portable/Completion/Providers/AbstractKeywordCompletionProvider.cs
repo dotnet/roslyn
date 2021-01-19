@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using var _1 = ArrayBuilder<Task<ImmutableArray<RecommendedKeyword>>>.GetInstance(out var tasks);
             foreach (var recommender in _keywordRecommenders)
-                tasks.Add(Task.Run(() => recommender.RecommendKeywordsAsync(position, context, cancellationToken), cancellationToken));
+                tasks.Add(Task.Run(() => recommender.RecommendKeywords(position, context, cancellationToken), cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
