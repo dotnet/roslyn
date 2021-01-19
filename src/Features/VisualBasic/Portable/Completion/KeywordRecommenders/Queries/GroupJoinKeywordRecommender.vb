@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class GroupJoinKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAdditionalJoinOperatorContext(cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Group Join", VBFeaturesResources.Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_is_based_on_matching_keys))
+                Return ImmutableArray.Create(New RecommendedKeyword("Group Join", VBFeaturesResources.Combines_the_elements_of_two_sequences_and_groups_the_results_The_join_operation_is_based_on_matching_keys))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

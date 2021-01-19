@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class StopKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsSingleLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Stop", VBFeaturesResources.Suspends_program_execution))
+                Return ImmutableArray.Create(New RecommendedKeyword("Stop", VBFeaturesResources.Suspends_program_execution))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

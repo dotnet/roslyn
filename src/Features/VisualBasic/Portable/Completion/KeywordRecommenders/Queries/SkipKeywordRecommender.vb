@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class SkipKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Skip", VBFeaturesResources.Skips_elements_up_to_a_specified_position_in_the_collection))
+                Return ImmutableArray.Create(New RecommendedKeyword("Skip", VBFeaturesResources.Skips_elements_up_to_a_specified_position_in_the_collection))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

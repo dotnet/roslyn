@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class LambdaKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext OrElse context.IsDelegateCreationContext() Then
                 Return {New RecommendedKeyword("Async", VBFeaturesResources.Defines_an_asynchronous_lambda_expression_that_can_use_the_Await_operator_Can_be_used_wherever_a_delegate_type_is_expected_Async_Sub_Function_parameterList_expression),
                         New RecommendedKeyword("Function", VBFeaturesResources.Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression),

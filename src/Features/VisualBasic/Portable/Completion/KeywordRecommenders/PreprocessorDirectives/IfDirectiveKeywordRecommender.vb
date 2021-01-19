@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
     Friend Class IfDirectiveKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsPreprocessorStartContext AndAlso Not context.SyntaxTree.IsEnumMemberNameContext(context) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#If", VBFeaturesResources.Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression))
+                Return ImmutableArray.Create(New RecommendedKeyword("#If", VBFeaturesResources.Conditionally_compiles_selected_blocks_of_code_depending_on_the_value_of_an_expression))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class OverloadableOperatorRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             ' If we have a Widening or Narrowing declaration, then we must be a CType operator
             If modifierFacts.NarrowingOrWideningKeyword.Kind <> SyntaxKind.None Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
+                Return ImmutableArray.Create(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
             Else
                 ' We could just be a normal name, so we list all possible options here. Dev10 allows you to type
                 ' "Operator Narrowing", so we also list the Narrowing/Widening options as well.

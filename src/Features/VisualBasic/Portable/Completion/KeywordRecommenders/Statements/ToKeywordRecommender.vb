@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class ToKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
@@ -24,11 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             If context.SyntaxTree.IsFollowingCompleteExpression(Of SimpleCaseClauseSyntax)(context.Position, context.TargetToken, Function(c) c.Value, cancellationToken) OrElse
                context.SyntaxTree.IsFollowingCompleteExpression(Of RangeCaseClauseSyntax)(context.Position, context.TargetToken, Function(c) c.LowerBound, cancellationToken) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
+                Return ImmutableArray.Create(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
             End If
 
             If context.SyntaxTree.IsFollowingCompleteExpression(Of ForStatementSyntax)(context.Position, context.TargetToken, Function(forStatement) forStatement.FromValue, cancellationToken) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
+                Return ImmutableArray.Create(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

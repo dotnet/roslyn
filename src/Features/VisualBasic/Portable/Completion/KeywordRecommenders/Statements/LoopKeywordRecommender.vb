@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class LoopKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
             If context.IsSingleLineStatementContext Then
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 End If
 
                 If doBlock.Kind <> SyntaxKind.SimpleDoLoopBlock Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Loop", VBFeaturesResources.Terminates_a_loop_that_is_introduced_with_a_Do_statement))
+                    Return ImmutableArray.Create(New RecommendedKeyword("Loop", VBFeaturesResources.Terminates_a_loop_that_is_introduced_with_a_Do_statement))
                 Else
                     Return {New RecommendedKeyword("Loop", VBFeaturesResources.Terminates_a_loop_that_is_introduced_with_a_Do_statement),
                             New RecommendedKeyword("Loop Until", VBFeaturesResources.Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition),

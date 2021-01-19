@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Statements
     ''' <summary>
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class CaseKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
             ' Are we after "Select" for "Select Case"?
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                Not targetToken.Parent.IsKind(SyntaxKind.SelectClause) AndAlso
                Not context.FollowsEndOfStatement Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Case", VBFeaturesResources.Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression2_bracket_Is_bracket_comparisonOperator_expression))
+                Return ImmutableArray.Create(New RecommendedKeyword("Case", VBFeaturesResources.Introduces_a_value_or_set_of_values_against_which_the_value_of_an_expression_in_a_Select_Case_statement_is_to_be_tested_Case_expression_expression1_To_expression2_bracket_Is_bracket_comparisonOperator_expression))
             End If
 
             ' A "Case" keyword must be in a Select block, and exists either where a regular executable statement can go

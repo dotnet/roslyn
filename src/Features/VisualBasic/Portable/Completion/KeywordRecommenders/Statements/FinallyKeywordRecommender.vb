@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class FinallyKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If Not context.IsMultiLineStatementContext Then
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                Not IsInCatchOfTry(targetToken, tryBlock) Then
 
                 If tryBlock.CatchBlocks.Count = 0 Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
+                    Return ImmutableArray.Create(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
                 End If
             ElseIf IsInCatchOfTry(targetToken, tryBlock) Then
                 If TextSpan.FromBounds(tryBlock.CatchBlocks.Last().SpanStart, tryBlock.EndTryStatement.SpanStart).Contains(context.Position) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
+                    Return ImmutableArray.Create(New RecommendedKeyword("Finally", VBFeaturesResources.Introduces_a_statement_block_to_be_run_before_exiting_a_Try_structure))
                 End If
             End If
 

@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class GlobalKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
             If context.IsNamespaceContext AndAlso Not context.IsInImportsDirective Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Global"))
+                Return ImmutableArray.Create(New RecommendedKeyword("Global"))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

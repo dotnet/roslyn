@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class ForKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
                 Return {New RecommendedKeyword("For", VBFeaturesResources.Introduces_a_loop_that_is_iterated_a_specified_number_of_times),
                         New RecommendedKeyword("For Each", VBFeaturesResources.Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection)}
@@ -30,9 +30,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
                 If targetToken.IsKind(SyntaxKind.ExitKeyword) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("For", VBFeaturesResources.Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_the_Next_statement))
+                    Return ImmutableArray.Create(New RecommendedKeyword("For", VBFeaturesResources.Exits_a_For_loop_and_transfers_execution_immediately_to_the_statement_following_the_Next_statement))
                 Else
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("For", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop))
+                    Return ImmutableArray.Create(New RecommendedKeyword("For", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_For_loop))
                 End If
             End If
 

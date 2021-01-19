@@ -13,18 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
     Friend Class EndRegionDirectiveKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsPreprocessorEndDirectiveKeywordContext AndAlso
                HasUnmatchedRegionDirective(context, cancellationToken) Then
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
+                Return ImmutableArray.Create(New RecommendedKeyword("Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
             End If
 
             If context.IsPreprocessorStartContext Then
                 Dim directives = context.SyntaxTree.GetStartDirectives(cancellationToken)
 
                 If HasUnmatchedRegionDirective(context, cancellationToken) Then
-                    Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#End Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
+                    Return ImmutableArray.Create(New RecommendedKeyword("#End Region", VBFeaturesResources.Terminates_a_SharpRegion_block))
                 End If
             End If
 

@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
     Friend Class RegionDirectiveKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsPreprocessorStartContext AndAlso Not context.SyntaxTree.IsEnumMemberNameContext(context) Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("#Region", VBFeaturesResources.Collapses_and_hides_sections_of_code_in_Visual_Basic_files))
+                Return ImmutableArray.Create(New RecommendedKeyword("#Region", VBFeaturesResources.Collapses_and_hides_sections_of_code_in_Visual_Basic_files))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

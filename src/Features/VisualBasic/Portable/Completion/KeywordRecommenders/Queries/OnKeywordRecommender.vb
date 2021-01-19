@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class OnKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.SyntaxTree.IsFollowingCompleteExpression(Of JoinClauseSyntax)(context.Position, context.TargetToken, Function(joinQuery) joinQuery.JoinedVariables.LastCollectionExpression, cancellationToken) OrElse
                context.SyntaxTree.IsFollowingCompleteExpression(Of JoinConditionSyntax)(context.Position, context.TargetToken, Function(joinCondition) joinCondition.Right, cancellationToken) Then
                 Dim token = context.TargetToken.GetPreviousToken()
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                 ' it if the parser has already placed this On in the tree.
                 For Each joinClause In token.GetAncestors(Of JoinClauseSyntax)()
                     If joinClause.OnKeyword.IsMissing OrElse joinClause.OnKeyword = token Then
-                        Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("On", VBFeaturesResources.Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation))
+                        Return ImmutableArray.Create(New RecommendedKeyword("On", VBFeaturesResources.Specifies_the_element_keys_used_to_correlate_sequences_for_a_join_operation))
                     End If
                 Next
             End If

@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
     Friend Class ErrorKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
             If targetToken.IsKind(SyntaxKind.OnKeyword) AndAlso IsOnErrorStatement(targetToken.Parent) Then
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             ' The Error statement (i.e. "Error 11" to raise an error)
             If context.IsMultiLineStatementContext OrElse context.IsSingleLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Error",
+                Return ImmutableArray.Create(New RecommendedKeyword("Error",
                                                                                          VBFeaturesResources.Simulates_the_occurrence_of_an_error))
             End If
 

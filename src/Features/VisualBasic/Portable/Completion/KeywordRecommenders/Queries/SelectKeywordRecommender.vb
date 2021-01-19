@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class SelectKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Select", VBFeaturesResources.Specifies_which_columns_to_include_in_the_result_of_a_query))
+                Return ImmutableArray.Create(New RecommendedKeyword("Select", VBFeaturesResources.Specifies_which_columns_to_include_in_the_result_of_a_query))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

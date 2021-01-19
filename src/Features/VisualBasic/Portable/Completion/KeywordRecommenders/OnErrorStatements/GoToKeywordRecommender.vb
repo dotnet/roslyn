@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
     Friend Class GoToKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
             Dim targetToken = context.TargetToken
 
             If targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("GoTo",
+                Return ImmutableArray.Create(New RecommendedKeyword("GoTo",
                                                                                          VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
