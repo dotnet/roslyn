@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -60,10 +61,11 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             IThreadingContext threadingContext,
             Workspace workspace,
             string title,
-            ImmutableArray<DefinitionItem> items)
+            ImmutableArray<DefinitionItem> items,
+            CancellationToken cancellationToken)
         {
             // Can only navigate or present items on UI thread.
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ignore any definitions that we can't navigate to.
             var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
