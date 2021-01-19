@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _cancellationToken = cancellationToken;
             }
 
-            internal static async Task<ItemGetter> CreateAsync(
+            public static async Task<ItemGetter> CreateAsync(
                 AbstractOverrideCompletionProvider overrideCompletionProvider,
                 Document document,
                 int position,
