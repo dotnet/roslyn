@@ -826,7 +826,7 @@ class C1
                 var project = solution.Projects.First();
                 var comp = await project.GetCompilationAsync();
                 Assert.Equal("ReproApp", comp.AssemblyName);
-                var expectedOutputPath = GetParentDirOfParentDirOfContainingDir(project.FilePath);
+                var expectedOutputPath = Path.GetDirectoryName(project.FilePath);
                 Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
             }
         }
