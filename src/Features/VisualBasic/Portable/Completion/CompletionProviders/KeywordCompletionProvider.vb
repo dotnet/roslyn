@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New(GetKeywordRecommenders())
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
         Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
@@ -190,10 +190,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Statements.YieldKeywordRecommender(),
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()
             }.ToImmutableArray()
-        End Function
-
-        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
-            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
         End Function
     End Class
 End Namespace

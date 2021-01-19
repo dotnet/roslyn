@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override bool IsInstrinsic(ISymbol s)
             => s is ITypeSymbol ts && ts.IsIntrinsicType();
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return ShouldTriggerInArgumentLists(text, options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
             => Workspace.TryGetWorkspace(text.Container, out var workspace) &&

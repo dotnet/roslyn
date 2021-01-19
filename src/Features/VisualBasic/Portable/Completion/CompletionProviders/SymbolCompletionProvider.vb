@@ -70,11 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
         Protected Overrides Function IsTriggerOnDot(token As SyntaxToken, characterPositoin As Integer) As Boolean
             If token.Kind() <> SyntaxKind.DotToken Then

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Tags;
@@ -62,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var contextService = document.GetRequiredLanguageService<ISyntaxContextService>();
             var syntaxContext = (TContext)contextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
-            return keywords?.Select(k => CreateItem(k, syntaxContext));
+            return keywords.NullToEmpty().SelectAsArray(k => CreateItem(k, syntaxContext));
         }
 
         protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(WellKnownTags.Intrinsic);
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context);
 
-        private async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
+        private async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
             int position,
             TContext context,
@@ -86,28 +87,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
-            {
-                return null;
-            }
+                return default;
 
-            var set = new HashSet<RecommendedKeyword>();
+            using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var set);
             foreach (var recommender in _keywordRecommenders)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var keywords = await recommender.RecommendKeywordsAsync(position, context, cancellationToken).ConfigureAwait(false);
                 if (keywords != null)
-                {
                     set.AddRange(keywords);
-                }
             }
 
-            return set;
+            set.RemoveDuplicates();
+            return set.ToImmutable();
         }
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
             => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
-
-        internal abstract TextSpan GetCurrentSpan(TextSpan span, SourceText text);
     }
 }

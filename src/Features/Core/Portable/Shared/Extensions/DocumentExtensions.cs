@@ -65,11 +65,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
+            Func<Document, CancellationToken, Task<ImmutableArray<T>>> getItemsWorker,
             CancellationToken cancellationToken)
         {
             var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<T>();
+            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false);
+            itemsForCurrentContext = itemsForCurrentContext.NullToEmpty();
             if (!linkedDocumentIds.Any())
             {
                 return itemsForCurrentContext;

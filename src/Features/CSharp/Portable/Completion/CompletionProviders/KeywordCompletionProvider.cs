@@ -180,10 +180,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }.ToImmutableArray();
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
@@ -200,8 +200,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: rules.WithMatchPriority(keyword.MatchPriority)
                             .WithFormatOnCommit(keyword.ShouldFormatOnCommit));
         }
-
-        internal override TextSpan GetCurrentSpan(TextSpan span, SourceText text)
-            => CompletionUtilities.GetCompletionItemSpan(text, span.End);
     }
 }

@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
