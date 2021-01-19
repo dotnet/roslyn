@@ -68,19 +68,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Func<Document, Task<ImmutableArray<T>>> getItemsWorker,
             CancellationToken cancellationToken)
         {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document).ConfigureAwait(false);
-            if (linkedDocumentIds.IsEmpty)
-                return itemsForCurrentContext.NullToEmpty();
-
-            var solution = document.Project.Solution;
             using var _ = ArrayBuilder<Task<ImmutableArray<T>>>.GetInstance(out var tasks);
-            foreach (var linkedDocumentId in linkedDocumentIds)
-                tasks.Add(Task.Run(() => getItemsWorker(solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
+            tasks.Add(Task.Run(() => getItemsWorker(document), cancellationToken));
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+                tasks.Add(Task.Run(() => getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            var totalItems = itemsForCurrentContext.NullToEmpty().ToSet(comparer);
+            var totalItems = new HashSet<T>(comparer);
             foreach (var task in tasks)
             {
                 var items = await task.ConfigureAwait(false);
