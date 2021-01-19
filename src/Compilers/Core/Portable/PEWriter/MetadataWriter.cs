@@ -1787,6 +1787,19 @@ namespace Microsoft.Cci
 
             if (_debugMetadataOpt != null)
             {
+                // Ensure document table lists files in command line order
+                var documentsBuilder = Module.DebugDocumentsBuilder;
+                var documents = documentsBuilder.DebugDocuments;
+                foreach (var tree in Module.CommonCompilation.SyntaxTrees)
+                {
+                    string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
+                    if (documents.TryGetValue(normalizedPath, out var doc) && !_documentIndex.ContainsKey(doc))
+                    {
+                        AddDocument(doc, _documentIndex);
+                    }
+                }
+
+
                 DefineModuleImportScope();
 
                 if (module.SourceLinkStreamOpt != null)
