@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (entry.Identity is ISupportsNavigation supportsNavigation)
                 {
-                    // TODO: Use a TWD here so we can cancel navigation.
+                    // TODO: Use a Threaded-Wait Dialog here so we can cancel navigation.
                     if (supportsNavigation.TryNavigateTo(e.IsPreview, CancellationToken.None))
                     {
                         e.Handled = true;
