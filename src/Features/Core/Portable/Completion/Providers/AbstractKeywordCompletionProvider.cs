@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
+        where TContext : SyntaxContext
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
@@ -23,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => _keywordRecommenders = keywordRecommenders;
 
         protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context, CancellationToken cancellationToken);
-        protected abstract Task<TContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
         private static readonly Comparer s_comparer = new();
 
@@ -48,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxContext = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = (TContext)await syntaxContextService.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result.ToImmutable();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+        public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
             => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
 
         private class Comparer : IEqualityComparer<CompletionItem>
