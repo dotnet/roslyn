@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentId, textSpan);
+            return service.CanNavigateToSpan(workspace, documentId, textSpan, CancellationToken.None);
         }
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset);
+            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, CancellationToken.None);
         }
 
         /// <summary>
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace);
+            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace, CancellationToken.None);
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentId, textSpan, options);
+            return service.TryNavigateToSpan(workspace, documentId, textSpan, options, CancellationToken.None);
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options);
+            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options, CancellationToken.None);
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options);
+            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, CancellationToken.None);
         }
     }
 }

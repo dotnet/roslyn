@@ -126,7 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
-                        sourceLocation.StartPosition.Character);
+                        sourceLocation.StartPosition.Character,
+                        CancellationToken.None);
                 }
             }
         }

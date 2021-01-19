@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ignore any definitions that we can't navigate to.
-            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
+            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace, cancellationToken));
 
             // See if there's a third party external item we can navigate to.  If so, defer 
             // to that item and finish.
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (item.TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true))
+                if (item.TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken))
                 {
                     return true;
                 }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return nonExternalItems[0].TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true);
+                return nonExternalItems[0].TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken);
             }
 
             if (presenter != null)

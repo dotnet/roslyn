@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     if (generatedDocument != null)
                     {
-                        _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument));
+                        _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument), cancellationToken);
                         return true;
                     }
                 }
