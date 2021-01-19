@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(
+        private static async Task<ImmutableArray<CompletionItem>> GetSnippetsForDocumentAsync(
             Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
                 syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
@@ -138,20 +138,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        private static async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
+        private static async Task<ImmutableArray<CompletionItem>> GetSnippetCompletionItemsAsync(
             Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
+                return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
             if (isPreProcessorContext)
@@ -160,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            return snippets.Select(snippet =>
+            return snippets.SelectAsArray(snippet =>
             {
                 var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
                 rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
@@ -172,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
                                 glyph: Glyph.Snippet,
                                 rules: rules);
-            }).ToImmutableArray();
+            });
         }
     }
 }

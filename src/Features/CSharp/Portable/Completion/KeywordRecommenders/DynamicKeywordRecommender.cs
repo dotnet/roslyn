@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -27,14 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return IsDynamicTypeContext(position, context, cancellationToken);
         }
 
-        public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (IsValidContext(position, context, cancellationToken))
-            {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("dynamic")));
-            }
-
-            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
+            return IsValidContext(position, context, cancellationToken)
+                ? Task.FromResult(ImmutableArray.Create(new RecommendedKeyword("dynamic")))
+                : SpecializedTasks.EmptyImmutableArray<RecommendedKeyword>();
         }
 
         protected static bool IsDynamicTypeContext(

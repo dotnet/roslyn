@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Completion
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Tags
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(KeywordCompletionProvider), LanguageNames.VisualBasic)>
@@ -18,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <[Shared]>
     Friend Class KeywordCompletionProvider
         Inherits AbstractKeywordCompletionProvider(Of VisualBasicSyntaxContext)
+
+        Private Shared ReadOnly s_Tags As ImmutableArray(Of String) = ImmutableArray.Create(WellKnownTags.Intrinsic)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

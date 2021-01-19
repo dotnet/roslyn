@@ -4,13 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -43,24 +42,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cancellationToken).ConfigureAwait(false);
 
                 foreach (var completionItem in completionItems)
-                {
                     context.AddItem(completionItem);
-                }
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxContext = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
-            return keywords?.Select(k => CreateItem(k, syntaxContext, cancellationToken));
+            return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }
 
-        protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(WellKnownTags.Intrinsic);
-
-        protected static CompletionItemRules s_keywordRules = CompletionItemRules.Default;
-
-        protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
+        private async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
             int position,
             TContext context,
@@ -69,23 +62,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
-            {
-                return null;
-            }
+                return ImmutableArray<RecommendedKeyword>.Empty;
 
-            var set = new HashSet<RecommendedKeyword>();
+            using var _1 = ArrayBuilder<Task<ImmutableArray<RecommendedKeyword>>>.GetInstance(out var tasks);
             foreach (var recommender in _keywordRecommenders)
+                tasks.Add(Task.Run(() => recommender.RecommendKeywordsAsync(position, context, cancellationToken), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
+            foreach (var task in tasks)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var keywords = await recommender.RecommendKeywordsAsync(position, context, cancellationToken).ConfigureAwait(false);
-                if (keywords != null)
-                {
-                    set.AddRange(keywords);
-                }
+                result.AddRange(await task.ConfigureAwait(false));
             }
 
-            return set;
+            result.RemoveDuplicates();
+            return result.ToImmutable();
         }
 
         public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
