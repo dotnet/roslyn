@@ -44,22 +44,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var completionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    (doc, ct) => RecommendCompletionItemsAsync(doc, position, ct),
-                    cancellationToken).ConfigureAwait(false);
-
-                foreach (var completionItem in completionItems)
-                {
-                    context.AddItem(completionItem);
-                }
+                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken),
+                    cancellationToken).ConfigureAwait(false));
             }
         }
 

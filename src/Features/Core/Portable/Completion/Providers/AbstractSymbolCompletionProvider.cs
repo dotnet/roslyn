@@ -345,16 +345,30 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>> GetPerContextSymbolsAsync(
             CompletionContext completionContext, Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>.GetInstance(out var perContextSymbols);
+            var solution = document.Project.Solution;
+
+            using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>>.GetInstance(out var tasks);
+            using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>.GetInstance(out var perContextSymbols);
+
             foreach (var relatedDocumentId in relatedDocuments)
             {
-                var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedDocumentId);
-                var syntaxContext = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
-                var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
+                tasks.Add(Task.Run(async () =>
+                {
+                    var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                    var syntaxContext = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                    var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
 
-                // Only consider contexts that are in active region
-                if (symbols.HasValue)
-                    perContextSymbols.Add((relatedDocument.Id, syntaxContext, symbols.Value));
+                    return (relatedDocument.Id, syntaxContext, symbols);
+                }, cancellationToken));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            foreach (var task in tasks)
+            {
+                var (relatedDocumentId, syntaxContext, symbols) = await task.ConfigureAwait(false);
+                if (!symbols.IsDefault)
+                    perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
             }
 
             return perContextSymbols.ToImmutable();
@@ -363,12 +377,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// If current context is in active region, returns available symbols. Otherwise, returns null.
         /// </summary>
-        protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>?> TryGetSymbolsForContextAsync(
+        protected async Task<ImmutableArray<(ISymbol symbol, bool preselect)>> TryGetSymbolsForContextAsync(
             CompletionContext? completionContext, TSyntaxContext syntaxContext, OptionSet options, CancellationToken cancellationToken)
         {
             var syntaxFacts = syntaxContext.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)
-                ? null
+                ? default
                 : await GetSymbolsAsync(completionContext, syntaxContext, syntaxContext.Position, options, cancellationToken).ConfigureAwait(false);
         }
 

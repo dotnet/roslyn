@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var context = await CreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
                 var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
 
-                if (symbols.HasValue)
+                if (!symbols.IsDefault)
                 {
-                    var bestSymbols = symbols.Value.WhereAsArray(s => SymbolMatches(s, name, kind, isGeneric));
+                    var bestSymbols = symbols.WhereAsArray(s => SymbolMatches(s, name, kind, isGeneric));
 
                     if (bestSymbols.Any())
                     {

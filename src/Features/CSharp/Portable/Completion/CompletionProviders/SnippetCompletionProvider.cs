@@ -65,12 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return;
                     }
 
-                    var snippetCompletionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                    context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                         UnionCompletionItemComparer.Instance,
-                        (d, c) => GetSnippetsForDocumentAsync(d, position, workspace, c),
-                        cancellationToken).ConfigureAwait(false);
-
-                    context.AddItems(snippetCompletionItems);
+                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken),
+                        cancellationToken).ConfigureAwait(false));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static async Task<ImmutableArray<CompletionItem>> GetSnippetsForDocumentAsync(
-            Document document, int position, Workspace workspace, CancellationToken cancellationToken)
+            Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -115,8 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         SyntaxKind.WarningKeyword))
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                    return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: true,
-                            isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return await GetSnippetCompletionItemsAsync(
+                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: true,
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
             else
@@ -133,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
-                    return await GetSnippetCompletionItemsAsync(workspace, semanticModel, isPreProcessorContext: false,
+                    return await GetSnippetCompletionItemsAsync(
+                        document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: false,
                         isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }

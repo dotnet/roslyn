@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -62,32 +62,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
+        public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<ImmutableArray<T>>> getItemsWorker,
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker,
             CancellationToken cancellationToken)
         {
             var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false);
-            itemsForCurrentContext = itemsForCurrentContext.NullToEmpty();
-            if (!linkedDocumentIds.Any())
-            {
-                return itemsForCurrentContext;
-            }
+            var itemsForCurrentContext = await getItemsWorker(document).ConfigureAwait(false);
+            if (linkedDocumentIds.IsEmpty)
+                return itemsForCurrentContext.NullToEmpty();
 
-            var totalItems = itemsForCurrentContext.ToSet(comparer);
+            var solution = document.Project.Solution;
+            using var _ = ArrayBuilder<Task<ImmutableArray<T>>>.GetInstance(out var tasks);
             foreach (var linkedDocumentId in linkedDocumentIds)
+                tasks.Add(Task.Run(() => getItemsWorker(solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var totalItems = itemsForCurrentContext.NullToEmpty().ToSet(comparer);
+            foreach (var task in tasks)
             {
-                var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                {
-                    totalItems.AddRange(items);
-                }
+                var items = await task.ConfigureAwait(false);
+                totalItems.AddRange(items.NullToEmpty());
             }
 
-            return totalItems;
+            return totalItems.ToImmutableArray();
         }
 
         public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
