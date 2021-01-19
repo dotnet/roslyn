@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 End If
             End If
 
-            Return recommendations
+            Return recommendations.ToImmutableArray()
         End Function
     End Class
 End Namespace

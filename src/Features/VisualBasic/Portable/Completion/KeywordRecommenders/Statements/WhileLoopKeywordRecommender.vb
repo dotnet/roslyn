@@ -30,11 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                context.IsInStatementBlockOfKind(SyntaxKind.WhileBlock) AndAlso
                Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
 
-                Return SpecializedCollections.SingletonEnumerable(
-                            New RecommendedKeyword("While",
-                                                   If(targetToken.IsKind(SyntaxKind.ExitKeyword),
-                                                                    VBFeaturesResources.Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement,
-                                                                    VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop)))
+                Return ImmutableArray.Create(New RecommendedKeyword("While",
+                    If(targetToken.IsKind(SyntaxKind.ExitKeyword),
+                       VBFeaturesResources.Exits_a_While_loop_and_transfers_execution_immediately_to_the_statement_following_the_End_While_statement,
+                       VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_While_loop)))
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

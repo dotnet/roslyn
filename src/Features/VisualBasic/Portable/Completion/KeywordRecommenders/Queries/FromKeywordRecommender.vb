@@ -16,8 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext OrElse context.IsQueryOperatorContext Then
-                Return SpecializedCollections.SingletonEnumerable(
-                    New RecommendedKeyword("From", VBFeaturesResources.Specifies_a_collection_and_a_range_variable_to_use_in_a_query))
+                Return ImmutableArray.Create(New RecommendedKeyword("From", VBFeaturesResources.Specifies_a_collection_and_a_range_variable_to_use_in_a_query))
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

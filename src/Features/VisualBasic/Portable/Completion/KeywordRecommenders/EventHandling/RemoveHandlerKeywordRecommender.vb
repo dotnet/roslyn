@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsSingleLineStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.RemoveHandlerAccessorBlock) Then
-                Return SpecializedCollections.SingletonEnumerable(
+                Return ImmutableArray.Create(
                     CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.RemoveHandlerKeyword,
                                                                  VBFeaturesResources.RemoveHandler_statement,
                                                                  Glyph.Keyword,

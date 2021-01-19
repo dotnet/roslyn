@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
                 Dim keywordList = keywords.ToList()
                 EnsureAllIfAny(keywordList, "Function", "Sub")
-                Return keywordList.Select(Function(k) New RecommendedKeyword(k, GetToolTipForKeyword(k)))
+                Return keywordList.SelectAsArray(Function(k) New RecommendedKeyword(k, GetToolTipForKeyword(k)))
 
             ElseIf context.FollowsEndOfStatement Then
                 ' If you're in a case like this
@@ -55,8 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
                 If node IsNot Nothing Then
                     ' We don't have "End", so recommend everything with the End keyword
-                    Return GetUnclosedBlockKeywords(node).Select(Function(k) New RecommendedKeyword("End " & SyntaxFacts.GetText(k),
-                                                                                                    GetToolTipForKeyword(SyntaxFacts.GetText(k))))
+                    Return GetUnclosedBlockKeywords(node).SelectAsArray(
+                        Function(k) New RecommendedKeyword("End " & SyntaxFacts.GetText(k), GetToolTipForKeyword(SyntaxFacts.GetText(k))))
                 End If
             End If
 

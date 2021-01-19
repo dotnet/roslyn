@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 validKeywords.Add(New RecommendedKeyword("Case Else", VBFeaturesResources.Introduces_the_statements_to_run_if_none_of_the_previous_cases_in_the_Select_Case_statement_returns_True))
             End If
 
-            Return validKeywords
+            Return validKeywords.ToImmutableArray()
         End Function
     End Class
 End Namespace

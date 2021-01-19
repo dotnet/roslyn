@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 recommendations.Add(New RecommendedKeyword("Set", VBFeaturesResources.Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property))
             End If
 
-            Return recommendations
+            Return recommendations.ToImmutableArray()
         End Function
     End Class
 End Namespace

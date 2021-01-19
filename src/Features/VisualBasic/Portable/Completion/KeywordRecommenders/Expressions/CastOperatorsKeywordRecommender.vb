@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Glyph.MethodPublic,
                     New TryCastExpressionDocumentation()))
 
-                Return recommendedKeywords
+                Return recommendedKeywords.ToImmutableArray()
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

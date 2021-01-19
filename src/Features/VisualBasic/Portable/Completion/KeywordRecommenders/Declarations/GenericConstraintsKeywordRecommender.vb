@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             recommendations.Add(New RecommendedKeyword("New", VBFeaturesResources.Specifies_a_constructor_constraint_on_a_generic_type_parameter))
 
             If targetToken.IsChildToken(Of TypeParameterSingleConstraintClauseSyntax)(Function(constraint) constraint.AsKeyword) Then
-                Return recommendations
+                Return recommendations.ToImmutableArray()
             ElseIf TypeOf targetToken.Parent Is TypeParameterMultipleConstraintClauseSyntax Then
                 Dim multipleConstraint = DirectCast(targetToken.Parent, TypeParameterMultipleConstraintClauseSyntax)
                 If targetToken = multipleConstraint.OpenBraceToken OrElse targetToken.Kind = SyntaxKind.CommaToken Then
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                         recommendations.RemoveAll(Function(k) k.Keyword = "New")
                     End If
 
-                    Return recommendations
+                    Return recommendations.ToImmutableArray()
                 End If
             End If
 
