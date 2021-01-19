@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 "0x06000003 v1 | (38,16)-(40,9) Delta=-2",
                 "0x06000004 v1 | (53,20)-(56,13) Delta=-3",
                 "0x06000004 v1 | (58,16)-(60,9) Delta=-3",
-            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
+            }, exceptionRegionUpdates.OrderBy(r => r.NewSpan.StartLine).Select(InspectExceptionRegionUpdate));
 
             AssertEx.Equal(new[]
             {
