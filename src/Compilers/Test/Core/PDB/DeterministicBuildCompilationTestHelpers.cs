@@ -45,6 +45,7 @@ namespace Roslyn.Test.Utilities.PDB
 
         internal static void AssertCommonOptions(EmitOptions emitOptions, CompilationOptions compilationOptions, Compilation compilation, ImmutableDictionary<string, string> pdbOptions)
         {
+            pdbOptions.VerifyPdbOption("compilation-options-version", MetadataWriter.CompilationOptionsVersion);
             pdbOptions.VerifyPdbOption("fallback-encoding", emitOptions.FallbackSourceFileEncoding, toString: v => v.WebName);
             pdbOptions.VerifyPdbOption("default-encoding", emitOptions.DefaultSourceFileEncoding, toString: v => v.WebName);
 

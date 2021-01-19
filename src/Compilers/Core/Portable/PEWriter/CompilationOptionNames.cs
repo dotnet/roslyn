@@ -15,6 +15,7 @@ namespace Microsoft.Cci
     /// </remarks>
     internal static class CompilationOptionNames
     {
+        public const string CompilationOptionsVersion = "compilation-options-version";
         public const string CompilerVersion = "compiler-version";
         public const string FallbackEncoding = "fallback-encoding";
         public const string DefaultEncoding = "default-encoding";

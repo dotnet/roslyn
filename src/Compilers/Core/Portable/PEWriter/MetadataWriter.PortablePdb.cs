@@ -835,6 +835,9 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
 
+        ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
+        public const int CompilationOptionsVersion = 1;
+
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
         /// to be reconstructed from the pdb
@@ -844,6 +847,7 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsVersion.ToString());
             WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
             WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
