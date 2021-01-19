@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -16,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return SpecializedCollections.SingletonEnumerable(
+                Return ImmutableArray.Create(
                     CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.IfKeyword,
                                                                  $"{String.Format(VBFeaturesResources._0_function, "If")} (+1 {FeaturesResources.overload})",
                                                                  Glyph.MethodPublic,
                                                                  New TernaryConditionalExpressionDocumentation()))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

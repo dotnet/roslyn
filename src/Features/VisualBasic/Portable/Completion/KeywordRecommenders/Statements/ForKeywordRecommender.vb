@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -15,13 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
-                Return {New RecommendedKeyword("For", VBFeaturesResources.Introduces_a_loop_that_is_iterated_a_specified_number_of_times),
-                        New RecommendedKeyword("For Each", VBFeaturesResources.Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection)}
+                Return ImmutableArray.Create(
+                    New RecommendedKeyword("For", VBFeaturesResources.Introduces_a_loop_that_is_iterated_a_specified_number_of_times),
+                    New RecommendedKeyword("For Each", VBFeaturesResources.Introduces_a_loop_that_is_repeated_for_each_element_in_a_collection))
             End If
 
             ' Are we after Exit or Continue?
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

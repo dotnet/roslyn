@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -16,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
 
             Dim methodDeclaration = targetToken.GetAncestor(Of MethodBaseSyntax)()
             If methodDeclaration Is Nothing OrElse methodDeclaration.ParameterList Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim parameterAlreadyHasByValOrByRef = False
@@ -63,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     ' If a previous one had a ParamArray, then nothing is valid anymore, since the ParamArray must
                     ' always be the last parameter
                     If parameter.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.ParamArrayKeyword) Then
-                        Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                        Return ImmutableArray(Of RecommendedKeyword).Empty
                     End If
 
                     ' If a previous one had an Optional, then all following must be optional. Following Dev10 behavior,
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Return defaultRecommendations.Where(Function(k) k.Keyword = "ByVal")
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

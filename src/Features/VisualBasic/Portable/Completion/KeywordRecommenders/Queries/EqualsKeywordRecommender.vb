@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                 Return ImmutableArray.Create(New RecommendedKeyword("Equals", VBFeaturesResources.Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

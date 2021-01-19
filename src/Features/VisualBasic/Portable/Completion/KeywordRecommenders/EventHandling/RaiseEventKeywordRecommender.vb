@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
             ElseIf context.CanDeclareCustomEventAccessor(SyntaxKind.RaiseEventAccessorBlock) Then
                 Return ImmutableArray.Create(New RecommendedKeyword("RaiseEvent", VBFeaturesResources.Specifies_the_statements_to_run_when_the_event_is_raised_by_the_RaiseEvent_statement_RaiseEvent_delegateSignature_End_RaiseEvent))
             Else
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
         End Function
     End Class

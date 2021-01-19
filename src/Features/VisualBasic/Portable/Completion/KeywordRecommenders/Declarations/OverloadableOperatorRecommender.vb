@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -15,14 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
 
             If Not targetToken.IsKind(SyntaxKind.OperatorKeyword) OrElse
                Not targetToken.Parent.IsKind(SyntaxKind.OperatorStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim modifierFacts = context.ModifierCollectionFacts
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 ' TODO: fix parser to actually deal with such stupidities like "Operator Narrowing"
                 Return {"+", "-", "IsFalse", "IsTrue", "Not",
                         "*", "/", "\", "&", "^", ">>", "<<", "=", "<>", ">", ">=", "<", "<=", "And", "Like", "Mod", "Or", "Xor",
-                        "Narrowing", "Widening"}.Select(Function(s) New RecommendedKeyword(s, GetToolTipForKeyword(s)))
+                        "Narrowing", "Widening"}.Select(Function(s) New RecommendedKeyword(s, GetToolTipForKeyword(s))).ToImmutableArray()
             End If
         End Function
 

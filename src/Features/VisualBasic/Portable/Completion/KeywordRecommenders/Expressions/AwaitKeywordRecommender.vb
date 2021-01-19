@@ -21,14 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     End If
 
                     If node.IsKind(SyntaxKind.FinallyBlock, SyntaxKind.SyncLockBlock, SyntaxKind.CatchBlock) Then
-                        Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                        Return ImmutableArray(Of RecommendedKeyword).Empty
                     End If
                 Next
 
                 Return ImmutableArray.Create(New RecommendedKeyword("Await", VBFeaturesResources.Asynchronously_waits_for_the_task_to_finish))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

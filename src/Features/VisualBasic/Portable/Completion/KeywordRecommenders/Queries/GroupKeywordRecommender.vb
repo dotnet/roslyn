@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
                 Return ImmutableArray.Create(New RecommendedKeyword("Group", VBFeaturesResources.Groups_elements_that_have_a_common_key))
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
     End Class
 End Namespace

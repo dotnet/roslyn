@@ -2,11 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Statements
     ''' <summary>
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             ' or the special case of being immediately after the Select Case
             If Not context.IsInStatementBlockOfKind(SyntaxKind.SelectBlock) OrElse
                Not (context.IsMultiLineStatementContext OrElse context.IsAfterStatementOfKind(SyntaxKind.SelectStatement)) Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim selectStatement = targetToken.GetAncestor(Of SelectBlockSyntax)()

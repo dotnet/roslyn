@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Prep
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
         Private Shared Function HasMatchingIfDirective(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean

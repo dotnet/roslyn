@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -15,14 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             If context.TargetToken.IsKind(SyntaxKind.InferKeyword) Then
-                Return {New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
-                        New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off)}
+                Return ImmutableArray.Create(
+                    New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
+                    New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off))
             Else
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
         End Function
     End Class
