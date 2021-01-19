@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
-
             var document = context.Document;
             if (document == null)
             {

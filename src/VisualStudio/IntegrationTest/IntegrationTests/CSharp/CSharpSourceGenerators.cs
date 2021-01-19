@@ -70,7 +70,7 @@ internal static class Program
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
+            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption).OrderBy(r => r.Line).ToArray();
 
             Assert.Collection(
@@ -113,7 +113,7 @@ internal static class Program
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
+            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
             var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
             VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview);

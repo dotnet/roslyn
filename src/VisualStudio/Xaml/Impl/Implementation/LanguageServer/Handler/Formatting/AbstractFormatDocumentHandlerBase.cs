@@ -19,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public abstract LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
+#pragma warning disable IDE0060 // Remove unused parameter 'documentIdentifier' - Unsure whether it can break any code relying on IVTs.
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, LSP.FormattingOptions formattingOptions, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
+#pragma warning restore IDE0060
         {
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var edits);
 

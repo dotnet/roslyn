@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
 
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
-
         /// <summary>
         /// The temporary directory that we'll create file names under to act as a prefix we can later recognize and use.
         /// </summary>
@@ -104,11 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
             // to be done without implicitly marshalling to the UI thread.
             _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
-                threadingContext,
-                editorAdaptersFactoryService,
-                _runningDocumentTable,
-                this);
         }
 
         public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
@@ -198,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (TryGetGeneratedFileInformation(moniker, out var documentId, out var generatorType, out var generatedSourceHintName))
             {
                 // Attach to the text buffer if we haven't already
-                if (!_openFiles.TryGetValue(moniker, out OpenSourceGeneratedFile openFile))
+                if (!_openFiles.TryGetValue(moniker, out var openFile))
                 {
                     openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentId, generatorType, _threadingContext);
                     _openFiles.Add(moniker, openFile);

@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly IGlobalOptionService _globalOptionService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
@@ -39,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
             : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
         {
-            _globalOptionService = globalOptionService;
+            _ = globalOptionService;
         }
 
         public override string Name

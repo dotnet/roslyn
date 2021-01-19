@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
             {
-                bool didNavigate = false;
+                var didNavigate = false;
 
                 foreach (var item in items.OfType<SourceGeneratedFileItem>())
                 {

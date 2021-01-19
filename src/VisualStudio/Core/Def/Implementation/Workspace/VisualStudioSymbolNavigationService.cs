@@ -38,7 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
 
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
@@ -50,7 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var componentModel = IServiceProviderExtensions.GetService<SComponentModel, IComponentModel>(_serviceProvider);
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
-            _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
