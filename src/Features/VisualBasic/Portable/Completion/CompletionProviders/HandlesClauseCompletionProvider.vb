@@ -2,33 +2,30 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
-Imports System.Collections.Immutable
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(HandlesClauseCompletionProvider), LanguageNames.VisualBasic)>
     <ExtensionOrder(After:=NameOf(ImplementsClauseCompletionProvider))>
     <[Shared]>
     Partial Friend Class HandlesClauseCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
+        Inherits AbstractSymbolCompletionProvider(Of VisualBasicSyntaxContext)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-            Dim vbContext = DirectCast(context, VisualBasicSyntaxContext)
-
+        Protected Overrides Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -41,12 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Handles or a comma
             If context.TargetToken.IsChildToken(Of HandlesClauseSyntax)(Function(hc) hc.HandlesKeyword) OrElse
                 context.TargetToken.IsChildSeparatorToken(Function(hc As HandlesClauseSyntax) hc.Events) Then
-                Return Task.FromResult(GetTopLevelIdentifiers(vbContext, cancellationToken))
+                Return Task.FromResult(GetTopLevelIdentifiers(context, cancellationToken))
             End If
 
             ' Handles x. or , x.
             If context.TargetToken.IsChildToken(Of HandlesClauseItemSyntax)(Function(hc) hc.DotToken) Then
-                Return Task.FromResult(LookUpEvents(vbContext, context.TargetToken, cancellationToken))
+                Return Task.FromResult(LookUpEvents(context, context.TargetToken, cancellationToken))
             End If
 
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -137,14 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetDisplayAndSuffixAndInsertionText(
-                symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+                symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
 
             Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
-        End Function
-
-        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
