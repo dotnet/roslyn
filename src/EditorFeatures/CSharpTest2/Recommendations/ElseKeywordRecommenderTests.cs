@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class ElseKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,14 +45,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInPreprocessor1()
+        public void TestNotInPreprocessor1()
         {
             VerifyAbsence(
 @"class C {
@@ -60,7 +60,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPreprocessorFollowedBySkippedTokens()
+        public void TestInPreprocessorFollowedBySkippedTokens()
         {
             VerifyKeyword(
 @"#if GOO
@@ -70,28 +70,28 @@ dasd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterHash()
+        public void TestAfterHash()
         {
             VerifyKeyword(
 @"#$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterHashAndSpace()
+        public void TestAfterHashAndSpace()
         {
             VerifyKeyword(
 @"# $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterIf()
+        public void TestNotAfterIf()
         {
             VerifyAbsence(AddInsideMethod(
 @"if (true)
@@ -102,7 +102,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfStatement(string statement)
+        public void TestAfterIfStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -114,7 +114,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfStatement_BeforeElse(string statement)
+        public void TestAfterIfStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -127,7 +127,7 @@ else"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfStatement(string statement)
+        public void TestAfterIfNestedIfStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -140,7 +140,7 @@ $@"if (true)
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfStatement_BeforeElse(string statement)
+        public void TestAfterIfNestedIfStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -155,7 +155,7 @@ $@"if (true)
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfElseStatement(string statement)
+        public void TestAfterIfNestedIfElseStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -171,7 +171,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfElseStatement_BeforeElse(string statement)
+        public void TestAfterIfNestedIfElseStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -187,7 +187,7 @@ else"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestNotAfterIfNestedIfElseElseStatement(string statement)
+        public void TestNotAfterIfNestedIfElseElseStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -204,7 +204,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestNotAfterIfStatementElse(string statement)
+        public void TestNotAfterIfStatementElse(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -217,7 +217,7 @@ else
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestNotAfterIfElseStatement(string statement)
+        public void TestNotAfterIfElseStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -231,7 +231,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfElseNestedIfStatement(string statement)
+        public void TestAfterIfElseNestedIfStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -246,7 +246,7 @@ else
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfElseNestedIfStatement_BeforeElse(string statement)
+        public void TestAfterIfElseNestedIfStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -262,7 +262,7 @@ else
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestNotAfterIfElseNestedIfElseStatement(string statement)
+        public void TestNotAfterIfElseNestedIfElseStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -279,7 +279,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterWhileIfWhileNestedIfElseStatement(string statement)
+        public void TestAfterWhileIfWhileNestedIfElseStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"while (true)
@@ -296,7 +296,7 @@ $@"while (true)
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterWhileIfWhileNestedIfElseStatement_BeforeElse(string statement)
+        public void TestAfterWhileIfWhileNestedIfElseStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"while (true)
@@ -314,7 +314,7 @@ $@"while (true)
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestNotAfterWhileIfWhileNestedIfElseElseStatement(string statement)
+        public void TestNotAfterWhileIfWhileNestedIfElseElseStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"while (true)
@@ -341,7 +341,7 @@ $$"));
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
         [InlineData("for (int i = 0;")]
-        public async Task TestNotAfterIfIncompleteStatement(string statement)
+        public void TestNotAfterIfIncompleteStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -361,7 +361,7 @@ $$"));
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
         [InlineData("for (int i = 0;")]
-        public async Task TestNotAfterIfNestedIfIncompleteStatement(string statement)
+        public void TestNotAfterIfNestedIfIncompleteStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -382,7 +382,7 @@ $@"if (true)
         [InlineData("while (true) {")]
         [InlineData("while (true) { { }")]
         [InlineData("for (int i = 0;")]
-        public async Task TestNotAfterIfNestedIfElseIncompleteStatement(string statement)
+        public void TestNotAfterIfNestedIfElseIncompleteStatement(string statement)
         {
             VerifyAbsence(AddInsideMethod(
 $@"if (true)
@@ -397,7 +397,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement(string statement)
+        public void TestAfterIfNestedIfIncompleteStatementElseStatement(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -412,7 +412,7 @@ $$"));
         [InlineData("Console.WriteLine();")]
         [InlineData("{ }")]
         [InlineData("while (true) { }")]
-        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement_BeforeElse(string statement)
+        public void TestAfterIfNestedIfIncompleteStatementElseStatement_BeforeElse(string statement)
         {
             VerifyKeyword(AddInsideMethod(
 $@"if (true)
@@ -425,7 +425,7 @@ else"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideStatement()
+        public void TestNotInsideStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"if (true)
@@ -434,7 +434,7 @@ else"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSkippedToken()
+        public void TestNotAfterSkippedToken()
         {
             VerifyAbsence(AddInsideMethod(
 @"if (true)

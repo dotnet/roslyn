@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class AnnotationsKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -28,7 +28,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -36,7 +36,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -44,70 +44,70 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterHash()
+        public void TestAfterHash()
         {
             VerifyAbsence(
 @"#$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterHashAndSpace()
+        public void TestAfterHashAndSpace()
         {
             VerifyAbsence(
 @"# $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPragma()
+        public void TestAfterPragma()
         {
             VerifyAbsence(
 @"#pragma $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNullable()
+        public void TestAfterNullable()
         {
             VerifyAbsence(
 @"#nullable $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNullableEnable()
+        public void TestAfterNullableEnable()
         {
             VerifyKeyword(
 @"#nullable enable $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNullableDisable()
+        public void TestAfterNullableDisable()
         {
             VerifyKeyword(
 @"#nullable disable $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNullableRestore()
+        public void TestAfterNullableRestore()
         {
             VerifyKeyword(
 @"#nullable restore $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNullableBadSetting()
+        public void TestAfterNullableBadSetting()
         {
             VerifyAbsence(
 @"#nullable true $$");

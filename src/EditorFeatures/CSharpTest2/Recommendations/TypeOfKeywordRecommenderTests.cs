@@ -15,18 +15,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(543541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543541")]
-        public async Task TestOfferedInAttributeConstructorArgumentList()
+        public void TestOfferedInAttributeConstructorArgumentList()
             => VerifyKeyword("using System.ComponentModel; [DefaultValue($$ class C { }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
+        public void TestAtRoot_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClass_Interactive()
+        public void TestAfterClass_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"class C { }
@@ -34,7 +34,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public void TestAfterGlobalStatement_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -42,7 +42,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
+        public void TestAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"int i = 0;
@@ -51,7 +51,7 @@ $$");
 
         [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInConstMemberInitializer1()
+        public void TestNotInConstMemberInitializer1()
         {
             VerifyAbsence(
 @"class E {
@@ -61,7 +61,7 @@ $$");
 
         [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInConstLocalInitializer1()
+        public void TestNotInConstLocalInitializer1()
         {
             VerifyAbsence(
 @"class E {
@@ -73,7 +73,7 @@ $$");
 
         [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMemberInitializer1()
+        public void TestInMemberInitializer1()
         {
             VerifyKeyword(
 @"class E {
@@ -83,7 +83,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeOf()
+        public void TestNotInTypeOf()
         {
             VerifyAbsence(AddInsideMethod(
 @"typeof($$"));
@@ -91,7 +91,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInDefault()
+        public void TestNotInDefault()
         {
             VerifyAbsence(AddInsideMethod(
 @"default($$"));
@@ -99,7 +99,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInSizeOf()
+        public void TestNotInSizeOf()
         {
             VerifyAbsence(AddInsideMethod(
 @"sizeof($$"));
@@ -107,7 +107,7 @@ $$");
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectInitializerMemberContext()
+        public void TestNotInObjectInitializerMemberContext()
         {
             VerifyAbsence(@"
 class C
@@ -119,7 +119,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefExpression()
+        public void TestAfterRefExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref int x = ref $$"));

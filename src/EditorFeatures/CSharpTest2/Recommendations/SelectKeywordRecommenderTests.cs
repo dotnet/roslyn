@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class SelectKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -28,7 +28,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -36,7 +36,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -44,28 +44,28 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtEndOfPreviousClause()
+        public void TestNotAtEndOfPreviousClause()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from x in y$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNewClause()
+        public void TestNewClause()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -73,7 +73,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousClause()
+        public void TestAfterPreviousClause()
         {
             VerifyKeyword(AddInsideMethod(
 @"var v = from x in y
@@ -82,7 +82,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousContinuationClause()
+        public void TestAfterPreviousContinuationClause()
         {
             VerifyKeyword(AddInsideMethod(
 @"var v = from x in y
@@ -91,7 +91,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOrderByExpr()
+        public void TestAfterOrderByExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -100,7 +100,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOrderByAscendingExpr()
+        public void TestAfterOrderByAscendingExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -109,7 +109,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOrderByDescendingExpr()
+        public void TestAfterOrderByDescendingExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -118,7 +118,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBetweenClauses()
+        public void TestBetweenClauses()
         {
             // Technically going to generate invalid code, but we 
             // shouldn't stop users from doing this.
@@ -129,7 +129,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSelect()
+        public void TestNotAfterSelect()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from x in y
@@ -137,7 +137,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDot()
+        public void TestNotAfterDot()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from x in y
@@ -145,7 +145,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterComma()
+        public void TestNotAfterComma()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from x in y

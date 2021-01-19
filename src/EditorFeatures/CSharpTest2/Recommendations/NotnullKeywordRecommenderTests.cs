@@ -21,63 +21,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
+        public void TestAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterName_Type()
+        public void TestNotAfterName_Type()
         {
             VerifyAbsence(
 @"class Test $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClause_Type()
+        public void TestNotAfterWhereClause_Type()
         {
             VerifyAbsence(
 @"class Test<T> where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClauseType_Type()
+        public void TestNotAfterWhereClauseType_Type()
         {
             VerifyAbsence(
 @"class Test<T> where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterWhereClauseColon_Type()
+        public void TestAfterWhereClauseColon_Type()
         {
             VerifyKeyword(
 @"class Test<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeConstraint_Type()
+        public void TestNotAfterTypeConstraint_Type()
         {
             VerifyAbsence(
 @"class Test<T> where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterTypeConstraintComma_Type()
+        public void TestAfterTypeConstraintComma_Type()
         {
             VerifyKeyword(
 @"class Test<T> where T : I, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterName_Method()
+        public void TestNotAfterName_Method()
         {
             VerifyAbsence(
 @"class Test {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClause_Method()
+        public void TestNotAfterWhereClause_Method()
         {
             VerifyAbsence(
 @"class Test {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClauseType_Method()
+        public void TestNotAfterWhereClauseType_Method()
         {
             VerifyAbsence(
 @"class Test {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterWhereClauseColon_Method()
+        public void TestAfterWhereClauseColon_Method()
         {
             VerifyKeyword(
 @"class Test {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeConstraint_Method()
+        public void TestNotAfterTypeConstraint_Method()
         {
             VerifyAbsence(
 @"class Test {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterTypeConstraintComma_Method()
+        public void TestAfterTypeConstraintComma_Method()
         {
             VerifyKeyword(
 @"class Test {
@@ -125,49 +125,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterName_Delegate()
+        public void TestNotAfterName_Delegate()
         {
             VerifyAbsence(
 @"delegate void D $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClause_Delegate()
+        public void TestNotAfterWhereClause_Delegate()
         {
             VerifyAbsence(
 @"delegate void D<T>() where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClauseType_Delegate()
+        public void TestNotAfterWhereClauseType_Delegate()
         {
             VerifyAbsence(
 @"delegate void D<T>() where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterWhereClauseColon_Delegate()
+        public void TestAfterWhereClauseColon_Delegate()
         {
             VerifyKeyword(
 @"delegate void D<T>() where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeConstraint_Delegate()
+        public void TestNotAfterTypeConstraint_Delegate()
         {
             VerifyAbsence(
 @"delegate void D<T>() where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterTypeConstraintComma_Delegate()
+        public void TestAfterTypeConstraintComma_Delegate()
         {
             VerifyKeyword(
 @"delegate void D<T>() where T : I, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterName_LocalFunction()
+        public void TestNotAfterName_LocalFunction()
         {
             VerifyAbsence(
 @"class Test {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClause_LocalFunction()
+        public void TestNotAfterWhereClause_LocalFunction()
         {
             VerifyAbsence(
 @"class Test {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterWhereClauseType_LocalFunction()
+        public void TestNotAfterWhereClauseType_LocalFunction()
         {
             VerifyAbsence(
 @"class Test {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterWhereClauseColon_LocalFunction()
+        public void TestAfterWhereClauseColon_LocalFunction()
         {
             VerifyKeyword(
 @"class Test {
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeConstraint_LocalFunction()
+        public void TestNotAfterTypeConstraint_LocalFunction()
         {
             VerifyAbsence(
 @"class Test {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterTypeConstraintComma_LocalFunction()
+        public void TestAfterTypeConstraintComma_LocalFunction()
         {
             VerifyKeyword(
 @"class Test {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class AwaitKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeContext()
+        public void TestNotInTypeContext()
         {
             VerifyAbsence(@"
 class Program
@@ -25,7 +25,7 @@ class Program
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestStatementInMethod(bool isAsync, bool topLevelStatement)
+        public void TestStatementInMethod(bool isAsync, bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"$$", isAsync: isAsync, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -33,7 +33,7 @@ class Program
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestExpressionInAsyncMethod(bool topLevelStatement)
+        public void TestExpressionInAsyncMethod(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"var z = $$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -41,19 +41,19 @@ class Program
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestUsingStatement(bool topLevelStatement)
+        public void TestUsingStatement(bool topLevelStatement)
         {
             VerifyAbsence(AddInsideMethod(
 @"using $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestUsingDirective()
+        public void TestUsingDirective()
             => VerifyAbsence("using $$");
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestForeachStatement(bool topLevelStatement)
+        public void TestForeachStatement(bool topLevelStatement)
         {
             VerifyAbsence(AddInsideMethod(
 @"foreach $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -61,7 +61,7 @@ class Program
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestNotInQuery(bool topLevelStatement)
+        public void TestNotInQuery(bool topLevelStatement)
         {
             VerifyAbsence(AddInsideMethod(
 @"var z = from a in ""char""
@@ -71,7 +71,7 @@ class Program
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestInFinally(bool topLevelStatement)
+        public void TestInFinally(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"try { }
@@ -81,7 +81,7 @@ finally { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: 
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestInCatch(bool topLevelStatement)
+        public void TestInCatch(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"try { }
@@ -90,7 +90,7 @@ catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CS
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestNotInLock(bool topLevelStatement)
+        public void TestNotInLock(bool topLevelStatement)
         {
             VerifyAbsence(AddInsideMethod(
 @"lock(this) { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -98,7 +98,7 @@ catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), options: CS
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestInAsyncLambdaInCatch(bool topLevelStatement)
+        public void TestInAsyncLambdaInCatch(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"try { }
@@ -107,7 +107,7 @@ catch { var z = async () => $$ }", isAsync: true, topLevelStatement: topLevelSta
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestAwaitInLock(bool topLevelStatement)
+        public void TestAwaitInLock(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"lock($$", isAsync: true, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);

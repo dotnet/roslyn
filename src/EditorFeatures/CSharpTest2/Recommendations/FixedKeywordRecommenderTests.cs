@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class FixedKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -28,7 +28,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -36,7 +36,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -44,21 +44,21 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInsideEmptyMethod()
+        public void TestNotInsideEmptyMethod()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideUnsafeBlock()
+        public void TestInsideUnsafeBlock()
         {
             VerifyKeyword(AddInsideMethod(
 @"unsafe {
@@ -66,7 +66,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterFixed()
+        public void TestAfterFixed()
         {
             VerifyKeyword(AddInsideMethod(
 @"unsafe {
@@ -76,7 +76,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterFixed()
+        public void TestNotAfterFixed()
         {
             VerifyAbsence(AddInsideMethod(
 @"  fixed (int* = bar) {
@@ -85,7 +85,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInClass()
+        public void TestNotInClass()
         {
             VerifyAbsence(
 @"class C {
@@ -93,7 +93,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInStruct()
+        public void TestNotInStruct()
         {
             VerifyAbsence(
 @"struct S {
@@ -101,7 +101,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeStruct()
+        public void TestInUnsafeStruct()
         {
             VerifyKeyword(
 @"unsafe struct S {
@@ -109,7 +109,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeNestedStruct1()
+        public void TestInUnsafeNestedStruct1()
         {
             VerifyKeyword(
 @"unsafe struct S {
@@ -118,7 +118,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeNestedStruct2()
+        public void TestInUnsafeNestedStruct2()
         {
             VerifyKeyword(
 @"struct S {
@@ -127,7 +127,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
+        public void TestNotAfterStatic()
         {
             VerifyAbsence(
 @"unsafe struct S {

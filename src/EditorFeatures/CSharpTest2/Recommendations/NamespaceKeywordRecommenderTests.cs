@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -28,7 +28,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -36,7 +36,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -44,32 +44,32 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot()
+        public void TestAtRoot()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
+        public void TestAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNamespaceKeyword()
+        public void TestNotAfterNamespaceKeyword()
             => VerifyAbsence(@"namespace $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace()
+        public void TestAfterPreviousNamespace()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"namespace N {}
@@ -77,7 +77,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_Interactive()
+        public void TestAfterPreviousNamespace_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"namespace N {}
@@ -85,7 +85,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExtern()
+        public void TestAfterExtern()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"extern alias goo;
@@ -93,7 +93,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExtern_Interactive()
+        public void TestAfterExtern_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"extern alias goo;
@@ -101,7 +101,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsing()
+        public void TestAfterUsing()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"using Goo;
@@ -109,7 +109,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsing_Interactive()
+        public void TestAfterUsing_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"using Goo;
@@ -117,7 +117,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsingAlias()
+        public void TestAfterUsingAlias()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"using Goo = Bar;
@@ -125,7 +125,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUsingAlias_Interactive()
+        public void TestAfterUsingAlias_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"using Goo = Bar;
@@ -133,7 +133,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClassDeclaration()
+        public void TestAfterClassDeclaration()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"class C {}
@@ -141,7 +141,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClassDeclaration_Interactive()
+        public void TestAfterClassDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C {}
@@ -149,7 +149,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateDeclaration()
+        public void TestAfterDelegateDeclaration()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"delegate void D();
@@ -157,7 +157,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDelegateDeclaration_Interactive()
+        public void TestAfterDelegateDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"delegate void D();
@@ -165,7 +165,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedDelegateDeclaration()
+        public void TestNotAfterNestedDelegateDeclaration()
         {
             VerifyAbsence(
 @"class C {
@@ -174,7 +174,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedMember()
+        public void TestNotAfterNestedMember()
         {
             VerifyAbsence(@"class A {
     class C {}
@@ -182,7 +182,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideNamespace()
+        public void TestInsideNamespace()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"namespace N {
@@ -190,7 +190,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideNamespace_Interactive()
+        public void TestInsideNamespace_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"namespace N {
@@ -198,14 +198,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNamespaceKeyword_InsideNamespace()
+        public void TestNotAfterNamespaceKeyword_InsideNamespace()
         {
             VerifyAbsence(@"namespace N {
     namespace $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_InsideNamespace()
+        public void TestAfterPreviousNamespace_InsideNamespace()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"namespace N {
@@ -214,7 +214,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPreviousNamespace_InsideNamespace_Interactive()
+        public void TestAfterPreviousNamespace_InsideNamespace_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"namespace N {
@@ -223,7 +223,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeUsing_InsideNamespace()
+        public void TestNotBeforeUsing_InsideNamespace()
         {
             VerifyAbsence(@"namespace N {
     $$
@@ -231,7 +231,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMember_InsideNamespace()
+        public void TestAfterMember_InsideNamespace()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"namespace N {
@@ -240,7 +240,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMember_InsideNamespace_Interactive()
+        public void TestAfterMember_InsideNamespace_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"namespace N {
@@ -249,7 +249,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedMember_InsideNamespace()
+        public void TestNotAfterNestedMember_InsideNamespace()
         {
             VerifyAbsence(@"namespace N {
     class A {
@@ -258,21 +258,21 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeExtern()
+        public void TestNotBeforeExtern()
         {
             VerifyAbsence(@"$$
 extern alias Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeUsing()
+        public void TestNotBeforeUsing()
         {
             VerifyAbsence(@"$$
 using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBetweenUsings()
+        public void TestNotBetweenUsings()
         {
             VerifyAbsence(AddInsideMethod(
 @"using Goo;
@@ -281,7 +281,7 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalAttribute()
+        public void TestAfterGlobalAttribute()
         {
             VerifyKeyword(SourceCodeKind.Regular,
 @"[assembly: Goo]
@@ -289,7 +289,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalAttribute_Interactive()
+        public void TestAfterGlobalAttribute_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"[assembly: Goo]
@@ -297,7 +297,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAttribute()
+        public void TestNotAfterAttribute()
         {
             VerifyAbsence(
 @"[Goo]
@@ -305,7 +305,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAttribute()
+        public void TestNotAfterNestedAttribute()
         {
             VerifyAbsence(
 @"class C {
@@ -314,7 +314,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRegion()
+        public void TestAfterRegion()
         {
             VerifyKeyword(SourceCodeKind.Regular,
         @"#region EDM Relationship Metadata
@@ -327,7 +327,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRegion_Interactive()
+        public void TestAfterRegion_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
         @"#region EDM Relationship Metadata

@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class NullableKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,74 +45,74 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact]
-        public async Task TestAfterHash()
+        public void TestAfterHash()
         {
             VerifyKeyword(
 @"#$$");
         }
 
         [Fact]
-        public async Task TestAfterHashAndSpace()
+        public void TestAfterHashAndSpace()
         {
             VerifyKeyword(
 @"# $$");
         }
 
         [Fact]
-        public async Task TestNotAfterHashAndNullable()
+        public void TestNotAfterHashAndNullable()
         {
             VerifyAbsence(
 @"#nullable $$");
         }
 
         [Fact]
-        public async Task TestNotAfterPragma()
+        public void TestNotAfterPragma()
             => VerifyAbsence(@"#pragma $$");
 
         [Fact]
-        public async Task TestNotAfterPragmaWarning()
+        public void TestNotAfterPragmaWarning()
             => VerifyAbsence(@"#pragma warning $$");
 
         [Fact]
-        public async Task TestAfterPragmaWarningDisable()
+        public void TestAfterPragmaWarningDisable()
             => VerifyKeyword(@"#pragma warning disable $$");
 
         [Fact]
-        public async Task TestAfterPragmaWarningEnable()
+        public void TestAfterPragmaWarningEnable()
             => VerifyKeyword(@"#pragma warning enable $$");
 
         [Fact]
-        public async Task TestAfterPragmaWarningRestore()
+        public void TestAfterPragmaWarningRestore()
             => VerifyKeyword(@"#pragma warning restore $$");
 
         [Fact]
-        public async Task TestAfterPragmaWarningSafeOnly()
+        public void TestAfterPragmaWarningSafeOnly()
             => VerifyAbsence(@"#pragma warning safeonly $$");
 
         [Fact]
-        public async Task TestNotAfterPragmaWarningSafeOnlyNullable()
+        public void TestNotAfterPragmaWarningSafeOnlyNullable()
             => VerifyAbsence(@"#pragma warning safeonly nullable $$");
 
         [Fact]
-        public async Task TestNotAfterPragmaWarningRestoreNullable()
+        public void TestNotAfterPragmaWarningRestoreNullable()
             => VerifyAbsence(@"#pragma warning restore nullable, $$");
 
         [Fact]
-        public async Task TestNotAfterPragmaWarningDisableId()
+        public void TestNotAfterPragmaWarningDisableId()
             => VerifyAbsence(@"#pragma warning disable 114, $$");
     }
 }

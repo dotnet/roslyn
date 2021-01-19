@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class GlobalKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMethodBody()
+        public void TestInMethodBody()
             => VerifyKeyword(AddInsideMethod(@"$$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInClassDeclaration()
+        public void TestInClassDeclaration()
         {
             VerifyKeyword(@"
 namespace goo
@@ -32,12 +32,12 @@ namespace goo
 
         [WorkItem(543628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543628")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEnumDeclaration()
+        public void TestNotInEnumDeclaration()
             => VerifyAbsence(@"enum Goo { $$ }");
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectInitializerMemberContext()
+        public void TestNotInObjectInitializerMemberContext()
         {
             VerifyAbsence(@"
 class C
@@ -49,7 +49,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstInMemberContext()
+        public void TestAfterConstInMemberContext()
         {
             VerifyKeyword(
 @"class C {
@@ -57,7 +57,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefInMemberContext()
+        public void TestAfterRefInMemberContext()
         {
             VerifyKeyword(
 @"class C {
@@ -65,7 +65,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyInMemberContext()
+        public void TestAfterRefReadonlyInMemberContext()
         {
             VerifyKeyword(
 @"class C {
@@ -73,70 +73,70 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstInStatementContext()
+        public void TestAfterConstInStatementContext()
         {
             VerifyKeyword(AddInsideMethod(
 @"const $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefInStatementContext()
+        public void TestAfterRefInStatementContext()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyInStatementContext()
+        public void TestAfterRefReadonlyInStatementContext()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref readonly $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterConstLocalDeclaration()
+        public void TestAfterConstLocalDeclaration()
         {
             VerifyKeyword(AddInsideMethod(
 @"const $$ int local;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefLocalDeclaration()
+        public void TestAfterRefLocalDeclaration()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref $$ int local;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyLocalDeclaration()
+        public void TestAfterRefReadonlyLocalDeclaration()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref readonly $$ int local;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefLocalFunction()
+        public void TestAfterRefLocalFunction()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref $$ int Function();"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefReadonlyLocalFunction()
+        public void TestAfterRefReadonlyLocalFunction()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref readonly $$ int Function();"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefExpression()
+        public void TestAfterRefExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref int x = ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerType()
+        public void TestInFunctionPointerType()
         {
             VerifyKeyword(@"
 class C
@@ -145,7 +145,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerTypeAfterComma()
+        public void TestInFunctionPointerTypeAfterComma()
         {
             VerifyKeyword(@"
 class C
@@ -154,7 +154,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerTypeAfterModifier()
+        public void TestInFunctionPointerTypeAfterModifier()
         {
             VerifyKeyword(@"
 class C
@@ -163,7 +163,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDelegateAsterisk()
+        public void TestNotAfterDelegateAsterisk()
         {
             VerifyAbsence(@"
 class C

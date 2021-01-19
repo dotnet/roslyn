@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerDeclaration()
+        public void TestInFunctionPointerDeclaration()
         {
             VerifyKeyword(
 @"class Test {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
+        public void TestInFunctionPointerDeclarationTouchingAsterisk()
         {
             VerifyKeyword(
 @"class Test {

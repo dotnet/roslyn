@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class TrueKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
+        public void TestAtRoot_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClass_Interactive()
+        public void TestAfterClass_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public void TestAfterGlobalStatement_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
+        public void TestAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,14 +45,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInPreprocessor1()
+        public void TestNotInPreprocessor1()
         {
             VerifyAbsence(
 @"class C {
@@ -60,7 +60,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInPreprocessor2()
+        public void TestNotInPreprocessor2()
         {
             VerifyAbsence(
 @"class C {
@@ -68,14 +68,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInEmptyStatement()
+        public void TestInEmptyStatement()
         {
             VerifyKeyword(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInExpression()
+        public void TestInExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = $$"));
@@ -83,56 +83,56 @@ $$");
 
         [WorkItem(542970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542970")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf()
+        public void TestInPPIf()
         {
             VerifyKeyword(
 @"#if $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_Or()
+        public void TestInPPIf_Or()
         {
             VerifyKeyword(
 @"#if a || $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_And()
+        public void TestInPPIf_And()
         {
             VerifyKeyword(
 @"#if a && $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_Not()
+        public void TestInPPIf_Not()
         {
             VerifyKeyword(
 @"#if ! $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_Paren()
+        public void TestInPPIf_Paren()
         {
             VerifyKeyword(
 @"#if ( $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_Equals()
+        public void TestInPPIf_Equals()
         {
             VerifyKeyword(
 @"#if a == $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPIf_NotEquals()
+        public void TestInPPIf_NotEquals()
         {
             VerifyKeyword(
 @"#if a != $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf()
+        public void TestInPPElIf()
         {
             VerifyKeyword(
 @"#if true
@@ -140,7 +140,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPelIf_Or()
+        public void TestInPPelIf_Or()
         {
             VerifyKeyword(
 @"#if true
@@ -148,7 +148,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf_And()
+        public void TestInPPElIf_And()
         {
             VerifyKeyword(
 @"#if true
@@ -156,7 +156,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf_Not()
+        public void TestInPPElIf_Not()
         {
             VerifyKeyword(
 @"#if true
@@ -164,7 +164,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf_Paren()
+        public void TestInPPElIf_Paren()
         {
             VerifyKeyword(
 @"#if true
@@ -172,7 +172,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf_Equals()
+        public void TestInPPElIf_Equals()
         {
             VerifyKeyword(
 @"#if true
@@ -180,7 +180,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInPPElIf_NotEquals()
+        public void TestInPPElIf_NotEquals()
         {
             VerifyKeyword(
 @"#if true
@@ -188,7 +188,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterUnaryOperator()
+        public void TestAfterUnaryOperator()
         {
             VerifyKeyword(
 @"class C {
@@ -196,7 +196,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterImplicitOperator()
+        public void TestNotAfterImplicitOperator()
         {
             VerifyAbsence(
 @"class C {
@@ -204,7 +204,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterExplicitOperator()
+        public void TestNotAfterExplicitOperator()
         {
             VerifyAbsence(
 @"class C {
@@ -212,7 +212,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeInactiveRegion()
+        public void TestBeforeInactiveRegion()
         {
             VerifyKeyword(
 @"class C
@@ -225,7 +225,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterTypeOf()
+        public void TestNotAfterTypeOf()
         {
             VerifyAbsence(AddInsideMethod(
 @"typeof($$"));
@@ -233,7 +233,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDefault()
+        public void TestNotAfterDefault()
         {
             VerifyAbsence(AddInsideMethod(
 @"default($$"));
@@ -241,7 +241,7 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSizeOf()
+        public void TestNotAfterSizeOf()
         {
             VerifyAbsence(AddInsideMethod(
 @"sizeof($$"));
@@ -249,7 +249,7 @@ $$");
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectInitializerMemberContext()
+        public void TestNotInObjectInitializerMemberContext()
         {
             VerifyAbsence(@"
 class C
@@ -261,7 +261,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefExpression()
+        public void TestAfterRefExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref int x = ref $$"));

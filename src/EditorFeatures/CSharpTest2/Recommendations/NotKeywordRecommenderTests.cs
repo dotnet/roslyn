@@ -16,70 +16,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 ";
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIsKeyword()
+        public void TestAfterIsKeyword()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNotKeyword()
+        public void TestAfterNotKeyword()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is not $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterNotKeywordAndOpenParen()
+        public void TestAfterNotKeywordAndOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is not ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAndKeyword_IntExpression()
+        public void TestAfterAndKeyword_IntExpression()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 and $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAndKeyword_StrExpression()
+        public void TestAfterAndKeyword_StrExpression()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is ""str"" and $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAndKeyword_RelationalExpression()
+        public void TestAfterAndKeyword_RelationalExpression()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is <= 1 and $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOpenParen()
+        public void TestAfterOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterMultipleOpenParen()
+        public void TestAfterMultipleOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is ((($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleofCompletePattern()
+        public void TestInMiddleofCompletePattern()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is $$ 1 or 2)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfCompleteQualifiedPattern()
+        public void TestInMiddleOfCompleteQualifiedPattern()
         {
             VerifyKeyword(
 @"namespace N
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfCompleteQualifiedPattern_List()
+        public void TestInMiddleOfCompleteQualifiedPattern_List()
         {
             VerifyKeyword(
 @"namespace N
@@ -115,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleofCompletePattern_MultipleParens()
+        public void TestInMiddleofCompletePattern_MultipleParens()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"if (e is ((($$ 1 or 2))))"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtBeginningOfSwitchExpression()
+        public void TestAtBeginningOfSwitchExpression()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtBeginningOfSwitchStatement()
+        public void TestAtBeginningOfSwitchStatement()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"switch (e)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfSwitchExpression()
+        public void TestInMiddleOfSwitchExpression()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfSwitchStatement()
+        public void TestInMiddleOfSwitchStatement()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"switch (e)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen()
+        public void TestAtBeginningOfSwitchExpression_AfterOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfSwitchExpression_AfterOpenParen()
+        public void TestInMiddleOfSwitchExpression_AfterOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInMiddleOfSwitchExpression_ComplexCase()
+        public void TestInMiddleOfSwitchExpression_ComplexCase()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtBeginningOfSwitchStatement_AfterOpenParen()
+        public void TestAtBeginningOfSwitchStatement_AfterOpenParen()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"switch (e)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtBeginningOfSwitchStatement_AfterOpenParen_CompleteStatement()
+        public void TestAtBeginningOfSwitchStatement_AfterOpenParen_CompleteStatement()
         {
             VerifyKeyword(AddInsideMethod(InitializeObjectE +
 @"switch (e)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideSubpattern()
+        public void TestInsideSubpattern()
         {
             VerifyKeyword(
 @"class C
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideSubpattern_AfterOpenParen()
+        public void TestInsideSubpattern_AfterOpenParen()
         {
             VerifyKeyword(
 @"class C
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideSubpattern_AfterOpenParen_Complex()
+        public void TestInsideSubpattern_AfterOpenParen_Complex()
         {
             VerifyKeyword(
 @"class C
@@ -245,28 +245,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMissingAfterConstant()
+        public void TestMissingAfterConstant()
         {
             VerifyAbsence(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMissingAfterMultipleConstants()
+        public void TestMissingAfterMultipleConstants()
         {
             VerifyAbsence(AddInsideMethod(InitializeObjectE +
 @"if (e is 1 or 2 $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterType()
+        public void TestAfterType()
         {
             VerifyAbsence(AddInsideMethod(InitializeObjectE +
 @"if (e is int $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRelationalOperator()
+        public void TestAfterRelationalOperator()
         {
             VerifyAbsence(AddInsideMethod(InitializeObjectE +
 @"if (e is >= 0 $$"));

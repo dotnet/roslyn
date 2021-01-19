@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class StackAllocKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAtRoot_Interactive()
+        public void TestAtRoot_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterClass_Interactive()
+        public void TestAfterClass_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public void TestAfterGlobalStatement_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
+        public void TestAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyKeyword(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,14 +45,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInEmptyStatement()
+        public void TestInEmptyStatement()
         {
             // e.g. this is a valid statement
             // stackalloc[] { 1, 2, 3 }.IndexOf(1);
@@ -61,14 +61,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInEmptySpaceAfterAssignment()
+        public void TestInEmptySpaceAfterAssignment()
         {
             VerifyKeyword(AddInsideMethod(
 @"var v = $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeEmptySpace()
+        public void TestInUnsafeEmptySpace()
         {
             VerifyKeyword(
 @"unsafe class C {
@@ -77,7 +77,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeEmptySpace_AfterNonPointer()
+        public void TestInUnsafeEmptySpace_AfterNonPointer()
         {
             // There can be an implicit conversion to int
             VerifyKeyword(
@@ -87,7 +87,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInUnsafeEmptySpace_AfterPointer()
+        public void TestInUnsafeEmptySpace_AfterPointer()
         {
             VerifyKeyword(
 @"unsafe class C {
@@ -96,7 +96,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInField()
+        public void TestInField()
         {
             // While assigning stackalloc'd value to a field is invalid,
             // using one in the initializer is OK. e.g.
@@ -108,7 +108,7 @@ $$");
 
         [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideForStatementVarDecl1()
+        public void TestInsideForStatementVarDecl1()
         {
             VerifyKeyword(
 @"class C
@@ -120,7 +120,7 @@ $$");
 
         [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideForStatementVarDecl2()
+        public void TestInsideForStatementVarDecl2()
         {
             VerifyKeyword(
 @"class C
@@ -132,7 +132,7 @@ $$");
 
         [WorkItem(544504, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544504")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideForStatementVarDecl3()
+        public void TestInsideForStatementVarDecl3()
         {
             VerifyKeyword(
 @"class C
@@ -144,7 +144,7 @@ $$");
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSOfAssignment_Span()
+        public void TestOnRHSOfAssignment_Span()
         {
             VerifyKeyword(AddInsideMethod(@"
 Span<int> s = $$"));
@@ -152,7 +152,7 @@ Span<int> s = $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSOfAssignment_Pointer()
+        public void TestOnRHSOfAssignment_Pointer()
         {
             VerifyKeyword(AddInsideMethod(
 @"int* v = $$"));
@@ -160,7 +160,7 @@ Span<int> s = $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSOfAssignment_ReAssignment()
+        public void TestOnRHSOfAssignment_ReAssignment()
         {
             VerifyKeyword(AddInsideMethod(
 @"v = $$"));
@@ -168,7 +168,7 @@ Span<int> s = $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithCast()
+        public void TestOnRHSWithCast()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = (Span<char>)$$"));
@@ -179,7 +179,7 @@ s = (Span<char>)$$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_True()
+        public void TestOnRHSWithConditionalExpression_True()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value ? $$"));
@@ -190,7 +190,7 @@ s = value ? $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_True_WithCast()
+        public void TestOnRHSWithConditionalExpression_True_WithCast()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value ? (Span<int>)$$"));
@@ -201,7 +201,7 @@ s = value ? (Span<int>)$$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_False()
+        public void TestOnRHSWithConditionalExpression_False()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value ? stackalloc int[10] : $$"));
@@ -212,7 +212,7 @@ s = value ? stackalloc int[10] : $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_False_WithCast()
+        public void TestOnRHSWithConditionalExpression_False_WithCast()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value ? stackalloc int[10] : (Span<int>)$$"));
@@ -223,7 +223,7 @@ s = value ? stackalloc int[10] : (Span<int>)$$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_NestedConditional_True()
+        public void TestOnRHSWithConditionalExpression_NestedConditional_True()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value1 ? value2 ? $$"));
@@ -234,7 +234,7 @@ s = value1 ? value2 ? $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_True()
+        public void TestOnRHSWithConditionalExpression_NestedConditional_WithCast_True()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value1 ? value2 ? (Span<int>)$$"));
@@ -245,7 +245,7 @@ s = value1 ? value2 ? (Span<int>)$$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_NestedConditional_False()
+        public void TestOnRHSWithConditionalExpression_NestedConditional_False()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value1 ? value2 ? stackalloc int [10] : $$"));
@@ -256,7 +256,7 @@ s = value1 ? value2 ? stackalloc int [10] : $$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestOnRHSWithConditionalExpression_NestedConditional_WithCast_False()
+        public void TestOnRHSWithConditionalExpression_NestedConditional_WithCast_False()
         {
             VerifyKeyword(AddInsideMethod(@"
 var s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
@@ -267,7 +267,7 @@ s = value1 ? value2 ? stackalloc int [10] : (Span<int>)$$"));
 
         [WorkItem(23584, "https://github.com/dotnet/roslyn/issues/23584")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInLHSOfAssignment()
+        public void TestNotInLHSOfAssignment()
         {
             VerifyAbsence(AddInsideMethod(@"
 var x $$ ="));
@@ -278,7 +278,7 @@ x $$ ="));
 
         [WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInArgument()
+        public void TestInArgument()
         {
             VerifyKeyword(@"
 class Program
@@ -301,7 +301,7 @@ class Program
 
         [WorkItem(41736, "https://github.com/dotnet/roslyn/issues/41736")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInConstFieldInitializer()
+        public void TestNotInConstFieldInitializer()
         {
             VerifyAbsence(@"
 class Program

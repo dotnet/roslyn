@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class InitKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,21 +45,21 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact]
-        public async Task TestAfterProperty()
+        public void TestAfterProperty()
         {
             VerifyKeyword(
 @"class C {
@@ -67,7 +67,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyPrivate()
+        public void TestAfterPropertyPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -75,7 +75,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyAttribute()
+        public void TestAfterPropertyAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -83,7 +83,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyAttributeAndPrivate()
+        public void TestAfterPropertyAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -91,7 +91,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyGet()
+        public void TestAfterPropertyGet()
         {
             VerifyKeyword(
 @"class C {
@@ -99,7 +99,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyGetAndPrivate()
+        public void TestAfterPropertyGetAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -107,7 +107,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyGetAndAttribute()
+        public void TestAfterPropertyGetAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -115,7 +115,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertyGetAndAttributeAndPrivate()
+        public void TestAfterPropertyGetAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -123,7 +123,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterGetAccessorBlock()
+        public void TestAfterGetAccessorBlock()
         {
             VerifyKeyword(
 @"class C {
@@ -131,7 +131,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterSetAccessorBlock()
+        public void TestAfterSetAccessorBlock()
         {
             VerifyKeyword(
 @"class C {
@@ -139,7 +139,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterGetAccessorBlockAndPrivate()
+        public void TestAfterGetAccessorBlockAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -147,7 +147,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterGetAccessorBlockAndAttribute()
+        public void TestAfterGetAccessorBlockAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -155,7 +155,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterGetAccessorBlockAndAttributeAndPrivate()
+        public void TestAfterGetAccessorBlockAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -163,7 +163,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterPropertySetKeyword()
+        public void TestNotAfterPropertySetKeyword()
         {
             VerifyAbsence(
 @"class C {
@@ -171,7 +171,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterPropertySetAccessor()
+        public void TestAfterPropertySetAccessor()
         {
             VerifyKeyword(
 @"class C {
@@ -179,7 +179,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotInEvent()
+        public void TestNotInEvent()
         {
             VerifyAbsence(
 @"class C {
@@ -187,7 +187,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexer()
+        public void TestAfterIndexer()
         {
             VerifyKeyword(
 @"class C {
@@ -195,7 +195,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerPrivate()
+        public void TestAfterIndexerPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -203,7 +203,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerAttribute()
+        public void TestAfterIndexerAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -211,7 +211,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerAttributeAndPrivate()
+        public void TestAfterIndexerAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -219,7 +219,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGet()
+        public void TestAfterIndexerGet()
         {
             VerifyKeyword(
 @"class C {
@@ -227,7 +227,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetAndPrivate()
+        public void TestAfterIndexerGetAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -235,7 +235,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetAndAttribute()
+        public void TestAfterIndexerGetAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -243,7 +243,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetAndAttributeAndPrivate()
+        public void TestAfterIndexerGetAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -251,7 +251,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetBlock()
+        public void TestAfterIndexerGetBlock()
         {
             VerifyKeyword(
 @"class C {
@@ -259,7 +259,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetBlockAndPrivate()
+        public void TestAfterIndexerGetBlockAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -267,7 +267,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetBlockAndAttribute()
+        public void TestAfterIndexerGetBlockAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -275,7 +275,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerGetBlockAndAttributeAndPrivate()
+        public void TestAfterIndexerGetBlockAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -283,7 +283,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestNotAfterIndexerSetKeyword()
+        public void TestNotAfterIndexerSetKeyword()
         {
             VerifyAbsence(
 @"class C {
@@ -291,7 +291,7 @@ $$");
         }
 
         [Fact]
-        public async Task TestAfterIndexerSetAccessor()
+        public void TestAfterIndexerSetAccessor()
         {
             VerifyKeyword(
 @"class C {

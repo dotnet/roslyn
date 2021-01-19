@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class GetKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -28,7 +28,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -36,7 +36,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -44,21 +44,21 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterProperty()
+        public void TestAfterProperty()
         {
             VerifyKeyword(
 @"class C {
@@ -66,7 +66,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertyPrivate()
+        public void TestAfterPropertyPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -74,7 +74,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertyAttribute()
+        public void TestAfterPropertyAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -82,7 +82,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertyAttributeAndPrivate()
+        public void TestAfterPropertyAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -90,7 +90,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertySet()
+        public void TestAfterPropertySet()
         {
             VerifyKeyword(
 @"class C {
@@ -98,7 +98,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertySetAndPrivate()
+        public void TestAfterPropertySetAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -106,7 +106,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertySetAndAttribute()
+        public void TestAfterPropertySetAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -114,7 +114,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPropertySetAndAttributeAndPrivate()
+        public void TestAfterPropertySetAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -122,7 +122,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterSetAccessorBlock()
+        public void TestAfterSetAccessorBlock()
         {
             VerifyKeyword(
 @"class C {
@@ -130,7 +130,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterSetAccessorBlockAndPrivate()
+        public void TestAfterSetAccessorBlockAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -138,7 +138,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterSetAccessorBlockAndAttribute()
+        public void TestAfterSetAccessorBlockAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -146,7 +146,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterSetAccessorBlockAndAttributeAndPrivate()
+        public void TestAfterSetAccessorBlockAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -154,7 +154,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPropertyGetKeyword()
+        public void TestNotAfterPropertyGetKeyword()
         {
             VerifyAbsence(
 @"class C {
@@ -162,7 +162,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPropertyGetAccessor()
+        public void TestNotAfterPropertyGetAccessor()
         {
             VerifyAbsence(
 @"class C {
@@ -170,7 +170,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEvent()
+        public void TestNotInEvent()
         {
             VerifyAbsence(
 @"class C {
@@ -178,7 +178,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexer()
+        public void TestAfterIndexer()
         {
             VerifyKeyword(
 @"class C {
@@ -186,7 +186,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerPrivate()
+        public void TestAfterIndexerPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -194,7 +194,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerAttribute()
+        public void TestAfterIndexerAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -202,7 +202,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerAttributeAndPrivate()
+        public void TestAfterIndexerAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -210,7 +210,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSet()
+        public void TestAfterIndexerSet()
         {
             VerifyKeyword(
 @"class C {
@@ -218,7 +218,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetAndPrivate()
+        public void TestAfterIndexerSetAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -226,7 +226,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetAndAttribute()
+        public void TestAfterIndexerSetAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -234,7 +234,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetAndAttributeAndPrivate()
+        public void TestAfterIndexerSetAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -242,7 +242,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetBlock()
+        public void TestAfterIndexerSetBlock()
         {
             VerifyKeyword(
 @"class C {
@@ -250,7 +250,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetBlockAndPrivate()
+        public void TestAfterIndexerSetBlockAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -258,7 +258,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetBlockAndAttribute()
+        public void TestAfterIndexerSetBlockAndAttribute()
         {
             VerifyKeyword(
 @"class C {
@@ -266,7 +266,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIndexerSetBlockAndAttributeAndPrivate()
+        public void TestAfterIndexerSetBlockAndAttributeAndPrivate()
         {
             VerifyKeyword(
 @"class C {
@@ -274,7 +274,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterIndexerGetKeyword()
+        public void TestNotAfterIndexerGetKeyword()
         {
             VerifyAbsence(
 @"class C {
@@ -282,7 +282,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterIndexerGetAccessor()
+        public void TestNotAfterIndexerGetAccessor()
         {
             VerifyAbsence(
 @"class C {
@@ -290,7 +290,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeSemicolon()
+        public void TestBeforeSemicolon()
         {
             VerifyKeyword(
 @"class C {
@@ -298,7 +298,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterProtectedInternal()
+        public void TestAfterProtectedInternal()
         {
             VerifyKeyword(
 @"class C {
@@ -306,7 +306,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInternalProtected()
+        public void TestAfterInternalProtected()
         {
             VerifyKeyword(
 @"class C {

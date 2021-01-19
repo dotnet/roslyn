@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class AsyncKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMethodDeclaration1()
+        public void TestMethodDeclaration1()
         {
             VerifyKeyword(@"class C
 {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMethodDeclaration2()
+        public void TestMethodDeclaration2()
         {
             VerifyKeyword(@"class C
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMethodDeclaration3()
+        public void TestMethodDeclaration3()
         {
             VerifyKeyword(@"class C
 {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInsideInterface()
+        public void TestInsideInterface()
         {
             VerifyKeyword(@"interface C
 {
@@ -50,21 +50,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMethodDeclarationInGlobalStatement1()
+        public void TestMethodDeclarationInGlobalStatement1()
         {
             const string text = @"$$";
             VerifyKeyword(SourceCodeKind.Script, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMethodDeclarationInGlobalStatement2()
+        public void TestMethodDeclarationInGlobalStatement2()
         {
             const string text = @"public $$";
             VerifyKeyword(SourceCodeKind.Script, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestExpressionContext()
+        public void TestExpressionContext()
         {
             VerifyKeyword(@"class C
 {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInParameter()
+        public void TestNotInParameter()
         {
             VerifyAbsence(@"class C
 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeLambda()
+        public void TestBeforeLambda()
         {
             VerifyKeyword(@"
 class Program
@@ -100,7 +100,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeStaticLambda()
+        public void TestBeforeStaticLambda()
         {
             VerifyKeyword(@"
 class Program
@@ -113,7 +113,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStaticInLambda()
+        public void TestAfterStaticInLambda()
         {
             VerifyKeyword(@"
 class Program
@@ -126,7 +126,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStaticInExpression()
+        public void TestAfterStaticInExpression()
         {
             VerifyKeyword(@"
 class Program
@@ -139,7 +139,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterDuplicateStaticInExpression()
+        public void TestAfterDuplicateStaticInExpression()
         {
             VerifyKeyword(@"
 class Program
@@ -152,7 +152,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterStaticAsyncInExpression()
+        public void TestAfterStaticAsyncInExpression()
         {
             VerifyAbsence(@"
 class Program
@@ -165,7 +165,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAsyncStaticInExpression()
+        public void TestAfterAsyncStaticInExpression()
         {
             VerifyAbsence(@"
 class Program
@@ -178,7 +178,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAttribute()
+        public void TestInAttribute()
         {
             VerifyAbsence(@"
 class C
@@ -192,7 +192,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAttributeArgument()
+        public void TestInAttributeArgument()
         {
             VerifyAbsence(@"
 class C
@@ -206,7 +206,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestBeforeStaticInExpression()
+        public void TestBeforeStaticInExpression()
         {
             VerifyKeyword(@"
 class Program
@@ -219,7 +219,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotIfAlreadyAsync2()
+        public void TestNotIfAlreadyAsync2()
         {
             VerifyAbsence(@"
 class Program
@@ -233,7 +233,7 @@ class Program
 
         [WorkItem(578061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578061")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInNamespace()
+        public void TestNotInNamespace()
         {
             VerifyAbsence(@"
 namespace Goo
@@ -244,7 +244,7 @@ namespace Goo
 
         [WorkItem(578069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578069")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPartialInNamespace()
+        public void TestNotAfterPartialInNamespace()
         {
             VerifyAbsence(@"
 namespace Goo
@@ -255,7 +255,7 @@ namespace Goo
 
         [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPartialInClass()
+        public void TestNotAfterPartialInClass()
         {
             VerifyAbsence(@"
 class Goo
@@ -266,7 +266,7 @@ class Goo
 
         [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterAttribute()
+        public void TestAfterAttribute()
         {
             VerifyKeyword(@"
 class Goo
@@ -279,7 +279,7 @@ class Goo
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
-        public async Task TestLocalFunction(bool topLevelStatement)
+        public void TestLocalFunction(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -290,7 +290,7 @@ class Goo
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction2(bool topLevelStatement)
+        public void TestLocalFunction2(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"unsafe $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -301,7 +301,7 @@ class Goo
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction3(bool topLevelStatement)
+        public void TestLocalFunction3(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"unsafe $$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -312,7 +312,7 @@ class Goo
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction4(bool topLevelStatement)
+        public void TestLocalFunction4(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"$$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -322,7 +322,7 @@ class Goo
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction5()
+        public void TestLocalFunction5()
         {
             VerifyKeyword(@"
 class Goo
@@ -342,7 +342,7 @@ class Goo
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction6(bool topLevelStatement)
+        public void TestLocalFunction6(bool topLevelStatement)
         {
             VerifyAbsence(AddInsideMethod(
 @"int $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -353,7 +353,7 @@ class Goo
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction7(bool topLevelStatement)
+        public void TestLocalFunction7(bool topLevelStatement)
         {
             VerifyKeyword(AddInsideMethod(
 @"static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);

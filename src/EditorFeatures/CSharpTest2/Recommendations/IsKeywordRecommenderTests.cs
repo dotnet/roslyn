@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class IsKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -29,7 +29,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement_Interactive()
+        public void TestNotAfterGlobalStatement_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"System.Console.WriteLine();
@@ -37,7 +37,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        public void TestNotAfterGlobalVariableDeclaration_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"int i = 0;
@@ -45,28 +45,28 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public void TestNotInEmptyStatement()
         {
             VerifyAbsence(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExpr()
+        public void TestAfterExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterVoid()
+        public void TestNotAfterVoid()
         {
             VerifyAbsence(
 @"class C {
@@ -74,21 +74,21 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInForeach()
+        public void TestNotInForeach()
         {
             VerifyAbsence(AddInsideMethod(
 @"foreach (var v $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInFrom()
+        public void TestNotInFrom()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from a $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInJoin()
+        public void TestNotInJoin()
         {
             VerifyAbsence(AddInsideMethod(
 @"var q = from a in b
@@ -96,21 +96,21 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterType1()
+        public void TestNotAfterType1()
         {
             VerifyAbsence(AddInsideMethod(
 @"int $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterType2()
+        public void TestNotAfterType2()
         {
             VerifyAbsence(AddInsideMethod(
 @"Goo $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterType3()
+        public void TestNotAfterType3()
         {
             VerifyAbsence(AddInsideMethod(
 @"Goo<Bar> $$"));
@@ -118,14 +118,14 @@ $$");
 
         [WorkItem(543041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543041")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterVarInForLoop()
+        public void TestNotAfterVarInForLoop()
         {
             VerifyAbsence(AddInsideMethod(
 @"for (var $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterVarInOutArgument()
+        public void TestNotAfterVarInOutArgument()
         {
             var experimentalFeatures = new System.Collections.Generic.Dictionary<string, string>(); // no experimental features to enable
             VerifyAbsence(AddInsideMethod(
@@ -134,7 +134,7 @@ $$");
 
         [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBeforeFirstStringHole()
+        public void TestNotBeforeFirstStringHole()
         {
             VerifyAbsence(AddInsideMethod(
 @"var x = ""\{0}$$\{1}\{2}"""));
@@ -142,7 +142,7 @@ $$");
 
         [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotBetweenStringHoles()
+        public void TestNotBetweenStringHoles()
         {
             VerifyAbsence(AddInsideMethod(
 @"var x = ""\{0}\{1}$$\{2}"""));
@@ -150,7 +150,7 @@ $$");
 
         [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStringHoles()
+        public void TestNotAfterStringHoles()
         {
             VerifyAbsence(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}$$"""));
@@ -158,14 +158,14 @@ $$");
 
         [WorkItem(1064811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064811")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterLastStringHole()
+        public void TestAfterLastStringHole()
         {
             VerifyKeyword(AddInsideMethod(
 @"var x = ""\{0}\{1}\{2}"" $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterExpression_InMethodWithArrowBody()
+        public void TestAfterExpression_InMethodWithArrowBody()
         {
             VerifyKeyword(@"
 class C
@@ -176,7 +176,7 @@ class C
 
         [WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotWithinNumericLiteral()
+        public void TestNotWithinNumericLiteral()
         {
             VerifyAbsence(AddInsideMethod(
 @"var x = .$$0;"));
@@ -184,7 +184,7 @@ class C
 
         [WorkItem(28586, "https://github.com/dotnet/roslyn/issues/28586")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsync()
+        public void TestNotAfter()
         {
             VerifyAbsence(
 @"
@@ -205,7 +205,7 @@ class C
 
         [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMethodReference()
+        public void TestNotAfterMethodReference()
         {
             VerifyAbsence(
 @"
@@ -218,7 +218,7 @@ class C {
 
         [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAnonymousMethod()
+        public void TestNotAfterAnonymousMethod()
         {
             VerifyAbsence(
 @"
@@ -231,7 +231,7 @@ class C {
 
         [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterLambda1()
+        public void TestNotAfterLambda1()
         {
             VerifyAbsence(
 @"
@@ -244,7 +244,7 @@ class C {
 
         [WorkItem(8319, "https://github.com/dotnet/roslyn/issues/8319")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterLambda2()
+        public void TestNotAfterLambda2()
         {
             VerifyAbsence(
 @"
@@ -257,7 +257,7 @@ class C {
 
         [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMissingAfterNumericLiteral()
+        public void TestMissingAfterNumericLiteral()
         {
             VerifyAbsence(
 @"
@@ -272,7 +272,7 @@ class C
 
         [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMissingAfterNumericLiteralAndDot()
+        public void TestMissingAfterNumericLiteralAndDot()
         {
             VerifyAbsence(
 @"
@@ -287,7 +287,7 @@ class C
 
         [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMissingAfterNumericLiteralDotAndSpace()
+        public void TestMissingAfterNumericLiteralDotAndSpace()
         {
             VerifyAbsence(
 @"

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class BaseKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAtRoot_Interactive()
+        public void TestNotAtRoot_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTopLevelMethod()
+        public void TestNotInTopLevelMethod()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"void Goo()
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterClass_Interactive()
+        public void TestNotAfterClass_Interactive()
         {
             VerifyAbsence(SourceCodeKind.Script,
 @"class C { }
@@ -40,7 +40,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalStatement()
+        public void TestNotAfterGlobalStatement()
         {
             VerifyAbsence(
 @"System.Console.WriteLine();
@@ -48,7 +48,7 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterGlobalVariableDeclaration()
+        public void TestNotAfterGlobalVariableDeclaration()
         {
             VerifyAbsence(
 @"int i = 0;
@@ -56,14 +56,14 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInUsingAlias()
+        public void TestNotInUsingAlias()
         {
             VerifyAbsence(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInClassConstructorInitializer()
+        public void TestInClassConstructorInitializer()
         {
             VerifyKeyword(
 @"class C {
@@ -71,7 +71,7 @@ $$", options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInRecordConstructorInitializer()
+        public void TestInRecordConstructorInitializer()
         {
             // The recommender doesn't work in record in script
             // Tracked by https://github.com/dotnet/roslyn/issues/44865
@@ -81,7 +81,7 @@ record C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInStaticClassConstructorInitializer()
+        public void TestNotInStaticClassConstructorInitializer()
         {
             VerifyAbsence(
 @"class C {
@@ -89,7 +89,7 @@ record C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInStructConstructorInitializer()
+        public void TestNotInStructConstructorInitializer()
         {
             VerifyAbsence(
 @"struct C {
@@ -97,7 +97,7 @@ record C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterCast()
+        public void TestAfterCast()
         {
             VerifyKeyword(
 @"struct C {
@@ -105,7 +105,7 @@ record C {
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInEmptyMethod()
+        public void TestInEmptyMethod()
         {
             VerifyKeyword(
                 SourceCodeKind.Regular,
@@ -115,7 +115,7 @@ record C {
 
         [WorkItem(538264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEnumMemberInitializer1()
+        public void TestNotInEnumMemberInitializer1()
         {
             VerifyAbsence(
 @"enum E {
@@ -125,7 +125,7 @@ record C {
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInObjectInitializerMemberContext()
+        public void TestNotInObjectInitializerMemberContext()
         {
             VerifyAbsence(@"
 class C
@@ -138,7 +138,7 @@ class C
 
         [WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task InExpressionBodyAccessor()
+        public void InExpressionBodyAccessor()
         {
             VerifyKeyword(@"
 class B
@@ -148,7 +148,7 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefExpression()
+        public void TestAfterRefExpression()
         {
             VerifyKeyword(AddInsideMethod(
 @"ref int x = ref $$"));
