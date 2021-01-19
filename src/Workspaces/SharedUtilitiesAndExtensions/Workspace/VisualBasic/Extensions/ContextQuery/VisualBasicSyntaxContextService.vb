@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public Sub New()
         End Sub
 
-        Public Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext) Implements ISyntaxContextService.CreateContextAsync
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
+        Public Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext) Implements ISyntaxContextService.CreateContextAsync
+            Return Task.FromResult(Of SyntaxContext)(VisualBasicSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken))
         End Function
     End Class
 End Namespace
