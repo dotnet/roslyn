@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractSymbolCompletionProvider : LSPCompletionProvider
+    internal abstract partial class AbstractSymbolCompletionProvider : LSPCompletionProvider
     {
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
@@ -460,17 +460,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     CompletionProvidersLogger.LogTargetTypeCompletionTicksDataPoint(_tick);
                 }
             }
-        }
-
-        internal sealed class CompletionLinkedFilesSymbolEquivalenceComparer : IEqualityComparer<(ISymbol symbol, bool preselect)>
-        {
-            public static readonly CompletionLinkedFilesSymbolEquivalenceComparer Instance = new();
-
-            public bool Equals((ISymbol symbol, bool preselect) x, (ISymbol symbol, bool preselect) y)
-                => LinkedFilesSymbolEquivalenceComparer.Instance.Equals(x.symbol, y.symbol);
-
-            public int GetHashCode((ISymbol symbol, bool preselect) obj)
-                => LinkedFilesSymbolEquivalenceComparer.Instance.GetHashCode(obj.symbol);
         }
     }
 }
