@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 SymbolKind.Property => Glyph.PropertyPublic,
                 SymbolKind.RangeVariable => Glyph.RangeVariable,
                 SymbolKind.TypeParameter => Glyph.TypeParameter,
-                _ => throw new ArgumentException(),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
             switch (declaredAccessibility)

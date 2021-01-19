@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
-                if (typeSyntax is IdentifierNameSyntax &&
-                    ((IdentifierNameSyntax)typeSyntax).Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
                 {
                     return false;
                 }

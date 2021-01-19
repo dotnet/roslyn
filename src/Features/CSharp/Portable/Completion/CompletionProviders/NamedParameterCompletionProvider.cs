@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                if (!(token.Parent is BaseArgumentListSyntax argumentList))
+                if (token.Parent is not BaseArgumentListSyntax argumentList)
                 {
                     return;
                 }

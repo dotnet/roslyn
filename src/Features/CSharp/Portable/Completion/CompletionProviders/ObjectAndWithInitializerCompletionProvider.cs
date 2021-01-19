@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            if (!(token.Parent.Parent is ExpressionSyntax expression))
+            if (token.Parent.Parent is not ExpressionSyntax expression)
             {
                 return false;
             }

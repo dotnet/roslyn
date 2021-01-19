@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.DeclaredAccessibility == Accessibility.Public && type.Name.StartsWith(CallConvPrefix))
                 {
-                    var displayName = type.Name.Substring(CallConvPrefix.Length);
+                    var displayName = type.Name[CallConvPrefix.Length..];
                     completionItems.Add(
                         SymbolCompletionItem.CreateWithSymbolId(
                             displayName,

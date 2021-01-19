@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
 
         private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |

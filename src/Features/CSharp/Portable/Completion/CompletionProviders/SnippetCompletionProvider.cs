@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules = rules.WithFormatOnCommit(service.ShouldFormatSnippet(snippet));
 
                 return CommonCompletionItem.Create(
-                                displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                displayText: isPreProcessorContext ? snippet.Shortcut[1..] : snippet.Shortcut,
                                 displayTextSuffix: "",
-                                sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
+                                sortText: isPreProcessorContext ? snippet.Shortcut[1..] : snippet.Shortcut,
                                 description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
                                 glyph: Glyph.Snippet,
                                 rules: rules);
