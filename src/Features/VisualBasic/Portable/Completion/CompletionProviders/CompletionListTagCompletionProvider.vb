@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -26,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             MyBase.New()
         End Sub
 
-        Protected Overrides Function GetPreselectedSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetPreselectedSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -58,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                     m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)))
         End Function
 
-        Protected Overrides Function GetSymbolsAsync(context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Protected Overrides Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
@@ -77,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As VisualBasicSyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithKindOptions(SymbolDisplayKindOptions.None)
             Dim text = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
             Return (text, "", text)
@@ -85,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function CreateItem(completionContext As CompletionContext,
                 displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+                symbols As List(Of ISymbol), context As VisualBasicSyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
