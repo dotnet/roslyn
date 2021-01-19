@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -33,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> GetKeywordRecommenders()
-        {
-            return new IKeywordRecommender<CSharpSyntaxContext>[]
-            {
+            => ImmutableArray.Create<IKeywordRecommender<CSharpSyntaxContext>>(
                 new AbstractKeywordRecommender(),
                 new AddKeywordRecommender(),
                 new AliasKeywordRecommender(),
@@ -178,9 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new WhereKeywordRecommender(),
                 new WhileKeywordRecommender(),
                 new WithKeywordRecommender(),
-                new YieldKeywordRecommender(),
-            }.ToImmutableArray();
-        }
+                new YieldKeywordRecommender());
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
