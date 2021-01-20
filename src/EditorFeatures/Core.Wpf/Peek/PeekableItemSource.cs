@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         }
 
         private static IEnumerable<IPeekableItem> GetPeekableItemsForNavigableItems(
-            IEnumerable<INavigableItem> navigableItems, Project project,
+            IEnumerable<INavigableItem>? navigableItems, Project project,
             IPeekResultFactory peekResultFactory,
             CancellationToken cancellationToken)
         {
