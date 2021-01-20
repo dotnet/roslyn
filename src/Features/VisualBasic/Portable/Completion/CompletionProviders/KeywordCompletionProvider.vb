@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
         Inherits AbstractKeywordCompletionProvider(Of VisualBasicSyntaxContext)
 
-        Private Shared ReadOnly s_Tags As ImmutableArray(Of String) = ImmutableArray.Create(WellKnownTags.Intrinsic)
+        Private Shared ReadOnly s_tags As ImmutableArray(Of String) = ImmutableArray.Create(WellKnownTags.Intrinsic)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -168,12 +168,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()))
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
         Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayTextSuffix:="",
                 description:=keyword.DescriptionFactory(cancellationToken),
                 glyph:=Glyph.Keyword,
-                tags:=s_Tags,
+                tags:=s_tags,
                 rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
     End Class

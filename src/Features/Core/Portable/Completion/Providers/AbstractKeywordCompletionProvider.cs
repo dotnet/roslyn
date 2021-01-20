@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
         where TContext : SyntaxContext
     {
+        private static readonly Comparer s_comparer = new();
+
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
         protected AbstractKeywordCompletionProvider(ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
@@ -26,24 +28,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context, CancellationToken cancellationToken);
 
-        private static readonly Comparer s_comparer = new();
-
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
             var cancellationToken = context.CancellationToken;
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var completionItems = await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    (doc, ct) => RecommendCompletionItemsAsync(doc, position, ct),
-                    cancellationToken).ConfigureAwait(false);
-
-                foreach (var completionItem in completionItems)
-                    context.AddItem(completionItem);
+                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
             }
         }
 
@@ -51,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (TContext)await syntaxContextService.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = (TContext)syntaxContextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }

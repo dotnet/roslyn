@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -66,21 +65,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<ImmutableArray<T>>> getItemsWorker,
-            CancellationToken cancellationToken)
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
         {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false);
-            if (!linkedDocumentIds.Any())
-                return itemsForCurrentContext;
+            var totalItems = new HashSet<T>(comparer);
 
-            var totalItems = itemsForCurrentContext.ToSet(comparer);
-            foreach (var linkedDocumentId in linkedDocumentIds)
+            var values = await getItemsWorker(document).ConfigureAwait(false);
+            totalItems.AddRange(values.NullToEmpty());
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                    totalItems.AddRange(items);
+                values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+                totalItems.AddRange(values.NullToEmpty());
             }
 
             return totalItems.ToImmutableArray();
