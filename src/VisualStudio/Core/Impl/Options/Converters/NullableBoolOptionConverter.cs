@@ -6,7 +6,6 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters
 {
