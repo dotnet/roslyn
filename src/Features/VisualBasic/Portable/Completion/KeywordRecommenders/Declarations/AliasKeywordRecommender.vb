@@ -20,9 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             Dim targetToken = context.TargetToken
-            Dim touchingToken = context.TouchingToken
 
-            If targetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.LibraryName.Token) AndAlso Not touchingToken.ContainsDiagnostics Then
+            If targetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.LibraryName.Token) Then
                 Return SpecializedCollections.SingletonEnumerable(
                     New RecommendedKeyword("Alias", VBFeaturesResources.Indicates_that_an_external_procedure_has_another_name_in_its_DLL))
             Else
