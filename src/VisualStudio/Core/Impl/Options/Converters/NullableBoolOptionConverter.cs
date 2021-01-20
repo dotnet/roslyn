@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters
 {
@@ -20,19 +17,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Convert
             _onNullValue = onNullValue;
         }
 
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not null or bool)
-            {
-                return null;
-            }
-
             if (value is null)
             {
                 return _onNullValue();
             }
 
-            return (bool)value;
+            if (value is bool boolValue)
+            {
+                return boolValue;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
