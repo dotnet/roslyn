@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public partial class ImmutableDictionaryTest : ImmutableDictionaryTestBase
+    public partial class ImmutableSegmentedDictionaryTest : ImmutableDictionaryTestBase
     {
         [Fact]
         public override void EmptyTest()

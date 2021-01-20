@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class ImmutableDictionaryBuilderTest : ImmutableDictionaryBuilderTestBase
+    public class ImmutableSegmentedDictionaryBuilderTest : ImmutableDictionaryBuilderTestBase
     {
         [Fact]
         public void CreateBuilder()
