@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // that can happen if error is staled build error or user used #line pragma in C#
                 // to point to some random file in error or more.
 
-                // TODO: Use a TWD here so we can cancel navigation.
+                // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
                 e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview, e.ShouldActivate, CancellationToken.None);
             }
         }
