@@ -669,7 +669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddReturnType(IMethodSymbol symbol)
         {
-            symbol.ReturnType.Accept(this.NotFirstVisitor);
+            var symbolReturnType = ShouldBeNullableAnnotated(symbol, symbol.ReturnType, FlowAnalysisAnnotations.MaybeNull)
+                ? symbol.ReturnType.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)
+                : symbol.ReturnType;
+            symbolReturnType.Accept(this.NotFirstVisitor);
         }
 
         private void AddTypeParameterConstraints(IMethodSymbol symbol)

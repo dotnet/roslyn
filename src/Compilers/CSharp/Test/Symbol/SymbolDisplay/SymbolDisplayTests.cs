@@ -7903,7 +7903,7 @@ public class ClosedStruct: A<int> { }
             var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
             var closedGenericClassMember = compilation.GetTypeByMetadataName("ClosedClass").BaseType().GetMember("M");
             var closedGenericStructMember = compilation.GetTypeByMetadataName("ClosedStruct").BaseType().GetMember("M");
-            var openGenericMember = compilation.GetTypeByMetadataName("A`1").BaseType().GetMember("M");
+            var openGenericMember = compilation.GetTypeByMetadataName("A`1").GetMember("M");
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -7915,20 +7915,26 @@ public class ClosedStruct: A<int> { }
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.PropertyName);
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
             Verify(
                 closedGenericStructMember.ToDisplayParts(format),
                 "Int32 M()",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.PropertyName);
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
             Verify(
                 openGenericMember.ToDisplayParts(format),
                 "T? M()",
                 SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.PropertyName);
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
         }
     }
 }
