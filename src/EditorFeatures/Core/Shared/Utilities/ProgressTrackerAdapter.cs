@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private readonly IUIThreadOperationScope _uiThreadOperationScope;
         private int _completedItems;
         private int _totalItems;
-        private string _description;
+        private string? _description;
 
         public ProgressTrackerAdapter(IUIThreadOperationScope uiThreadOperationScope)
         {
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _uiThreadOperationScope = uiThreadOperationScope;
         }
 
-        public string Description
+        public string? Description
         {
             get => _description;
             set

@@ -1199,17 +1199,17 @@ using System.Runtime.InteropServices;
 public unsafe class UnmanagedFunctionPointer 
 {{
     [UnmanagedFunctionPointer(CallingConvention.{enumConvention})]
-    private delegate string CombineStrings(string s1, string s2);
+    public delegate string CombineStrings(string s1, string s2);
     
     private static string CombineStringsImpl(string s1, string s2)
     {{
         return s1 + s2;
     }}
 
-    public static delegate* unmanaged[{unmanagedConvention}]<string, string, string> GetFuncPtr()
+    public static delegate* unmanaged[{unmanagedConvention}]<string, string, string> GetFuncPtr(out CombineStrings del)
     {{
-        var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
-        GC.KeepAlive(ptr);
+        del = CombineStringsImpl;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[{unmanagedConvention}]<string, string, string>)ptr;
     }}
 }}
@@ -1217,7 +1217,8 @@ class Caller
 {{
     public unsafe static void Main()
     {{
-        Call(UnmanagedFunctionPointer.GetFuncPtr());
+        Call(UnmanagedFunctionPointer.GetFuncPtr(out var del));
+        GC.KeepAlive(del);
     }}
 
     public unsafe static void Call(delegate* unmanaged[{unmanagedConvention}]<string, string, string> ptr)
@@ -1284,17 +1285,17 @@ using System.Runtime.InteropServices;
 public unsafe class UnmanagedFunctionPointer 
 {
     [UnmanagedFunctionPointer(CallingConvention.FastCall)]
-    private delegate string CombineStrings(string s1, string s2);
+    public delegate string CombineStrings(string s1, string s2);
     
     private static string CombineStringsImpl(string s1, string s2)
     {
         return s1 + s2;
     }
 
-    public static delegate* unmanaged[Fastcall]<string, string, string> GetFuncPtr()
+    public static delegate* unmanaged[Fastcall]<string, string, string> GetFuncPtr(out CombineStrings del)
     {
-        var ptr = Marshal.GetFunctionPointerForDelegate((CombineStrings)CombineStringsImpl);
-        GC.KeepAlive(ptr);
+        del = CombineStringsImpl;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[Fastcall]<string, string, string>)ptr;
     }
 }
@@ -1302,7 +1303,8 @@ class Caller
 {
     public unsafe static void Main()
     {
-        Call(UnmanagedFunctionPointer.GetFuncPtr());
+        Call(UnmanagedFunctionPointer.GetFuncPtr(out var del));
+        GC.KeepAlive(del);
     }
 
     public unsafe static void Call(delegate* unmanaged[Fastcall]<string, string, string> ptr)
@@ -1354,20 +1356,20 @@ unsafe struct S
 unsafe class UnmanagedFunctionPointer
 {
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    delegate int SingleParam(S* s);
+    public delegate int SingleParam(S* s);
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    delegate int MultipleParams(S* s, int i);
+    public delegate int MultipleParams(S* s, int i);
     
-    public static delegate* unmanaged[Thiscall]<S*, int> GetFuncPtrSingleParam()
+    public static delegate* unmanaged[Thiscall]<S*, int> GetFuncPtrSingleParam(out SingleParam del)
     {
-        var ptr = Marshal.GetFunctionPointerForDelegate(new SingleParam(S.GetInt));
-        GC.KeepAlive(ptr);
+        del = S.GetInt;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[Thiscall]<S*, int>)ptr;
     }
-    public static delegate* unmanaged[Thiscall]<S*, int, int> GetFuncPtrMultipleParams()
+    public static delegate* unmanaged[Thiscall]<S*, int, int> GetFuncPtrMultipleParams(out MultipleParams del)
     {
-        var ptr = Marshal.GetFunctionPointerForDelegate(new MultipleParams(S.GetReturn));
-        GC.KeepAlive(ptr);
+        del = S.GetReturn;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[Thiscall]<S*, int, int>)ptr;
     }
 }
@@ -1384,61 +1386,71 @@ unsafe class C
     {
         S s = new S();
         s.i = 1;
-        var i = UnmanagedFunctionPointer.GetFuncPtrSingleParam()(&s);
+        var i = UnmanagedFunctionPointer.GetFuncPtrSingleParam(out var del)(&s);
         Console.Write(i);
+        GC.KeepAlive(del);
     }
 
     public static void TestMultiple()
     {
         S s = new S();
         s.i = 2;
-        var i = UnmanagedFunctionPointer.GetFuncPtrMultipleParams()(&s, 3);
+        var i = UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out var del)(&s, 3);
         Console.Write(i);
+        GC.KeepAlive(del);
     }
 }", expectedOutput: @"15");
 
             verifier.VerifyIL("C.TestSingle()", @"
 {
-  // Code size       37 (0x25)
+  // Code size       45 (0x2d)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate* unmanaged[Thiscall]<S*, int> V_1)
+                UnmanagedFunctionPointer.SingleParam V_1, //del
+                delegate* unmanaged[Thiscall]<S*, int> V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, int> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  conv.u
-  IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate* unmanaged[Thiscall]<S*, int>""
-  IL_001f:  call       ""void System.Console.Write(int)""
-  IL_0024:  ret
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, int> UnmanagedFunctionPointer.GetFuncPtrSingleParam(out UnmanagedFunctionPointer.SingleParam)""
+  IL_0017:  stloc.2
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  conv.u
+  IL_001b:  ldloc.2
+  IL_001c:  calli      ""delegate* unmanaged[Thiscall]<S*, int>""
+  IL_0021:  call       ""void System.Console.Write(int)""
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void System.GC.KeepAlive(object)""
+  IL_002c:  ret
 }
 ");
 
             verifier.VerifyIL("C.TestMultiple()", @"
 {
-  // Code size       38 (0x26)
+  // Code size       46 (0x2e)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate* unmanaged[Thiscall]<S*, int, int> V_1)
+                UnmanagedFunctionPointer.MultipleParams V_1, //del
+                delegate* unmanaged[Thiscall]<S*, int, int> V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, int, int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  conv.u
-  IL_0019:  ldc.i4.3
-  IL_001a:  ldloc.1
-  IL_001b:  calli      ""delegate* unmanaged[Thiscall]<S*, int, int>""
-  IL_0020:  call       ""void System.Console.Write(int)""
-  IL_0025:  ret
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, int, int> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)""
+  IL_0017:  stloc.2
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  conv.u
+  IL_001b:  ldc.i4.3
+  IL_001c:  ldloc.2
+  IL_001d:  calli      ""delegate* unmanaged[Thiscall]<S*, int, int>""
+  IL_0022:  call       ""void System.Console.Write(int)""
+  IL_0027:  ldloc.1
+  IL_0028:  call       ""void System.GC.KeepAlive(object)""
+  IL_002d:  ret
 }
 ");
         }
@@ -1581,20 +1593,20 @@ unsafe struct S
 unsafe class UnmanagedFunctionPointer
 {
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    delegate IntWrapper SingleParam(S* s);
+    public delegate IntWrapper SingleParam(S* s);
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    delegate ReturnWrapper MultipleParams(S* s, float f);
+    public delegate ReturnWrapper MultipleParams(S* s, float f);
     
-    public static delegate* unmanaged[Thiscall]<S*, IntWrapper> GetFuncPtrSingleParam()
+    public static delegate* unmanaged[Thiscall]<S*, IntWrapper> GetFuncPtrSingleParam(out SingleParam del)
     {
-        var ptr = Marshal.GetFunctionPointerForDelegate(new SingleParam(S.GetInt));
-        GC.KeepAlive(ptr);
+        del = S.GetInt;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[Thiscall]<S*, IntWrapper>)ptr;
     }
-    public static delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> GetFuncPtrMultipleParams()
+    public static delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> GetFuncPtrMultipleParams(out MultipleParams del)
     {
-        var ptr = Marshal.GetFunctionPointerForDelegate(new MultipleParams(S.GetReturn));
-        GC.KeepAlive(ptr);
+        del = S.GetReturn;
+        var ptr = Marshal.GetFunctionPointerForDelegate(del);
         return (delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>)ptr;
     }
 }
@@ -1611,17 +1623,19 @@ unsafe class C
     {
         S s = new S();
         s.i = 1;
-        var intWrapper = UnmanagedFunctionPointer.GetFuncPtrSingleParam()(&s);
+        var intWrapper = UnmanagedFunctionPointer.GetFuncPtrSingleParam(out var del)(&s);
         Console.WriteLine(intWrapper.i);
+        GC.KeepAlive(del);
     }
 
     public static void TestMultiple()
     {
         S s = new S();
         s.i = 2;
-        var returnWrapper = UnmanagedFunctionPointer.GetFuncPtrMultipleParams()(&s, 3.5f);
+        var returnWrapper = UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out var del)(&s, 3.5f);
         Console.Write(returnWrapper.i1);
         Console.Write(returnWrapper.f2);
+        GC.KeepAlive(del);
     }
 }", expectedOutput: @"
 1
@@ -1630,51 +1644,59 @@ unsafe class C
 
             verifier.VerifyIL("C.TestSingle()", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (S V_0, //s
-                delegate* unmanaged[Thiscall]<S*, IntWrapper> V_1)
+                UnmanagedFunctionPointer.SingleParam V_1, //del
+                delegate* unmanaged[Thiscall]<S*, IntWrapper> V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.1
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam()""
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  conv.u
-  IL_0019:  ldloc.1
-  IL_001a:  calli      ""delegate* unmanaged[Thiscall]<S*, IntWrapper>""
-  IL_001f:  ldfld      ""int IntWrapper.i""
-  IL_0024:  call       ""void System.Console.WriteLine(int)""
-  IL_0029:  ret
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, IntWrapper> UnmanagedFunctionPointer.GetFuncPtrSingleParam(out UnmanagedFunctionPointer.SingleParam)""
+  IL_0017:  stloc.2
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  conv.u
+  IL_001b:  ldloc.2
+  IL_001c:  calli      ""delegate* unmanaged[Thiscall]<S*, IntWrapper>""
+  IL_0021:  ldfld      ""int IntWrapper.i""
+  IL_0026:  call       ""void System.Console.WriteLine(int)""
+  IL_002b:  ldloc.1
+  IL_002c:  call       ""void System.GC.KeepAlive(object)""
+  IL_0031:  ret
 }
 ");
 
             verifier.VerifyIL("C.TestMultiple()", @"
 {
-  // Code size       58 (0x3a)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (S V_0, //s
-                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_1)
+                UnmanagedFunctionPointer.MultipleParams V_1, //del
+                delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  ldc.i4.2
   IL_000b:  stfld      ""int S.i""
-  IL_0010:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams()""
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  conv.u
-  IL_0019:  ldc.r4     3.5
-  IL_001e:  ldloc.1
-  IL_001f:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
-  IL_0024:  dup
-  IL_0025:  ldfld      ""int ReturnWrapper.i1""
-  IL_002a:  call       ""void System.Console.Write(int)""
-  IL_002f:  ldfld      ""float ReturnWrapper.f2""
-  IL_0034:  call       ""void System.Console.Write(float)""
-  IL_0039:  ret
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper> UnmanagedFunctionPointer.GetFuncPtrMultipleParams(out UnmanagedFunctionPointer.MultipleParams)""
+  IL_0017:  stloc.2
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  conv.u
+  IL_001b:  ldc.r4     3.5
+  IL_0020:  ldloc.2
+  IL_0021:  calli      ""delegate* unmanaged[Thiscall]<S*, float, ReturnWrapper>""
+  IL_0026:  dup
+  IL_0027:  ldfld      ""int ReturnWrapper.i1""
+  IL_002c:  call       ""void System.Console.Write(int)""
+  IL_0031:  ldfld      ""float ReturnWrapper.f2""
+  IL_0036:  call       ""void System.Console.Write(float)""
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""void System.GC.KeepAlive(object)""
+  IL_0041:  ret
 }");
         }
 
@@ -4415,7 +4437,7 @@ unsafe class C
 
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       32 (0x20)
+  // Code size       33 (0x21)
   .maxstack  4
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     ""delegate*<string, void>""
@@ -4436,10 +4458,11 @@ unsafe class C
   IL_0014:  stelem.i
   IL_0015:  ldc.i4.0
   IL_0016:  ldelem.i
-  IL_0017:  ldnull
-  IL_0018:  ceq
-  IL_001a:  call       ""void System.Console.Write(bool)""
-  IL_001f:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  conv.u
+  IL_0019:  ceq
+  IL_001b:  call       ""void System.Console.Write(bool)""
+  IL_0020:  ret
 }
 ");
         }
@@ -4820,14 +4843,15 @@ unsafe class C
 
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
-  IL_0002:  ldnull
-  IL_0003:  ceq
-  IL_0005:  call       ""void System.Console.Write(bool)""
-  IL_000a:  ret
+  IL_0002:  ldc.i4.0
+  IL_0003:  conv.u
+  IL_0004:  ceq
+  IL_0006:  call       ""void System.Console.Write(bool)""
+  IL_000b:  ret
 }
 ");
 
@@ -5007,6 +5031,7 @@ unsafe class C
         public void SupportedBinaryOperators()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
+#pragma warning disable CS8909 // Function pointers should not be compared
 using System;
 unsafe class C
 {
@@ -5116,6 +5141,49 @@ func_1a <= int_2: True");
   IL_0026:  ret
 }
 ");
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonWarnings(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = a {@operator} b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS8909: Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
+                //     _ = a {@operator} b;
+                Diagnostic(ErrorCode.WRN_DoNotCompareFunctionPointers, @operator).WithLocation(5, 11)
+            );
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonCastToVoidStar_NoWarning(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = (void*)a {@operator} b;
+    _ = a {@operator} (void*)b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -6982,7 +7050,7 @@ public class C
         Console.Write(new string(ptr(chars)));
     }
 }
-", targetFramework: TargetFramework.NetCoreApp30, expectedOutput: "123");
+", targetFramework: TargetFramework.NetCoreApp, expectedOutput: "123");
 
             comp.VerifyIL("C.Main", @"
 {
@@ -9500,6 +9568,9 @@ class D
                 // (11,25): error CS8894: Cannot use 'Task' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "Task").WithArguments("System.Threading.Tasks.Task", "return").WithLocation(11, 25),
+                // (11,30): warning CS8892: Method 'D.Main()' will not be used as an entry point because a synchronous entry point 'C.Main()' was found.
+                //     public static async Task Main() {}
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("D.Main()", "C.Main()").WithLocation(11, 30),
                 // (11,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async Task Main() {}
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(11, 30)
@@ -10646,6 +10717,548 @@ static void Test(out int i1, out int i2)
   IL_0023:  ldloc.1
   IL_0024:  call       ""void System.Console.Write(int)""
   IL_0029:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    iRef = 2;
+    System.Console.WriteLine(i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_FunctionPointerDoesNotReturnByRefError()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static int ReturnByRef(ref int i) => i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => ref ptr(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ptr(ref i)").WithLocation(8, 16)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+unsafe
+{
+    ref Span<int> spanRef = ref ReturnPtrByRef(&ReturnByRef);
+    
+    static ref Span<int> ReturnPtrByRef(delegate*<ref Span<int>, ref Span<int>> ptr)
+    {
+        Span<int> span = stackalloc int[1];
+        return ref ptr(ref span);
+    }
+
+    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "0").WithLocation(10, 20),
+                // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_SafeToEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+unsafe
+{
+    Span<int> s = stackalloc int[1];
+    s[0] = 1;
+    ref Span<int> sRef = ref ReturnPtrByRef(&ReturnByRef, ref s);
+    sRef[0] = 2;
+    Console.WriteLine(s[0]);
+    
+    static ref Span<int> ReturnPtrByRef(delegate*<ref Span<int>, ref Span<int>> ptr, ref Span<int> s)
+        => ref ptr(ref s);
+
+    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref System.Span<int>, ref System.Span<int>> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref System.Span<int>, ref System.Span<int>>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_RefReadonlyToRefError()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref readonly int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref readonly int ReturnByRef(ref int i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, int>' by writable reference because it is a readonly variable
+                //         => ref ptr(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, int>").WithLocation(8, 16)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_RefToRefReadonly()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref readonly int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref readonly int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefAssignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref ptr(ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  ldc.i4.2
+  IL_0012:  stloc.0
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefAssignmentThroughTernary()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    int i2 = 3;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref false ? ref i2 : ref ptr(ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  ldc.i4.2
+  IL_0012:  stloc.0
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefReturnThroughTernary()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    int i2 = 3;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i, ref i2);
+    iRef = 2;
+    System.Console.WriteLine(i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i, ref int i2)
+        => ref false ? ref i2 : ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void PassedAsByRefParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref ptr(ref ptr(ref i));
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1,
+                delegate*<ref int, ref int> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldloc.2
+  IL_000e:  calli      ""delegate*<ref int, ref int>""
+  IL_0013:  ldloc.1
+  IL_0014:  calli      ""delegate*<ref int, ref int>""
+  IL_0019:  ldc.i4.2
+  IL_001a:  stloc.0
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        public void ReturnRefStructByValue_CanEscape()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+
+unsafe
+{
+    Console.WriteLine(ptrTest().field);
+    
+    static BorrowedReference ptrTest()
+    {
+        delegate*<BorrowedReference> ptr = &test;
+        return ptr();
+    }
+
+    static BorrowedReference test() => new BorrowedReference() { field = 1 };
+}
+
+ref struct BorrowedReference {
+    public int field;
+}
+", expectedOutput: "1");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ptrTest|0_0()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""BorrowedReference <Program>$.<<Main>$>g__test|0_1()""
+  IL_0006:  calli      ""delegate*<BorrowedReference>""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        public void ReturnRefStructByValue_CannotEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+#pragma warning disable CS8321 // Unused local function ptrTest
+using System;
+unsafe
+{
+    static Span<int> ptrTest()
+    {
+        Span<int> s = stackalloc int[1];
+        delegate*<Span<int>, Span<int>> ptr = &test;
+        return ptr(s);
+    }
+
+    static Span<int> ptrTest2(Span<int> s)
+    {
+        delegate*<Span<int>, Span<int>> ptr = &test;
+        return ptr(s);
+    }
+    static Span<int> test(Span<int> s) => s;
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                //         return ptr(s);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
+                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ptr(s);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+            );
+        }
+
+        [Fact]
+        public void RefEscapeNestedArrayAccess()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+System.Console.WriteLine(M());
+
+static ref int M()
+{
+    var arr = new int[1]{40};
+
+    unsafe ref int N()
+    {
+        static ref int NN(ref int arg) => ref arg;
+
+        delegate*<ref int, ref int> ptr = &NN;
+        ref var r = ref ptr(ref arr[0]); 
+        r += 2;
+
+        return ref r;
+    }
+
+    return ref N();
+}
+", expectedOutput: "42");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__N|0_1(ref <Program>$.<>c__DisplayClass0_0)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__NN|0_2(ref int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int[] <Program>$.<>c__DisplayClass0_0.arr""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldelema    ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  calli      ""delegate*<ref int, ref int>""
+  IL_0019:  dup
+  IL_001a:  dup
+  IL_001b:  ldind.i4
+  IL_001c:  ldc.i4.2
+  IL_001d:  add
+  IL_001e:  stind.i4
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefReturnInCompoundAssignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    delegate*<ref int, ref int> ptr = &RefReturn;
+    int i = 0;
+    ptr(ref i) += 1;
+    System.Console.WriteLine(i);
+
+    static ref int RefReturn(ref int i) => ref i;
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__RefReturn|0_0(ref int)""
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InvalidReturnInCompoundAssignment()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<int, int> ptr = &RefReturn;
+    int i = 0;
+    ptr(i) += 1;
+
+    static int RefReturn(int i) => i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //     ptr(i) += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "ptr(i)").WithLocation(6, 5)
+            );
+        }
+
+        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
+        public void CompareToNullWithNestedUnconstrainedTypeParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe
+{
+    test<int>(null);
+    test<int>(&intTest);
+
+    static void test<T>(delegate*<T, void> f)
+    {
+        Console.WriteLine(f == null);
+        Console.WriteLine(f is null);
+    }
+
+    static void intTest(int i) {}
+}
+", expectedOutput: @"
+True
+True
+False
+False");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.WriteLine(bool)""
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.u
+  IL_000d:  ceq
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
 }
 ");
         }

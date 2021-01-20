@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -22,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// exist in the assembly.</param>
         /// <param name="projectId">The project context to search within.</param>
         /// <param name="assemblyName">The name of the assembly to try to resolve.</param>
-        Task<string?> ResolveAssemblyPathAsync(ProjectId projectId, string assemblyName, string? fullyQualifiedName, CancellationToken cancellationToken);
+        string? ResolveAssemblyPath(ProjectId projectId, string assemblyName, string? fullyQualifiedName);
 
         // bool CanResolveType(ProjectId projectId, string assemblyName, string fullyQualifiedTypeName);
     }

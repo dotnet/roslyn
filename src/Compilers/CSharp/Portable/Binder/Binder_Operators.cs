@@ -564,6 +564,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LessThanOrEqualExpression:
                 case SyntaxKind.GreaterThanExpression:
                 case SyntaxKind.GreaterThanOrEqualExpression:
+                    // Function pointer comparisons are defined on `void*` with implicit conversions to `void*` on both sides. So if this is a
+                    // pointer comparison operation, and the underlying types of the left and right are both function pointers, then we need to
+                    // warn about them because of JIT recompilation. If either side is explicitly cast to void*, that side's type will be void*,
+                    // not delegate*, and we won't warn.
+                    if ((resultOperatorKind & BinaryOperatorKind.Pointer) == BinaryOperatorKind.Pointer &&
+                        leftType?.TypeKind == TypeKind.FunctionPointer && rightType?.TypeKind == TypeKind.FunctionPointer)
+                    {
+                        // Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
+                        Error(diagnostics, ErrorCode.WRN_DoNotCompareFunctionPointers, node.OperatorToken);
+                    }
+
                     break;
                 default:
                     if (leftType.IsVoidPointer() || rightType.IsVoidPointer())
@@ -1206,8 +1217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
             // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
 
-            if (left.IsTypelessNew() ||
-                right.IsTypelessNew())
+            if (left.IsImplicitObjectCreation() ||
+                right.IsImplicitObjectCreation())
             {
                 return false;
             }
@@ -2433,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsTypelessNew();
+            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal

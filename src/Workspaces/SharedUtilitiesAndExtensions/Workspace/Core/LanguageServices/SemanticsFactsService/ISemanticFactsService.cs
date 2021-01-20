@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -46,5 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames);
+
+        CommonConversion ClassifyConversion(SemanticModel semanticModel, SyntaxNode expression, ITypeSymbol destination);
     }
 }

@@ -267,14 +267,14 @@ public struct StructWithValue
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
                 );
             CreateCompilation(source2,
-                options: TestOptions.ReleaseDll,
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
                 references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // (9,18): error CS0165: Use of unassigned local variable 'v1'
                 //         var v2 = v1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
                 );
             CreateCompilation(source2,
-                options: TestOptions.ReleaseDll,
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
                 references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 // (9,18): error CS0165: Use of unassigned local variable 'v1'
                 //         var v2 = v1;
@@ -336,9 +336,9 @@ public struct StructWithValue
         var r2 = r1;
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
                 );
-            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
                 );
             CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (6,18): warning CS8829: Use of unassigned local variable 'r1'
@@ -381,9 +381,9 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
                 );
-            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
                 );
             CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (6,18): warning CS8829: Use of unassigned local variable 'r1'
@@ -501,7 +501,7 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
                 );
             CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (6,18): warning CS8829: Use of unassigned local variable 'r1'

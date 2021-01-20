@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _canNavigateToPosition As Boolean = True
         Public _canNavigateToSpan As Boolean = True
 
-        Public _triedNavigationToLineAndOffset As Boolean = False
-        Public _triedNavigationToPosition As Boolean = False
-        Public _triedNavigationToSpan As Boolean = False
+        Public _triedNavigationToLineAndOffset As Boolean
+        Public _triedNavigationToPosition As Boolean
+        Public _triedNavigationToSpan As Boolean
 
-        Public _documentId As DocumentId = Nothing
-        Public _options As OptionSet = Nothing
+        Public _documentId As DocumentId
+        Public _options As OptionSet
         Public _line As Integer = -1
         Public _offset As Integer = -1
         Public _span As TextSpan = Nothing

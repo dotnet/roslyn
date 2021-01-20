@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolDisplayPartKind.AliasName:
                 case SymbolDisplayPartKind.ClassName:
+                case SymbolDisplayPartKind.RecordClassName:
                 case SymbolDisplayPartKind.StructName:
                 case SymbolDisplayPartKind.InterfaceName:
                 case SymbolDisplayPartKind.EnumName:

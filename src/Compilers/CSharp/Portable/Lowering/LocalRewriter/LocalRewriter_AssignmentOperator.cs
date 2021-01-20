@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property;
-                Debug.Assert(autoProp.IsAutoProperty,
+                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
                     "only autoproperties can be assignable without having setters");
 
                 var backingField = autoProp.BackingField;
@@ -315,7 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 rewrittenArguments,
                 property,
-                setMethod,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,

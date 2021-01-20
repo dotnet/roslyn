@@ -1105,7 +1105,7 @@ OtherExpressions:
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
                 _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
 
-                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics), TypeSymbol)
+                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
 
                 _builder.EmitLocalStore(keyHash)

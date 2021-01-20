@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Exit(string message)
         {
-            FatalError.Report(new Exception(message));
+            FatalError.ReportAndPropagate(new Exception(message));
         }
 
         internal static void Install()

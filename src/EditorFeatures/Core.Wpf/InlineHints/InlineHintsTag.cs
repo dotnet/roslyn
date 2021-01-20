@@ -13,11 +13,10 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
         private readonly SnapshotSpan _span;
-        private readonly SymbolKey? _key;
+        private readonly InlineHint _hint;
         private readonly IThreadingContext _threadingContext;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
@@ -47,13 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             FrameworkElement adornment,
             ITextView textView,
             SnapshotSpan span,
-            SymbolKey? key,
+            InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
-            : base(adornment, removalCallback: null, PositionAffinity.Predecessor)
+            : base(adornment,
+                   removalCallback: null,
+                   PositionAffinity.Predecessor)
         {
             _textView = textView;
             _span = span;
-            _key = key;
+            _hint = hint;
             _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
             _threadingContext = taggerProvider.ThreadingContext;
             _toolTipService = taggerProvider.ToolTipService;
@@ -71,68 +72,30 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// </summary>
         /// <param name="textView">The view of the editor</param>
         /// <param name="span">The span that has the location of the hint</param>
-        /// <param name="key">The symbolkey associated with each parameter</param>
         public static InlineHintsTag Create(
-            ImmutableArray<SymbolDisplayPart> parts,
+            InlineHint hint,
             TextFormattingRunProperties format,
             IWpfTextView textView,
             SnapshotSpan span,
-            SymbolKey? key,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
             bool classify)
         {
             return new InlineHintsTag(
-                CreateElement(parts, textView, span, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, span, key, taggerProvider);
+                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
         {
-            if (_key != null)
+            var document = _span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
             {
-                var document = _span.Snapshot.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                if (document != null)
+                var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+                if (!taggedText.IsDefaultOrEmpty)
                 {
-                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    var symbol = _key.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
-                    if (symbol != null)
-                    {
-                        var textContentBuilder = new List<TaggedText>();
-
-                        var workspace = document.Project.Solution.Workspace;
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
-                        var formatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
-                        var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, _span.Start, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
-                        textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
-                        if (formatter != null)
-                        {
-                            var documentation = symbol.GetDocumentationParts(semanticModel, _span.Start, formatter, cancellationToken);
-
-                            if (documentation.Any())
-                            {
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddRange(documentation);
-                            }
-                        }
-
-                        if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out var parts))
-                        {
-                            if (!parts.IsDefaultOrEmpty)
-                            {
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddLineBreak();
-                                textContentBuilder.AddRange(parts);
-                            }
-                        }
-
-                        var uiCollection = Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(textContentBuilder.ToImmutableArray<TaggedText>(),
-                            document, _threadingContext, _streamingPresenter);
-                        return uiCollection;
-                    }
+                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(
+                        taggedText, document, _threadingContext, _streamingPresenter);
                 }
             }
 
@@ -140,31 +103,33 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         }
 
         private static FrameworkElement CreateElement(
-            ImmutableArray<SymbolDisplayPart> parts,
+            ImmutableArray<TaggedText> taggedTexts,
             IWpfTextView textView,
-            SnapshotSpan span,
             TextFormattingRunProperties format,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
             bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
-            // page. Calculates a font size 1/4 smaller than the font size of the rest of the editor
+            // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
+            // well with VS at any zoom level or font size.
+
             var block = new TextBlock
             {
                 FontFamily = format.Typeface.FontFamily,
-                FontSize = format.FontRenderingEmSize - (0.25 * format.FontRenderingEmSize),
+                FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
 
-                // Adds a little bit of padding to the left of the text relative to the border
-                // to make the text seem more balanced in the border
-                Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
+                // Adds a little bit of padding to the left of the text relative to the border to make the text seem
+                // more balanced in the border
+                Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            var taggedTexts = parts.ToTaggedText();
-            foreach (var taggedText in taggedTexts)
+            var (trimmedTexts, leftPadding, rightPadding) = Trim(taggedTexts);
+
+            foreach (var taggedText in trimmedTexts)
             {
                 var run = new Run(taggedText.ToVisibleDisplayString(includeLeftToRightMarker: true));
 
@@ -178,28 +143,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 block.Inlines.Add(run);
             }
 
-            // Encapsulates the textblock within a border. Sets the height of the border to be 3/4 of the original 
-            // height. Gets foreground/background colors from the options menu. The margin is the distance from the 
-            // adornment to the text and pushing the adornment upwards to create a separation when on a specific line
+            // Encapsulates the textblock within a border. Gets foreground/background colors from the options menu.
 
-            // If the tag is followed by a space, just create a normal border (as there will already be a buffer to the right).
-            // If not, then pad the right a little so the tag doesn't feel too cramped with the following text.
-            var right = span.End < span.Snapshot.Length && char.IsWhiteSpace(span.End.GetChar()) ? 0 : 5;
+            // If the tag is started or followed by a space, we trim that off but represent the space as buffer on hte
+            // left or right side.
+            var left = leftPadding * 5;
+            var right = rightPadding * 5;
 
             var border = new Border
             {
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                Height = textView.LineHeight - (0.25 * textView.LineHeight),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(left: 0, top: -0.20 * textView.LineHeight, right, bottom: 0),
-                Padding = new Thickness(1),
 
-                // Need to set SnapsToDevicePixels and UseLayoutRounding to avoid unnecessary reformatting
-                SnapsToDevicePixels = textView.VisualElement.SnapsToDevicePixels,
-                UseLayoutRounding = textView.VisualElement.UseLayoutRounding,
-                VerticalAlignment = VerticalAlignment.Center
+                // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
+                Margin = new Thickness(left, top: 0, right, bottom: 1),
             };
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
@@ -210,6 +168,41 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             return border;
+        }
+
+        private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
+        {
+            using var _ = ArrayBuilder<TaggedText>.GetInstance(out var result);
+            var leftPadding = 0;
+            var rightPadding = 0;
+
+            if (taggedTexts.Length == 1)
+            {
+                var first = taggedTexts.First();
+
+                var trimStart = first.Text.TrimStart();
+                var trimBoth = trimStart.TrimEnd();
+                result.Add(new TaggedText(first.Tag, trimBoth));
+                leftPadding = first.Text.Length - trimStart.Length;
+                rightPadding = trimStart.Length - trimBoth.Length;
+            }
+            else if (taggedTexts.Length >= 2)
+            {
+                var first = taggedTexts.First();
+                var trimStart = first.Text.TrimStart();
+                result.Add(new TaggedText(first.Tag, trimStart));
+                leftPadding = first.Text.Length - trimStart.Length;
+
+                for (var i = 1; i < taggedTexts.Length - 1; i++)
+                    result.Add(taggedTexts[i]);
+
+                var last = taggedTexts.Last();
+                var trimEnd = last.Text.TrimEnd();
+                result.Add(new TaggedText(last.Tag, trimEnd));
+                rightPadding = last.Text.Length - trimEnd.Length;
+            }
+
+            return (result.ToImmutable(), leftPadding, rightPadding);
         }
 
         /// <summary>

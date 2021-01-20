@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
@@ -20,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 
     public partial class CSharpUseNotPatternTests
     {
-#if !CODE_STYLE
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
         [WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
@@ -70,7 +66,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
         }
-
-#endif
     }
 }

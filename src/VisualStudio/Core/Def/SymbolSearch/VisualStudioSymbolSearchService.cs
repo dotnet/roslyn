@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

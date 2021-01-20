@@ -31,13 +31,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         /// </summary>
         private readonly SafeSqliteHandle _handle;
 
-#pragma warning disable IDE0052 // Remove unread private members - TODO: Can this field be removed?
-        /// <summary>
-        /// For testing purposes to simulate failures during testing.
-        /// </summary>
-        private readonly IPersistentStorageFaultInjector? _faultInjector;
-#pragma warning restore IDE0052 // Remove unread private members
-
         /// <summary>
         /// Our cache of prepared statements for given sql strings.
         /// </summary>
@@ -82,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             try
             {
                 NativeMethods.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                var connection = new SqlConnection(handle, faultInjector, queryToStatement);
+                var connection = new SqlConnection(handle, queryToStatement);
 
                 // Attach (creating if necessary) a singleton in-memory write cache to this connection.
                 //
@@ -110,14 +103,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
         }
 
-        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector? faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SafeSqliteHandle handle, Dictionary<string, SqlStatement> queryToStatement)
         {
             _handle = handle;
-            _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
         }
 
-        internal void Close_OnlyForUseBySqlPersistentStorage()
+        internal void Close_OnlyForUseBySQLiteConnectionPool()
         {
             // Dispose of the underlying handle at the end of cleanup
             using var _ = _handle;

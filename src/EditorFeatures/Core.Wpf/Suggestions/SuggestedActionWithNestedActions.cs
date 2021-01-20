@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 throw new InvalidOperationException("Invoke should not be called on a SuggestedActionWithNestedActions");
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         filterText: escapedName));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

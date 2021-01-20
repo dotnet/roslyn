@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -19,7 +17,6 @@ using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -49,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
             {
-                var experimentationService = vsWorkspace.Services.GetService<IExperimentationService>();
+                var experimentationService = vsWorkspace.Services.GetRequiredService<IExperimentationService>();
                 if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
@@ -69,30 +66,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
-            private readonly SemaphoreSlim _initializationGate = new(initialCount: 1);
             private readonly IAsyncServiceProvider2 _serviceProvider;
             private readonly IThreadingContext _threadingContext;
-
-            private bool _initialized = false;
 
             /// <summary>
             /// A task indicating that the <see cref="Guids.GlobalHubClientPackageGuid"/> package has loaded. Calls to
             /// <see cref="IServiceBroker.GetProxyAsync"/> may have a main thread dependency if the proffering package
             /// is not loaded prior to the call.
             /// </summary>
-            private JoinableTask _loadHubClientPackage;
+            private readonly JoinableTask _loadHubClientPackage;
 
-            public event EventHandler StatusChanged;
+            /// <summary>
+            /// A task providing the result of asynchronous computation of
+            /// <see cref="IVsOperationProgressStatusService.GetStageStatusForSolutionLoad"/>. The result of this
+            /// operation is accessed through <see cref="GetProgressStageStatusAsync"/>.
+            /// </summary>
+            private readonly JoinableTask<IVsOperationProgressStageStatusForSolutionLoad?> _progressStageStatus;
+
+            public event EventHandler? StatusChanged;
 
             public Service(IAsyncServiceProvider2 serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListener listener)
             {
                 _serviceProvider = serviceProvider;
                 _threadingContext = threadingContext;
 
-                // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
-                // until event subscription is done
-                var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
-                Task.Run(() => EnsureInitializationAsync(CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                _loadHubClientPackage = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    // Use the disposal token, since the caller's cancellation token will apply instead to the
+                    // JoinAsync operation in GetProgressStageStatusAsync.
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
+
+                    // Make sure the HubClient package is loaded, since we rely on it for proffered OOP services
+                    var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
+                    Assumes.Present(shell);
+
+                    await shell.LoadPackageAsync(Guids.GlobalHubClientPackageGuid);
+                });
+
+                _progressStageStatus = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
+                    // until event subscription is done
+                    using var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
+
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
+                    var service = await serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false).ConfigureAwait(true);
+                    if (service is null)
+                        return null;
+
+                    var status = service.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
+                    status.PropertyChanged += (_, _) => StatusChanged?.Invoke(this, EventArgs.Empty);
+
+                    return status;
+                });
             }
 
             // unfortunately, IVsOperationProgressStatusService requires UI thread to let project system to proceed to next stages.
@@ -105,8 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
                 {
-                    await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
-
                     var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                     if (status == null)
                     {
@@ -129,8 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // deadlock
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
-                await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
-
                 var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                 if (status == null)
                 {
@@ -140,48 +162,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return !status.IsInProgress;
             }
 
-            private async Task<IVsOperationProgressStageStatusForSolutionLoad> GetProgressStageStatusAsync(CancellationToken cancellationToken)
+            private async ValueTask<IVsOperationProgressStageStatusForSolutionLoad?> GetProgressStageStatusAsync(CancellationToken cancellationToken)
             {
-                var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false)
-                                                    .WithCancellation(cancellationToken).ConfigureAwait(false);
-
-                return service?.GetStageStatusForSolutionLoad(CommonOperationProgressStageIds.Intellisense);
-            }
-
-            private async Task EnsureInitializationAsync(CancellationToken cancellationToken)
-            {
-                using (await _initializationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                // Workaround for lack of fast path in JoinAsync; avoid calling when already completed
+                // https://github.com/microsoft/vs-threading/pull/696
+                if (_progressStageStatus.Task.IsCompleted)
                 {
-                    if (_initialized)
-                    {
-                        return;
-                    }
-
-                    _initialized = true;
-
-                    _loadHubClientPackage = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
-                    {
-                        // Use the disposal token, since the caller's cancellation token will apply instead to the
-                        // JoinAsync operation.
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-
-                        // Make sure the HubClient package is loaded, since we rely on it for proffered OOP services
-                        var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
-                        Assumes.Present(shell);
-
-                        await shell.LoadPackageAsync(Guids.GlobalHubClientPackageGuid);
-                    });
-
-                    // with IAsyncServiceProvider, to get a service from BG, there is not much else
-                    // we can do to avoid this pattern to subscribe to events
-                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
-                    if (status == null)
-                    {
-                        return;
-                    }
-
-                    status.PropertyChanged += (_, e) => this.StatusChanged?.Invoke(this, EventArgs.Empty);
+                    return await _progressStageStatus.Task.ConfigureAwait(false);
                 }
+
+                return await _progressStageStatus.JoinAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

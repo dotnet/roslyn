@@ -575,6 +575,13 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
+            {
+                _builder.Append("System.Object");
+
+                return true;
+            }
+
             public override bool VisitArrayType(IArrayTypeSymbol symbol)
             {
                 this.Visit(symbol.ElementType);
@@ -1212,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                                     ITypeSymbol? returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
-                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
+                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, SymbolEqualityComparer.CLRSignature))
                                     {
                                         // return type matches
                                         results.Add(methodSymbol);
@@ -1355,7 +1362,7 @@ namespace Microsoft.CodeAnalysis
 
                 var parameterType = parameterInfo.Type;
 
-                return parameterType != null && symbol.Type.Equals(parameterType);
+                return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

@@ -1007,7 +1007,7 @@ class C
     fixed int F[C<C<T>>.G];
     const int G = 1;
 }";
-            CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F").WithLocation(4, 15),
                 // (4,19): error CS0310: 'C<T>' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
@@ -5666,7 +5666,7 @@ public class Base2 : Base1<Object>
 {
     public override void Goo<G>(G d) { Console.WriteLine(""Base2""); }
 }",
-                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: TestOptions.DebugDll);
             var csVerifier = CompileAndVerify(csCompilation);
             csVerifier.VerifyDiagnostics();
 

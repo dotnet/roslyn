@@ -15,16 +15,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return Task.FromResult(oldCompilation);
             }
-
-            /// <summary>
-            /// Returns a new <see cref="TrackedGeneratorDriver" /> that can be used for future generator invocations.
-            /// </summary>
-            public virtual TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
-            {
-                // Our default behavior is that any edit requires us to re-run a full generation pass, since anything
-                // could have changed.
-                return new TrackedGeneratorDriver(generatorDriver: null);
-            }
         }
     }
 }

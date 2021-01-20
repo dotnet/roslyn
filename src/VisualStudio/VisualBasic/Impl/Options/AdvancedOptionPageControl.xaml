@@ -47,6 +47,10 @@
                     <CheckBox x:Name="SuggestForTypesInNuGetPackages"
                               x:Uid="AddImport_SuggestForTypesInNuGetPackages"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_NuGet_packages}" />
+
+                    <CheckBox x:Name="AddMissingImportsOnPaste"
+                              x:Uid="AddMissingImportsOnPaste"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_imports_on_paste}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
@@ -196,8 +200,8 @@
             <GroupBox x:Uid="InlineHintsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
                 <StackPanel>
-                    <CheckBox x:Name="DisplayAllHintsWhilePressingCtrlAlt"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Ctrl_Alt}" />
+                    <CheckBox x:Name="DisplayAllHintsWhilePressingAltF1"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_all_hints_while_pressing_Alt_F1}" />
 
                     <CheckBox x:Name="ColorHints"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_hints}" />

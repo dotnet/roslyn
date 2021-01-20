@@ -133,8 +133,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
         {
-            // make sure we first load this in current optionset
-            this.GetOption(optionKey);
+            // Make sure we first load this in current optionset
+            var currentValue = this.GetOption(optionKey);
+
+            // Check if the new value is the same as the current value.
+            if (Equals(value, currentValue))
+            {
+                // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
+                return new SerializableOptionSet(_languages, _workspaceOptionSet, _serializableOptions,
+                    _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
+            }
 
             WorkspaceOptionSet workspaceOptionSet;
             ImmutableDictionary<OptionKey, object?> serializableOptionValues;

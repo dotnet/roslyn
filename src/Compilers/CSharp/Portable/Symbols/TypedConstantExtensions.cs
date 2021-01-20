@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (field is object && field.HasConstantValue)
                 {
-                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue!, specialType); // use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964
+                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue, specialType);
                     ulong memberValue = memberConstant.UInt64Value;
 
                     // Do we have an exact matching enum field
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var field = member as IFieldSymbol;
                 if (field is object && field.HasConstantValue)
                 {
-                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue!, specialType); // use MemberNotNull when available https://github.com/dotnet/roslyn/issues/41964 
+                    ConstantValue memberConstant = ConstantValue.Create(field.ConstantValue, specialType);
                     long memberValue = memberConstant.Int64Value;
 
                     // Do we have an exact matching enum field

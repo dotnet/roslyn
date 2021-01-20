@@ -7,14 +7,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public partial class FindAllDeclarationsTests
     {
-        private static void Verify(string searchTerm, bool respectCase, WorkspaceKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
+        private readonly ITestOutputHelper _logger;
+
+        public FindAllDeclarationsTests(ITestOutputHelper logger)
+        {
+            _logger = logger;
+        }
+
+        private static void Verify(string searchTerm, bool respectCase, SolutionKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
         {
             var actualResultCount = declarations.Count();
             var expectedResultCount = expectedResults.Length;
@@ -24,14 +37,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     expectedResultCount,
                     actualResultCount,
                     respectCase,
-                    Enum.GetName(typeof(WorkspaceKind), workspaceKind)));
+                    Enum.GetName(typeof(SolutionKind), workspaceKind)));
             if (actualResultCount > 0)
             {
                 VerifyResults(declarations, expectedResults);
             }
         }
 
-        private static void Verify(WorkspaceKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
+        private static void Verify(SolutionKind workspaceKind, IEnumerable<ISymbol> declarations, params string[] expectedResults)
         {
             var actualResultCount = declarations.Count();
             var expectedResultCount = expectedResults.Length;
@@ -39,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 string.Format("Expected '{0}' results, found '{1}. Workspace {2} was used",
                     expectedResultCount,
                     actualResultCount,
-                    Enum.GetName(typeof(WorkspaceKind), workspaceKind)));
+                    Enum.GetName(typeof(SolutionKind), workspaceKind)));
             if (actualResultCount > 0)
             {
                 VerifyResults(declarations, expectedResults);
@@ -61,13 +74,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Solution CreateSolution()
-            => new AdhocWorkspace().CurrentSolution;
+        private Workspace CreateWorkspace(TestHost testHost = TestHost.InProcess)
+        {
+            var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
+            var workspace = new AdhocWorkspace(composition.GetHostServices());
 
-        private static Solution GetSingleProjectSolution(params string[] sourceTexts)
+            if (testHost == TestHost.OutOfProcess)
+            {
+                var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
+                remoteHostProvider.TraceListener = new XunitTraceListener(_logger);
+            }
+
+            return workspace;
+        }
+
+        private Workspace CreateWorkspaceWithSingleProjectSolution(TestHost testHost, string[] sourceTexts, out Solution solution)
         {
             var pid = ProjectId.CreateNewId();
-            var solution = CreateSolution()
+            var workspace = CreateWorkspace(testHost);
+
+            solution = workspace.CurrentSolution
                     .AddProject(pid, "TestCases", "TestCases", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
             for (var i = 0; i < sourceTexts.Length; i++)
@@ -76,12 +102,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
-            return solution;
+            return workspace;
         }
 
-        private static Solution GetMultipleProjectSolution(params string[] sourceTexts)
+        private Workspace CreateWorkspaceWithMultipleProjectSolution(TestHost testHost, string[] sourceTexts, out Solution solution)
         {
-            var solution = CreateSolution();
+            var workspace = CreateWorkspace(testHost);
+            solution = workspace.CurrentSolution;
             for (var i = 0; i < sourceTexts.Length; i++)
             {
                 var pid = ProjectId.CreateNewId();
@@ -92,28 +119,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
-            return solution;
+            return workspace;
         }
 
-        private static Solution GetSolution(WorkspaceKind workspaceKind)
-            => workspaceKind switch
+        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.InProcess)
+            => solutionKind switch
             {
-                WorkspaceKind.SingleClass => GetSingleProjectSolution(SingleClass),
-                WorkspaceKind.SingleClassWithSingleMethod => GetSingleProjectSolution(SingleClassWithSingleMethod),
-                WorkspaceKind.SingleClassWithSingleProperty => GetSingleProjectSolution(SingleClassWithSingleProperty),
-                WorkspaceKind.SingleClassWithSingleField => GetSingleProjectSolution(SingleClassWithSingleField),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod => GetMultipleProjectSolution(SingleClassWithSingleMethod, SingleClassWithSingleMethod),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty => GetMultipleProjectSolution(SingleClassWithSingleProperty, SingleClassWithSingleProperty),
-                WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField => GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField),
-                WorkspaceKind.NestedClass => GetSingleProjectSolution(NestedClass),
-                WorkspaceKind.TwoNamespacesWithIdenticalClasses => GetSingleProjectSolution(Namespace1, Namespace2),
-                _ => null,
+                SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClass }, out solution),
+                SolutionKind.SingleClassWithSingleMethod => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleMethod }, out solution),
+                SolutionKind.SingleClassWithSingleProperty => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleProperty }, out solution),
+                SolutionKind.SingleClassWithSingleField => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { SingleClassWithSingleField }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleMethod => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleMethod, SingleClassWithSingleMethod }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleProperty => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleProperty, SingleClassWithSingleProperty }, out solution),
+                SolutionKind.TwoProjectsEachWithASingleClassWithSingleField => CreateWorkspaceWithMultipleProjectSolution(testHost, new[] { SingleClassWithSingleField, SingleClassWithSingleField }, out solution),
+                SolutionKind.NestedClass => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { NestedClass }, out solution),
+                SolutionKind.TwoNamespacesWithIdenticalClasses => CreateWorkspaceWithSingleProjectSolution(testHost, new[] { Namespace1, Namespace2 }, out solution),
+                _ => throw ExceptionUtilities.UnexpectedValue(solutionKind),
             };
 
-        private static Project GetProject(WorkspaceKind workspaceKind)
-            => GetSolution(workspaceKind).Projects.First();
+        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.InProcess)
+        {
+            var workspace = CreateWorkspaceWithSolution(solutionKind, out var solution, testHost);
+            project = solution.Projects.First();
+            return workspace;
+        }
 
-        public enum WorkspaceKind
+        public enum SolutionKind
         {
             SingleClass,
             SingleClassWithSingleMethod,

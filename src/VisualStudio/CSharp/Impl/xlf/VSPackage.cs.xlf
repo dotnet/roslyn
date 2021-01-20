@@ -81,7 +81,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Zobrazovat nápovědy k názvům vložených parametrů;
+        <target state="translated">Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 
 Zvýrazňovat související komponenty pod kurzorem; 

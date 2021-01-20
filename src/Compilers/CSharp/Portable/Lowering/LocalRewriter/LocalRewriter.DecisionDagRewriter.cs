@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
 
                 var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
-                privateImplClass.TryAddSynthesizedMethod(method);
+                privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
             private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)

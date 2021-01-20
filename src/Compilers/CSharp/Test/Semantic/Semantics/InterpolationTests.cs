@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -926,7 +927,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (15,21): error CS0117: 'string' does not contain a definition for 'Format'
                 //             var s = $"X = { 1 } ";
@@ -959,7 +960,7 @@ class Program {
         }
     }
 }";
-            CreateEmptyCompilation(text, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CreateEmptyCompilation(text, options: TestOptions.DebugExe)
             .VerifyEmitDiagnostics(new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "x.y"),
                 // (17,21): error CS0029: Cannot implicitly convert type 'bool' to 'string'
                 //             var s = $"X = { 1 } ";

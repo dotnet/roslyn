@@ -97,7 +97,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Goo d = new Bar::NS.Goo();
 ";
-            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }

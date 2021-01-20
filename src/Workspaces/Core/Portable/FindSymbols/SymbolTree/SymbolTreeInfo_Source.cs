@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(project.Solution, checksum, project.FilePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -131,10 +131,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 lookup(globalNamespace, symbolMap);
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, 0 /*index of root node*/, kvp.Value, list, lookup);
-                }
+                foreach (var (name, symbols) in symbolMap)
+                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list, lookup);
             }
             finally
             {
@@ -166,10 +164,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     lookup(symbol, symbolMap);
                 }
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, nodeIndex, kvp.Value, list, lookup);
-                }
+                foreach (var (symbolName, symbols) in symbolMap)
+                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list, lookup);
             }
             finally
             {

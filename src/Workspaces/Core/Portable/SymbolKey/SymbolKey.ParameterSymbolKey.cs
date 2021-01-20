@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 Resolve(result, reader, metadataName, delegateInvoke.Parameters);
                             }
+
                             break;
                     }
                 }

@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     return new ExecutionResult(result.Success);
                 }, _shutdownCancellationSource.Token).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var result = await _interactiveHost.SetPathsAsync(referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), workingDirectory).ConfigureAwait(false);
                 UpdatePathsNoLock(result);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

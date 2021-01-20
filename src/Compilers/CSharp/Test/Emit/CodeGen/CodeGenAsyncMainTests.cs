@@ -1161,7 +1161,11 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23)
+                );
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 
@@ -1239,7 +1243,10 @@ class A
         System.Console.WriteLine(""Task Main"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithMainTypeName("A")).VerifyDiagnostics(
+                // (10,23): warning CS8892: Method 'A.Main(string[])' will not be used as an entry point because a synchronous entry point 'A.Main()' was found.
+                //     async static Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("A.Main(string[])", "A.Main()").WithLocation(10, 23));
             CompileAndVerify(compilation, expectedOutput: "Non Task Main", expectedReturnCode: 0);
         }
 

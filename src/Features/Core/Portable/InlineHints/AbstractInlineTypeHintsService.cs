@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,11 +21,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        protected abstract (ITypeSymbol type, TextSpan span)? TryGetTypeHint(
+        protected abstract TypeHint? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
             bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
+            bool forImplicitObjectCreation,
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
@@ -39,7 +41,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
             var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
-            if (!forImplicitVariableTypes && !forLambdaParameterTypes && !displayAllOverride)
+            var forImplicitObjectCreation = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitObjectCreation);
+            if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
             var anonymousTypeService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
@@ -55,17 +58,28 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     displayAllOverride,
                     forImplicitVariableTypes,
                     forLambdaParameterTypes,
+                    forImplicitObjectCreation,
                     cancellationToken);
                 if (hintOpt == null)
                     continue;
 
-                var (type, span) = hintOpt.Value;
+                var (type, span, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
-                var parts = type.ToDisplayParts(s_minimalTypeStyle);
+                finalParts.AddRange(prefix);
 
+                var parts = type.ToDisplayParts(s_minimalTypeStyle);
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
-                result.Add(new InlineHint(span, finalParts.ToImmutable(), type.GetSymbolKey(cancellationToken)));
+
+                // If we have nothing to show, then don't bother adding this hint.
+                if (finalParts.All(p => string.IsNullOrWhiteSpace(p.ToString())))
+                    continue;
+
+                finalParts.AddRange(suffix);
+
+                result.Add(new InlineHint(
+                    span, finalParts.ToTaggedText(),
+                    InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey())));
             }
 
             return result.ToImmutable();

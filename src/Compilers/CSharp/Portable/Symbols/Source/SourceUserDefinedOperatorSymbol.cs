@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceUserDefinedOperatorSymbol CreateUserDefinedOperatorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             OperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
         {
             var location = syntax.OperatorToken.GetLocation();
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
             return new SourceUserDefinedOperatorSymbol(
-                containingType, name, location, syntax, diagnostics);
+                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(
                 MethodKind.UserDefinedOperator,
@@ -46,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
         {
             CheckForBlockAndExpressionBody(

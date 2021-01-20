@@ -65,7 +65,8 @@ namespace IdeBenchmarks
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
-            _storageService = new SQLitePersistentStorageService(new LocationService());
+            var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
+            _storageService = new SQLitePersistentStorageService(connectionPoolService, new LocationService());
 
             var solution = _workspace.CurrentSolution;
             _storage = _storageService.GetStorageWorker(_workspace, (SolutionKey)solution, solution);

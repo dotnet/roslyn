@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private UseExpressionBodyForIndexersHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForIndexers,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,

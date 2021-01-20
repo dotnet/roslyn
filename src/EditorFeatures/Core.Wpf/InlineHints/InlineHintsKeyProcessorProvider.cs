@@ -4,20 +4,17 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
     /// <summary>
-    /// Key processor that allows us to toggle inline hints when a user hits ctrl-alt.
+    /// Key processor that allows us to toggle inline hints when a user hits Alt+F1
     /// </summary>
     [Export(typeof(IKeyProcessorProvider))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
@@ -50,8 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _view.LostAggregateFocus += OnLostFocus;
             }
 
-            private static bool IsCtrlOrAlt(KeyEventArgs args)
-                => args.Key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt;
+            private static bool IsAlt(KeyEventArgs args)
+                => IsKey(args, Key.LeftAlt) || IsKey(args, Key.RightAlt);
+
+            private static bool IsF1(KeyEventArgs args)
+                => IsKey(args, Key.F1);
+
+            private static bool IsKey(KeyEventArgs args, Key key)
+                => args.SystemKey == key || args.Key == key;
 
             private void OnViewClosed(object sender, EventArgs e)
             {
@@ -65,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             private void OnLostFocus(object sender, EventArgs e)
             {
-                // if focus is lost (which can happen for shortcuts that include ctrl-alt...) then go back to normal
-                // inline-hint processing.
+                // if focus is lost then go back to normal inline-hint processing.
                 ToggleOff();
             }
 
@@ -74,26 +76,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 base.KeyDown(args);
 
-                // if this is either the ctrl or alt key, and only ctrl-alt is down, then toggle on. 
-                // otherwise toggle off if anything else is pressed down.
-                if (IsCtrlOrAlt(args))
+                // If the user is now holding down F1, see if they're also holding down 'alt'.  If so, toggle the inline hints on.
+                if (IsF1(args) &&
+                    args.KeyboardDevice.Modifiers == ModifierKeys.Alt)
                 {
-                    if (args.KeyboardDevice.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                    {
-                        ToggleOn();
-                        return;
-                    }
+                    ToggleOn();
                 }
-
-                ToggleOff();
+                else
+                {
+                    // Otherwise, on any other keypress toggle off.  Note that this will normally be non-expensive as we
+                    // will see the option is already off and immediately exit..
+                    ToggleOff();
+                }
             }
 
             public override void KeyUp(KeyEventArgs args)
             {
                 base.KeyUp(args);
 
-                // If we've lifted a key up from ctrl/alt, then turn off the inline hints.
-                if (IsCtrlOrAlt(args))
+                // If we've lifted a key up from either character of our alt-F1 chord, then turn off the inline hints.
+                if (IsAlt(args) || IsF1(args))
                     ToggleOff();
             }
 
@@ -110,9 +112,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 if (state == on)
                     return;
 
-                // We can only enter the on-state if the user has the ctrl-alt feature enabled.  We can always enter the
+                // We can only enter the on-state if the user has the chord feature enabled.  We can always enter the
                 // off state though.
-                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt);
+                on = on && _globalOptionService.GetOption(InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
                 _globalOptionService.RefreshOption(new OptionKey(InlineHintsOptions.DisplayAllOverride), on);
             }
         }

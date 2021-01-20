@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public TagSpanIntervalTree(ITextBuffer textBuffer,
             SpanTrackingMode trackingMode,
-            IEnumerable<ITagSpan<TTag>> values = null)
+            IEnumerable<ITagSpan<TTag>>? values = null)
         {
             _textBuffer = textBuffer;
             _spanTrackingMode = trackingMode;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var introspector = new IntervalIntrospector(snapshot);
             var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
 
-            List<ITagSpan<TTag>> result = null;
+            List<ITagSpan<TTag>>? result = null;
             foreach (var tagNode in intersectingIntervals)
             {
                 result ??= new List<ITagSpan<TTag>>();

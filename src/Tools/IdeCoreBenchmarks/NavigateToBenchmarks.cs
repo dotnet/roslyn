@@ -8,21 +8,15 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Engines;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.SQLite.Interop;
-using Microsoft.CodeAnalysis.SQLite.v1;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
@@ -90,7 +84,7 @@ namespace IdeCoreBenchmarks
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+            var service = project.LanguageServices.GetService<INavigateToSearchService>();
             var searchTask = service.SearchProjectAsync(project, priorityDocuments, "Document", service.KindsProvided, CancellationToken.None);
 
             var results = await searchTask.ConfigureAwait(false);

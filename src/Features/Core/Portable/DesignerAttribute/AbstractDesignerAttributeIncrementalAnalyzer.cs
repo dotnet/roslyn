@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 
                 return (document, data);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return default;
             }

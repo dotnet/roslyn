@@ -1,4 +1,4 @@
-# Publishes our build assets to nuget, myget, dotnet/versions, etc ..
+# Publishes our build assets to nuget, Azure DevOps, dotnet/versions, etc ..
 #
 # The publish operation is best visioned as an optional yet repeatable post build operation. It can be
 # run anytime after build or automatically as a post build step. But it is an operation that focuses on
@@ -18,8 +18,7 @@ Param(
   [string]$gitHubUserName = "",
   [string]$gitHubToken = "",
   [string]$gitHubEmail = "",
-  [string]$nugetApiKey = "",
-  [string]$myGetApiKey = ""
+  [string]$nugetApiKey = ""
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -28,7 +27,6 @@ $ErrorActionPreference="Stop"
 function Get-PublishKey([string]$uploadUrl) {
   $url = New-Object Uri $uploadUrl
   switch ($url.Host) {
-    "dotnet.myget.org" { return $myGetApiKey }
     "api.nuget.org" { return $nugetApiKey }
     # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
     "pkgs.dev.azure.com" { return "AzureArtifacts"}

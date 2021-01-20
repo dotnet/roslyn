@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 _ = await client.TryInvokeAsync<IRemoteFindUsagesService>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindReferencesAsync(solutionInfo, symbolAndProjectId, options, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, symbolAndProjectId, options, cancellationToken),
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
             }

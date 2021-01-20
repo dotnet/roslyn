@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ExplicitInterfaceTypeCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(ExplicitInterfaceMemberCompletionProvider))]
     [Shared]
-    internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider<CSharpSyntaxContext>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,16 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
-
-        protected override async Task<SyntaxContext> CreateContextAsync(
-            Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(
-                document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
-        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -68,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         CSharpFeaturesResources.Autoselect_disabled_due_to_member_declaration);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
-            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            CSharpSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var targetToken = context.TargetToken;
 

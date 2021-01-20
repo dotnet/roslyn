@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 return new DebugDataTipInfo(expression.Span, textOpt);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return default;
             }

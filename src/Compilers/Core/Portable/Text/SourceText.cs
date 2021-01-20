@@ -642,79 +642,95 @@ namespace Microsoft.CodeAnalysis.Text
 
             var segments = ArrayBuilder<SourceText>.GetInstance();
             var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
-            int position = 0;
-
-            foreach (var change in changes)
+            try
             {
-                // there can be no overlapping changes
-                if (change.Span.Start < position)
+                int position = 0;
+
+                foreach (var change in changes)
                 {
-                    // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
-                    // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
-                    // https://github.com/dotnet/roslyn/pull/26339
-                    if (change.Span.End <= changeRanges.Last().Span.Start)
+                    if (change.Span.End > this.Length)
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustBeWithinBoundsOfSourceText, nameof(changes));
+
+                    // there can be no overlapping changes
+                    if (change.Span.Start < position)
                     {
-                        changes = (from c in changes
-                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
-                                   orderby c.Span
-                                   select c).ToList();
-                        return WithChanges(changes);
+                        // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
+                        // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
+                        // https://github.com/dotnet/roslyn/pull/26339
+                        if (change.Span.End <= changeRanges.Last().Span.Start)
+                        {
+                            changes = (from c in changes
+                                       where !c.Span.IsEmpty || c.NewText?.Length > 0
+                                       orderby c.Span
+                                       select c).ToList();
+                            return WithChanges(changes);
+                        }
+
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
                     }
 
-                    throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
+                    var newTextLength = change.NewText?.Length ?? 0;
+
+                    // ignore changes that don't change anything
+                    if (change.Span.Length == 0 && newTextLength == 0)
+                        continue;
+
+                    // if we've skipped a range, add
+                    if (change.Span.Start > position)
+                    {
+                        var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                        CompositeText.AddSegments(segments, subText);
+                    }
+
+                    if (newTextLength > 0)
+                    {
+                        var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
+                        CompositeText.AddSegments(segments, segment);
+                    }
+
+                    position = change.Span.End;
+
+                    changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
                 }
 
-                var newTextLength = change.NewText?.Length ?? 0;
-
-                // ignore changes that don't change anything
-                if (change.Span.Length == 0 && newTextLength == 0)
-                    continue;
-
-                // if we've skipped a range, add
-                if (change.Span.Start > position)
+                // no changes actually happened?
+                if (position == 0 && segments.Count == 0)
                 {
-                    var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                    return this;
+                }
+
+                if (position < this.Length)
+                {
+                    var subText = this.GetSubText(new TextSpan(position, this.Length - position));
                     CompositeText.AddSegments(segments, subText);
                 }
 
-                if (newTextLength > 0)
+                var newText = CompositeText.ToSourceText(segments, this, adjustSegments: true);
+                if (newText != this)
                 {
-                    var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
-                    CompositeText.AddSegments(segments, segment);
+                    return new ChangedText(this, newText, changeRanges.ToImmutable());
                 }
-
-                position = change.Span.End;
-
-                changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
+                else
+                {
+                    return this;
+                }
             }
-
-            // no changes actually happened?
-            if (position == 0 && segments.Count == 0)
+            finally
             {
+                segments.Free();
                 changeRanges.Free();
-                return this;
-            }
-
-            if (position < this.Length)
-            {
-                var subText = this.GetSubText(new TextSpan(position, this.Length - position));
-                CompositeText.AddSegments(segments, subText);
-            }
-
-            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
-            if (newText != this)
-            {
-                return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
-            }
-            else
-            {
-                return this;
             }
         }
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>
         /// </summary>
+        /// <remarks>
+        /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
+        /// perform better if they are.
+        /// </remarks>
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);

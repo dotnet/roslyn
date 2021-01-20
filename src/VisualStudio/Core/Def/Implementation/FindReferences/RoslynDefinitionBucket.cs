@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Documents;
@@ -58,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 => DefinitionItem.TryNavigateTo(
                     _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview); // Only activate the tab if not opening in preview
 
-            public override bool TryGetValue(string key, out object content)
+            public override bool TryGetValue(string key, out object? content)
             {
                 content = GetValue(key);
                 return content != null;
@@ -69,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// Workaround this bug by overriding the string content to provide the proper data for the screen reader.
             /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1020534/
             /// </summary>
-            public override bool TryCreateStringContent(out string content)
+            public override bool TryCreateStringContent(out string? content)
             {
                 if (TryGetValue(StandardTableKeyNames.Text, out var contentValue) && contentValue is string textContent)
                 {
@@ -81,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            private object GetValue(string key)
+            private object? GetValue(string key)
             {
                 switch (key)
                 {
@@ -96,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         {
                             inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
                         }
+
                         return inlines;
 
                     case StandardTableKeyNames2.DefinitionIcon:

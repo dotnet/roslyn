@@ -820,7 +820,7 @@ public class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Local(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Local(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -846,7 +846,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Local_WithArguments(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Local_WithArguments(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -872,7 +872,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestConstructor_TargetTypedNew_Field(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestConstructor_ImplicitObjectCreation_Field(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -887,6 +887,34 @@ class C
 {
     D d = [|new|]();
     D d2 = [|new|]();
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(47987, "https://github.com/dotnet/roslyn/issues/47987")>
+        Public Async Function DoNotCountInstantiationTwiceWhenTargetTypedNewExists(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Bar
+{
+    public {|Definition:$$Bar|}() { }
+}
+        </Document>
+        <Document>
+public class Foo
+{
+    private readonly Bar bar1 = [|new|]();
+    private readonly Bar bar2;
+    public Foo(Bar bar)
+    {
+        this.bar2 = new [|Bar|]();
+    }
 }
         </Document>
     </Project>

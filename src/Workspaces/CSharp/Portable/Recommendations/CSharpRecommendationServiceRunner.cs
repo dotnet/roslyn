@@ -272,6 +272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetSymbolsOffOfName(NameSyntax name)
         {
+            // Using an is pattern on an enum is a qualified name, but normal symbol processing works fine
+            if (_context.IsEnumTypeMemberAccessContext)
+            {
+                return GetSymbolsOffOfExpression(name);
+            }
+
             // Check if we're in an interesting situation like this:
             //
             //     int i = 5;

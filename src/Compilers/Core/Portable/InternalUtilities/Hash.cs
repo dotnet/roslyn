@@ -254,17 +254,16 @@ namespace Roslyn.Utilities
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
         {
-            return GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
         }
 
-        internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
+        internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
             int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
 
-            for (int i = start; i < end; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(text[i])) * Hash.FnvPrime);
+                hashCode = unchecked((hashCode ^ CaseInsensitiveComparison.ToLower(data[i])) * Hash.FnvPrime);
             }
 
             return hashCode;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -35,7 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
@@ -44,20 +41,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider,
             IThreadingContext threadingContext)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
-            _solutionProvider = solutionProvider;
             _threadingContext = threadingContext;
+        }
+
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
+        {
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            return runRequest.TextDocument;
         }
 
         public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
-            var document = _solutionProvider.GetDocument(runRequest.TextDocument);
+            var document = context.Document;
+
+            Contract.ThrowIfNull(document);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 

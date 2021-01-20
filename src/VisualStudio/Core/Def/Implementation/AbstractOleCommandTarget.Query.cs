@@ -23,27 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return QueryVisualStudio2014Status(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
-            else if (pguidCmdGroup == VSConstants.GUID_AppCommand)
-            {
-                return QueryAppCommandStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-            }
             else
             {
                 return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
-            }
-        }
-
-        private int QueryAppCommandStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
-        {
-            switch ((VSConstants.AppCommandCmdID)prgCmds[0].cmdID)
-            {
-                case VSConstants.AppCommandCmdID.BrowserBackward:
-                case VSConstants.AppCommandCmdID.BrowserForward:
-                    prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
-                    return VSConstants.S_OK;
-
-                default:
-                    return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
         }
 

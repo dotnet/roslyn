@@ -9,7 +9,6 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -3555,7 +3554,7 @@ end structure
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
-                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor"), Microsoft.Cci.ITypeDefinition)
+                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
                     Debug.Assert(type.HasDeclarativeSecurity)
                     Dim typeSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = type.SecurityAttributes
 

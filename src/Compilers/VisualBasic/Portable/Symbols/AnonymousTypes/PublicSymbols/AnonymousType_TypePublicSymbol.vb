@@ -187,18 +187,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.Manager.ConstructAnonymousTypeImplementationSymbol(Me)
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-                Dim other = TryCast(obj, AnonymousTypePublicSymbol)
-                Return other IsNot Nothing AndAlso Me.TypeDescriptor.Equals(other.TypeDescriptor)
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Return Me.TypeDescriptor.GetHashCode()
-            End Function
-
             Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
                 Get
                     Return GetDeclaringSyntaxReferenceHelper(Of AnonymousObjectCreationExpressionSyntax)(Me.Locations)

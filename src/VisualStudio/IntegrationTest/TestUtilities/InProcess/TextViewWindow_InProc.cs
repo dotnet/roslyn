@@ -68,12 +68,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
+            // ⚠ The workarounds below (delays, retries) can be removed once integration test machines are updated to
+            // 16.9 Preview 2. https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/283203
+
+            // Start by sleeping 600ms to try and avoid the dismissal below
+            Thread.Sleep(600);
+
             InvokeSmartTasks();
 
             // The editor has an asynchronous background operation that dismisses the light bulb if it was shown within
-            // 500ms of the operation starting. Wait 600ms and make sure the menu is still present.
+            // 500ms of the operation starting. Wait 1000ms and make sure the menu is still present.
             // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/268277
-            Thread.Sleep(600);
+            Thread.Sleep(1000);
 
             if (!IsLightBulbSessionExpanded())
             {

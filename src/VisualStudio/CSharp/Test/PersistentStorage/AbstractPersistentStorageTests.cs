@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -877,7 +876,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService(locationService, faultInjector);
+            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector);
             var storage = _storageService.GetStorage(solution, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
@@ -896,7 +895,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService(locationService, faultInjector);
+            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector);
             var storage = _storageService.GetStorage(workspace, solutionKey, checkBranchId: true);
 
             // If we're injecting faults, we expect things to be strange
@@ -928,7 +927,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 => solutionKey.Id == _solutionId ? _storageLocation : null;
         }
 
-        internal abstract AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector);
+        internal abstract AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector);
 
         protected Stream EncodeString(string text)
         {

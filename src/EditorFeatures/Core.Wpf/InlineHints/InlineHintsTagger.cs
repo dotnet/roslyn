@@ -122,19 +122,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
                 // active view and disregards and requests for tags not in that view
                 var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
-                var dataTags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
-                foreach (var dataTag in dataTags)
+                var tags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
+                foreach (var tag in tags)
                 {
                     // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                     // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
                     // occuring 
-                    var dataTagSpans = dataTag.Span.GetSpans(snapshot);
-                    var textTag = dataTag.Tag;
+                    var dataTagSpans = tag.Span.GetSpans(snapshot);
                     if (dataTagSpans.Count == 1)
                     {
                         var dataTagSpan = dataTagSpans[0];
                         var parameterHintUITag = InlineHintsTag.Create(
-                            textTag.Parts, Format, _textView, dataTagSpan, textTag.SymbolKey, _taggerProvider, _formatMap, classify);
+                            tag.Tag.Hint, Format, _textView, dataTagSpan, _taggerProvider, _formatMap, classify);
 
                         _cache.Add(new TagSpan<IntraTextAdornmentTag>(dataTagSpan, parameterHintUITag));
                     }

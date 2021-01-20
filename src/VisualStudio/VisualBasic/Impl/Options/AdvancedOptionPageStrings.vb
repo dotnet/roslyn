@@ -33,8 +33,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
-        Public ReadOnly Property Option_Display_all_hints_while_pressing_Ctrl_Alt As String =
-            ServicesVSResources.Display_all_hints_while_pressing_Ctrl_Alt
+        Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
+            ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
 
         Public ReadOnly Property Option_Color_hints As String =
             ServicesVSResources.Color_hints
@@ -241,6 +241,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
+
+        Public ReadOnly Property Option_Add_missing_imports_on_paste As String =
+            BasicVSResources.Add_missing_imports_on_paste
 
         Public ReadOnly Property Option_Regular_Expressions As String =
             ServicesVSResources.Regular_Expressions

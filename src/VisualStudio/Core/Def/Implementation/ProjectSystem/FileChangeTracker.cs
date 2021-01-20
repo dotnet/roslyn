@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
             if (!(e is PathTooLongException))
             {
-                return FatalError.ReportWithoutCrash(e);
+                return FatalError.ReportAndCatch(e);
             }
 
             // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from

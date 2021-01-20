@@ -49,6 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
+#nullable enable
+        /// <summary>
+        /// Parameters of record primary constructors that were read anywhere.
+        /// </summary>
+        private PooledHashSet<ParameterSymbol>? _readParameters;
+#nullable disable
+
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
@@ -186,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _usedVariables.Free();
+            _readParameters?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -506,6 +514,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
+
+                if (CurrentSymbol is SynthesizedRecordConstructor)
+                {
+                    foreach (ParameterSymbol parameter in MethodParameters)
+                    {
+                        if (_readParameters?.Contains(parameter) != true)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                        }
+                    }
+                }
             }
         }
 
@@ -550,6 +569,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
+        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        {
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
+            {
+                _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
+                _readParameters.Add(parameter);
+            }
+        }
         protected virtual void NoteRead(
             Symbol variable,
             ParameterSymbol rangeVariableUnderlyingParameter = null)
@@ -559,6 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _usedVariables.Add(local);
             }
+
+            NoteRecordParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -701,7 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            // In C# 9 and before, interpolated string values were never constant, so field initializers
+            // that used them were always considered used. We now consider interpolated strings that are
+            // made up of only constant expressions to be constant values, but for backcompat we consider
+            // the writes to be uses anyway.
+            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -1129,7 +1162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(unassignedSlot > 0);
-            return this.State.IsAssigned(unassignedSlot);
+            if (unassignedSlot > 0)
+            {
+                return this.State.IsAssigned(unassignedSlot);
+            }
+
+            return true;
         }
 
         private Symbol UseNonFieldSymbolUnsafely(BoundExpression expression)
@@ -1773,7 +1811,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.
                 int slot = GetOrCreateSlot(node.LocalSymbol);
-                _alreadyReported[slot] = true;
+                if (slot > 0)
+                {
+                    _alreadyReported[slot] = true;
+                }
             }
 
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
@@ -1793,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
+            _ = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
             if (initiallyAssignedVariables?.Contains(node.LocalSymbol) == true)
             {
                 // When data flow analysis determines that the variable is sometimes
@@ -1877,6 +1918,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.WasCompilerGenerated)
             {
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
+            }
+            else
+            {
+                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
             }
 
             return null;

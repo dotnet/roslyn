@@ -1098,7 +1098,7 @@ recurse:
         /// <summary>
         /// Determines whether this node has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return this.Green.HasAnnotation(annotation);
         }

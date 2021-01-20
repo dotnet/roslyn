@@ -4,11 +4,9 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath)
         {
-            var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, _ => new RuleSetFile(ruleSetFileFullPath, this));
+            var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, static (ruleSetFileFullPath, self) => new RuleSetFile(ruleSetFileFullPath, self), this);
 
             // Call InitializeFileTracking outside the lock inside ReferenceCountedDisposableCache, so we don't have requests
             // for other files blocking behind the initialization of this one. RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.

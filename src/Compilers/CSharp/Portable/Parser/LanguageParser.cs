@@ -6649,7 +6649,7 @@ done:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
                                 return true;
                             if (mode == ParseTypeMode.DefinitePattern)
-                                return false;
+                                return true; // Permit nullable type parsing and report while binding for a better error message
                             if (mode == ParseTypeMode.NewExpression && type.Kind == SyntaxKind.TupleType &&
                                 this.PeekToken(1).Kind != SyntaxKind.OpenParenToken && this.PeekToken(1).Kind != SyntaxKind.OpenBraceToken)
                                 return false; // Permit `new (int, int)?(t)` (creation) and `new (int, int) ? x : y` (conditional)
@@ -9784,7 +9784,6 @@ tryAgain:
                 case SyntaxKind.IsPatternExpression:
                     return Precedence.Relational;
                 case SyntaxKind.SwitchExpression:
-                // https://github.com/dotnet/roslyn/issues/44675 Is this the right precedence?
                 case SyntaxKind.WithExpression:
                     return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
@@ -11586,9 +11585,9 @@ tryAgain:
             TypeSyntax type = null;
             InitializerExpressionSyntax initializer = null;
 
-            if (IsTargetTypedObjectCreation())
+            if (IsImplicitObjectCreation())
             {
-                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureTargetTypedObjectCreation);
+                @new = CheckFeatureAvailability(@new, MessageID.IDS_FeatureImplicitObjectCreation);
             }
             else
             {
@@ -11630,7 +11629,7 @@ tryAgain:
                 : (ExpressionSyntax)_syntaxFactory.ObjectCreationExpression(@new, type, argumentList, initializer);
         }
 
-        private bool IsTargetTypedObjectCreation()
+        private bool IsImplicitObjectCreation()
         {
             // The caller is expected to have consumed the new keyword.
             if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)

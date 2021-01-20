@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         T, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.TypeParameter));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }

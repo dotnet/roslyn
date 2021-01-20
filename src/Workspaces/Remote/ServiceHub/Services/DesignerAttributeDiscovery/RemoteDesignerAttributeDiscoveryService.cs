@@ -11,26 +11,26 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IDesignerAttributeListener>
+        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
         {
-            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
                 => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
+        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
 
-        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IDesignerAttributeListener> callback)
+        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
             : base(arguments)
         {
             _callback = callback;
         }
 
-        public ValueTask StartScanningForDesignerAttributesAsync(CancellationToken cancellationToken)
+        public ValueTask StartScanningForDesignerAttributesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
                 var registrationService = GetWorkspace().Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback);
+                var analyzerProvider = new RemoteDesignerAttributeIncrementalAnalyzerProvider(_callback, callbackId);
 
                 registrationService.AddAnalyzerProvider(
                     analyzerProvider,

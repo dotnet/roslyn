@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsReadOnly => _symbol.IsReadOnly;
 
+            public bool IsRecord => _symbol.IsRecord;
+
             public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
             public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;

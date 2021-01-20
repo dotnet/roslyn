@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
                 });
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
             }
         }

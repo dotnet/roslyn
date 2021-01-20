@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private ThreeState _lazyIsSecurityAttribute = ThreeState.Unknown;
 
-        // Use MemberNotNull when available, tied to HasErrors https://github.com/dotnet/roslyn/issues/41964
         /// <summary>
         /// Gets the attribute class being applied.
         /// </summary>
@@ -40,6 +40,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets a reference to the source for this application of the attribute. Returns null for applications of attributes on metadata Symbols.
         /// </summary>
         public new abstract SyntaxReference? ApplicationSyntaxReference { get; }
+
+        // Overridden to be able to apply MemberNotNull to the new members
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        internal override bool HasErrors
+        {
+            get
+            {
+                var hasErrors = base.HasErrors;
+                if (!hasErrors)
+                {
+                    Debug.Assert(AttributeClass is not null);
+                    Debug.Assert(AttributeConstructor is not null);
+                }
+
+                return hasErrors;
+            }
+        }
 
         /// <summary>
         /// Gets the list of constructor arguments specified by this application of the attribute.  This list contains both positional arguments

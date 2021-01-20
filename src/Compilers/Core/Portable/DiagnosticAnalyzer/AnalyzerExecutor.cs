@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     diagnosticIds = diagnosticIds.Add(diagnostic.Id);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Intentionally empty
             }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 {
+
     /// <summary>
     /// The service to locate the positions in which the adornments should appear
     /// as well as associate the adornments back to the parameter name
@@ -81,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 ObjectCreationExpressionSyntax => HintKind.ObjectCreation,
                 CastExpressionSyntax cast => GetKind(cast.Expression),
                 PrefixUnaryExpressionSyntax prefix => GetKind(prefix.Operand),
+                // Treat `expr!` the same as `expr` (i.e. treat `!` as if it's just trivia).
+                PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } postfix => GetKind(postfix.Operand),
                 _ => HintKind.Other,
             };
     }

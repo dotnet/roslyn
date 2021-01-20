@@ -287,6 +287,35 @@ class C
                 // using System.Collections.Generic;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;")
                 );
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(3));
+            comp.VerifyDiagnostics(
+                // (2,1): info CS8019: Unnecessary using directive.
+                // using System.Collections;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"),
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;")
+                );
+        }
+
+        [Fact]
+        public void NoHiddenDiagnosticsForWarningLevel0()
+        {
+            var source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C 
+{
+    void M()
+    {
+        return;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(0));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(747219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747219")]

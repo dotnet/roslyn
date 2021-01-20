@@ -152,8 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Reset(ref ResetPoint point)
         {
-            _mode = point.Mode;
             var offset = point.Position - _firstToken;
+            Debug.Assert(offset >= 0);
+
+            if (offset >= _tokenCount)
+            {
+                // Re-fetch tokens to the position in the reset point
+                PeekToken(offset - _tokenOffset);
+
+                // Re-calculate new offset in case tokens got shifted to the left while we were peeking. 
+                offset = point.Position - _firstToken;
+            }
+
+            _mode = point.Mode;
             Debug.Assert(offset >= 0 && offset < _tokenCount);
             _tokenOffset = offset;
             _currentToken = null;

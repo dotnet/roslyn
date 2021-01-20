@@ -235,7 +235,7 @@ long _f = 0l;
         [Fact]
         public void PublicSignWithRelativeKeyPath()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+            var options = TestOptions.DebugDll
                 .WithPublicSign(true).WithCryptoKeyFile("test.snk");
             var comp = CSharpCompilation.Create("test", options: options);
             comp.VerifyDiagnostics(
@@ -483,9 +483,9 @@ namespace A.B {
         [Fact]
         public void ReferenceAPITest()
         {
-            var opt = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+            var opt = TestOptions.DebugExe;
             // Create Compilation takes two args
-            var comp = CSharpCompilation.Create("Compilation", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            var comp = CSharpCompilation.Create("Compilation", options: TestOptions.DebugExe);
             var ref1 = Net451.mscorlib;
             var ref2 = Net451.System;
             var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
@@ -1983,10 +1983,10 @@ public class TestClass
             c2 = c1.WithOptions(TestOptions.ReleaseDll);
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            c2 = c1.WithOptions(new CSharpCompilationOptions(OutputKind.WindowsApplication));
+            c2 = c1.WithOptions(TestOptions.CreateTestOptions(OutputKind.WindowsApplication, OptimizationLevel.Debug));
             Assert.False(c1.ReferenceManagerEquals(c2));
 
-            c2 = c1.WithOptions(new CSharpCompilationOptions(OutputKind.NetModule).WithAllowUnsafe(true));
+            c2 = c1.WithOptions(TestOptions.DebugModule.WithAllowUnsafe(true));
             Assert.True(c1.ReferenceManagerEquals(c2));
         }
 
@@ -2203,7 +2203,7 @@ class C { }", options: TestOptions.Script);
             var c1 = CreateEmptyCompilation("public class Main { public static C C; }", new[] { MscorlibRef, reference, reference });
             var c2 = c1.WithAssemblyName("c2");
             var c3 = c2.AddSyntaxTrees(Parse("public class Main2 { public static int a; }"));
-            var c4 = c3.WithOptions(new CSharpCompilationOptions(OutputKind.NetModule));
+            var c4 = c3.WithOptions(TestOptions.DebugModule);
             var c5 = c4.WithReferences(new[] { MscorlibRef, reference });
 
             c3.VerifyDiagnostics();
@@ -2378,7 +2378,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var tree3 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
             var assemblyName = GetUniqueName();
-            var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var compilationOptions = TestOptions.DebugDll;
             CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
             Assert.Throws<ArgumentException>(() =>
             {

@@ -8,9 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 completionContext.SuggestionModeItem = CommonCompletionItem.Create(
                     CSharpFeaturesResources.Name, displayTextSuffix: "", CompletionItemRules.Default);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -178,24 +180,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
-                var originalDefinition = namedType.OriginalDefinition;
+                // if namedType contains a valid GetEnumerator method, we want collectionType to be the type of
+                // the "Current" property of this enumerator. For example:
+                // if namedType is a Span<Person>, collectionType should be Person.
+                var collectionType = namedType.GetMembers()
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(m => m.IsValidGetEnumerator() || m.IsValidGetAsyncEnumerator())
+                    ?.ReturnType?.GetMembers(WellKnownMemberNames.CurrentPropertyName)
+                    .OfType<IPropertySymbol>().FirstOrDefault(p => p.GetMethod != null)?.Type;
 
-                var ienumerableOfT = namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
-                    t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+                // This can happen for an un-implemented IEnumerable or IAsyncEnumerable.
+                collectionType ??= namedType.AllInterfaces.FirstOrDefault(
+                        t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+                             Equals(t.OriginalDefinition, compilation.IAsyncEnumerableOfTType()))?.TypeArguments[0];
 
-                if (ienumerableOfT != null)
+                if (collectionType is not null)
                 {
                     // Consider: Container : IEnumerable<Container>
                     // Container |
                     // We don't want to suggest the plural version of a type that can be used singularly
-                    if (seenTypes.Contains(ienumerableOfT.TypeArguments[0]))
+                    if (seenTypes.Contains(collectionType))
                     {
                         return (type, wasPlural);
                     }
 
-                    return UnwrapType(ienumerableOfT.TypeArguments[0], compilation, wasPlural: true, seenTypes: seenTypes);
+                    return UnwrapType(collectionType, compilation, wasPlural: true, seenTypes: seenTypes);
                 }
 
+                var originalDefinition = namedType.OriginalDefinition;
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();

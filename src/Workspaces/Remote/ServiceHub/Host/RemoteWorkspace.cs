@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
                 return workspace.CurrentSolution;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<Solution> GetSolutionAsync(
+        public async ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,

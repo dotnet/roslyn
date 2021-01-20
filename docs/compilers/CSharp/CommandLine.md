@@ -41,7 +41,7 @@
 | **ERRORS AND WARNINGS**
 | `/warnaserror`{`+`&#124;`-`} | Report all warnings as errors
 | `/warnaserror`{`+`&#124;`-`}`:`*warn list* | Report specific warnings as errors
-| `/warn`:*n* | Set warning level (0-4) (Short form: `/w`)
+| `/warn`:*n* | Set warning level (non-negative integer) (Short form: `/w`)
 | `/nowarn`:*warn list* | Disable specific warning messages
 | `/ruleset`:*file* | Specify a ruleset file that disables specific diagnostics.
 | `/errorlog`:*file* | Specify a file to log all compiler and analyzer diagnostics.

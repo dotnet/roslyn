@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -532,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
             /// </summary>
-            public string TryLexNumber()
+            public string? TryLexNumber()
             {
                 bool start = true;
                 var sb = new StringBuilder();

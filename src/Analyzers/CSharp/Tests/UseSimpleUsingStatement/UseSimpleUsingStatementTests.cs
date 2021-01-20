@@ -1386,5 +1386,117 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestKeepSurroundingComments()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b)
+        { // Make sure that...
+            Console.WriteLine(s.CanRead);
+        } // ...all comments remain
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        // Make sure that...
+        Console.WriteLine(s.CanRead);
+        // ...all comments remain
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestKeepSurroundingComments2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Make...
+        [||]using (var a = b) // ...sure...
+        { // ...that...
+            Console.WriteLine(s.CanRead); // ...all...
+        } // ...comments...
+        // ...remain
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Make...
+        using var a = b; // ...sure...
+                         // ...that...
+        Console.WriteLine(s.CanRead); // ...all...
+                                      // ...comments...
+                                      // ...remain
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestKeepSurroundingComments3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Make...
+        [||]using (var a = b) // ...sure...
+        using (var c = d) // ...that...
+        // ...really...
+        using (var e = f) // ...all...
+        { // ...comments...
+            Console.WriteLine(s.CanRead); // ...are...
+        } // ...kept...
+        // ...during...
+        // ...transformation
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        // Make...
+        using var a = b; // ...sure...
+        using var c = d; // ...that...
+        // ...really...
+        using var e = f; // ...all...
+                         // ...comments...
+        Console.WriteLine(s.CanRead); // ...are...
+                                      // ...kept...
+                                      // ...during...
+                                      // ...transformation
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }

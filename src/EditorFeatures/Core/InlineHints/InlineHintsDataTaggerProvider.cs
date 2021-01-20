@@ -4,9 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -38,6 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
+        /// <summary>
+        /// We want to make sure that if the user edits the space that the tag exists in that it goes away and they
+        /// don't see stale tags sticking around in random locations until the next update.  A good example of when this
+        /// is desirable is 'cut line'. If the tags aren't removed, then the line will be gone but the tags will remain
+        /// at whatever points the tracking spans moved them to.
+        /// </summary>
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
+
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
         public InlineHintsDataTaggerProvider(
@@ -63,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitObjectCreation, TaggerDelay.NearImmediate));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -85,14 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         protected override async Task ProduceTagsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
-            await AddTypeHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
-            await AddParameterNameHintsAsync(context, documentSnapshotSpan, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task AddTypeHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
-        {
             var document = documentSnapshotSpan.Document;
-            var service = document.GetLanguageService<IInlineTypeHintsService>();
+            if (document == null)
+                return;
+
+            var service = document.GetLanguageService<IInlineHintsService>();
             if (service == null)
                 return;
 
@@ -100,27 +105,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
-                context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
-            }
-        }
+                // If we don't have any text to actually show the user, then don't make a tag.
+                if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
+                    continue;
 
-        private static async Task AddParameterNameHintsAsync(TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, CancellationToken cancellationToken)
-        {
-            var document = documentSnapshotSpan.Document;
-            var service = document.GetLanguageService<IInlineParameterNameHintsService>();
-            if (service == null)
-                return;
-
-            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-            var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-            foreach (var hint in hints)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
                 context.AddTag(new TagSpan<InlineHintDataTag>(
-                    new SnapshotSpan(snapshotSpan.Snapshot, hint.Span.ToSpan()),
-                    new InlineHintDataTag(hint.Parts, hint.SymbolKey)));
+                    hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
+                    new InlineHintDataTag(hint)));
             }
         }
     }

@@ -515,9 +515,9 @@ hasBucket:
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -538,7 +538,7 @@ hasBucket:
                     }
                 }
 
-                public K Current => _current.Key;
+                public K Current => _current!.Key;
 
                 public bool MoveNext()
                 {
@@ -568,7 +568,7 @@ hasBucket:
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -630,9 +630,9 @@ hasBucket:
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -655,7 +655,7 @@ hasBucket:
                     }
                 }
 
-                public V Current => _current.Value;
+                public V Current => _current!.Value;
 
                 public bool MoveNext()
                 {
@@ -685,7 +685,7 @@ hasBucket:
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -736,9 +736,9 @@ hasBucket:
 
         public struct Enumerator
         {
-            private readonly Stack<AvlNode> _stack;
+            private readonly Stack<AvlNode>? _stack;
             private Node? _next;
-            private Node _current;
+            private Node? _current;
 
             public Enumerator(SmallDictionary<K, V> dict)
                 : this()
@@ -761,7 +761,7 @@ hasBucket:
                 }
             }
 
-            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current!.Key, _current!.Value);
 
             public bool MoveNext()
             {
@@ -791,7 +791,7 @@ hasBucket:
             {
                 if (child != null)
                 {
-                    _stack.Push(child);
+                    _stack!.Push(child);
                 }
             }
         }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             // fire and forget on a background thread:
-            _ = newSession.TrackActiveSpansAsync();
+            _ = Task.Run(() => newSession.TrackActiveSpansAsync()).ReportNonFatalErrorAsync();
 
             TrackingChanged?.Invoke();
         }
@@ -155,25 +155,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
             }
 
-            internal Task TrackActiveSpansAsync()
-            {
-                try
-                {
-                    return Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    return Task.CompletedTask;
-                }
-            }
-
-            private async Task TrackActiveSpansAsync(CancellationToken cancellationToken)
+            internal async Task TrackActiveSpansAsync()
             {
                 try
                 {
@@ -183,7 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(openDocumentIds, cancellationToken).ConfigureAwait(false);
+                    var currentSolution = _workspace.CurrentSolution;
+                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(currentSolution, openDocumentIds, _cancellationSource.Token).ConfigureAwait(false);
                     if (baseActiveStatementSpans.IsDefault)
                     {
                         // Edit session not in progress.
@@ -191,7 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     }
 
                     Debug.Assert(openDocumentIds.Length == baseActiveStatementSpans.Length);
-                    var currentSolution = _workspace.CurrentSolution;
 
                     lock (_trackingSpans)
                     {
@@ -223,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }
@@ -333,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 {
                     // nop
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     // nop
                 }

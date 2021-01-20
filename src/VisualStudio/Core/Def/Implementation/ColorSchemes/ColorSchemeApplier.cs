@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -27,6 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     [Export(typeof(ColorSchemeApplier))]
     internal sealed partial class ColorSchemeApplier : ForegroundThreadAffinitizedObject, IDisposable
     {
+        private const string ColorThemeValueName = "Microsoft.VisualStudio.ColorTheme";
+        private const string ColorThemeNewValueName = "Microsoft.VisualStudio.ColorThemeNew";
+
         private readonly IServiceProvider _serviceProvider;
         private readonly ColorSchemeSettings _settings;
         private readonly ClassificationVerifier _classificationVerifier;
@@ -166,14 +170,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         {
             AssertIsForeground();
 
-            dynamic colorThemeService = _serviceProvider.GetService(typeof(SVsColorThemeService));
-            return (Guid)colorThemeService.CurrentTheme.ThemeId;
-        }
+            var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
 
-        // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
-        [Guid("0d915b59-2ed7-472a-9de8-9161737ea1c5")]
-        private interface SVsColorThemeService
-        {
+            //  Look up the value from the new roamed theme property first
+            //  Fallback to the original roamed theme property if that fails
+            var currentThemeString = settingsManager.GetValueOrDefault<string?>(ColorThemeNewValueName, defaultValue: null) ??
+                settingsManager.GetValueOrDefault<string?>(ColorThemeValueName, defaultValue: null);
+
+            if (currentThemeString is null)
+            {
+                // The ColorTheme setting is unpopulated when it has never been changed from its default.
+                // The default VS ColorTheme is Blue
+                return KnownColorThemes.Blue;
+            }
+
+            return Guid.Parse(currentThemeString);
         }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.

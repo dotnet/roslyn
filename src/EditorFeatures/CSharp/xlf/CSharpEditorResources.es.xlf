@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpEditorResources.resx">
     <body>
+      <trans-unit id="Add_Missing_Usings_on_Paste">
+        <source>Add Missing Usings on Paste</source>
+        <target state="translated">Agregar los valores using que faltan al pegar</target>
+        <note>"usings" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Adding_missing_usings">
+        <source>Adding missing usings...</source>
+        <target state="translated">Agregando los valores using que faltan...</target>
+        <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
         <target state="translated">Versión elegida: "{0}"</target>
@@ -45,6 +55,11 @@
       <trans-unit id="Found_single_assembly_0">
         <source>Found single assembly: '{0}'</source>
         <target state="translated">Se encontró un solo ensamblado: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Generar suscripción de eventos</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">

@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Inter
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -152,16 +153,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
             {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
             => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

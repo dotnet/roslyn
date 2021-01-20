@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,19 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class CompilationUnitSyntaxExtensions
     {
-        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
+            => CanAddUsingDirectives(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken);
+
+        public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if ((usingDirectiveAncestor != null) && (usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
+            if (usingDirectiveAncestor?.Parent is CompilationUnitSyntax)
             {
                 // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
                 return false;
             }
 
-            if (contextNode.SyntaxTree.HasHiddenRegions())
+            if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
             {
                 var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
-                var root = contextNode.GetAncestorOrThis<CompilationUnitSyntax>();
+                var root = (CompilationUnitSyntax)contextNode.SyntaxTree.GetRoot(cancellationToken);
                 var span = GetUsingsSpan(root, namespaceDeclaration);
 
                 if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDeclaration)
+        private static TextSpan GetUsingsSpan(CompilationUnitSyntax root, NamespaceDeclarationSyntax? namespaceDeclaration)
         {
             if (namespaceDeclaration != null)
             {

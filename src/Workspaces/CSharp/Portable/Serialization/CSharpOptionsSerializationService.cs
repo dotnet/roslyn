@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
             WriteParseOptionsTo(options, writer, cancellationToken);
 
             var csharpOptions = (CSharpParseOptions)options;
-            writer.WriteInt32((int)csharpOptions.LanguageVersion);
+            writer.WriteInt32((int)csharpOptions.SpecifiedLanguageVersion);
             writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
         }
 

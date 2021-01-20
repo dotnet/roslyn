@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
         /// <returns>true if successful; false if not successful due to cycles in the graph</returns>
         public static bool TryIterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors, out ImmutableArray<TNode> result)
+            where TNode : notnull
         {
             // First, count the predecessors of each node
             PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<TNode> nodes,
             Func<TNode, ImmutableArray<TNode>> successors,
             out ImmutableArray<TNode> allNodes)
+            where TNode : notnull
         {
             var predecessorCounts = PooledDictionary<TNode, int>.GetInstance();
             var counted = PooledHashSet<TNode>.GetInstance();
