@@ -791,6 +791,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Decode an option "Text" or "Binary" value into true or false. The syntax is not optional.
         ''' </summary>
         Public Shared Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
+            If keywordSyntax.Node Is Nothing Then
+                Return Nothing ' Must be a syntax error, an error is reported elsewhere
+            End If
 
             Select Case keywordSyntax.Kind
                 Case SyntaxKind.TextKeyword
