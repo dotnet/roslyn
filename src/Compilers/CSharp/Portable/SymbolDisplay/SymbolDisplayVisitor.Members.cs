@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var flowAnalysisAnnotations = csharpSymbol.UnderlyingSymbol.GetFlowAnalysisAnnotations();
                 // Is any flag in flowAnalysisAnnotations also present in annotations?
-                return (annotations & flowAnalysisAnnotations) > 0;
+                return (annotations & flowAnalysisAnnotations) != 0;
             }
 
             return false;
