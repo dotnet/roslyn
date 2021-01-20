@@ -19,7 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractObjectCreationCompletionProvider : AbstractSymbolCompletionProvider
+    internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
+        where TSyntaxContext : SyntaxContext
     {
         /// <summary>
         /// Return null if not in object creation type context.
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override CompletionItem CreateItem(CompletionContext completionContext,
             string displayText, string displayTextSuffix, string insertionText, List<ISymbol> symbols,
-            SyntaxContext context, bool preselect,
+            TSyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
 
@@ -45,17 +46,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 supportedPlatforms: supportedPlatformData);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
             => GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
 
         protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(
-            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return GetSymbolsCoreAsync(context, position, options, preselect: true, cancellationToken);
         }
 
         private Task<ImmutableArray<ISymbol>> GetSymbolsCoreAsync(
-            SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
+            TSyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
             if (newExpression == null)
@@ -134,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(ImmutableArray.Create((ISymbol)type));
         }
 
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
-            ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, TSyntaxContext context)
         {
             var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
             return (displayString, "", displayString);

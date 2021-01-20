@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,17 +16,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
+    internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSyntaxContext> : AbstractSymbolCompletionProvider<TSyntaxContext>
+        where TSyntaxContext : SyntaxContext
     {
         protected override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
             return recommender.GetRecommendedSymbolsAtPositionAsync(context.Workspace, context.SemanticModel, position, options, cancellationToken);
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(TSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string displayTextSuffix,
             string insertionText,
             List<ISymbol> symbols,
-            SyntaxContext context,
+            TSyntaxContext context,
             bool preselect,
             SupportedPlatformData? supportedPlatformData)
         {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 supportedPlatforms: supportedPlatformData);
         }
 
-        private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, SyntaxContext context, bool preselect)
+        private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, TSyntaxContext context, bool preselect)
         {
             return !preselect &&
                 completionContext.Trigger.Kind == CompletionTriggerKind.Insertion &&
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool IsArgumentListTriggerCharacter(char character)
             => character == ' ' || character == '(' || character == '[';
 
-        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect);
+        protected abstract CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, TSyntaxContext context, bool preselect);
 
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
 
