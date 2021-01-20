@@ -682,7 +682,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (newSymbol is not IMethodSymbol method)
                 return;
 
-            MoveToSpecificMethod(_state._methods, method, CancellationToken.None);
+            MoveToSpecificMethod(method, CancellationToken.None);
         }
 
         private static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
@@ -699,11 +699,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <summary>
         /// Update the current argument value completion session to use a specific method.
         /// </summary>
-        /// <param name="methods">The set of methods included in the current Signature Help session. These are the
-        /// available overloads of the currently-selected method.</param>
         /// <param name="method">The currently-selected method in Signature Help.</param>
         /// <param name="cancellationToken">A cancellation token the operation may observe.</param>
-        public void MoveToSpecificMethod(ImmutableArray<IMethodSymbol> methods, IMethodSymbol method, CancellationToken cancellationToken)
+        public void MoveToSpecificMethod(IMethodSymbol method, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
@@ -728,7 +726,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            if (!_state._methods.IsDefaultOrEmpty && _state._methods != methods)
+            if (_state._methods.IsDefaultOrEmpty)
             {
                 // Signature Help is showing a set of overloads that don't match the overloads from the point where the
                 // argument completion session first started. It's unclear how this state should be handled, so we stop
@@ -802,14 +800,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // new session will need the same information to carry argument values forward.
                 _state._preserveSymbols = true;
 
-                Debug.Assert(_state._methods == methods);
                 _state._method = method;
+                var previousMethods = _state._methods;
                 var previousArguments = _state._arguments;
 
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                 {
                     _state._preserveSymbols = false;
-                    Debug.Assert(_state._methods == methods);
+                    Debug.Assert(_state._methods == previousMethods);
                     Debug.Assert(_state._method == method);
                     Debug.Assert(_state._arguments == previousArguments);
 
@@ -1094,6 +1092,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// constructed with parameters for a specific symbol, <see cref="_method"/> will identify the specific
             /// symbol from within this collection matching the current session.
             /// </summary>
+            /// <remarks>
+            /// <para>This collection might not contain <see cref="_method"/>, particularly in cases where
+            /// <see cref="GetSymbolsAsync"/> returns only a subset of the available overloads. One simple case can be
+            /// seen in Visual Basic code invoking <see cref="int.ToString()"/>:</para>
+            ///
+            /// <code>
+            /// Dim x = 0
+            /// x.ToString$$
+            /// </code>
+            ///
+            /// <para>When <see cref="GetSymbolsAsync"/> is invoked at the caret location, <see cref="int.ToString()"/>
+            /// is returned, but other overloads like <see cref="int.ToString(string)"/> are not. This is due to the
+            /// fact that parentheses are optional for invocations that do not have any parameters, as opposed to the
+            /// equivalent C# case where <c>ToString</c> would refer to a method group.</para>
+            /// </remarks>
             public ImmutableArray<IMethodSymbol> _methods;
 
             /// <summary>
