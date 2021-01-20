@@ -16,12 +16,14 @@
   <ItemGroup>
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll" />
     <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.cs" />
     <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
-    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" />
   </ItemGroup>
 </Project>

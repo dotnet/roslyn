@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../TextAnalyzersResources.resx">
     <body>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
+        <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
+        <target state="translated">Wyliczenie publiczne ma atrybut System.FlagsAttribute, lecz jego nazwa nie kończy się literą „s”. Nazwy typów oznaczonych atrybutem FlagsAttribute mają nazwy w liczbie mnogiej, ponieważ ten atrybut wskazuje, że można określić więcej niż jedną wartość.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">Wyliczenia z flagami powinny mieć nazwy w liczbie mnogiej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
+        <source>Flags enums should have plural names</source>
+        <target state="translated">Wyliczenia z flagami powinny mieć nazwy w liczbie mnogiej</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
         <source>Identifiers should be spelled correctly</source>
         <target state="translated">Pisownia identyfikatorów powinna być poprawna</target>
@@ -95,6 +110,21 @@
       <trans-unit id="CategoryNaming">
         <source>Naming</source>
         <target state="translated">Nazewnictwo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
+        <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
+        <target state="translated">Konwencje nazewnictwa określają, że nazwa wyliczenia w liczbie mnogiej wskazuje, iż jednocześnie można określić wiele wartości wyliczenia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">Tylko wyliczenia z atrybutem FlagsAttribute powinny mieć nazwy w liczbie mnogiej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
+        <source>Only FlagsAttribute enums should have plural names</source>
+        <target state="translated">Tylko wyliczenia z atrybutem FlagsAttribute powinny mieć nazwy w liczbie mnogiej</target>
         <note />
       </trans-unit>
     </body>

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Manages tainted data sources, sanitizers, and sinks for all the 
+    /// Manages tainted data sources, sanitizers, and sinks for all the
     /// different tainted data analysis rules.
     /// </summary>
     /// <remarks>
@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new BoundedCacheWithFactory<Compilation, TaintedDataConfig>();
+        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
@@ -52,7 +52,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.
         /// </summary>
-        /// <param name="compilation">Whatev is being compiled.</param>
+        /// <param name="compilation">Whatever is being compiled.</param>
         /// <returns>The TaintedDataConfig.</returns>
         public static TaintedDataConfig GetOrCreate(Compilation compilation)
             => s_ConfigsByCompilation.GetOrCreateValue(compilation, Create);

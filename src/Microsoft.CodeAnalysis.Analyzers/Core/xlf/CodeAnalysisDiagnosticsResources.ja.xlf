@@ -23,8 +23,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">シンボルは、ID ではなく等値で比較する必要があります。</target>
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="translated">シンボルについては、ID ではなく等値かどうかを比較する必要があります。'IEqualityComparer' を受け取るオーバーロードを使用し、'SymbolEqualityComparer' を渡します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="translated">シンボルについては、ID ではなく等値かどうかを比較する必要があります。'GetHashCode' を明示的に呼び出すと、正しくない動作が発生する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -58,13 +63,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
-        <source>Rule '{0}' is not part of any analyzer release.</source>
-        <target state="translated">ルール '{0}' は、どのアナライザー リリースにも含まれていません。</target>
+        <source>Rule '{0}' is not part of any analyzer release</source>
+        <target state="translated">ルール '{0}' は、どのアナライザー リリースにも含まれていません</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
-        <source>Add analyzer diagnostic IDs to analyzer release.</source>
-        <target state="translated">アナライザー診断 ID をアナライザー リリースに追加します。</target>
+        <source>Add analyzer diagnostic IDs to analyzer release</source>
+        <target state="translated">アナライザー診断 ID のアナライザー リリースへの追加</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
@@ -134,7 +139,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
         <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
-        <target state="translated">規則 '{0}' を含むアナライザー プロジェクトのアナライザー リリース追跡を有効にします</target>
+        <target state="translated">規則 '{0}' を含むアナライザー プロジェクトのアナライザー リリース追跡を有効にしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
@@ -163,18 +168,18 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has an invalid entry '{1}'.</source>
-        <target state="translated">アナライザー リリース ファイル '{0}' に無効なエントリ '{1}' があります。</target>
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
+        <target state="translated">アナライザー リリース ファイル '{0}' に無効なエントリ '{1}' があります</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
-        <source>Invalid entry in analyzer release file.</source>
-        <target state="translated">アナライザー リリース ファイルに無効なエントリがあります。</target>
+        <source>Invalid entry in analyzer release file</source>
+        <target state="translated">アナライザー リリース ファイルに無効なエントリがある</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</source>
-        <target state="translated">アナライザー リリース ファイル '{0}' のリリース ヘッダー '{1}' が存在しないか、無効です。</target>
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
+        <target state="translated">アナライザー リリース ファイル '{0}' のリリース ヘッダー '{1}' が存在しないか、無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
@@ -183,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</source>
-        <target state="translated">アナライザー リリース ファイル '{0}' には、'{1}' に手動で入力する必要がある 1 つ以上の '未検出' フィールドを持つエントリがあります。</target>
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
+        <target state="translated">アナライザー リリース ファイル '{0}' には、'{1}' に手動で入力する必要がある 1 つ以上の '未検出' フィールドを持つエントリがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -269,17 +274,17 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除します。</target>
+        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
-        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</source>
-        <target state="translated">ルール '{0}' に、リリース '{1}' とリリース '{2}' の間で重複しているエントリがあります。</target>
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
+        <target state="translated">ルール '{0}' に、リリース '{1}' とリリース '{2}' の間で重複しているエントリがあります</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
-        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除します。</target>
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
+        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除する</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
@@ -288,13 +293,13 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
-        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</source>
-        <target state="translated">アナライザー リリース ファイル '{2}' で、ルール '{0}' にリリース '{1}' のエントリが複数あります。</target>
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
+        <target state="translated">アナライザー リリース ファイル '{2}' で、ルール '{0}' にリリース '{1}' のエントリが複数あります</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
-        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="translated">同じアナライザー リリースで診断 ID の重複しているエントリを削除します。</target>
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
+        <target state="translated">同じアナライザー リリースで診断 ID の重複しているエントリを削除する</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
@@ -308,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
-        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
-        <target state="translated">報告されなくなった出荷済みの診断 ID には、未出荷ファイルの '削除されたルール' テーブルにエントリが必要です。</target>
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
+        <target state="translated">報告されなくなった出荷済みの診断 ID には、未出荷ファイルの '削除されたルール' テーブルにエントリが必要</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
@@ -318,13 +323,13 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
-        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</source>
-        <target state="translated">ルール '{0}' は、次回の未出荷のアナライザー リリースに含まれていますが、いずれかのアナライザーでサポートされている診断ではありません。</target>
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
+        <target state="translated">ルール '{0}' は、次回の未出荷のアナライザー リリースに含まれていますが、いずれかのアナライザーでサポートされている診断ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
-        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</source>
-        <target state="translated">削除したアナライザー診断 ID を未出荷のアナライザー リリースに追加しないでください。</target>
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
+        <target state="translated">削除したアナライザー診断 ID を未出荷のアナライザー リリースに追加しない</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
@@ -333,13 +338,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
-        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</source>
-        <target state="translated">ルール '{0}' は、最新のアナライザー リリースで削除済みとしてマークされていますが、まだ報告されています。</target>
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
+        <target state="translated">ルール '{0}' は、最新のアナライザー リリースで削除済みとしてマークされていますが、まだ報告されています</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
-        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
-        <target state="translated">アナライザー リリース ファイルで削除済みとマークされている診断 ID は、アナライザーによって報告されないはずです。</target>
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
+        <target state="translated">アナライザー リリース ファイルで削除済みとマークされている診断 ID は、アナライザーによって報告されないはずである</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -426,8 +431,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
-        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="translated">アナライザー診断 ID の最新のエントリがアナライザー リリースに追加されていることを確認してください。</target>
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
+        <target state="translated">アナライザー診断 ID の最新のエントリがアナライザー リリースに追加されていることを確認する</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -531,7 +536,7 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
         <target state="translated">CodeFixProvider はユーザーが基本となる診断の複数のインスタンスを 1 つのコード修正プログラムで修正できるようにするために、FixAll サポートを提供する必要があります。詳細については、https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md をご覧ください。</target>
         <note />
       </trans-unit>

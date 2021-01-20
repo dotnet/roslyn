@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
-        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="translated">내부 기호 '{0}'에 대한 외부 액세스가 허용되지 않습니다. '{1}' 어셈블리는 다음 네임스페이스에 정의된 내부 기호에 대한 액세스만 허용합니다. '{2}'</target>
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
+        <target state="translated">내부 기호 '{0}'에 대한 외부 액세스가 허용되지 않습니다. '{1}' 어셈블리는 다음 네임스페이스에 정의된 내부 기호에 대한 액세스만 허용합니다. '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">

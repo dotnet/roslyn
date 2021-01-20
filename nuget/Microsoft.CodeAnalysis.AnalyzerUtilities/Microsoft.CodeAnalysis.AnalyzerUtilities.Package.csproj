@@ -14,7 +14,7 @@
       PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities
       Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.AnalyzerUtilities.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <DevelopmentDependency>false</DevelopmentDependency>
 
     <!-- Override the version prefix for this package to allow more frequent stable releases -->

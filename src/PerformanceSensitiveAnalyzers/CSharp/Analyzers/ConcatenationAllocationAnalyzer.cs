@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new(
             StringConcatenationAllocationRuleId,
             s_localizableStringConcatenationAllocationRuleTitle,
             s_localizableStringConcatenationAllocationRuleMessage,
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx");
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
             s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle,
             s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage,
@@ -70,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
                 var left = semanticModel.GetTypeInfo(binaryExpression.Left, cancellationToken);
                 var leftConversion = semanticModel.GetConversion(binaryExpression.Left, cancellationToken);
-                CheckTypeConversion(left, leftConversion, reportDiagnostic, binaryExpression.Left.GetLocation());
+                CheckTypeConversion(left, leftConversion, reportDiagnostic, binaryExpression.Left);
 
                 var right = semanticModel.GetTypeInfo(binaryExpression.Right, cancellationToken);
                 var rightConversion = semanticModel.GetConversion(binaryExpression.Right, cancellationToken);
-                CheckTypeConversion(right, rightConversion, reportDiagnostic, binaryExpression.Right.GetLocation());
+                CheckTypeConversion(right, rightConversion, reportDiagnostic, binaryExpression.Right);
 
                 // regular string allocation
                 if (left.Type?.SpecialType == SpecialType.System_String || right.Type?.SpecialType == SpecialType.System_String)
@@ -85,15 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
             if (stringConcatenationCount > 3)
             {
-                reportDiagnostic(Diagnostic.Create(StringConcatenationAllocationRule, node.GetLocation(), EmptyMessageArgs));
+                reportDiagnostic(node.CreateDiagnostic(StringConcatenationAllocationRule, EmptyMessageArgs));
             }
         }
 
-        private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, Location location)
+        private static void CheckTypeConversion(TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, ExpressionSyntax expression)
         {
             if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
             {
-                reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeInAStringConcatenationRule, location, new[] { typeInfo.Type.ToDisplayString() }));
+                reportDiagnostic(expression.CreateDiagnostic(ValueTypeToReferenceTypeInAStringConcatenationRule, typeInfo.Type.ToDisplayString()));
             }
 
             return;

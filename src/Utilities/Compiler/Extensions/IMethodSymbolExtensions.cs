@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections.Concurrent;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 
 #if HAS_IOPERATION
 using System.Threading;
@@ -163,6 +165,16 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method implements IAsyncDisposable.Dispose()
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+        }
+
+        /// <summary>
         /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
         /// </summary>
         public static bool IsDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
@@ -182,6 +194,27 @@ namespace Analyzer.Utilities.Extensions
             return method.ReturnsVoid &&
                 method.Parameters.IsEmpty &&
                 method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
+
+        /// <summary>
+        /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTaskType)
+        {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+            }
+
+            // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnType != null && method.ReturnType.Equals(valueTaskType) && method.Parameters.IsEmpty &&
+                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         }
 
         /// <summary>
@@ -483,7 +516,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>> s_methodToTopmostOperationBlockCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>>();
+            = new();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
@@ -530,29 +563,20 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                case MethodKind.DelegateInvoke:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
+                _ => false,
+            };
         }
 
         public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
+                _ => false,
+            };
         }
 
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
@@ -565,7 +589,7 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-            throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
+            throw new ArgumentException("Invalid parameter", nameof(parameterSymbol));
         }
 
         /// <summary>
@@ -690,8 +714,51 @@ namespace Analyzer.Utilities.Extensions
                methodSymbol.Name switch
                {
                    "$Main" => true,
-                   "<$Main>$" => true,
+                   "<Main>$" => true,
                    _ => false
                };
+
+        public static bool IsGetAwaiterFromAwaitablePattern([NotNullWhen(true)] this IMethodSymbol? method,
+            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
+            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
+        {
+            if (method is null
+                || !method.Name.Equals("GetAwaiter", StringComparison.Ordinal)
+                || method.Parameters.Length != 0)
+            {
+                return false;
+            }
+
+            var returnType = method.ReturnType?.OriginalDefinition;
+            if (returnType is null)
+            {
+                return false;
+            }
+
+            return returnType.DerivesFrom(inotifyCompletionType) ||
+                returnType.DerivesFrom(icriticalNotifyCompletionType);
+        }
+
+        public static bool IsGetResultFromAwaiterPattern(
+            [NotNullWhen(true)] this IMethodSymbol? method,
+            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
+            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
+        {
+            if (method is null
+                || !method.Name.Equals("GetResult", StringComparison.Ordinal)
+                || method.Parameters.Length != 0)
+            {
+                return false;
+            }
+
+            var containingType = method.ContainingType?.OriginalDefinition;
+            if (containingType is null)
+            {
+                return false;
+            }
+
+            return containingType.DerivesFrom(inotifyCompletionType) ||
+                containingType.DerivesFrom(icriticalNotifyCompletionType);
+        }
     }
 }

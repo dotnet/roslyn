@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
             ValueTypeToReferenceTypeConversionRuleId,
             s_localizableValueTypeToReferenceTypeConversionRuleTitle,
             s_localizableValueTypeToReferenceTypeConversionRuleMessage,
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new(
             DelegateOnStructInstanceRuleId,
             s_localizableDelegateOnStructInstanceRuleTitle,
             s_localizableDelegateOnStructInstanceRuleMessage,
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor MethodGroupAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodGroupAllocationRule = new(
             MethodGroupAllocationRuleId,
             s_localizableMethodGroupAllocationRuleTitle,
             s_localizableMethodGroupAllocationRuleMessage,
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
             ReadonlyMethodGroupAllocationRuleId,
             s_localizableReadonlyMethodGroupAllocationRuleTitle,
             s_localizableReadonlyMethodGroupAllocationRuleMessage,
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
                 if (leftT.Type?.IsValueType == true && rightT.Type?.IsReferenceType == true)
                 {
-                    reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeConversionRule, binaryExpression.Left.GetLocation(), EmptyMessageArgs));
+                    reportDiagnostic(binaryExpression.Left.CreateDiagnostic(ValueTypeToReferenceTypeConversionRule, EmptyMessageArgs));
                 }
 
                 return;
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             var typeInfo = semanticModel.GetTypeInfo(interpolation.Expression, cancellationToken);
             if (typeInfo.Type?.IsValueType == true)
             {
-                reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeConversionRule, interpolation.Expression.GetLocation(), EmptyMessageArgs));
+                reportDiagnostic(interpolation.Expression.CreateDiagnostic(ValueTypeToReferenceTypeConversionRule, EmptyMessageArgs));
             }
         }
 
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
                 if (castTypeInfo.Type?.IsReferenceType == true && expressionTypeInfo.Type?.IsValueType == true)
                 {
-                    reportDiagnostic(Diagnostic.Create(ValueTypeToReferenceTypeConversionRule, castExpression.Expression.GetLocation(), EmptyMessageArgs));
+                    reportDiagnostic(castExpression.Expression.CreateDiagnostic(ValueTypeToReferenceTypeConversionRule, EmptyMessageArgs));
                 }
             }
         }
