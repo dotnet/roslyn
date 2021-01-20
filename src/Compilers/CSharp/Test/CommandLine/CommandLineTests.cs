@@ -12771,20 +12771,20 @@ class C
         }
 
         [Fact]
-        public void ParseCompilerGeneratedFilesOut()
+        public void ParseGeneratedFilesOut()
         {
             string root = PathUtilities.IsUnixLikePlatform ? "/" : "c:\\";
             string baseDirectory = Path.Combine(root, "abc", "def");
 
             var parsedArgs = DefaultParse(new[] { @"/generatedfilesout:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2006: Command-line syntax error: Missing '<text>' for '/compilergeneratedfilesout:' option
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:"));
             Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
 
             parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""""", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS2006: Command-line syntax error: Missing '<text>' for '/compilergeneratedfilesout:' option
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/generatedfilesout:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:\"\""));
             Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
 
