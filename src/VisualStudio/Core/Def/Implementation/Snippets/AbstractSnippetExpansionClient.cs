@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
-        private State _state = new() { _arguments = ImmutableDictionary.Create<string, string>() };
+        private readonly State _state = new();
 
         public AbstractSnippetExpansionClient(
             IThreadingContext threadingContext,
@@ -1022,8 +1022,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
-        [NonCopyable]
-        private struct State
+        private sealed class State
         {
             /// <summary>
             /// The current expansion session.
@@ -1048,7 +1047,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// a parameter, it means no argument has been provided yet by an ArgumentProvider or the user for a
             /// parameter with this name. This map is cleared at the final end of an argument provider snippet session.
             /// </summary>
-            public ImmutableDictionary<string, string> _arguments;
+            public ImmutableDictionary<string, string> _arguments = ImmutableDictionary.Create<string, string>();
 
             /// <summary>
             /// When moving between Signature Help overloads, the snippet session used for argument providers is cleared
