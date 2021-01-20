@@ -399,6 +399,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return CommitSnippet(leaveCaret: false);
         }
 
+        /// <summary>
+        /// Commit the active snippet, if any.
+        /// </summary>
+        /// <param name="leaveCaret"><see langword="true"/> to leave the caret position unchanged by the call;
+        /// otherwise, <see langword="false"/> to move the caret to the <c>$end$</c> position of the snippet when the
+        /// snippet is committed.</param>
+        /// <returns><see langword="true"/> if the caret may have moved from the call; otherwise,
+        /// <see langword="false"/> if the caret did not move, or if there was no active snippet session to
+        /// commit.</returns>
         public bool CommitSnippet(bool leaveCaret)
         {
             if (ExpansionSession != null)

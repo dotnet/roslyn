@@ -9,6 +9,9 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    /// <summary>
+    /// Provides context information for argument completion.
+    /// </summary>
     internal sealed class ArgumentContext
     {
         public ArgumentContext(
@@ -29,16 +32,38 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal ArgumentProvider Provider { get; }
 
+        /// <summary>
+        /// Gets the document where argument completion is requested.
+        /// </summary>
         public Document Document { get; }
 
+        /// <summary>
+        /// Gets the position within <see cref="Document"/> where argument completion is requested.
+        /// </summary>
         public int Position { get; }
 
+        /// <summary>
+        /// Gets the symbol for the parameter for which an argument value is requested.
+        /// </summary>
         public IParameterSymbol Parameter { get; }
 
+        /// <summary>
+        /// Gets the previously-provided argument value for this parameter.
+        /// </summary>
         public string? PreviousValue { get; }
 
+        /// <summary>
+        /// Gets a cancellation token that argument providers may observe.
+        /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        /// <summary>
+        /// Gets or sets the default argument value.
+        /// </summary>
+        /// <remarks>
+        /// If this value is not set, the argument completion session will insert a language-specific default value for
+        /// the argument.
+        /// </remarks>
         public string? DefaultValue { get; set; }
     }
 }
