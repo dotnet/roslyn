@@ -31,6 +31,25 @@ namespace Roslyn.Test.Utilities
     /// A wrapper to hold onto an object that you wish to make assertions about the lifetime of. This type has specific protections
     /// to ensure the best possible patterns to avoid "gotchas" with these sorts of tests.
     /// </summary>
+    /// <remarks>
+    /// Specifically, consider this common pattern:
+    /// 
+    /// <code>
+    /// var weakReference = new WeakReference(strongReference);
+    /// strongReference = null;
+    /// GC.Collect(); // often a few times...
+    /// Assert.Null(weakReference.Target);
+    /// </code>
+    /// 
+    /// This code has a bug: it presumes that when strongReference = null is assigned, there are no other references anywhere.
+    /// But that line only tells the JIT to null out the place that's holding the active value. The JIT could have spilled a copy
+    /// at some point to the stack, which it now considers unused and isn't worth cleaning up. Or another register might still be
+    /// holding it, etc.
+    /// 
+    /// What this class does is it holds the only active reference in the heap, and any use of that reference is put in a method
+    /// that is marked NoInline; this ensures that when the uses are done, any temporaries still floating around are understood
+    /// by the JIT/GC to actually be unused.
+    /// </remarks>
     public sealed class ObjectReference<T> where T : class
     {
         private T _strongReference;
