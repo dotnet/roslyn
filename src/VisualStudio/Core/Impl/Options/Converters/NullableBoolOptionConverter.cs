@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using Roslyn.Utilities;
 
@@ -18,19 +19,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Convert
         }
 
         public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is null)
+            => value switch
             {
-                return _onNullValue();
-            }
-
-            if (value is bool boolValue)
-            {
-                return boolValue;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(value);
-        }
+                null => _onNullValue(),
+                bool b => b,
+                _ => DependencyProperty.UnsetValue
+            };
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => value;
