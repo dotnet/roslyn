@@ -102,6 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The IVsRunningDocumentTable is a free-threaded VS service that allows fetching of the service and advising events
             // to be done without implicitly marshalling to the UI thread.
             _runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
+            _ = new RunningDocumentTableEventTracker(
+                threadingContext,
+                editorAdaptersFactoryService,
+                _runningDocumentTable,
+                this);
         }
 
         public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
