@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableDictionaryTest.nonnetstandard.cs
@@ -8,12 +9,10 @@
 // reference implementation.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
+using System.Collections.Immutable;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public partial class ImmutableDictionaryTest : ImmutableDictionaryTestBase
     {
@@ -21,24 +20,23 @@ namespace System.Collections.Immutable.Tests
         public override void EmptyTest()
         {
             base.EmptyTest();
-            this.EmptyTestHelperHash(Empty<int, bool>(), 5);
+            EmptyTestHelperHash(Empty<int, bool>(), 5);
         }
 
         [Fact]
         public void EnumeratorWithHashCollisionsTest()
         {
             var emptyMap = Empty<int, GenericParameterHelper>(new BadHasher<int>());
-            this.EnumeratorTestHelper(emptyMap);
+            EnumeratorTestHelper(emptyMap);
         }
 
-        internal override IBinaryTree GetRootNode<TKey, TValue>(IImmutableDictionary<TKey, TValue> dictionary)
+        private static void EmptyTestHelperHash<TKey, TValue>(IImmutableDictionary<TKey, TValue> empty, TKey someKey)
+            where TKey : notnull
         {
-            return ((ImmutableDictionary<TKey, TValue>)dictionary).Root;
-        }
+            // Intentionally not used
+            _ = someKey;
 
-        private void EmptyTestHelperHash<TKey, TValue>(IImmutableDictionary<TKey, TValue> empty, TKey someKey)
-        {
-            Assert.Same(EqualityComparer<TKey>.Default, ((IHashKeyCollection<TKey>)empty).KeyComparer);
+            Assert.Same(EqualityComparer<TKey>.Default, empty.GetKeyComparer());
         }
     }
 }

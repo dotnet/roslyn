@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Diagnostics/DebuggerAttributes.cs
@@ -7,25 +8,34 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Roslyn.Utilities;
 
-namespace System.Diagnostics
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     internal class DebuggerAttributeInfo
     {
-        public object Instance { get; set; }
-        public IEnumerable<PropertyInfo> Properties { get; set; }
+        public object Instance { get; }
+        public IEnumerable<PropertyInfo> Properties { get; }
+
+        public DebuggerAttributeInfo(object instance, IEnumerable<PropertyInfo> properties)
+        {
+            Instance = instance;
+            Properties = properties;
+        }
     }
 
     internal static class DebuggerAttributes
     {
-        internal static object GetFieldValue(object obj, string fieldName)
+        internal static object? GetFieldValue(object obj, string fieldName)
         {
-            return GetField(obj, fieldName).GetValue(obj);
+            var fieldInfo = GetField(obj, fieldName) ?? throw new InvalidOperationException();
+            return fieldInfo.GetValue(obj);
         }
 
         internal static void InvokeDebuggerTypeProxyProperties(object obj)
@@ -53,18 +63,14 @@ namespace System.Diagnostics
 
             // Create an instance of the proxy type, and make sure we can access all of the instance properties
             // on the type without exception
-            object proxyInstance = Activator.CreateInstance(proxyType, obj);
+            object proxyInstance = Activator.CreateInstance(proxyType, obj) ?? throw ExceptionUtilities.Unreachable;
             IEnumerable<PropertyInfo> properties = GetDebuggerVisibleProperties(proxyType);
-            return new DebuggerAttributeInfo
-            {
-                Instance = proxyInstance,
-                Properties = properties
-            };
+            return new DebuggerAttributeInfo(proxyInstance, properties);
         }
 
         public static DebuggerBrowsableState? GetDebuggerBrowsableState(MemberInfo info)
         {
-            CustomAttributeData debuggerBrowsableAttribute = info.CustomAttributes
+            CustomAttributeData? debuggerBrowsableAttribute = info.CustomAttributes
                 .SingleOrDefault(a => a.AttributeType == typeof(DebuggerBrowsableAttribute));
             // Enums in attribute constructors are boxed as ints, so cast to int? first.
             return (DebuggerBrowsableState?)(int?)debuggerBrowsableAttribute?.ConstructorArguments.Single().Value;
@@ -86,7 +92,7 @@ namespace System.Diagnostics
             return visibleProperties;
         }
 
-        public static object GetProxyObject(object obj) => Activator.CreateInstance(GetProxyType(obj), obj);
+        public static object? GetProxyObject(object obj) => Activator.CreateInstance(GetProxyType(obj), obj);
 
         public static Type GetProxyType(object obj) => GetProxyType(obj.GetType());
 
@@ -105,9 +111,12 @@ namespace System.Diagnostics
             }
             CustomAttributeData cad = attrs[0];
 
-            Type proxyType = cad.ConstructorArguments[0].ArgumentType == typeof(Type) ?
-                (Type)cad.ConstructorArguments[0].Value :
-                Type.GetType((string)cad.ConstructorArguments[0].Value);
+            Type? proxyType = cad.ConstructorArguments[0].ArgumentType == typeof(Type) ?
+                (Type?)cad.ConstructorArguments[0].Value :
+                Type.GetType((string)cad.ConstructorArguments[0].Value!);
+            if (proxyType is null)
+                throw new InvalidOperationException("Expected a non-null proxy type");
+
             if (genericTypeArguments.Length > 0)
             {
                 proxyType = proxyType.MakeGenericType(genericTypeArguments);
@@ -131,7 +140,7 @@ namespace System.Diagnostics
             var cad = attrs[0];
 
             // Get the text of the DebuggerDisplayAttribute
-            string attrText = (string)cad.ConstructorArguments[0].Value;
+            string attrText = (string?)cad.ConstructorArguments[0].Value ?? throw new InvalidOperationException("Expected a non-null text");
 
             var segments = attrText.Split(new[] { '{', '}' });
 
@@ -160,13 +169,12 @@ namespace System.Diagnostics
                     reference = reference.Replace(",nq", string.Empty);
 
                     // Evaluate the reference.
-                    object member;
-                    if (!TryEvaluateReference(obj, reference, out member))
+                    if (!TryEvaluateReference(obj, reference, out object? member))
                     {
                         throw new InvalidOperationException($"The DebuggerDisplayAttribute for {objType} contains the expression \"{reference}\".");
                     }
 
-                    string memberString = GetDebuggerMemberString(member, noQuotes);
+                    string? memberString = GetDebuggerMemberString(member, noQuotes);
 
                     sb.Append(memberString);
                 }
@@ -175,9 +183,9 @@ namespace System.Diagnostics
             return sb.ToString();
         }
 
-        private static string GetDebuggerMemberString(object member, bool noQuotes)
+        private static string? GetDebuggerMemberString(object? member, bool noQuotes)
         {
-            string memberString = "null";
+            string? memberString = "null";
             if (member != null)
             {
                 memberString = member.ToString();
@@ -204,16 +212,16 @@ namespace System.Diagnostics
             obj is long || obj is ulong ||
             obj is float || obj is double;
 
-        private static bool TryEvaluateReference(object obj, string reference, out object member)
+        private static bool TryEvaluateReference(object obj, string reference, out object? member)
         {
-            PropertyInfo pi = GetProperty(obj, reference);
+            PropertyInfo? pi = GetProperty(obj, reference);
             if (pi != null)
             {
                 member = pi.GetValue(obj);
                 return true;
             }
 
-            FieldInfo fi = GetField(obj, reference);
+            FieldInfo? fi = GetField(obj, reference);
             if (fi != null)
             {
                 member = fi.GetValue(obj);
@@ -224,11 +232,11 @@ namespace System.Diagnostics
             return false;
         }
 
-        private static FieldInfo GetField(object obj, string fieldName)
+        private static FieldInfo? GetField(object obj, string fieldName)
         {
-            for (Type t = obj.GetType(); t != null; t = t.GetTypeInfo().BaseType)
+            for (Type? t = obj.GetType(); t != null; t = t.GetTypeInfo().BaseType)
             {
-                FieldInfo fi = t.GetTypeInfo().GetDeclaredField(fieldName);
+                FieldInfo? fi = t.GetTypeInfo().GetDeclaredField(fieldName);
                 if (fi != null)
                 {
                     return fi;
@@ -237,11 +245,11 @@ namespace System.Diagnostics
             return null;
         }
 
-        private static PropertyInfo GetProperty(object obj, string propertyName)
+        private static PropertyInfo? GetProperty(object obj, string propertyName)
         {
-            for (Type t = obj.GetType(); t != null; t = t.GetTypeInfo().BaseType)
+            for (Type? t = obj.GetType(); t != null; t = t.GetTypeInfo().BaseType)
             {
-                PropertyInfo pi = t.GetTypeInfo().GetDeclaredProperty(propertyName);
+                PropertyInfo? pi = t.GetTypeInfo().GetDeclaredProperty(propertyName);
                 if (pi != null)
                 {
                     return pi;

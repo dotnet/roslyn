@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableTestBase.cs
@@ -7,21 +8,21 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public abstract partial class ImmutablesTestBase
     {
         /// <summary>
         /// Gets the number of operations to perform in randomized tests.
         /// </summary>
-        protected int RandomOperationsCount
+        protected static int RandomOperationsCount
         {
             get { return 100; }
         }
@@ -34,7 +35,7 @@ namespace System.Collections.Immutable.Tests
             }
             else
             {
-                Assert.Same((object)expected, (object)actual); //, message, formattingArgs);
+                Assert.Same((object?)expected, (object?)actual); //, message, formattingArgs);
             }
         }
 
@@ -104,7 +105,7 @@ namespace System.Collections.Immutable.Tests
         /// </summary>
         /// <param name="length">The desired length of the array.</param>
         /// <returns>An array of doubles.</returns>
-        protected double[] GenerateDummyFillData(int length = 1000)
+        protected static double[] GenerateDummyFillData(int length = 1000)
         {
             Assert.InRange(length, 0, int.MaxValue);
 

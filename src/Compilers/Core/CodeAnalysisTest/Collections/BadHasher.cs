@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/BadHasher.cs
@@ -9,7 +10,7 @@
 
 using System.Collections.Generic;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Produces the same hash for every value.
@@ -19,12 +20,12 @@ namespace System.Collections.Immutable.Tests
     {
         private readonly IEqualityComparer<T> _equalityComparer;
 
-        internal BadHasher(IEqualityComparer<T> equalityComparer = null)
+        internal BadHasher(IEqualityComparer<T>? equalityComparer = null)
         {
             _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
         }
 
-        public bool Equals(T x, T y)
+        public bool Equals(T? x, T? y)
         {
             return _equalityComparer.Equals(x, y);
         }

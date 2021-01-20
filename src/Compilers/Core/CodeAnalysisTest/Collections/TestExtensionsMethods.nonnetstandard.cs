@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/TestExtensionsMethods.nonnetstandard.cs
@@ -7,79 +8,47 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
-using Xunit;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     internal static partial class TestExtensionsMethods
     {
         internal static IDictionary<TKey, TValue> ToReadOnlyDictionary<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
         {
-            Requires.NotNull(dictionary, nameof(dictionary));
+            if (dictionary is null)
+                throw new ArgumentNullException(nameof(dictionary));
 
             return (IDictionary<TKey, TValue>)dictionary;
         }
 
         internal static IDictionary<TKey, TValue> ToBuilder<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
         {
-            Requires.NotNull(dictionary, nameof(dictionary));
-
-            var hashDictionary = dictionary as ImmutableDictionary<TKey, TValue>;
-            if (hashDictionary != null)
+            return dictionary switch
             {
-                return hashDictionary.ToBuilder();
-            }
-
-            var sortedDictionary = dictionary as ImmutableSortedDictionary<TKey, TValue>;
-            if (sortedDictionary != null)
-            {
-                return sortedDictionary.ToBuilder();
-            }
-
-            throw new NotSupportedException();
+                ImmutableDictionary<TKey, TValue> d => d.ToBuilder(),
+                ImmutableSortedDictionary<TKey, TValue> d => d.ToBuilder(),
+                ImmutableSegmentedDictionary<TKey, TValue> d => d.ToBuilder(),
+                null => throw new ArgumentNullException(nameof(dictionary)),
+                _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
+            };
         }
 
-        /// <summary>
-        /// Verifies that a binary tree is balanced according to AVL rules.
-        /// </summary>
-        /// <param name="node">The root node of the binary tree.</param>
-        internal static void VerifyBalanced(this IBinaryTree node)
+        internal static IEqualityComparer<TKey> GetKeyComparer<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
         {
-            if (node.Left != null)
+            return dictionary switch
             {
-                VerifyBalanced(node.Left);
-            }
-
-            if (node.Right != null)
-            {
-                VerifyBalanced(node.Right);
-            }
-
-            if (node.Right != null && node.Left != null)
-            {
-                Assert.InRange(node.Left.Height - node.Right.Height, -1, 1);
-            }
-            else if (node.Right != null)
-            {
-                Assert.InRange(node.Right.Height, 0, 1);
-            }
-            else if (node.Left != null)
-            {
-                Assert.InRange(node.Left.Height, 0, 1);
-            }
-        }
-
-        /// <summary>
-        /// Verifies that a binary tree is no taller than necessary to store the data if it were optimally balanced.
-        /// </summary>
-        /// <param name="node">The root node.</param>
-        /// <param name="count">The number of nodes in the tree. May be <c>null</c> if <see cref="IBinaryTree.Count"/> is functional.</param>
-        internal static void VerifyHeightIsWithinTolerance(this IBinaryTree node, int? count = null)
-        {
-            // http://en.wikipedia.org/wiki/AVL_tree
-            double heightMustBeLessThan = Math.Log(2, s_GoldenRatio) * Math.Log(Math.Sqrt(5) * ((count ?? node.Count) + 2), 2) - 2;
-            Assert.True(node.Height < heightMustBeLessThan);
+                ImmutableDictionary<TKey, TValue> d => d.KeyComparer,
+                ImmutableSegmentedDictionary<TKey, TValue> d => d.KeyComparer,
+                null => throw new ArgumentNullException(nameof(dictionary)),
+                _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
+            };
         }
     }
 }

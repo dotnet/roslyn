@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/EverythingEqual.cs
@@ -7,9 +8,10 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// An equality comparer that considers all values to be equal.
@@ -17,7 +19,7 @@ namespace System.Collections.Immutable.Tests
     /// <typeparam name="T"></typeparam>
     internal class EverythingEqual<T> : IEqualityComparer<T>, IEqualityComparer
     {
-        private static EverythingEqual<T> s_singleton = new EverythingEqual<T>();
+        private static readonly EverythingEqual<T> s_singleton = new();
 
         private EverythingEqual() { }
 
@@ -29,7 +31,7 @@ namespace System.Collections.Immutable.Tests
             }
         }
 
-        public bool Equals(T x, T y)
+        public bool Equals(T? x, T? y)
         {
             return true;
         }
@@ -39,7 +41,7 @@ namespace System.Collections.Immutable.Tests
             return 1;
         }
 
-        bool IEqualityComparer.Equals(object x, object y)
+        bool IEqualityComparer.Equals(object? x, object? y)
         {
             return true;
         }

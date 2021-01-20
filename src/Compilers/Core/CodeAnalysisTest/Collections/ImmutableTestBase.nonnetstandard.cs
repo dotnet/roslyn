@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableTestBase.nonnetstandard.cs
@@ -7,14 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public abstract partial class ImmutablesTestBase
     {
@@ -26,12 +26,15 @@ namespace System.Collections.Immutable.Tests
         /// <param name="objectUnderTest">An instance of the collection to test, which must have at least two elements.</param>
         /// <param name="additionalItem">A unique item that does not already exist in <paramref name="objectUnderTest" />.</param>
         /// <param name="equalsStructurally">A delegate that invokes the EqualsStructurally method.</param>
-        protected static void StructuralEqualityHelper<TCollection, TElement>(TCollection objectUnderTest, TElement additionalItem, Func<TCollection, IEnumerable<TElement>, bool> equalsStructurally)
+        protected static void StructuralEqualityHelper<TCollection, TElement>(TCollection objectUnderTest, TElement additionalItem, Func<TCollection, IEnumerable<TElement>?, bool> equalsStructurally)
             where TCollection : class, IEnumerable<TElement>
         {
-            Requires.NotNull(objectUnderTest, nameof(objectUnderTest));
-            Requires.Argument(objectUnderTest.Count() >= 2, nameof(objectUnderTest), "Collection must contain at least two elements.");
-            Requires.NotNull(equalsStructurally, nameof(equalsStructurally));
+            if (objectUnderTest is null)
+                throw new ArgumentNullException(nameof(objectUnderTest));
+            if (objectUnderTest.Count() < 2)
+                throw new ArgumentException("Collection must contain at least two elements.", nameof(objectUnderTest));
+            if (equalsStructurally is null)
+                throw new ArgumentNullException(nameof(equalsStructurally));
 
             var structuralEquatableUnderTest = objectUnderTest as IStructuralEquatable;
             var enumerableUnderTest = (IEnumerable<TElement>)objectUnderTest;
@@ -42,7 +45,7 @@ namespace System.Collections.Immutable.Tests
             var differentSequence = shorterSequence.Concat(new[] { additionalItem });
             var nonUniqueSubsetSequenceOfSameLength = shorterSequence.Concat(shorterSequence.Take(1));
 
-            var testValues = new IEnumerable<TElement>[] {
+            var testValues = new IEnumerable<TElement>?[] {
                 objectUnderTest,
                 null,
                 Enumerable.Empty<TElement>(),
@@ -58,13 +61,13 @@ namespace System.Collections.Immutable.Tests
 
                 if (structuralEquatableUnderTest != null)
                 {
-                    Assert.Equal(expectedResult, structuralEquatableUnderTest.Equals(value, null));
+                    Assert.Equal(expectedResult, structuralEquatableUnderTest.Equals(value, null!));
 
                     if (value != null)
                     {
                         Assert.Equal(
                             expectedResult,
-                            structuralEquatableUnderTest.Equals(new NonGenericEnumerableWrapper(value), null));
+                            structuralEquatableUnderTest.Equals(new NonGenericEnumerableWrapper(value), null!));
                     }
                 }
 
@@ -78,8 +81,7 @@ namespace System.Collections.Immutable.Tests
 
             internal NonGenericEnumerableWrapper(IEnumerable enumerable)
             {
-                Requires.NotNull(enumerable, nameof(enumerable));
-                _enumerable = enumerable;
+                _enumerable = enumerable ?? throw new ArgumentNullException(nameof(enumerable));
             }
 
             public IEnumerator GetEnumerator()

@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableDictionaryTest.cs
@@ -7,27 +8,29 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public partial class ImmutableDictionaryTest : ImmutableDictionaryTestBase
     {
         [Fact]
         public void AddExistingKeySameValueTest()
         {
-            AddExistingKeySameValueTestHelper(Empty(StringComparer.Ordinal, StringComparer.Ordinal), "Company", "Microsoft", "Microsoft");
-            AddExistingKeySameValueTestHelper(Empty(StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), "Company", "Microsoft", "MICROSOFT");
+            AddExistingKeySameValueTestHelper(Empty<string, string>(StringComparer.Ordinal, StringComparer.Ordinal), "Company", "Microsoft", "Microsoft");
+            AddExistingKeySameValueTestHelper(Empty<string, string>(StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase), "Company", "Microsoft", "MICROSOFT");
         }
 
         [Fact]
         public void AddExistingKeyDifferentValueTest()
         {
-            AddExistingKeyDifferentValueTestHelper(Empty(StringComparer.Ordinal, StringComparer.Ordinal), "Company", "Microsoft", "MICROSOFT");
+            AddExistingKeyDifferentValueTestHelper(Empty<string, string>(StringComparer.Ordinal, StringComparer.Ordinal), "Company", "Microsoft", "MICROSOFT");
         }
 
         [Fact]
@@ -92,7 +95,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void ContainsValue_NoSuchValue_ReturnsFalse()
         {
-            ImmutableDictionary<int, string> dictionary = new Dictionary<int, string>
+            ImmutableDictionary<int, string?> dictionary = new Dictionary<int, string?>
             {
                 { 1, "a" },
                 { 2, "b" }
@@ -118,7 +121,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Same(keyComparer, dictionary.KeyComparer);
             Assert.Same(EqualityComparer<string>.Default, dictionary.ValueComparer);
 
-            dictionary = ImmutableDictionary.Create(keyComparer, valueComparer);
+            dictionary = ImmutableDictionary.Create<string, string>(keyComparer, valueComparer);
             Assert.Equal(0, dictionary.Count);
             Assert.Same(keyComparer, dictionary.KeyComparer);
             Assert.Same(valueComparer, dictionary.ValueComparer);
@@ -194,9 +197,9 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal(2, stringIntDictionary["2"]);
             Assert.Equal(2, intDictionary.Count);
 
-            AssertExtensions.Throws<ArgumentNullException>("keySelector", () => list.ToImmutableDictionary<int, int>(null));
-            AssertExtensions.Throws<ArgumentNullException>("keySelector", () => list.ToImmutableDictionary<int, int, int>(null, v => v));
-            AssertExtensions.Throws<ArgumentNullException>("elementSelector", () => list.ToImmutableDictionary<int, int, int>(k => k, null));
+            Assert.Throws<ArgumentNullException>("keySelector", () => list.ToImmutableDictionary<int, int>(null!));
+            Assert.Throws<ArgumentNullException>("keySelector", () => list.ToImmutableDictionary<int, int, int>(null!, v => v));
+            Assert.Throws<ArgumentNullException>("elementSelector", () => list.ToImmutableDictionary<int, int, int>(k => k, null!));
 
             list.ToDictionary(k => k, v => v, null); // verifies BCL behavior is to not throw.
             list.ToImmutableDictionary(k => k, v => v, null, null);
@@ -255,7 +258,7 @@ namespace System.Collections.Immutable.Tests
             // Now check where collisions have conflicting values.
             map = ImmutableDictionary.Create<string, string>()
               .Add("a", "1").Add("A", "2").Add("b", "3");
-            AssertExtensions.Throws<ArgumentException>(null, () => map.WithComparers(StringComparer.OrdinalIgnoreCase));
+            Assert.Throws<ArgumentException>(null, () => map.WithComparers(StringComparer.OrdinalIgnoreCase));
 
             // Force all values to be considered equal.
             map = map.WithComparers(StringComparer.OrdinalIgnoreCase, EverythingEqual<string>.Default);
@@ -271,7 +274,7 @@ namespace System.Collections.Immutable.Tests
         {
             var map = ImmutableDictionary.Create<string, string>()
                 .Add("firstKey", "1").Add("secondKey", "2");
-            var exception = AssertExtensions.Throws<ArgumentException>(null, () => map.Add("firstKey", "3"));
+            var exception = Assert.Throws<ArgumentException>(null, () => map.Add("firstKey", "3"));
             Assert.Contains("firstKey", exception.Message);
         }
 
@@ -340,10 +343,10 @@ namespace System.Collections.Immutable.Tests
             ImmutableDictionary<string, int> dict = ImmutableDictionary.Create<string, int>().Add("One", 1).Add("Two", 2);
             DebuggerAttributeInfo info = DebuggerAttributes.ValidateDebuggerTypeProxyProperties(dict);
 
-            object rootNode = DebuggerAttributes.GetFieldValue(ImmutableDictionary.Create<string, string>(), "_root");
+            object rootNode = DebuggerAttributes.GetFieldValue(ImmutableDictionary.Create<string, string>(), "_root") ?? throw new InvalidOperationException();
             DebuggerAttributes.ValidateDebuggerDisplayReferences(rootNode);
-            PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>().State == DebuggerBrowsableState.RootHidden);
-            KeyValuePair<string, int>[] items = itemProperty.GetValue(info.Instance) as KeyValuePair<string, int>[];
+            PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>()!.State == DebuggerBrowsableState.RootHidden);
+            KeyValuePair<string, int>[]? items = itemProperty.GetValue(info.Instance) as KeyValuePair<string, int>[];
             Assert.Equal(dict, items);
         }
 
@@ -351,7 +354,7 @@ namespace System.Collections.Immutable.Tests
         public static void TestDebuggerAttributes_Null()
         {
             Type proxyType = DebuggerAttributes.GetProxyType(ImmutableHashSet.Create<string>());
-            TargetInvocationException tie = Assert.Throws<TargetInvocationException>(() => Activator.CreateInstance(proxyType, (object)null));
+            TargetInvocationException tie = Assert.Throws<TargetInvocationException>(() => Activator.CreateInstance(proxyType, (object?)null));
             Assert.IsType<ArgumentNullException>(tie.InnerException);
         }
 
@@ -407,12 +410,14 @@ namespace System.Collections.Immutable.Tests
         }
 
         protected void ContainsValueTestHelper<TKey, TValue>(ImmutableDictionary<TKey, TValue> map, TKey key, TValue value)
+            where TKey : notnull
         {
             Assert.False(map.ContainsValue(value));
             Assert.True(map.Add(key, value).ContainsValue(value));
         }
 
-        private static ImmutableDictionary<TKey, TValue> Empty<TKey, TValue>(IEqualityComparer<TKey> keyComparer = null, IEqualityComparer<TValue> valueComparer = null)
+        private static ImmutableDictionary<TKey, TValue> Empty<TKey, TValue>(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TValue>? valueComparer = null)
+            where TKey : notnull
         {
             return ImmutableDictionary<TKey, TValue>.Empty.WithComparers(keyComparer, valueComparer);
         }
@@ -420,11 +425,11 @@ namespace System.Collections.Immutable.Tests
         /// <summary>
         /// An ordinal comparer for case-insensitive strings.
         /// </summary>
-        private class MyStringOrdinalComparer : EqualityComparer<CaseInsensitiveString>
+        private class MyStringOrdinalComparer : EqualityComparer<CaseInsensitiveString?>
         {
-            public override bool Equals(CaseInsensitiveString x, CaseInsensitiveString y)
+            public override bool Equals(CaseInsensitiveString? x, CaseInsensitiveString? y)
             {
-                return StringComparer.Ordinal.Equals(x.Value, y.Value);
+                return StringComparer.Ordinal.Equals(x!.Value, y!.Value);
             }
 
             public override int GetHashCode(CaseInsensitiveString obj)
@@ -448,9 +453,9 @@ namespace System.Collections.Immutable.Tests
             {
                 return StringComparer.OrdinalIgnoreCase.GetHashCode(this.Value);
             }
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
-                return StringComparer.OrdinalIgnoreCase.Equals(this.Value, ((CaseInsensitiveString)obj).Value);
+                return StringComparer.OrdinalIgnoreCase.Equals(this.Value, ((CaseInsensitiveString?)obj)!.Value);
             }
         }
     }

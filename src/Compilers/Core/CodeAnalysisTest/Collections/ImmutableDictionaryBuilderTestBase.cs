@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableDictionaryBuilderTestBase.cs
@@ -7,11 +8,14 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public abstract partial class ImmutableDictionaryBuilderTestBase : ImmutablesTestBase
     {
@@ -48,7 +52,7 @@ namespace System.Collections.Immutable.Tests
         {
             var builder = this.GetBuilder<string, int>();
             builder.Add("five", 5);
-            AssertExtensions.Throws<ArgumentException>(null, () => builder.Add("five", 6));
+            Assert.Throws<ArgumentException>(null, () => builder.Add("five", 6));
         }
 
         [Fact]
@@ -109,7 +113,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal(new KeyValuePair<string, int>(), array[0]);
             Assert.Equal(new KeyValuePair<string, int>("five", 5), array[1]);
 
-            AssertExtensions.Throws<ArgumentNullException>("array", () => builder.CopyTo(null, 0));
+            Assert.Throws<ArgumentNullException>("array", () => builder.CopyTo(null!, 0));
         }
 
         [Fact]
@@ -142,8 +146,7 @@ namespace System.Collections.Immutable.Tests
         {
             var map = this.GetEmptyImmutableDictionary<string, int>().Add("five", 5).Add("six", 6);
             var builder = this.GetBuilder(map);
-            int value;
-            Assert.True(builder.TryGetValue("five", out value) && value == 5);
+            Assert.True(builder.TryGetValue("five", out int value) && value == 5);
             Assert.True(builder.TryGetValue("six", out value) && value == 6);
             Assert.False(builder.TryGetValue("four", out value));
             Assert.Equal(0, value);
@@ -234,7 +237,7 @@ namespace System.Collections.Immutable.Tests
             var builder = this.GetBuilder<string, int>();
             var collection = (ICollection)builder;
 
-            collection.CopyTo(new object[0], 0);
+            collection.CopyTo(Array.Empty<object>(), 0);
 
             builder.Add("b", 2);
             Assert.True(builder.ContainsKey("b"));
@@ -242,14 +245,15 @@ namespace System.Collections.Immutable.Tests
             var array = new object[builder.Count + 1];
             collection.CopyTo(array, 1);
             Assert.Null(array[0]);
-            Assert.Equal(new object[] { null, new DictionaryEntry("b", 2), }, array);
+            Assert.Equal(new object?[] { null, new DictionaryEntry("b", 2), }, array);
 
             Assert.False(collection.IsSynchronized);
             Assert.NotNull(collection.SyncRoot);
             Assert.Same(collection.SyncRoot, collection.SyncRoot);
         }
 
-        protected abstract bool TryGetKeyHelper<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey equalKey, out TKey actualKey);
+        protected abstract bool TryGetKeyHelper<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey equalKey, out TKey actualKey)
+            where TKey : notnull;
 
         /// <summary>
         /// Gets the Builder for a given dictionary instance.
@@ -257,7 +261,8 @@ namespace System.Collections.Immutable.Tests
         /// <typeparam name="TKey">The type of key.</typeparam>
         /// <typeparam name="TValue">The type of value.</typeparam>
         /// <returns>The builder.</returns>
-        protected abstract IDictionary<TKey, TValue> GetBuilder<TKey, TValue>(IImmutableDictionary<TKey, TValue> basis = null);
+        protected abstract IDictionary<TKey, TValue> GetBuilder<TKey, TValue>(IImmutableDictionary<TKey, TValue>? basis = null)
+            where TKey : notnull;
 
         /// <summary>
         /// Gets an empty immutable dictionary.
@@ -265,7 +270,8 @@ namespace System.Collections.Immutable.Tests
         /// <typeparam name="TKey">The type of key.</typeparam>
         /// <typeparam name="TValue">The type of value.</typeparam>
         /// <returns>The immutable dictionary.</returns>
-        protected abstract IImmutableDictionary<TKey, TValue> GetEmptyImmutableDictionary<TKey, TValue>();
+        protected abstract IImmutableDictionary<TKey, TValue> GetEmptyImmutableDictionary<TKey, TValue>()
+            where TKey : notnull;
 
         protected abstract IImmutableDictionary<string, TValue> Empty<TValue>(StringComparer comparer);
     }

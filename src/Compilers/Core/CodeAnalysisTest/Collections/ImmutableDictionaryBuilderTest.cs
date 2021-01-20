@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableDictionaryBuilderTest.cs
@@ -7,13 +8,15 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class ImmutableDictionaryBuilderTest : ImmutableDictionaryBuilderTestBase
     {
@@ -95,11 +98,11 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void EnumerateBuilderWhileMutating()
         {
-            var builder = ImmutableDictionary<int, string>.Empty
-                .AddRange(Enumerable.Range(1, 10).Select(n => new KeyValuePair<int, string>(n, null)))
+            var builder = ImmutableDictionary<int, string?>.Empty
+                .AddRange(Enumerable.Range(1, 10).Select(n => new KeyValuePair<int, string?>(n, null)))
                 .ToBuilder();
             Assert.Equal(
-               Enumerable.Range(1, 10).Select(n => new KeyValuePair<int, string>(n, null)),
+               Enumerable.Range(1, 10).Select(n => new KeyValuePair<int, string?>(n, null)),
                builder);
 
             var enumerator = builder.GetEnumerator();
@@ -108,7 +111,7 @@ namespace System.Collections.Immutable.Tests
 
             // Verify that a new enumerator will succeed.
             Assert.Equal(
-                Enumerable.Range(1, 11).Select(n => new KeyValuePair<int, string>(n, null)),
+                Enumerable.Range(1, 11).Select(n => new KeyValuePair<int, string?>(n, null)),
                 builder);
 
             // Try enumerating further with the previous enumerable now that we've changed the collection.
@@ -118,14 +121,14 @@ namespace System.Collections.Immutable.Tests
 
             // Verify that by obtaining a new enumerator, we can enumerate all the contents.
             Assert.Equal(
-                Enumerable.Range(1, 11).Select(n => new KeyValuePair<int, string>(n, null)),
+                Enumerable.Range(1, 11).Select(n => new KeyValuePair<int, string?>(n, null)),
                 builder);
         }
 
         [Fact]
         public void BuilderReusesUnchangedImmutableInstances()
         {
-            var collection = ImmutableDictionary<int, string>.Empty.Add(1, null);
+            var collection = ImmutableDictionary<int, string?>.Empty.Add(1, null);
             var builder = collection.ToBuilder();
             Assert.Same(collection, builder.ToImmutable()); // no changes at all.
             builder.Add(2, null);
@@ -218,7 +221,7 @@ namespace System.Collections.Immutable.Tests
             // Now check where collisions have conflicting values.
             builder = ImmutableDictionary.Create<string, string>()
                 .Add("a", "1").Add("A", "2").Add("b", "3").ToBuilder();
-            AssertExtensions.Throws<ArgumentException>(null, () => builder.KeyComparer = StringComparer.OrdinalIgnoreCase);
+            Assert.Throws<ArgumentException>(null, () => builder.KeyComparer = StringComparer.OrdinalIgnoreCase);
 
             // Force all values to be considered equal.
             builder.ValueComparer = EverythingEqual<string>.Default;
@@ -260,8 +263,8 @@ namespace System.Collections.Immutable.Tests
             builder.Add(1, "One");
             builder.Add(2, "Two");
             DebuggerAttributeInfo info = DebuggerAttributes.ValidateDebuggerTypeProxyProperties(builder);
-            PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>().State == DebuggerBrowsableState.RootHidden);
-            KeyValuePair<int, string>[] items = itemProperty.GetValue(info.Instance) as KeyValuePair<int, string>[];
+            PropertyInfo itemProperty = info.Properties.Single(pr => pr.GetCustomAttribute<DebuggerBrowsableAttribute>()!.State == DebuggerBrowsableState.RootHidden);
+            KeyValuePair<int, string>[]? items = itemProperty.GetValue(info.Instance) as KeyValuePair<int, string>[];
             Assert.Equal(builder, items);
         }
 
@@ -269,14 +272,14 @@ namespace System.Collections.Immutable.Tests
         public static void TestDebuggerAttributes_Null()
         {
             Type proxyType = DebuggerAttributes.GetProxyType(ImmutableHashSet.Create<string>());
-            TargetInvocationException tie = Assert.Throws<TargetInvocationException>(() => Activator.CreateInstance(proxyType, (object)null));
+            TargetInvocationException tie = Assert.Throws<TargetInvocationException>(() => Activator.CreateInstance(proxyType, (object?)null));
             Assert.IsType<ArgumentNullException>(tie.InnerException);
         }
 
         [Fact]
         public void ToImmutableDictionary()
         {
-            ImmutableDictionary<int, int>.Builder builder =  ImmutableDictionary.CreateBuilder<int, int>();
+            ImmutableDictionary<int, int>.Builder builder = ImmutableDictionary.CreateBuilder<int, int>();
             builder.Add(0, 0);
             builder.Add(1, 1);
             builder.Add(2, 2);
@@ -294,8 +297,8 @@ namespace System.Collections.Immutable.Tests
             Assert.True(builder.ToImmutableDictionary().IsEmpty);
             Assert.False(dictionary.IsEmpty);
 
-            ImmutableDictionary<int, int>.Builder nullBuilder = null;
-            AssertExtensions.Throws<ArgumentNullException>("builder", () => nullBuilder.ToImmutableDictionary());
+            ImmutableDictionary<int, int>.Builder? nullBuilder = null;
+            Assert.Throws<ArgumentNullException>("builder", () => nullBuilder!.ToImmutableDictionary());
         }
 
         protected override IImmutableDictionary<TKey, TValue> GetEmptyImmutableDictionary<TKey, TValue>()
@@ -313,7 +316,7 @@ namespace System.Collections.Immutable.Tests
             return ((ImmutableDictionary<TKey, TValue>.Builder)dictionary).TryGetKey(equalKey, out actualKey);
         }
 
-        protected override IDictionary<TKey, TValue> GetBuilder<TKey, TValue>(IImmutableDictionary<TKey, TValue> basis)
+        protected override IDictionary<TKey, TValue> GetBuilder<TKey, TValue>(IImmutableDictionary<TKey, TValue>? basis)
         {
             return ((ImmutableDictionary<TKey, TValue>)(basis ?? GetEmptyImmutableDictionary<TKey, TValue>())).ToBuilder();
         }
