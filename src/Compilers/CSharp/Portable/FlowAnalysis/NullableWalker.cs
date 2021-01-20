@@ -63,6 +63,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Data recorded for a particular analysis run.
+        /// </summary>
+        internal readonly struct Data
+        {
+            /// <summary>
+            /// Number of entries tracked during analysis.
+            /// </summary>
+            internal readonly int TrackedEntries;
+
+            /// <summary>
+            /// True if analysis was required; false if analysis was optional and results dropped.
+            /// </summary>
+            internal readonly bool RequiredAnalysis;
+
+            internal Data(int trackedEntries, bool requiredAnalysis)
+            {
+                TrackedEntries = trackedEntries;
+                RequiredAnalysis = requiredAnalysis;
+            }
+        }
+
+        /// <summary>
         /// Represents the result of visiting an expression.
         /// Contains a result type which tells us whether the expression may be null,
         /// and an l-value type which tells us whether we can assign null to the expression.
@@ -120,9 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Binder for symbol being analyzed.
-        /// Must be non-null except from BestTypeForLambdaReturns which does not rely on this field.
         /// </summary>
-        private readonly Binder? _binder;
+        private readonly Binder _binder;
 
         /// <summary>
         /// Conversions with nullability and unknown matching any.
@@ -364,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useDelegateInvokeParameterTypes,
             MethodSymbol? delegateInvokeMethodOpt,
             BoundNode node,
-            Binder? binder,
+            Binder binder,
             Conversions conversions,
             VariableState? initialState,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
@@ -626,15 +647,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
-                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                var annotations = symbol.GetFlowAnalysisAnnotations();
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
+                    // We assume that if a member has AllowNull then the user
+                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
-                var annotations = symbol.GetFlowAnalysisAnnotations();
-                if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
+                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
                 {
-                    // We assume that if a member has MaybeNull or AllowNull then the user
-                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
                 var slot = GetOrCreateSlot(symbol, thisSlot);
@@ -784,6 +806,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     case FieldSymbol { IsConst: true }:
                                         continue;
                                     case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
+                                        // this is a property where assigning 'default' causes us to simply update
+                                        // the state to the output state of the property
+                                        // thus we skip setting an initial state for it here
+                                        if (IsPropertyOutputMoreStrictThanInput(prop))
+                                        {
+                                            continue;
+                                        }
+
                                         // We want to initialize auto-property state to the default state, but not computed properties.
                                         memberToInitialize = prop;
                                         break;
@@ -822,6 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    // We don't use a default initial state for value type instance constructors without `: this()` because
+                    // any usages of uninitialized fields will get definite assignment errors anyway.
                     if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
                         return true;
@@ -1051,19 +1083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyzes a method body if settings indicate we should, discarding the final nullable state.
+        /// Analyzes a method body if settings indicate we should.
         /// </summary>
-        internal static void AnalyzeIfNeeded(
-            CSharpCompilation compilation,
-            MethodSymbol method,
-            BoundNode node,
-            DiagnosticBag diagnostics,
-            bool useConstructorExitWarnings,
-            VariableState? initialNullableState)
-        {
-            AnalyzeIfNeeded(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState: false, out _);
-        }
-
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
@@ -1074,14 +1095,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (CanSkipAnalysis(compilation))
+            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(method))
             {
                 if (compilation.IsNullableAnalysisEnabledAlways)
                 {
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
-                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _, requiresAnalysis: false);
                 }
                 finalNullableState = null;
                 return;
@@ -1090,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
 
-        internal static void Analyze(
+        private static void Analyze(
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
@@ -1098,7 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
             bool getFinalNullableState,
-            out VariableState? finalNullableState)
+            out VariableState? finalNullableState,
+            bool requiresAnalysis = true)
         {
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
             {
@@ -1124,7 +1146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
                 getFinalNullableState,
-                finalNullableState: out finalNullableState);
+                finalNullableState: out finalNullableState,
+                requiresAnalysis);
         }
 
         /// <summary>
@@ -1166,13 +1189,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static void AnalyzeWithoutRewrite(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots, requiresAnalysis: false);
         }
 
         /// <summary>
@@ -1181,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             VariableState? initialState,
@@ -1191,18 +1214,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)> analyzedNullabilitiesMap;
-            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots);
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots, requiresAnalysis: true);
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
         }
 
         private static (SnapshotManager?, ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>) AnalyzeWithSemanticInfo(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             VariableState? initialState,
             DiagnosticBag diagnostics,
-            bool createSnapshots)
+            bool createSnapshots,
+            bool requiresAnalysis)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol?)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
@@ -1225,16 +1249,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilder,
                 returnTypesOpt: null,
                 getFinalNullableState: false,
-                out _);
+                out _,
+                requiresAnalysis);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var snapshotManager = snapshotBuilder?.ToManagerAndFree();
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.IsNullableAnalysisEnabled)
+            if (isNullableAnalysisEnabledAnywhere(compilation))
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
+            }
+
+            static bool isNullableAnalysisEnabledAnywhere(CSharpCompilation compilation)
+            {
+                if (compilation.Options.NullableContextOptions != NullableContextOptions.Disable)
+                {
+                    return true;
+                }
+                return compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new Text.TextSpan(0, tree.Length)) == true);
             }
 #endif
 
@@ -1265,10 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            if (binder.Compilation.IsNullableAnalysisEnabled)
-            {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
-            }
+            DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
 #endif
 
             return Rewrite(analyzedNullabilitiesMap, newSnapshots, node, ref remappedSymbols);
@@ -1289,30 +1320,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
-        private static bool CanSkipAnalysis(CSharpCompilation compilation)
+        private static bool HasRequiredLanguageVersion(CSharpCompilation compilation)
         {
-            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.IsNullableAnalysisEnabled;
+            return compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
         }
 
-        internal static bool NeedsAnalysis(CSharpCompilation compilation)
+        /// <summary>
+        /// Returns true if the nullable analysis is needed for the region represented by <paramref name="syntaxNode"/>.
+        /// The syntax node is used to determine the overall nullable context for the region.
+        /// </summary>
+        internal static bool NeedsAnalysis(CSharpCompilation compilation, SyntaxNode syntaxNode)
         {
-            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisEnabledAlways;
+            return HasRequiredLanguageVersion(compilation) &&
+                (compilation.IsNullableAnalysisEnabledIn(syntaxNode) || compilation.IsNullableAnalysisEnabledAlways);
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
+        /// <remarks><paramref name="syntax"/> is the syntax span used to determine the overall nullable context.</remarks>
         internal static void AnalyzeIfNeeded(
             Binder binder,
             BoundNode node,
+            SyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
+            bool requiresAnalysis = true;
             var compilation = binder.Compilation;
-            if (CanSkipAnalysis(compilation))
+            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(syntax))
             {
                 if (!compilation.IsNullableAnalysisEnabledAlways)
                 {
                     return;
                 }
                 diagnostics = new DiagnosticBag();
+                requiresAnalysis = false;
             }
 
             Analyze(
@@ -1330,7 +1370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
                 getFinalNullableState: false,
-                out _);
+                out _,
+                requiresAnalysis);
         }
 
         internal static void Analyze(
@@ -1377,7 +1418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SnapshotManager.Builder? snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
             bool getFinalNullableState,
-            out VariableState? finalNullableState)
+            out VariableState? finalNullableState,
+            bool requiresAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
@@ -1396,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalNullableState = null;
             try
             {
-                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, requiresAnalysis);
                 if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
@@ -1414,7 +1456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? symbol,
             DiagnosticBag? diagnostics,
             VariableState? initialState,
-            SnapshotManager.Builder? snapshotBuilderOpt)
+            SnapshotManager.Builder? snapshotBuilderOpt,
+            bool requiresAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
             try
@@ -1435,7 +1478,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (walker.compilation.NullableAnalysisData is { } state)
             {
                 var key = (object?)symbol ?? walker.methodMainNode.Syntax;
-                state[key] = walker._variableSlot.Count;
+                if (state.TryGetValue(key, out var result))
+                {
+                    Debug.Assert(result.RequiredAnalysis == requiresAnalysis);
+                }
+                else
+                {
+                    state.TryAdd(key, new Data(walker._variableSlot.Count, requiresAnalysis));
+                }
             }
         }
 
@@ -3518,17 +3568,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeWithAnnotations BestTypeForLambdaReturns(
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
-            CSharpCompilation compilation,
+            Binder binder,
             BoundNode node,
             Conversions conversions)
         {
-            var walker = new NullableWalker(compilation,
+            var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
                                             useConstructorExitWarnings: false,
                                             useDelegateInvokeParameterTypes: false,
                                             delegateInvokeMethodOpt: null,
                                             node,
-                                            binder: null, // Never used
+                                            binder,
                                             conversions: conversions,
                                             initialState: null,
                                             returnTypesOpt: null,
@@ -3561,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
                     resultTypes[i] = walker.VisitConversion(conversionOpt: null, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i].ToTypeWithState(),
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
-                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(compilation);
+                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(binder.Compilation);
                 }
 
                 // Set top-level nullability on inferred type
@@ -4981,7 +5031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } })
+            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } } })
             {
                 return true;
             }
@@ -5065,14 +5115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    var binder = node switch
-                    {
-                        BoundCall { BinderOpt: { } b } => b,
-                        BoundCollectionElementInitializer { BinderOpt: { } b } => b,
-                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: { } b } } => b,
-                        _ => throw ExceptionUtilities.UnexpectedValue(node)
-                    };
-                    method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
+                    method = InferMethodTypeArguments(method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -5582,7 +5625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the argument type has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax.Location);
 
-                        AdjustSetValue(argument, declaredType, lValueType, ref parameterWithState);
+                        AdjustSetValue(argument, ref parameterWithState);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
                         // report warnings if parameter would unsafely let a null out in the worst case
@@ -5832,14 +5875,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private MethodSymbol InferMethodTypeArguments(
-            Binder binder,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            Debug.Assert(binder != null);
             Debug.Assert(method.IsGenericMethod);
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
@@ -5863,7 +5904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
-                binder: binder,
+                binder: _binder,
                 expanded: expanded,
                 parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
@@ -5871,7 +5912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
-                binder,
+                _binder,
                 _conversions,
                 definition.TypeParameters,
                 definition.ContainingType,
@@ -6162,7 +6203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (symbol is TupleElementFieldSymbol)
+            if (symbol is TupleElementFieldSymbol or TupleErrorFieldSymbol)
             {
                 return symbol.SymbolAsMember(containingType);
             }
@@ -7460,7 +7501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
                     Debug.Assert(_binder is object);
-                    method = InferMethodTypeArguments(_binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMethodTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
                 {
@@ -7593,7 +7634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the LHS has annotations, we perform an additional check for nullable value types
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
-                AdjustSetValue(left, declaredType, leftLValueType, ref rightState);
+                AdjustSetValue(left, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
 
                 if (left is BoundDiscardExpression)
@@ -7611,41 +7652,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private bool IsPropertyOutputMoreStrictThanInput(PropertySymbol property)
+        {
+            var type = property.TypeWithAnnotations;
+            var annotations = IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : property.GetFlowAnalysisAnnotations();
+            var lValueType = ApplyLValueAnnotations(type, annotations);
+            if (lValueType.NullableAnnotation.IsOblivious() || !lValueType.CanBeAssignedNull)
+            {
+                return false;
+            }
+
+            var rValueType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), annotations);
+            return rValueType.IsNotNull;
+        }
+
         /// <summary>
         /// When the allowed output of a property/indexer is not-null but the allowed input is maybe-null, we store a not-null value instead.
         /// This way, assignment of a legal input value results in a legal output value.
         /// This adjustment doesn't apply to oblivious properties/indexers.
         /// </summary>
-        private void AdjustSetValue(BoundExpression left, TypeWithAnnotations declaredType, TypeWithAnnotations leftLValueType, ref TypeWithState rightState)
+        private void AdjustSetValue(BoundExpression left, ref TypeWithState rightState)
         {
-            if ((left is BoundPropertyAccess || left is BoundIndexerAccess) &&
-                !declaredType.NullableAnnotation.IsOblivious() &&
-                isAllowedOutputStricter(leftLValueType, declaredType, getRValueAnnotations(left)))
+            var property = left switch
+            {
+                BoundPropertyAccess propAccess => propAccess.PropertySymbol,
+                BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
+                _ => null
+            };
+
+            if (property is not null && IsPropertyOutputMoreStrictThanInput(property))
             {
                 rightState = rightState.WithNotNullState();
-            }
-            return;
-
-            static bool isAllowedOutputStricter(TypeWithAnnotations allowedInput, TypeWithAnnotations declaredType, FlowAnalysisAnnotations outputAnnotations)
-            {
-                if (!allowedInput.CanBeAssignedNull)
-                {
-                    // allowed input is `!`, ie. stricter
-                    return false;
-                }
-
-                var allowedOutput = ApplyUnconditionalAnnotations(declaredType.ToTypeWithState(), outputAnnotations);
-                return allowedOutput.IsNotNull;
-            }
-
-            FlowAnalysisAnnotations getRValueAnnotations(BoundExpression expr)
-            {
-                return expr switch
-                {
-                    BoundPropertyAccess property => GetRValueAnnotations(property.PropertySymbol),
-                    BoundIndexerAccess indexer => GetRValueAnnotations(indexer.Indexer),
-                    _ => throw ExceptionUtilities.UnexpectedValue(expr.Kind)
-                };
             }
         }
 
@@ -7776,7 +7813,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstructMethod is object)
             {
                 Debug.Assert(invocation is object);
-                Debug.Assert(invocation.BinderOpt is object);
                 Debug.Assert(rightResult.Type is object);
 
                 int n = variables.Count;
@@ -7801,7 +7837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                         }
-                        deconstructMethod = InferMethodTypeArguments(invocation.BinderOpt, deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
+                        deconstructMethod = InferMethodTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
 
                         // check the constraints remain valid with the re-inferred parameter types
                         if (ConstraintsHelper.RequiresChecking(deconstructMethod))
@@ -7920,7 +7956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax.Location);
 
                     int targetSlot = MakeSlot(variable.Expression);
-                    AdjustSetValue(variable.Expression, variable.Type, lvalueType, ref valueType);
+                    AdjustSetValue(variable.Expression, ref valueType);
                     TrackNullableStateForAssignment(rightPart, lvalueType, targetSlot, valueType, valueSlot);
 
                     // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
@@ -8190,7 +8226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             }
 
-            AdjustSetValue(left, declaredType, leftLValueType, ref resultType);
+            AdjustSetValue(left, ref resultType);
             TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
 
             SetResultType(node, resultType);
@@ -8498,19 +8534,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod)
+            if (node.EnumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo)
             {
                 // this is case 7
+                // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
+                // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
+                // there's nothing that can be learned from the non-extension case.
                 var (method, results, _) = VisitArguments(
                     node,
-                    ImmutableArray.Create(node.Expression),
+                    enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
                     parameters,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
+                    argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
+                    defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: false,
                     invokedAsExtensionMethod: true,
-                    enumeratorMethod);
+                    enumeratorMethodInfo.Method);
 
                 targetTypeWithAnnotations = results[0].LValueType;
                 reinferredGetEnumeratorMethod = method;
@@ -8562,7 +8601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true }
+            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true }
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
@@ -8591,7 +8630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
-                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
                 var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
                 if (enumeratorReturnType.State != NullableFlowState.NotNull)
@@ -8611,7 +8650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze `await MoveNextAsync()`
                 if (node.AwaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
                 {
-                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextMethod);
+                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextInfo.Method);
 
                     EnsureAwaitablePlaceholdersInitialized();
                     var result = new VisitResult(GetReturnTypeWithState(moveNextAsyncMethod), moveNextAsyncMethod.ReturnTypeWithAnnotations);
@@ -8625,10 +8664,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
                     bool addedPlaceholder = false;
-                    if (node.EnumeratorInfoOpt.DisposeMethod is not null) // no statically known Dispose method if doing a runtime check
+                    if (node.EnumeratorInfoOpt.PatternDisposeInfo is { Method: var originalDisposeMethod }) // no statically known Dispose method if doing a runtime check
                     {
                         Debug.Assert(disposalPlaceholder is not null);
-                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.DisposeMethod);
+                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, originalDisposeMethod);
                         EnsureAwaitablePlaceholdersInitialized();
                         var result = new VisitResult(GetReturnTypeWithState(disposeAsyncMethod), disposeAsyncMethod.ReturnTypeWithAnnotations);
                         _awaitablePlaceholdersOpt.Add(disposalPlaceholder, (disposalPlaceholder, result));

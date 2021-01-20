@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4396,10 +4395,10 @@ public class Source
 using System;
 using System.Runtime.CompilerServices;
 
-class Foo
+class Test
 {
     public string Caller { get; set; }
-    public Foo([CallerMemberName] string caller = ""?"") => Caller = caller;
+    public Test([CallerMemberName] string caller = ""?"") => Caller = caller;
     public void PrintCaller() => Console.WriteLine(Caller);
 }
 
@@ -4407,20 +4406,132 @@ class Program
 {
     static void Main()
     {            
-        Foo f1 = new Foo();
+        Test f1 = new Test();
         f1.PrintCaller();
 
-        Foo f2 = new();
+        Test f2 = new();
         f2.PrintCaller();
     }
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"Main
-Main");
+Main").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallerLineNumberAttributeWithImplicitObjectCreation()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Test
+{
+    public int LineNumber { get; set; }
+    public Test([CallerLineNumber] int lineNumber = -1) => LineNumber = lineNumber;
+    public void PrintLineNumber() => Console.WriteLine(LineNumber);
+}
+
+class Program
+{
+    static void Main()
+    {            
+        Test f1 = new Test();
+        f1.PrintLineNumber();
+
+        Test f2 = new();
+        f2.PrintLineNumber();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput:
+@"16
+19").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(50030, "https://github.com/dotnet/roslyn/issues/50030")]
+        public void GetCollectionInitializerSymbolInfo()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X : List<int>
+{
+    new void Add(int x) { }
+    void Add(string x) {}
+ 
+    static void Main()
+    {
+        X z = new() { String.Empty, 12 };
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
+
+            SymbolInfo symbolInfo;
+
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.String x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[1]);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        public void GetNamedParameterSymbolInfo()
+        {
+            var source = @"
+class X
+{
+
+    X(int aParameter)
+    {}
+
+    static void Main()
+    {
+        X z = new(aParameter: 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "aParameter").Single();
+
+            SymbolInfo symbolInfo;
+
+            symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("System.Int32 aParameter", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
     }
 }

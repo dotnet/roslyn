@@ -225,6 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         return string.Empty;
                     }
+
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:

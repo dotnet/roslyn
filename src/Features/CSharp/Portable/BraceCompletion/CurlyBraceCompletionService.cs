@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // If there is not already an empty line inserted between the braces, insert one.
             TextChange? newLineEdit = null;
             var textToFormat = originalDocumentText;
-            if (!HasExistingEmptyLineBetweenBraces(openingPoint, closingPoint, originalDocumentText))
+            if (ShouldAddEmptyLineBetweenBraces(openingPoint, closingPoint, originalDocumentText))
             {
                 var newLineString = documentOptions.GetOption(FormattingOptions2.NewLine);
                 newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, formattedText) : formattingChanges;
             return new BraceCompletionResult(overallChanges, caretPosition);
 
-            static bool HasExistingEmptyLineBetweenBraces(int openingPoint, int closingPoint, SourceText sourceText)
+            static bool ShouldAddEmptyLineBetweenBraces(int openingPoint, int closingPoint, SourceText sourceText)
             {
-                // Check if there is an empty new line between the braces already.  If not insert one.
-                // This handles razor cases where they insert an additional empty line before calling brace completion.
                 var openingPointLine = sourceText.Lines.GetLineFromPosition(openingPoint).LineNumber;
                 var closingPointLine = sourceText.Lines.GetLineFromPosition(closingPoint).LineNumber;
 
-                return closingPointLine - 2 == openingPointLine && sourceText.Lines[closingPointLine - 1].IsEmptyOrWhitespace();
+                // Only insert an empty new line between the braces if the closing brace is
+                // on the line immediately below the opening point.
+                return closingPointLine - 1 == openingPointLine;
             }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)

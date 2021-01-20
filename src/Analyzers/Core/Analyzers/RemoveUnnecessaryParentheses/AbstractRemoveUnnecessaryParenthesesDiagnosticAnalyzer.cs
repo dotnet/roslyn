@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
     {
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                  EnforceOnBuildValues.RemoveUnnecessaryParentheses,
                   new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   isUnnecessary: true)

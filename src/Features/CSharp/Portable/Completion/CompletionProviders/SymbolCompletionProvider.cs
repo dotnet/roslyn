@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,12 +14,10 @@ using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(SymbolCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SpeculativeTCompletionProvider))]
     [Shared]
-    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider<CSharpSyntaxContext>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -38,16 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CSharpSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             return Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, CSharpSyntaxContext syntaxContext, Document document, int position, OptionSet options)
         {
-            var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-            if (ShouldTriggerInArgumentLists(sourceText, options))
+            if (ShouldTriggerInArgumentLists(options))
             {
                 // Avoid preselection & hard selection when triggered via insertion in an argument list.
                 // If an item is hard selected, then a user trying to type MethodCall() will get
@@ -68,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return ShouldTriggerInArgumentLists(text, options)
+            return ShouldTriggerInArgumentLists(options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -83,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result.Value;
                 }
 
-                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
+                if (ShouldTriggerInArgumentLists(await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
                 {
                     result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
                     if (result.HasValue)
@@ -110,29 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
-            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
-                ShouldTriggerInArgumentLists(workspace, options);
-
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
-
-        private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
-        {
-            var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
-            if (isTriggerInArgumentListOptionEnabled != null)
-            {
-                return isTriggerInArgumentListOptionEnabled.Value;
-            }
-
-            if (_shouldTriggerCompletionInArgumentListsExperiment == null)
-            {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _shouldTriggerCompletionInArgumentListsExperiment =
-                    experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
-            }
-
-            return _shouldTriggerCompletionInArgumentListsExperiment.Value;
-        }
+        private static bool ShouldTriggerInArgumentLists(OptionSet options)
+            => options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
 
         private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
@@ -143,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
             if (token.Kind() == SyntaxKind.DotToken)
             {
                 token = token.GetPreviousToken();
@@ -162,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
 
             if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
@@ -188,19 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            return CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-        }
-
-        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, CSharpSyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
-        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, SyntaxContext context, bool preselect)
+        protected override CompletionItemRules GetCompletionItemRules(List<ISymbol> symbols, CSharpSyntaxContext context, bool preselect)
         {
-            cachedRules.TryGetValue(ValueTuple.Create(((CSharpSyntaxContext)context).IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
+            cachedRules.TryGetValue(ValueTuple.Create(context.IsLeftSideOfImportAliasDirective, preselect, context.IsPossibleTupleContext), out var rule);
 
             return rule ?? CompletionItemRules.Default;
         }
@@ -269,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             string displayTextSuffix,
             string insertionText,
             List<ISymbol> symbols,
-            SyntaxContext context,
+            CSharpSyntaxContext context,
             bool preselect,
-            SupportedPlatformData supportedPlatformData)
+            SupportedPlatformData? supportedPlatformData)
         {
             var item = base.CreateItem(
                 completionContext,
@@ -294,16 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
             {
-                var isObjectCreationTypeContext = context switch
-                {
-                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
-                    _ => false
-                };
-
-                if (isObjectCreationTypeContext)
-                {
+                if (context.IsObjectCreationTypeContext)
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
-                }
             }
 
             return item;
@@ -311,11 +270,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                return insertionText + "()";
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);

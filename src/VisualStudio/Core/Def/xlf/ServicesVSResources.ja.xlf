@@ -817,6 +817,11 @@
         <target state="translated">その他すべてのヒントを表示する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="new">Show hints for implicit object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">ラムダ パラメーター型のヒントを表示する</target>

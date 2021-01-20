@@ -59,9 +59,8 @@ namespace Microsoft.CodeAnalysis.Completion
             new(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
 
-        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> TriggerInArgumentLists =
-            new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
+        public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
+            new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.

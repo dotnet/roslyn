@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         pooledBuilder.Builder.Append(token.ValueText);
                     }
+
                     return pooledBuilder.ToStringAndFree();
             }
         }

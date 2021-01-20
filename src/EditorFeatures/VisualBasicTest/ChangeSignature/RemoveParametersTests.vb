@@ -2,21 +2,19 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRemoveParameters1() As Task
 
             Dim markup = <Text><![CDATA[
@@ -125,5 +123,31 @@ End Module
                 Assert.True(state.IsUnspecified)
             End Using
         End Sub
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M(Optional s As String = "str")
+        $$M
+        M()
+        M("test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = Array.Empty(Of Integer)()
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M()
+        M
+        M()
+        M()
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
+        End Function
     End Class
 End Namespace

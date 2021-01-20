@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Name = symbol.Name,
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                Deprecated = symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"),
+                Deprecated = symbol.IsObsolete(),
                 Range = ProtocolConversions.TextSpanToRange(item.Spans.First(), text),
                 SelectionRange = ProtocolConversions.TextSpanToRange(location.SourceSpan, text),
                 Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),

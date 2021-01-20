@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 return nameof(String);
             }
+
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
