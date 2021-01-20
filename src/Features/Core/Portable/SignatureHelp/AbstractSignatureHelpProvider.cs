@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public abstract bool IsTriggerCharacter(char ch);
         public abstract bool IsRetriggerCharacter(char ch);
-        public abstract SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
+        public abstract SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
-        protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         /// <remarks>
         /// This overload is required for compatibility with existing extensions.
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
+            IList<SignatureHelpItem>? items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
         {
             if (items == null || !items.Any() || state == null)
             {
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName!, selectedItem);
         }
 
         protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state)
         {
             // We will have added all the accessible '.Add' methods that take at least one
             // arguments. However, in general the one-arg Add method is the least likely for the
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
         }
 
-        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string>? parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return parameterNames.All(itemParameterNames.Contains);
         }
 
-        public async Task<SignatureHelpState> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
+        public async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return GetCurrentArgumentState(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
-        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol currentSymbol) where TSymbol : class, ISymbol
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol? currentSymbol) where TSymbol : class, ISymbol
         {
             if (currentSymbol is TSymbol matched)
             {
