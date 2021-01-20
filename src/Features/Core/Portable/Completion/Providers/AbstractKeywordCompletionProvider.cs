@@ -67,17 +67,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
                 return ImmutableArray<RecommendedKeyword>.Empty;
 
-            using var _1 = ArrayBuilder<Task<ImmutableArray<RecommendedKeyword>>>.GetInstance(out var tasks);
-            foreach (var recommender in _keywordRecommenders)
-                tasks.Add(Task.Run(() => recommender.RecommendKeywords(position, context, cancellationToken), cancellationToken));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
             using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
-            foreach (var task in tasks)
+            foreach (var recommender in _keywordRecommenders)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                result.AddRange(await task.ConfigureAwait(false));
+                var keywords = recommender.RecommendKeywords(position, context, cancellationToken);
+                result.AddRange(keywords.NullToEmpty());
             }
 
             result.RemoveDuplicates();
