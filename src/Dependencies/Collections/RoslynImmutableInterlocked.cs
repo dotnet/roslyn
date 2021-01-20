@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(transformer));
 
             bool successful;
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             do
             {
                 var newValue = transformer(oldValue);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(transformer));
 
             bool successful;
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             do
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static TValue GetOrAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var valueComparer = EqualityComparer<TValue>.Default;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryRemove<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, [MaybeNullWhen(false)] out TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(ref location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
             bool successful;
             do
             {

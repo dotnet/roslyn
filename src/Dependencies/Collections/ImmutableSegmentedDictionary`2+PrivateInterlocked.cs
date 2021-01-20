@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         internal static class PrivateInterlocked
         {
-            internal static ImmutableSegmentedDictionary<TKey, TValue> VolatileRead(ref ImmutableSegmentedDictionary<TKey, TValue> location)
+            internal static ImmutableSegmentedDictionary<TKey, TValue> VolatileRead(in ImmutableSegmentedDictionary<TKey, TValue> location)
             {
                 var dictionary = Volatile.Read(ref Unsafe.AsRef(in location._dictionary));
                 if (dictionary is null)
