@@ -12748,6 +12748,82 @@ class C
         }
 
         [Fact]
+        public void SourceGenerators_GeneratedDir_Has_Spaces()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated files");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ParseCompilerGeneratedFilesOut()
+        {
+            string root = PathUtilities.IsUnixLikePlatform ? "/" : "c:\\";
+            string baseDirectory = Path.Combine(root, "abc", "def");
+
+            var parsedArgs = DefaultParse(new[] { @"/generatedfilesout:", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/compilergeneratedfilesout:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:"));
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<text>' for '/compilergeneratedfilesout:' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "/generatedfilesout:\"\""));
+            Assert.Null(parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:outdir", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""outdir""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "outdir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:out dir", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { @"/generatedfilesout:""out dir""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(baseDirectory, "out dir"), parsedArgs.GeneratedFilesOutputDirectory);
+
+            var absPath = Path.Combine(root, "outdir");
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:{absPath}", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:""{absPath}""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            absPath = Path.Combine(root, "generated files");
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:{absPath}", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+
+            parsedArgs = DefaultParse(new[] { $@"/generatedfilesout:""{absPath}""", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory);
+        }
+
+        [Fact]
         public void SourceGenerators_Error_When_NoDirectoryArgumentGiven()
         {
             var dir = Temp.CreateDirectory();
