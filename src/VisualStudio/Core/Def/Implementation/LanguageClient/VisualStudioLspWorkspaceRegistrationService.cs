@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             lock (_gate)
             {
-                Logger.Log(FunctionId.Register_Workspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+                Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
                 {
                     m["WorkspaceKind"] = workspace.Kind;
                     m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;

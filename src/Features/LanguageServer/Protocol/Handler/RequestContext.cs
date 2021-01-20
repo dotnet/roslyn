@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (!documents.IsEmpty)
                 {
-                    Logger.Log(FunctionId.Find_Document_In_Workspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+                    Logger.Log(FunctionId.FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
                     {
                         m["WorkspaceKind"] = workspace.Kind;
                         m["FoundInWorkspace"] = true;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            Logger.Log(FunctionId.Find_Document_In_Workspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+            Logger.Log(FunctionId.FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
                 m["WorkspaceKind"] = "None";
                 m["FoundInWorkspace"] = false;

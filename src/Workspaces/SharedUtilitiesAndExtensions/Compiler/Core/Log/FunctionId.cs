@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         CommandHandler_Paste_ImportsOnPaste = 470,
 
-        Find_Document_In_Workspace = 480,
-        Register_Workspace = 481,
+        FindDocumentInWorkspace = 480,
+        RegisterWorkspace = 481,
     }
 }
