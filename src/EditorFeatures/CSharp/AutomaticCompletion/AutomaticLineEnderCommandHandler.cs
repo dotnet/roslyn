@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -14,12 +12,16 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -35,6 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
+        private static readonly string s_bracePair = string.Concat(
+            SyntaxFacts.GetText(SyntaxKind.OpenBraceToken),
+            Environment.NewLine,
+            SyntaxFacts.GetText(SyntaxKind.CloseBraceToken));
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AutomaticLineEnderCommandHandler(
@@ -47,17 +54,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         protected override void NextAction(IEditorOperations editorOperation, Action nextAction)
             => editorOperation.InsertNewLine();
 
-        protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
+        protected override bool TreatAsReturn(Document document, int caretPosition, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
-            var endToken = root.FindToken(position);
+            var endToken = root.FindToken(caretPosition);
             if (endToken.IsMissing)
             {
                 return false;
             }
 
-            var tokenToLeft = root.FindTokenOnLeftOfPosition(position);
+            var tokenToLeft = root.FindTokenOnLeftOfPosition(caretPosition);
             var startToken = endToken.GetPreviousToken();
 
             // case 1:
@@ -81,41 +88,272 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return afterOpenBrace;
         }
 
-        protected override void FormatAndApply(Document document, int position, CancellationToken cancellationToken)
+        protected override void AddOrRemoveBracePairIfRequired(
+            ITextView textView,
+            Document document,
+            int caretPosition,
+            CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var selectedNode = GetValidNodeToInsertBraces(document, caretPosition, cancellationToken);
+            if (selectedNode == null)
+            {
+                return;
+            }
+
+            if (ShouldAddBraces(selectedNode))
+            {
+                var insertionPosition = selectedNode switch
+                {
+                    NamespaceDeclarationSyntax or BaseTypeDeclarationSyntax => selectedNode.GetBraces().openBrace.SpanStart,
+                    BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax => selectedNode.GetParameterList().Span.End,
+                    IndexerDeclarationSyntax indexerNode => indexerNode.ParameterList.Span.End,
+                    ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.Span.End,
+                    DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.Span.End,
+                    ForEachStatementSyntax forEachStatementNode => forEachStatementNode.CloseParenToken.Span.End,
+                    ForStatementSyntax forStatementNode => forStatementNode.CloseParenToken.Span.End,
+                    IfStatementSyntax ifStatementNode => ifStatementNode.CloseParenToken.Span.End,
+                    ElseClauseSyntax elseClauseNode => elseClauseNode.ElseKeyword.Span.End,
+                    LockStatementSyntax lockStatementNode => lockStatementNode.CloseParenToken.Span.End,
+                    UsingStatementSyntax usingStatementNode => usingStatementNode.CloseParenToken.Span.End,
+                    WhileStatementSyntax whileStatementNode => whileStatementNode.CloseParenToken.Span.End,
+                    SwitchStatementSyntax switchStatementNode => switchStatementNode.CloseParenToken.Span.End,
+                    TryStatementSyntax tryStatementNode => tryStatementNode.TryKeyword.Span.End,
+                    CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
+                    _ => throw ExceptionUtilities.Unreachable,
+                };
+
+                InsertBraceAndMoveCaret(textView, document, insertionPosition, cancellationToken);
+            }
+
+            if (selectedNode is ObjectCreationExpressionSyntax objectCreationNode && ShouldRemoveBraces(selectedNode))
+            {
+                RemoveBraceAndMoveCaret(textView, document, caretPosition, objectCreationNode, cancellationToken);
+            }
+        }
+
+        private void InsertBraceAndMoveCaret(
+            ITextView textView,
+            Document document,
+            int insertionPosition,
+            CancellationToken cancellationToken)
+        {
+            var newDocument = document.InsertText(insertionPosition, s_bracePair, cancellationToken);
+            textView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(textView.TextSnapshot, insertionPosition + 1));
+            FormatAndApplyBasedOnEndToken(newDocument, insertionPosition + s_bracePair.Length - 1, cancellationToken);
+        }
+
+        private void RemoveBraceAndMoveCaret(
+            ITextView textView,
+            Document document,
+            int caretPosition,
+            SyntaxNode node,
+            CancellationToken cancellationToken)
+        {
+            // Only support remove braces for ObjectCreationExpression with Empty Initializer
+            if (node is ObjectCreationExpressionSyntax { Initializer: not null } objectCreationNode)
+            {
+                var initializer = objectCreationNode.Initializer;
+                var lineEnd = document.GetTextSynchronously(cancellationToken).Lines.GetLineFromPosition(caretPosition).End;
+                textView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(textView.TextSnapshot, lineEnd));
+                var newDocument = document.RemoveText(initializer.Span, cancellationToken);
+                FormatAndApplyBasedOnEndToken(newDocument,objectCreationNode.GetLastToken().Span.End - initializer.Span.Length, cancellationToken);
+            }
+        }
+
+        protected override SyntaxNode? GetValidNodeToInsertBraces(Document document, int caretPosition, CancellationToken cancellationToken)
+        {
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var token = root.FindTokenOnLeftOfPosition(caretPosition);
+            if (token.IsKind(SyntaxKind.None))
+            {
+                return null;
+            }
+
+            var nodeCandidate = token.GetAncestor(node => ShouldAddBraces(node) || ShouldRemoveBraces(node));
+            return nodeCandidate;
+        }
+
+        private static bool ShouldRemoveBraces(SyntaxNode node)
+        {
+            if (node is ObjectCreationExpressionSyntax { Initializer: not null } objectCreationNode)
+            {
+                var expressions = objectCreationNode.Initializer.Expressions;
+                if (expressions.IsEmpty())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool ShouldAddBraces(SyntaxNode node)
+        {
+            if (node is NamespaceDeclarationSyntax {Name: IdentifierNameSyntax identifierName}
+                && !identifierName.Identifier.IsMissing
+                && HasNoBrace(node))
+            {
+                return true;
+            }
+
+            if (node is BaseTypeDeclarationSyntax {Identifier: {IsMissing: false}} && HasNoBrace(node))
+            {
+                return true;
+            }
+
+            if (node is BaseMethodDeclarationSyntax
+                {ExpressionBody: null, Body: null, ParameterList: {IsMissing: false}, SemicolonToken: {IsMissing: true}} baseMethodNode)
+            {
+                // Make sure we don't insert braces for method in Interface.
+                return !baseMethodNode.IsParentKind(SyntaxKind.InterfaceDeclaration);
+            }
+
+            if (node is LocalFunctionStatementSyntax {ExpressionBody: null, Body: null, ParameterList: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is ObjectCreationExpressionSyntax {Initializer: null})
+            {
+                return true;
+            }
+
+            if (node is DoStatementSyntax {DoKeyword: {IsMissing: false}, Statement: not BlockSyntax})
+            {
+                return true;
+            }
+
+            if (node is CommonForEachStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is ForStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is IfStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is ElseClauseSyntax elseClauseNode)
+            {
+                // Else if case, check the inner if node to see if it doesn't have block statment
+                if (elseClauseNode.Statement is IfStatementSyntax)
+                {
+                    return ShouldAddBraces(elseClauseNode.Statement);
+                }
+                else
+                {
+                    return elseClauseNode.Statement is not BlockSyntax;
+                }
+            }
+
+            if (node is LockStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is UsingStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is WhileStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}})
+            {
+                return true;
+            }
+
+            if (node is IndexerDeclarationSyntax indexerNode && ShouldAddBraceForIndexer(indexerNode))
+            {
+                return true;
+            }
+
+            if (node is SwitchStatementSyntax {OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}, OpenBraceToken: { IsMissing: true}})
+            {
+                return true;
+            }
+
+            if (node is TryStatementSyntax {TryKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true}}})
+            {
+                return true;
+            }
+
+            if (node is CatchClauseSyntax {CatchKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true }}})
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ShouldAddBraceForIndexer(IndexerDeclarationSyntax indexerNode)
+        {
+            var (openBracket, closeBracket) = indexerNode.ParameterList.GetBrackets();
+            if (openBracket.IsMissing || closeBracket.IsMissing)
+            {
+                return false;
+            }
+
+            // 1. If there is no AccessorList and Expression Body.
+            if ((indexerNode.AccessorList == null || indexerNode.AccessorList.IsMissing)
+                && indexerNode.ExpressionBody == null)
+            {
+                return true;
+            }
+
+            return indexerNode.AccessorList != null
+               && indexerNode.AccessorList.OpenBraceToken.IsMissing;
+        }
+
+        private static bool HasNoBrace(SyntaxNode node)
+        {
+            var (openBrace, closeBrace) = node.GetBraces();
+            return openBrace.IsKind(SyntaxKind.None) && closeBrace.IsKind(SyntaxKind.None)
+                || openBrace.IsMissing && closeBrace.IsMissing;
+        }
+
+        protected override Document FormatAndApplyBasedOnEndToken(Document document, int position, CancellationToken cancellationToken)
+        {
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
             var endToken = root.FindToken(position);
             if (endToken.IsMissing)
             {
-                return;
+                return document;
             }
 
             var ranges = FormattingRangeHelper.FindAppropriateRange(endToken, useDefaultRange: false);
             if (ranges == null)
             {
-                return;
+                return document;
             }
 
             var startToken = ranges.Value.Item1;
             if (startToken.IsMissing || startToken.Kind() == SyntaxKind.None)
             {
-                return;
+                return document;
             }
 
+            var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var changes = Formatter.GetFormattedTextChanges(root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, document.Project.Solution.Workspace, options,
+            var changes = Formatter.GetFormattedTextChanges(
+                root,
+                new[] { CommonFormattingHelpers.GetFormattingSpan(root, span) },
+                document.Project.Solution.Workspace, options,
                 rules: null, // use default
                 cancellationToken: cancellationToken);
 
-            document.ApplyTextChanges(changes.ToArray(), cancellationToken);
+            return document.ApplyTextChanges(changes.ToArray(), cancellationToken);
         }
 
-        protected override string GetEndingString(Document document, int position, CancellationToken cancellationToken)
+        protected override string? GetEndingString(Document document, int position, CancellationToken cancellationToken)
         {
             // prepare expansive information from document
-            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
+            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var root = tree.GetRoot(cancellationToken);
             var text = tree.GetText(cancellationToken);
             var semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
@@ -153,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return null;
         }
 
-        private static SyntaxNode ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
+        private static SyntaxNode? ParseNode(SyntaxTree tree, SyntaxNode owningNode, string textToParse)
             => owningNode switch
             {
                 BaseFieldDeclarationSyntax _ => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
@@ -161,8 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 BasePropertyDeclarationSyntax _ => SyntaxFactory.ParseCompilationUnit(WrapInType(textToParse), options: (CSharpParseOptions)tree.Options),
                 StatementSyntax _ => SyntaxFactory.ParseStatement(textToParse, options: (CSharpParseOptions)tree.Options),
                 UsingDirectiveSyntax _ => SyntaxFactory.ParseCompilationUnit(textToParse, options: (CSharpParseOptions)tree.Options),
-
-                _ => (SyntaxNode)null,
+                _ => null,
             };
 
         /// <summary>
@@ -273,18 +510,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             return token.GetAncestors<SyntaxNode>()
                         .Where(AllowedConstructs)
-                        .Select(OwningNode);
+                        .Select(OwningNode)
+                        .WhereNotNull();
         }
 
         private static bool AllowedConstructs(SyntaxNode n)
         {
-            return n is StatementSyntax ||
-                   n is BaseFieldDeclarationSyntax ||
-                   n is UsingDirectiveSyntax ||
-                   n is ArrowExpressionClauseSyntax;
+            // Make sure semicolon is not appended to a LocalFunctionStatement
+            var isValidStatement = n is StatementSyntax and not LocalFunctionStatementSyntax;
+            return isValidStatement ||
+                   n is BaseFieldDeclarationSyntax
+                       or UsingDirectiveSyntax
+                       or ArrowExpressionClauseSyntax;
         }
 
-        private static SyntaxNode OwningNode(SyntaxNode n)
+        private static SyntaxNode? OwningNode(SyntaxNode n)
             => n is ArrowExpressionClauseSyntax ? n.Parent : n;
     }
 }

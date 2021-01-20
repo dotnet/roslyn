@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         public static Document InsertText(this Document document, int position, string text, CancellationToken cancellationToken = default)
             => document.ReplaceText(new TextSpan(position, 0), text, cancellationToken);
 
+        public static Document RemoveText(this Document document, TextSpan span, CancellationToken cancellationToken = default)
+            => document.ReplaceText(span, string.Empty, cancellationToken);
+
         /// <summary>
         /// replace text to workspace and get updated version of the document
         /// </summary>
