@@ -20,6 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// of Roslyn editor layer.
         /// </remarks>
         public static T WaitAndGetResult_CodeModel<T>(this Task<T> task, IThreadingContext threadingContext)
-            => threadingContext.JoinableTaskFactory.Run(() => task);
+            // Make sure to use async/await in the lambda so that JTF can correctly
+            // create a JoinableTask to wrap the Task<T> passed in
+            => threadingContext.JoinableTaskFactory.Run(async () => await task);
     }
 }
