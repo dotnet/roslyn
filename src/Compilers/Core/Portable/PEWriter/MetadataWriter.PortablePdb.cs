@@ -836,7 +836,7 @@ namespace Microsoft.Cci
         }
 
         ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
-        public const int Version = 1;
+        public const int CompilationOptionsSchemaVersion = 1;
 
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
@@ -847,7 +847,7 @@ namespace Microsoft.Cci
             var builder = new BlobBuilder();
 
             var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
-            WriteValue(CompilationOptionNames.CompilationOptionsVersion, Version.ToString());
+            WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
             WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
 
             WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);

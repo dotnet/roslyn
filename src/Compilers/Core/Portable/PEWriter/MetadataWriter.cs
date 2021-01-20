@@ -1788,6 +1788,7 @@ namespace Microsoft.Cci
             if (_debugMetadataOpt != null)
             {
                 // Ensure document table lists files in command line order
+                // This is key for us to be able to accurately rebuild a binary from a PDB.
                 var documentsBuilder = Module.DebugDocumentsBuilder;
                 var documents = documentsBuilder.DebugDocuments;
                 foreach (var tree in Module.CommonCompilation.SyntaxTrees)
@@ -1798,7 +1799,6 @@ namespace Microsoft.Cci
                         AddDocument(doc, _documentIndex);
                     }
                 }
-
 
                 DefineModuleImportScope();
 
