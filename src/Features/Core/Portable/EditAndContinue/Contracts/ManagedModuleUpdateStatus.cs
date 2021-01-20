@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 {
-    internal enum SolutionUpdateStatus
+    internal enum ManagedModuleUpdateStatus
     {
         /// <summary>
         /// No updates have been made to the solution.
