@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
     <UseExportProvider>

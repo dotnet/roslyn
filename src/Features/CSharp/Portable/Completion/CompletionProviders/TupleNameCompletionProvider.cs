@@ -123,6 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 selectedItem.DisplayText));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
+        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet<char>.Empty;
     }
 }
