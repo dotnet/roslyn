@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
+using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -66,6 +68,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (!documents.IsEmpty)
                 {
+                    if (workspace.IsMiscellaneousFilesWorkspace)
+                    {
+                        Logger.Log(FunctionId.FindDocument_InMiscellaneousFilesWorkspace);
+                    }
+                    else
+                    {
+                        Logger.Log(FunctionId.FindDocument_InWorkspace);
+                    }
+
                     var document = documents.FindDocumentInProjectContext(textDocument);
 
                     return document;

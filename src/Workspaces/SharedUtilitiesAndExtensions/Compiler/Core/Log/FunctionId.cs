@@ -502,5 +502,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_Project_CompilationThrownAway = 460,
 
         CommandHandler_Paste_ImportsOnPaste = 470,
+
+        FindDocument_InMiscellaneousFilesWorkspace = 480,
+        FindDocument_InWorkspace = 481,
     }
 }

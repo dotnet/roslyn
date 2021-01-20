@@ -54,6 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
+        internal override bool IsMiscellaneousFilesWorkspace => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousFilesWorkspace(
