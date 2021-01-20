@@ -7765,7 +7765,7 @@ Public Class Test
 End Class";
             var compCS = CreateCompilation(new[] { sourceCS, MaybeNullAttributeDefinition });
             var refCS = compCS.EmitToImageReference();
-            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef, refCS });
+            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { refCS }));
             var closedGenericMember = compVB.GetTypeByMetadataName("Test").BaseType.GetMember("P");
             var openGenericMember = compVB.GetTypeByMetadataName("N.A`1").GetMember("P");
             var format = new SymbolDisplayFormat(
@@ -7809,7 +7809,7 @@ End Class
 
 public class Test: A<object> { }
 ";
-            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB, referencedAssemblies: new[] { MscorlibRef });
+            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB);
             var refVB = compVB.EmitToImageReference();
             var compCS = CreateCompilation(sourceCS, references: new[] { refVB });
             var closedGenericMember = compCS.GetTypeByMetadataName("Test").BaseType().GetMember("P");
