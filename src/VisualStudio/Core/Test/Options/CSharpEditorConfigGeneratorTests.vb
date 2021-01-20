@@ -126,6 +126,7 @@ csharp_prefer_simple_default_expression = true
 csharp_style_deconstructed_variable_declaration = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration = true
+csharp_style_namespace_match_folder_structure = true
 csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_index_operator = true
 csharp_style_prefer_range_operator = true

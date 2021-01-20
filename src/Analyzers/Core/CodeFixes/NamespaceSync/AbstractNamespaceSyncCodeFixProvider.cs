@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
         {
             var currentDocument = document;
 
-
             foreach (var diagnostic in diagnostics)
             {
                 var targetNamespace = diagnostic.Properties["TargetNamespace"];

@@ -415,6 +415,9 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE0120
+dotnet_diagnostic.IDE0120.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -962,6 +965,9 @@ No editorconfig based code style option
 No editorconfig based code style option
 
 # IDE1008
+No editorconfig based code style option
+
+# IDE0120
 No editorconfig based code style option
 ";
 
