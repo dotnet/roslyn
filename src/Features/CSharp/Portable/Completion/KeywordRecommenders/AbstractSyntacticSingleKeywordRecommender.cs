@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal abstract partial class AbstractSyntacticSingleKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        private readonly SyntaxKind _keywordKind;
+        public readonly SyntaxKind KeywordKind;
         private readonly bool _isValidInPreprocessorContext;
         private readonly bool _shouldFormatOnCommit;
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             bool isValidInPreprocessorContext = false,
             bool shouldFormatOnCommit = false)
         {
-            _keywordKind = keywordKind;
+            KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
             _shouldFormatOnCommit = shouldFormatOnCommit;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            return IsValidContext(position, context, cancellationToken) ? _keywordKind : null;
+            return IsValidContext(position, context, cancellationToken) ? KeywordKind : null;
         }
 
         internal TestAccessor GetTestAccessor()

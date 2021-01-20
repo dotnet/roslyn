@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     try
                     {
                         var recommender = Activator.CreateInstance(recommenderType);
-                        var prop = recommenderType.GetProperty("KeywordKind", BindingFlags.NonPublic | BindingFlags.Instance);
-                        var kind = (SyntaxKind)prop.GetValue(recommender, null);
+                        var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
+                        var kind = (SyntaxKind)field.GetValue(recommender);
 
                         s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender);
                     }
