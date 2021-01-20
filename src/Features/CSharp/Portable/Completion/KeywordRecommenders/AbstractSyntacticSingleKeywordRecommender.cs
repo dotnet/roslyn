@@ -14,7 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         public readonly SyntaxKind KeywordKind;
         private readonly bool _isValidInPreprocessorContext;
-        private readonly bool _shouldFormatOnCommit;
+
+        private readonly ImmutableArray<RecommendedKeyword> _keywordPriorityRecommendedKeywords;
+        private readonly ImmutableArray<RecommendedKeyword> _defaultPriorityRecommendedKeywords;
 
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
@@ -23,7 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
-            _shouldFormatOnCommit = shouldFormatOnCommit;
+
+            _keywordPriorityRecommendedKeywords = ImmutableArray.Create(
+                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+                shouldFormatOnCommit: shouldFormatOnCommit,
+                matchPriority: SymbolMatchPriority.Keyword));
+            _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
+                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+                shouldFormatOnCommit: shouldFormatOnCommit,
+                matchPriority: MatchPriority.Default));
         }
 
         protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
@@ -34,15 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             CancellationToken cancellationToken)
         {
             var syntaxKind = RecommendKeyword(position, context, cancellationToken);
-            if (syntaxKind.HasValue)
-            {
-                return ImmutableArray.Create(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
-                        shouldFormatOnCommit: _shouldFormatOnCommit,
-                        matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
-            }
+            if (!syntaxKind.HasValue)
+                return ImmutableArray<RecommendedKeyword>.Empty;
 
-            return ImmutableArray<RecommendedKeyword>.Empty;
+            return ShouldPreselect(context, cancellationToken)
+                ? _keywordPriorityRecommendedKeywords
+                : _defaultPriorityRecommendedKeywords;
         }
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
@@ -60,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return IsValidContext(position, context, cancellationToken) ? KeywordKind : null;
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -70,17 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
                 => _recommender = recommender;
 
-            internal ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context)
-            {
-                var syntaxKind = _recommender.RecommendKeyword(position, context, CancellationToken.None);
-                if (syntaxKind.HasValue)
-                {
-                    var matchPriority = _recommender.ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;
-                    return ImmutableArray.Create(new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: matchPriority));
-                }
-
-                return ImmutableArray<RecommendedKeyword>.Empty;
-            }
+            public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context)
+                => _recommender.RecommendKeywords(position, context, CancellationToken.None);
         }
     }
 }
