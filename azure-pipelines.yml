@@ -73,7 +73,8 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+    testArguments: -testDesktop -test32
+    queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -108,7 +109,8 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName Ubuntu.1604.Amd64.Open
+    testArguments: --testCoreClr
+    queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -117,7 +119,8 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
+    testArguments: --testCoreClr
+    vmImageName: 'macOS-10.14'
 
 # Build Correctness Jobs
 
