@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,9 +41,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var definitionService = document.Project.LanguageServices.GetRequiredService<IGoToDefinitionService>();
-            var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (definitions != null && definitions.Count() > 0)
+            var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);
+            if (definitions?.Any() == true)
             {
                 foreach (var definition in definitions)
                 {
@@ -118,6 +119,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     default:
                         return false;
                 }
+            }
+
+            static async Task<IEnumerable<INavigableItem>?> GetDefinitions(Document document, int position, CancellationToken cancellationToken)
+            {
+                // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
+                var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
+                if (findDefinitionService != null)
+                {
+                    return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+                }
+
+                // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
+                var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
+                return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             }
         }
     }
