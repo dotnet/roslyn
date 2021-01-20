@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -23,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
         where TContext : SyntaxContext
     {
+        private static readonly Comparer s_comparer = new();
+
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
         protected AbstractKeywordCompletionProvider(
@@ -31,16 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _keywordRecommenders = keywordRecommenders;
         }
 
-        private class Comparer : IEqualityComparer<CompletionItem>
-        {
-            public bool Equals(CompletionItem x, CompletionItem y)
-                => x.DisplayText == y.DisplayText;
-
-            public int GetHashCode(CompletionItem obj)
-                => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
-        }
-
-        private static readonly Comparer s_comparer = new();
+        protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -50,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken),
-                    cancellationToken).ConfigureAwait(false));
+                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
             }
         }
 
@@ -63,12 +54,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.NullToEmpty().SelectAsArray(k => CreateItem(k, syntaxContext));
         }
-
-        protected static ImmutableArray<string> s_Tags = ImmutableArray.Create(WellKnownTags.Intrinsic);
-
-        protected static CompletionItemRules s_keywordRules = CompletionItemRules.Default;
-
-        protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context);
 
         private async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
             Document document,
@@ -95,7 +80,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return set.ToImmutable();
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
+        public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
             => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
+
+        private class Comparer : IEqualityComparer<CompletionItem>
+        {
+            public bool Equals(CompletionItem x, CompletionItem y)
+                => x.DisplayText == y.DisplayText;
+
+            public int GetHashCode(CompletionItem obj)
+                => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
+        }
     }
 }

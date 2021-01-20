@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                         UnionCompletionItemComparer.Instance,
-                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken),
-                        cancellationToken).ConfigureAwait(false));
+                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
