@@ -204,9 +204,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         }
 
         private static bool CanHaveSemicolon(SyntaxNode currentNode)
-            => currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause)
-                || currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } }
-                || (currentNode is MethodDeclarationSyntax method && method.Modifiers.Any(SyntaxKind.AbstractKeyword));
+        {
+            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+                return true;
+
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+                return true;
+
+            if (currentNode is MethodDeclarationSyntax method &&
+                (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
+                method.IsParentKind(SyntaxKind.InterfaceDeclaration)))
+                return true
+
+            return false;
+        }
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
