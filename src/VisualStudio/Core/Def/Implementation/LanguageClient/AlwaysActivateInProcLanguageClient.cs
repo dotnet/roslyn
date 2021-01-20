@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 Change = TextDocumentSyncKind.Incremental,
                 OpenClose = true,
             };
-            serverCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            serverCapabilities.SupportsDiagnosticRequests = Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
             // When using the lsp editor, set this to false to allow LSP to power goto.
             // Otherwise set to true to disable LSP for goto
