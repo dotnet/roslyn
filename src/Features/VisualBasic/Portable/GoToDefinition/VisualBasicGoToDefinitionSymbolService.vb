@@ -3,12 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
+Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToDefinitionSymbolService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicGoToDefinitionSymbolService
         Inherits AbstractGoToDefinitionSymbolService
