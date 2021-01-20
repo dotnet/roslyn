@@ -526,7 +526,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
-                ' WARNING: now that we've edited, nothing can check the cancellation token from here
                 NavigateToVirtualTreePoint(newDocument.Project.Solution, navigationPoint, cancellationToken)
 
                 transaction.Complete()
