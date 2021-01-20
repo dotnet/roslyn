@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken) ||
                 syntaxFacts.GetContainingTypeDeclaration(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false), position) is EnumDeclarationSyntax)
             {
-                return default;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            return default;
+            return ImmutableArray<CompletionItem>.Empty;
         }
 
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
@@ -149,15 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
-                return default;
+                return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
             if (isPreProcessorContext)
             {
                 snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return snippets.SelectAsArray(snippet =>
             {
                 var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
