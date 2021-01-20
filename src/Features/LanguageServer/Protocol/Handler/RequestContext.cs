@@ -68,14 +68,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (!documents.IsEmpty)
                 {
-                    if (workspace.IsMiscellaneousFilesWorkspace)
+                    Logger.Log(FunctionId.Find_Document_In_Workspace, KeyValueLogMessage.Create(LogType.Trace, m =>
                     {
-                        Logger.Log(FunctionId.FindDocument_InMiscellaneousFilesWorkspace);
-                    }
-                    else
-                    {
-                        Logger.Log(FunctionId.FindDocument_InWorkspace);
-                    }
+                        m["WorkspaceKind"] = workspace.Kind;
+                        m["FoundInWorkspace"] = true;
+                        m["DocumentUriHashCode"] = textDocument.Uri.GetHashCode();
+                    }));
 
                     var document = documents.FindDocumentInProjectContext(textDocument);
 
@@ -83,6 +81,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
+            Logger.Log(FunctionId.Find_Document_In_Workspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+            {
+                m["WorkspaceKind"] = "None";
+                m["FoundInWorkspace"] = false;
+                m["DocumentUriHashCode"] = textDocument.Uri.GetHashCode();
+            }));
             return null;
         }
 

@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
         /// <summary>
-        /// Used by telemetry to report when documents are found in a misc files workspace instead of a full workspace.
-        /// </summary>
-        internal virtual bool IsMiscellaneousFilesWorkspace { get; } = false;
-
-        /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
         /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
