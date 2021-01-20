@@ -8431,7 +8431,7 @@ class C
         => s is null ? (ushort)1234 : ushort.Parse(s);
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp8,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8444,14 +8444,14 @@ class C
                 TestCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? [|(ushort)|]1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? [|(uint)|]1234 : uint.Parse(s);
 }",
                 FixedCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? 1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? 1234 : uint.Parse(s);
 }",
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
