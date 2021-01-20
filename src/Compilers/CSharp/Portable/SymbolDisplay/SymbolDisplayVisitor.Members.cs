@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitFieldType(IFieldSymbol symbol)
         {
-            symbol.Type.Accept(this.NotFirstVisitor);
+            var symbolType = ShouldBeNullableAnnotated(symbol, symbol.Type, FlowAnalysisAnnotations.MaybeNull)
+                ? symbol.Type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)
+                : symbol.Type;
+            symbolType.Accept(this.NotFirstVisitor);
         }
 
         public override void VisitField(IFieldSymbol symbol)
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
 
-                var symbolType = ShouldBeNullableAnnotated(symbol, FlowAnalysisAnnotations.MaybeNull)
+                var symbolType = ShouldBeNullableAnnotated(symbol, symbol.Type, FlowAnalysisAnnotations.MaybeNull)
                     ? symbol.Type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)
                     : symbol.Type;
                 symbolType.Accept(this.NotFirstVisitor);
@@ -175,12 +178,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ShouldBeNullableAnnotated(IPropertySymbol propertySymbol, FlowAnalysisAnnotations annotations)
-            => !propertySymbol.Type.IsValueType
-            && ShouldBeNullableAnnotated((ISymbol)propertySymbol, annotations);
-
-        private static bool ShouldBeNullableAnnotated(ISymbol symbol, FlowAnalysisAnnotations annotations)
+        private static bool ShouldBeNullableAnnotated(ISymbol symbol, ITypeSymbol typeSymbol, FlowAnalysisAnnotations annotations)
         {
+            if (typeSymbol.IsValueType)
+            {
+                return false;
+            }
+
             if (symbol is Symbols.PublicModel.Symbol csharpSymbol)
             {
                 var flowAnalysisAnnotations = csharpSymbol.UnderlyingSymbol.GetFlowAnalysisAnnotations();
