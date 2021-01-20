@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -62,8 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
         {
+            using var workspaceKinds = TemporaryArray<string?>.Empty;
             foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
             {
+                workspaceKinds.Add(workspace.Kind);
                 var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
 
                 if (!documents.IsEmpty)
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             Logger.Log(FunctionId.FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                m["WorkspaceKind"] = "None";
+                m["AvailableWorkspaceKinds"] = string.Join(";", workspaceKinds.ToImmutableAndClear());
                 m["FoundInWorkspace"] = false;
                 m["DocumentUriHashCode"] = textDocument.Uri.GetHashCode();
             }));
