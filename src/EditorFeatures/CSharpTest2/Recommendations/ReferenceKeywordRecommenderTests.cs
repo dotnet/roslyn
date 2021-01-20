@@ -13,99 +13,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class ReferenceKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAtRoot_Interactive()
+        public async Task TestNotAtRoot_Interactive()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterClass_Interactive()
+        public async Task TestNotAfterClass_Interactive()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInEmptyStatement()
+        public async Task TestNotInEmptyStatement()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterHash()
+        public async Task TestNotAfterHash()
         {
-            VerifyAbsence(SourceCodeKind.Regular,
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"#$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterHash_Interactive()
+        public async Task TestAfterHash_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"#$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterHashAndSpace()
+        public async Task TestNotAfterHashAndSpace()
         {
-            VerifyAbsence(SourceCodeKind.Regular,
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"# $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterHashAndSpace_Interactive()
+        public async Task TestAfterHashAndSpace_Interactive()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"# $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNestedPreprocessor()
+        public async Task TestNestedPreprocessor()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"#if true
     #$$
 #endif");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestBeforeUsing()
+        public async Task TestBeforeUsing()
         {
-            VerifyKeyword(SourceCodeKind.Script,
+            await VerifyKeywordAsync(SourceCodeKind.Script,
 @"#$$
 using System;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterUsing()
+        public async Task TestNotAfterUsing()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"using System;
 #$$");
         }

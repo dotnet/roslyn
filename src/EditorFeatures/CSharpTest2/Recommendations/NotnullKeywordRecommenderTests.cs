@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -17,204 +19,204 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public NotNullKeywordRecommenderTests()
         {
             this.keywordText = "notnull";
-            this.RecommendKeywords = (position, context) => _recommender.RecommendKeywords(position, context, CancellationToken.None);
+            this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAtRoot_Interactive()
+        public async Task TestAtRoot_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterName_Type()
+        public async Task TestNotAfterName_Type()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClause_Type()
+        public async Task TestNotAfterWhereClause_Type()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test<T> where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClauseType_Type()
+        public async Task TestNotAfterWhereClauseType_Type()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test<T> where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterWhereClauseColon_Type()
+        public async Task TestAfterWhereClauseColon_Type()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterTypeConstraint_Type()
+        public async Task TestNotAfterTypeConstraint_Type()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test<T> where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterTypeConstraintComma_Type()
+        public async Task TestAfterTypeConstraintComma_Type()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test<T> where T : I, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterName_Method()
+        public async Task TestNotAfterName_Method()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void M $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClause_Method()
+        public async Task TestNotAfterWhereClause_Method()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void M<T> where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClauseType_Method()
+        public async Task TestNotAfterWhereClauseType_Method()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void M<T> where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterWhereClauseColon_Method()
+        public async Task TestAfterWhereClauseColon_Method()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test {
     void M<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterTypeConstraint_Method()
+        public async Task TestNotAfterTypeConstraint_Method()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void M<T> where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterTypeConstraintComma_Method()
+        public async Task TestAfterTypeConstraintComma_Method()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test {
     void M<T> where T : I, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterName_Delegate()
+        public async Task TestNotAfterName_Delegate()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"delegate void D $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClause_Delegate()
+        public async Task TestNotAfterWhereClause_Delegate()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"delegate void D<T>() where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClauseType_Delegate()
+        public async Task TestNotAfterWhereClauseType_Delegate()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"delegate void D<T>() where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterWhereClauseColon_Delegate()
+        public async Task TestAfterWhereClauseColon_Delegate()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterTypeConstraint_Delegate()
+        public async Task TestNotAfterTypeConstraint_Delegate()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"delegate void D<T>() where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterTypeConstraintComma_Delegate()
+        public async Task TestAfterTypeConstraintComma_Delegate()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : I, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterName_LocalFunction()
+        public async Task TestNotAfterName_LocalFunction()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void N() {
         void M $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClause_LocalFunction()
+        public async Task TestNotAfterWhereClause_LocalFunction()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void N() {
         void M<T> where $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereClauseType_LocalFunction()
+        public async Task TestNotAfterWhereClauseType_LocalFunction()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void N() {
         void M<T> where T $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterWhereClauseColon_LocalFunction()
+        public async Task TestAfterWhereClauseColon_LocalFunction()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test {
     void N() {
         void M<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterTypeConstraint_LocalFunction()
+        public async Task TestNotAfterTypeConstraint_LocalFunction()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class Test {
     void N() {
         void M<T> where T : I $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterTypeConstraintComma_LocalFunction()
+        public async Task TestAfterTypeConstraintComma_LocalFunction()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class Test {
     void N() {
         void M<T> where T : I, $$");

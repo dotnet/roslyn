@@ -15,76 +15,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
-        public void TestAfterNullable()
-            => VerifyKeyword(@"#nullable $$");
+        public async Task TestAfterNullable()
+            => await VerifyKeywordAsync(@"#nullable $$");
 
         [Fact]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
-        public void TestNotAfterNullableAndNewline()
+        public async Task TestNotAfterNullableAndNewline()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 #nullable 
 $$
 ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAtRoot_Interactive()
+        public async Task TestNotAtRoot_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterClass_Interactive()
+        public async Task TestNotAfterClass_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInEmptyStatement()
+        public async Task TestNotInEmptyStatement()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterHash()
-            => VerifyAbsence(@"#$$");
+        public async Task TestNotAfterHash()
+            => await VerifyAbsenceAsync(@"#$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterPragma()
-            => VerifyAbsence(@"#pragma $$");
+        public async Task TestNotAfterPragma()
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPragmaWarning()
+        public async Task TestAfterPragmaWarning()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"#pragma warning $$");
         }
     }

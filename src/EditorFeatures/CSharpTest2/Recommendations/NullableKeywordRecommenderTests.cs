@@ -14,105 +14,105 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class NullableKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
-        public void TestNotAtRoot_Interactive()
+        public async Task TestNotAtRoot_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact]
-        public void TestNotAfterClass_Interactive()
+        public async Task TestNotAfterClass_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact]
-        public void TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact]
-        public void TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
         [Fact]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Fact]
-        public void TestNotInEmptyStatement()
+        public async Task TestNotInEmptyStatement()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact]
-        public void TestAfterHash()
+        public async Task TestAfterHash()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"#$$");
         }
 
         [Fact]
-        public void TestAfterHashAndSpace()
+        public async Task TestAfterHashAndSpace()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"# $$");
         }
 
         [Fact]
-        public void TestNotAfterHashAndNullable()
+        public async Task TestNotAfterHashAndNullable()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"#nullable $$");
         }
 
         [Fact]
-        public void TestNotAfterPragma()
-            => VerifyAbsence(@"#pragma $$");
+        public async Task TestNotAfterPragma()
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact]
-        public void TestNotAfterPragmaWarning()
-            => VerifyAbsence(@"#pragma warning $$");
+        public async Task TestNotAfterPragmaWarning()
+            => await VerifyAbsenceAsync(@"#pragma warning $$");
 
         [Fact]
-        public void TestAfterPragmaWarningDisable()
-            => VerifyKeyword(@"#pragma warning disable $$");
+        public async Task TestAfterPragmaWarningDisable()
+            => await VerifyKeywordAsync(@"#pragma warning disable $$");
 
         [Fact]
-        public void TestAfterPragmaWarningEnable()
-            => VerifyKeyword(@"#pragma warning enable $$");
+        public async Task TestAfterPragmaWarningEnable()
+            => await VerifyKeywordAsync(@"#pragma warning enable $$");
 
         [Fact]
-        public void TestAfterPragmaWarningRestore()
-            => VerifyKeyword(@"#pragma warning restore $$");
+        public async Task TestAfterPragmaWarningRestore()
+            => await VerifyKeywordAsync(@"#pragma warning restore $$");
 
         [Fact]
-        public void TestAfterPragmaWarningSafeOnly()
-            => VerifyAbsence(@"#pragma warning safeonly $$");
+        public async Task TestAfterPragmaWarningSafeOnly()
+            => await VerifyAbsenceAsync(@"#pragma warning safeonly $$");
 
         [Fact]
-        public void TestNotAfterPragmaWarningSafeOnlyNullable()
-            => VerifyAbsence(@"#pragma warning safeonly nullable $$");
+        public async Task TestNotAfterPragmaWarningSafeOnlyNullable()
+            => await VerifyAbsenceAsync(@"#pragma warning safeonly nullable $$");
 
         [Fact]
-        public void TestNotAfterPragmaWarningRestoreNullable()
-            => VerifyAbsence(@"#pragma warning restore nullable, $$");
+        public async Task TestNotAfterPragmaWarningRestoreNullable()
+            => await VerifyAbsenceAsync(@"#pragma warning restore nullable, $$");
 
         [Fact]
-        public void TestNotAfterPragmaWarningDisableId()
-            => VerifyAbsence(@"#pragma warning disable 114, $$");
+        public async Task TestNotAfterPragmaWarningDisableId()
+            => await VerifyAbsenceAsync(@"#pragma warning disable 114, $$");
     }
 }

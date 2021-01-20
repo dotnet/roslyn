@@ -14,270 +14,270 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class WhereKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAtRoot_Interactive()
+        public async Task TestNotAtRoot_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterClass_Interactive()
+        public async Task TestNotAfterClass_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalStatement_Interactive()
+        public async Task TestNotAfterGlobalStatement_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterGlobalVariableDeclaration_Interactive()
+        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
         {
-            VerifyAbsence(SourceCodeKind.Script,
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInEmptyStatement()
+        public async Task TestNotInEmptyStatement()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNewClause()
+        public async Task TestNewClause()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var q = from x in y
           $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousClause()
+        public async Task TestAfterPreviousClause()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var v = from x in y
           where x > y
           $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousContinuationClause()
+        public async Task TestAfterPreviousContinuationClause()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var v = from x in y
           group x by y into g
           $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAtEndOfPreviousClause()
+        public async Task TestNotAtEndOfPreviousClause()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y$$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestBetweenClauses()
+        public async Task TestBetweenClauses()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"var q = from x in y
           $$
           from z in w"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhere()
+        public async Task TestNotAfterWhere()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"var q = from x in y
           where $$
           from z in w"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterClass()
+        public async Task TestNotAfterClass()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGenericClass()
+        public async Task TestAfterGenericClass()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterClassBaseList()
+        public async Task TestNotAfterClassBaseList()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGenericClassBaseList()
+        public async Task TestAfterGenericClassBaseList()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> : IGoo $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterDelegate()
+        public async Task TestNotAfterDelegate()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"delegate void D() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGenericDelegate()
+        public async Task TestAfterGenericDelegate()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousClassConstraint()
+        public async Task TestAfterPreviousClassConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> where T : class $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousStructConstraint()
+        public async Task TestAfterPreviousStructConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> where T : struct $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousNewConstraint()
+        public async Task TestAfterPreviousNewConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> where T : new() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousConstraint()
+        public async Task TestAfterPreviousConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C<T> where T : IList<T> $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousDelegateClassConstraint()
+        public async Task TestAfterPreviousDelegateClassConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : class $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousDelegateStructConstraint()
+        public async Task TestAfterPreviousDelegateStructConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : struct $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousDelegateNewConstraint()
+        public async Task TestAfterPreviousDelegateNewConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : new() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousDelegateConstraint()
+        public async Task TestAfterPreviousDelegateConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"delegate void D<T>() where T : IList<T> $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterMethod()
+        public async Task TestNotAfterMethod()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
     void D() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGenericMethod()
+        public async Task TestAfterGenericMethod()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     void D<T>() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousMethodClassConstraint()
+        public async Task TestAfterPreviousMethodClassConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     void D<T>() where T : class $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousMethodStructConstraint()
+        public async Task TestAfterPreviousMethodStructConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     void D<T>() where T : struct $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousMethodNewConstraint()
+        public async Task TestAfterPreviousMethodNewConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     void D<T>() where T : new() $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousMethodConstraint()
+        public async Task TestAfterPreviousMethodConstraint()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     void D<T>() where T : IList<T> $$");
         }
 
         [WorkItem(550715, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550715")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereTypeConstraint()
+        public async Task TestNotAfterWhereTypeConstraint()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"public class Goo<T> : System.Object where $$
 {
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereWhere()
+        public async Task TestNotAfterWhereWhere()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"public class Goo<T> : System.Object where where $$
 {
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterWhereWhereWhere()
+        public async Task TestNotAfterWhereWhereWhere()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"public class Goo<T> : System.Object where where where $$
 {
 }");
@@ -285,9 +285,9 @@ $$");
 
         [WorkItem(550720, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550720")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNoWhereAfterDot()
+        public async Task TestNoWhereAfterDot()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"public class Goo<where> : System.$$
 {
 }");

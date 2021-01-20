@@ -13,72 +13,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class ExternKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAtRoot()
+        public async Task TestAtRoot()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterClass()
+        public async Task TestAfterClass()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C { }
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGlobalStatement()
+        public async Task TestAfterGlobalStatement()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"System.Console.WriteLine();
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterGlobalVariableDeclaration()
+        public async Task TestAfterGlobalVariableDeclaration()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"int i = 0;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotInUsingAlias()
+        public async Task TestNotInUsingAlias()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestInEmptyStatement(bool topLevelStatement)
+        public async Task TestInEmptyStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestAfterStaticInStatement(bool topLevelStatement)
+        public async Task TestAfterStaticInStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestAfterAttributesInStatement(bool topLevelStatement)
+        public async Task TestAfterAttributesInStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr] $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestAfterAttributesInSwitchCase(bool topLevelStatement)
+        public async Task TestAfterAttributesInSwitchCase(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"switch (c)
 {
     case 0:
@@ -89,17 +89,17 @@ $$");
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestAfterAttributesAndStaticInStatement(bool topLevelStatement)
+        public async Task TestAfterAttributesAndStaticInStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr] static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestBetweenAttributesAndReturnStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndReturnStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr]
 $$
 return x;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -107,9 +107,9 @@ return x;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions)
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestBetweenAttributesAndLocalDeclarationStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndLocalDeclarationStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr]
 $$
 x y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -117,9 +117,9 @@ x y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptio
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestBetweenAttributesAndAwaitExpression(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndAwaitExpression(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Attr]
 $$
 await bar;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -127,9 +127,9 @@ await bar;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Foo]
 $$
 y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -137,9 +137,9 @@ y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestBetweenAttributesAndCallStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndCallStatement(bool topLevelStatement)
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"[Foo]
 $$
 bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
@@ -147,130 +147,130 @@ bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public void TestNotAfterExternInStatement(bool topLevelStatement)
+        public async Task TestNotAfterExternInStatement(bool topLevelStatement)
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"extern $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterExternKeyword()
-            => VerifyAbsence(@"extern $$");
+        public async Task TestNotAfterExternKeyword()
+            => await VerifyAbsenceAsync(@"extern $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousExternAlias()
+        public async Task TestAfterPreviousExternAlias()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"extern alias Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterUsing()
+        public async Task TestAfterUsing()
         {
-            VerifyKeyword(@"using Goo;
+            await VerifyKeywordAsync(@"using Goo;
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterNamespace()
+        public async Task TestAfterNamespace()
         {
-            VerifyKeyword(@"namespace N {}
+            await VerifyKeywordAsync(@"namespace N {}
 $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestInsideNamespace()
+        public async Task TestInsideNamespace()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"namespace N {
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterExternKeyword_InsideNamespace()
+        public async Task TestNotAfterExternKeyword_InsideNamespace()
         {
-            VerifyAbsence(@"namespace N {
+            await VerifyAbsenceAsync(@"namespace N {
     extern $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPreviousExternAlias_InsideNamespace()
+        public async Task TestAfterPreviousExternAlias_InsideNamespace()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"namespace N {
    extern alias Goo;
    $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterUsing_InsideNamespace()
+        public async Task TestNotAfterUsing_InsideNamespace()
         {
-            VerifyAbsence(@"namespace N {
+            await VerifyAbsenceAsync(@"namespace N {
     using Goo;
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterMember_InsideNamespace()
+        public async Task TestNotAfterMember_InsideNamespace()
         {
-            VerifyAbsence(@"namespace N {
+            await VerifyAbsenceAsync(@"namespace N {
     class C {}
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterNamespace_InsideNamespace()
+        public async Task TestNotAfterNamespace_InsideNamespace()
         {
-            VerifyAbsence(@"namespace N {
+            await VerifyAbsenceAsync(@"namespace N {
     namespace N {}
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestInClass()
+        public async Task TestInClass()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestInStruct()
+        public async Task TestInStruct()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"struct S {
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestInInterface()
+        public async Task TestInInterface()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"interface I {
     $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterAbstract()
+        public async Task TestNotAfterAbstract()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
     abstract $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestNotAfterExtern()
+        public async Task TestNotAfterExtern()
         {
-            VerifyAbsence(
+            await VerifyAbsenceAsync(
 @"class C {
     extern $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestAfterPublic()
+        public async Task TestAfterPublic()
         {
-            VerifyKeyword(
+            await VerifyKeywordAsync(
 @"class C {
     public $$");
         }

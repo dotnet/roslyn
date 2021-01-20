@@ -14,73 +14,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public class WhenKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_AfterCatch()
+        public async Task TestForCatchClause_AfterCatch()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_AfterCatchDeclaration1()
+        public async Task TestForCatchClause_AfterCatchDeclaration1()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch (Exception) $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_AfterCatchDeclaration2()
+        public async Task TestForCatchClause_AfterCatchDeclaration2()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch (Exception e) $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_AfterCatchDeclarationEmpty()
+        public async Task TestForCatchClause_AfterCatchDeclarationEmpty()
         {
-            VerifyKeyword(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"try {} catch () $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_NotAfterTryBlock()
+        public async Task TestForCatchClause_NotAfterTryBlock()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_NotAfterFilter1()
+        public async Task TestForCatchClause_NotAfterFilter1()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_NotAfterFilter2()
+        public async Task TestForCatchClause_NotAfterFilter2()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when ($$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForCatchClause_NotAfterFilter3()
+        public async Task TestForCatchClause_NotAfterFilter3()
         {
-            VerifyAbsence(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) when (true) $$"));
         }
 
         [WorkItem(24113, "https://github.com/dotnet/roslyn/issues/24113")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_AfterDeclarationPattern() =>
-            VerifyKeyword(AddInsideMethod(@"switch (1) { case int i $$ }"));
+        public async Task TestForSwitchCase_AfterDeclarationPattern() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_AfterDeclarationPattern_BeforeBreak() =>
-            VerifyKeyword(AddInsideMethod(@"switch (1) { case int i $$ break; }"));
+        public async Task TestForSwitchCase_AfterDeclarationPattern_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_AfterDeclarationPattern_BeforeWhen() =>
-            VerifyKeyword(AddInsideMethod(@"switch (1) { case int i $$ when }"));
+        public async Task TestForSwitchCase_AfterDeclarationPattern_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (1) { case int i $$ when }"));
 
         [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
         [InlineData("(1 + )")]
-        public void TestForSwitchCase_AfterExpression(string expression) =>
-            VerifyKeyword(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
+        public async Task TestForSwitchCase_AfterExpression(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("int.MinValue")]
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
         [InlineData("(1 + )")]
-        public void TestForSwitchCase_AfterExpression_BeforeBreak(string expression) =>
-            VerifyKeyword(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
+        public async Task TestForSwitchCase_AfterExpression_BeforeBreak(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("int.MinValue")]
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("1 + 1")]
         [InlineData("true ? 1 : 1")]
         [InlineData("(1 + )")]
-        public void TestForSwitchCase_AfterExpression_BeforeWhen(string expression) =>
-            VerifyKeyword(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
+        public async Task TestForSwitchCase_AfterExpression_BeforeWhen(string expression) =>
+            await VerifyKeywordAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("int.")]
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("true ? 1 :")]
         [InlineData("(1")]
         [InlineData("(1 + 1")]
-        public void TestForSwitchCase_NotAfterIncompleteExpression(string expression) =>
-            VerifyAbsence(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ }}"));
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("int.")]
@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("true ? 1 :")]
         [InlineData("(1")]
         [InlineData("(1 + 1")]
-        public void TestForSwitchCase_NotAfterIncompleteExpression_BeforeBreak(string expression) =>
-            VerifyAbsence(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression_BeforeBreak(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ break; }}"));
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [InlineData("int.")]
@@ -140,88 +140,88 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [InlineData("true ? 1 :")]
         [InlineData("(1")]
         [InlineData("(1 + 1")]
-        public void TestForSwitchCase_NotAfterIncompleteExpression_BeforeWhen(string expression) =>
-            VerifyAbsence(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
+        public async Task TestForSwitchCase_NotAfterIncompleteExpression_BeforeWhen(string expression) =>
+            await VerifyAbsenceAsync(AddInsideMethod($@"switch (1) {{ case {expression} $$ when }}"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotInsideExpression() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case (1 + 1 $$) }"));
+        public async Task TestForSwitchCase_NotInsideExpression() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotInsideExpression_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case (1 + 1 $$) break; }"));
+        public async Task TestForSwitchCase_NotInsideExpression_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotInsideExpression_BeforeWhen() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case (1 + 1 $$) when }"));
+        public async Task TestForSwitchCase_NotInsideExpression_BeforeWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case (1 + 1 $$) when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterCase() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case $$ }"));
+        public async Task TestForSwitchCase_NotAfterCase() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterCase_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case $$ break; }"));
+        public async Task TestForSwitchCase_NotAfterCase_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterCase_BeforeWhen() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case $$ when }"));
+        public async Task TestForSwitchCase_NotAfterCase_BeforeWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterDefault() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { default $$ }"));
+        public async Task TestForSwitchCase_NotAfterDefault() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { default $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterDefault_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { default $$ break; }"));
+        public async Task TestForSwitchCase_NotAfterDefault_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { default $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterWhen() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case 1 when $$ }"));
+        public async Task TestForSwitchCase_NotAfterWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 when $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterWhen_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case 1 when $$ break; }"));
+        public async Task TestForSwitchCase_NotAfterWhen_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1 when $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterColon() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case 1: $$ }"));
+        public async Task TestForSwitchCase_NotAfterColon() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1: $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotAfterColon_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { case 1: $$ break; }"));
+        public async Task TestForSwitchCase_NotAfterColon_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { case 1: $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_NotInEmptySwitchStatement() =>
-            VerifyAbsence(AddInsideMethod(@"switch (1) { $$ }"));
+        public async Task TestForSwitchCase_NotInEmptySwitchStatement() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (1) { $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterPredefinedType() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case int $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case int $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeBreak() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case int $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case int $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeWhen() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case int $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case int $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterGenericType() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeBreak() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeWhen() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterCustomType() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType() =>
+            await VerifyKeywordAsync(@"
 class SyntaxNode { }
 class C
 {
@@ -229,8 +229,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeBreak() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
 class SyntaxNode { }
 class C
 {
@@ -238,8 +238,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeWhen() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterCustomType_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
 class SyntaxNode { }
 class C
 {
@@ -247,8 +247,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAlias() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias() =>
+            await VerifyKeywordAsync(@"
 using Type = System.String;
 class C
 {
@@ -256,8 +256,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeBreak() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
 using Type = System.String;
 class C
 {
@@ -265,8 +265,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeWhen() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAlias_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
 using Type = System.String;
 class C
 {
@@ -274,8 +274,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName() =>
-    VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName() =>
+    await VerifyKeywordAsync(@"
 class ValueTuple { }
 class ValueTuple<T> { }
 class C
@@ -284,8 +284,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeBreak() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
 class ValueTuple { }
 class ValueTuple<T> { }
 class C
@@ -294,8 +294,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeWhen() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterOverloadedTypeName_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
 class ValueTuple { }
 class ValueTuple<T> { }
 class C
@@ -304,8 +304,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterColorColor() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterColorColor() =>
+            await VerifyKeywordAsync(@"
 class Color { }
 class C
 {
@@ -314,8 +314,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeBreak() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
 class Color { }
 class C
 {
@@ -324,8 +324,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeWhen() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterColorColor_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
 class Color { }
 class C
 {
@@ -334,8 +334,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor() =>
-    VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor() =>
+    await VerifyKeywordAsync(@"
 class Color<T> { }
 class Color { }
 class C
@@ -345,8 +345,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeBreak() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeBreak() =>
+            await VerifyKeywordAsync(@"
 class Color<T> { }
 class Color { }
 class C
@@ -356,8 +356,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeWhen() =>
-            VerifyKeyword(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterOverloadedTypeNameColorColor_BeforeWhen() =>
+            await VerifyKeywordAsync(@"
 class Color<T> { }
 class Color { }
 class C
@@ -367,44 +367,44 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstant() =>
-            VerifyKeyword(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeBreak() =>
-            VerifyKeyword(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeWhen() =>
-            VerifyKeyword(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstant_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"const object c = null; switch (new object()) { case c $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterUnknownName() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case unknown $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case unknown $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeBreak() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case unknown $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeBreak() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case unknown $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeWhen() =>
-            VerifyKeyword(AddInsideMethod(@"switch (new object()) { case unknown $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterUnknownName_BeforeWhen() =>
+            await VerifyKeywordAsync(AddInsideMethod(@"switch (new object()) { case unknown $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterVar() =>
-            VerifyAbsence(AddInsideMethod(@"switch (new object()) { case var $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterVar() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case var $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterVar_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"switch (new object()) { case var $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterVar_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case var $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterVar_BeforeWhen() =>
-            VerifyAbsence(AddInsideMethod(@"switch (new object()) { case var $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterVar_BeforeWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case var $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterClassVar() =>
-            VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar() =>
+            await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -412,8 +412,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeBreak() =>
-            VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeBreak() =>
+            await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -421,8 +421,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeWhen() =>
-            VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterClassVar_BeforeWhen() =>
+            await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -430,9 +430,9 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
@@ -441,9 +441,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeBreak()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
@@ -452,9 +452,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
+        public async Task TestForSwitchCase_SemanticCheck_NotAfterTypeAliasVar_BeforeWhen()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
@@ -463,20 +463,20 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstantVar() =>
-            VerifyAbsence(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstantVar() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstantVar_BeforeBreak() =>
-            VerifyAbsence(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ break; }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstantVar_BeforeBreak() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ break; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterLocalConstantVar_BeforeWhen() =>
-            VerifyAbsence(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ when }"));
+        public async Task TestForSwitchCase_SemanticCheck_AfterLocalConstantVar_BeforeWhen() =>
+            await VerifyAbsenceAsync(AddInsideMethod(@"const object var = null; switch (new object()) { case var $$ when }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar() =>
-            VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar() =>
+            await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -484,8 +484,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeBreak() =>
-    VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeBreak() =>
+    await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -493,8 +493,8 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeWhen() =>
-    VerifyAbsence(@"
+        public async Task TestForSwitchCase_SemanticCheck_AfterClassAndLocalConstantVar_BeforeWhen() =>
+    await VerifyAbsenceAsync(@"
 class var { }
 class C
 {
@@ -502,9 +502,9 @@ class C
 }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
@@ -514,9 +514,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeBreak()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
@@ -526,9 +526,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
+        public async Task TestForSwitchCase_SemanticCheck_AfterTypeAliasAndFieldConstantVar_BeforeWhen()
         {
-            VerifyAbsence(@"
+            await VerifyAbsenceAsync(@"
 using var = System.String;
 class C
 {
