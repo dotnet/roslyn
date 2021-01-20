@@ -53,9 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // MaxSlotDepth value is arbitrary but large enough to allow most scenarios.
             private const int MaxSlotDepth = 5;
 
+            // An int slot is a combination of a 15-bit id (in the high-order 16 bits) and a 16-bit index.
+            // Id values start at 0 for the outermost method, and increase at each nested function.
+            // There is no relationship between ids of sibling nested functions - the ids of sibling
+            // functions may be the same or different.
             private const int IdOffset = 16;
-            private const int IdOrIndexMask = (1 << IdOffset) - 1;
-            private const int IndexMax = IdOrIndexMask;
+            private const int IdMask = (1 << 15) - 1;
+            private const int IndexMask = (1 << 16) - 1;
 
 #if DEBUG
             /// <summary>
@@ -135,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private Variables(int id, Variables? container, Symbol? symbol)
             {
                 Debug.Assert(id >= 0);
+                Debug.Assert(id <= IdMask);
                 Debug.Assert(container is null || container.Id < id);
 #if DEBUG
                 _nextIdOffset = container?._nextIdOffset ?? new Random();
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal int Add(VariableIdentifier identifier)
             {
-                if (Count > IndexMax)
+                if (Count > IndexMask)
                 {
                     return -1;
                 }
@@ -355,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static (int Id, int Index) DeconstructSlot(int slot)
             {
                 Debug.Assert(slot > -1);
-                return slot < 0 ? (0, slot) : ((slot >> IdOffset & IdOrIndexMask), slot & IdOrIndexMask);
+                return slot < 0 ? (0, slot) : ((slot >> IdOffset & IdMask), slot & IndexMask);
             }
 
             private string GetDebuggerDisplay()
