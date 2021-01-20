@@ -77,6 +77,15 @@ namespace Roslyn.Test.Utilities
             Assert.True(_strongReference != null, "Reference should still be held.");
         }
 
+        /// <summary>
+        /// Releases the strong reference without making any assertions.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ReleaseStrongReference()
+        {
+            ReleaseAndGarbageCollect(expectReleased: false);
+        }
+
         // Ensure the mention of the field doesn't result in any local temporaries being created in the parent
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ReleaseAndGarbageCollect(bool expectReleased)
@@ -125,6 +134,18 @@ namespace Roslyn.Test.Utilities
         public U UseReference<U>(Func<T, U> function)
         {
             return function(GetReferenceWithChecks());
+        }
+
+        /// <summary>
+        /// Provides the underlying strong reference to the given function, lets a function extract some value, and then returns a new ObjectReference.
+        /// This method is marked not be inlined, to ensure that no temporaries are left on the stack that might still root the strong reference. The
+        /// caller must not "leak" the object out of the given action for any lifetime assertions to be safe.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ObjectReference<U> GetObjectReference<U>(Func<T, U> function) where U : class
+        {
+            var newValue = function(GetReferenceWithChecks());
+            return ObjectReference.Create(newValue);
         }
 
         /// <summary>
