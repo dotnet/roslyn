@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         #region ParameterList
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("extern void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
@@ -63,6 +64,24 @@ public class Class1
 {{
     {expectedSignature};$$
 }}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_InterfaceMethod()
+        {
+            var code = @"
+public interface I
+{
+    public void M(object o$$)
+}";
+
+            var expected = @"
+public interface I
+{
+    public void M(object o);
+}";
 
             VerifyTypingSemicolon(code, expected);
         }
