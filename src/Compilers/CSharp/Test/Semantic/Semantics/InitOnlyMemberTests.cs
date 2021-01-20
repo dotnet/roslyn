@@ -2220,7 +2220,7 @@ public interface IWithInitWithExplicitImplementation : I1, I2
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2312,7 +2312,7 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 parseOptions: TestOptions.Regular9);
             Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3566,6 +3566,65 @@ public class D
                 );
 
             var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.M");
+            Assert.False(method.IsInitOnly);
+            Assert.False(method.GetPublicSymbol().IsInitOnly);
+            Assert.True(method.HasUseSiteError);
+            Assert.True(method.HasUnsupportedMetadata);
+        }
+
+        [Fact]
+        public void ModReqOnStaticSet()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig newslot specialname
+            static void modreq(System.Runtime.CompilerServices.IsExternalInit) set_P(int32 x) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    } 
+
+    .property instance int32 P()
+    {
+      .set void modreq(System.Runtime.CompilerServices.IsExternalInit) C::set_P(int32)
+    } 
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsExternalInit extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void M2()
+    {
+        C.P = 2;
+    }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (6,11): error CS0570: 'C.P.set' is not supported by the language
+                //         C.P = 2;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "P").WithArguments("C.P.set").WithLocation(6, 11)
+                );
+
+            var method = (PEMethodSymbol)comp.GlobalNamespace.GetMember("C.set_P");
             Assert.False(method.IsInitOnly);
             Assert.False(method.GetPublicSymbol().IsInitOnly);
             Assert.True(method.HasUseSiteError);

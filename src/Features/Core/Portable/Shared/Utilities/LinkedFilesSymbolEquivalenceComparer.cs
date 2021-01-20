@@ -15,22 +15,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new();
 
-        bool IEqualityComparer<ISymbol>.Equals(ISymbol? x, ISymbol? y)
-        {
-            if (x == y)
-            {
-                return true;
-            }
+        public bool Equals(ISymbol? x, ISymbol? y)
+            => x?.Name == y?.Name;
 
-            if (x is null || y is null)
-            {
-                return false;
-            }
-
-            return x.Name == y.Name;
-        }
-
-        int IEqualityComparer<ISymbol>.GetHashCode(ISymbol symbol)
+        public int GetHashCode(ISymbol symbol)
             => symbol.Name.GetHashCode();
     }
 }

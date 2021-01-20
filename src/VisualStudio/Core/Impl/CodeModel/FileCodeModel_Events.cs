@@ -41,9 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // TODO(DustinCa): Enqueue unknown change event if a file is closed without being saved.
             var oldTree = _lastSyntaxTree;
-            var newTree = document
-                .GetSyntaxTreeAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(CancellationToken.None);
+            var newTree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
 
             _lastSyntaxTree = newTree;
 

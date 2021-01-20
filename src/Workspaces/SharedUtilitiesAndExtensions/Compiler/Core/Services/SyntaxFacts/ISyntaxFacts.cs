@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
-        bool SupportsNotPattern(ParseOptions options);
-        bool SupportsThrowExpression(ParseOptions options);
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
+        bool SupportsRecord(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);

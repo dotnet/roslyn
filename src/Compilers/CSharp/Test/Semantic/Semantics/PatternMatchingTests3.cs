@@ -5687,7 +5687,7 @@ class C
 }
 enum Color { Red, Greed, Blue }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics(
                 // (4,37): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
                 //     int M(int i, Color c) => (i, c) switch
@@ -7298,6 +7298,106 @@ class C
                 //     int M((object?, bool, bool, bool) t) => t switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_01()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_02()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            0 => 0,
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '1' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("1").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_03()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            < red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
         }
     }
 }

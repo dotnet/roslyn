@@ -9,12 +9,22 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCorePublic-Pool
+      queue: ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
 
   steps:
