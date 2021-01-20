@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("int **p;", "int** p;")]
         [InlineData("int**p1,p2;", "int** p1, p2;")]
         [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [InlineData("delegate * <int, void> p1;", "delegate*<int, void> p1;")]
         [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
         public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
         {
