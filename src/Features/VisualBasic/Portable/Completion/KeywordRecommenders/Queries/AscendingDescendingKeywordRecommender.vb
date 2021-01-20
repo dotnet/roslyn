@@ -15,15 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class AscendingDescendingKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.SyntaxTree.IsFollowingCompleteExpression(Of OrderingSyntax)(
-                    context.Position, context.TargetToken, Function(orderingSyntax) orderingSyntax.Expression, cancellationToken) Then
-                Return ImmutableArray.Create(
-                    New RecommendedKeyword("Ascending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first),
-                    New RecommendedKeyword("Descending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first))
-            End If
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) = ImmutableArray.Create(
+            New RecommendedKeyword("Ascending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first),
+            New RecommendedKeyword("Descending", VBFeaturesResources.Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_largest_element_will_appear_first))
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.SyntaxTree.IsFollowingCompleteExpression(Of OrderingSyntax)(context.Position, context.TargetToken, Function(orderingSyntax) orderingSyntax.Expression, cancellationToken),
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

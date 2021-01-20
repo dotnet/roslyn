@@ -15,9 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class NewKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("New", VBFeaturesResources.Creates_a_new_object_instance))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return ImmutableArray.Create(New RecommendedKeyword("New", VBFeaturesResources.Creates_a_new_object_instance))
+                Return s_keywords
             End If
 
             If context.FollowsEndOfStatement Then
@@ -33,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                     Not DirectCast(asClause.Parent, PropertyStatementSyntax).Modifiers.Any(
                         Function(m) m.IsKind(SyntaxKind.WriteOnlyKeyword))) Then
 
-                    Return ImmutableArray.Create(New RecommendedKeyword("New", VBFeaturesResources.Creates_a_new_object_instance))
+                    Return s_keywords
                 End If
             End If
 

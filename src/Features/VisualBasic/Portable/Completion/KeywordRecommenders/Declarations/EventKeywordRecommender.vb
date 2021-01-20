@@ -16,11 +16,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class EventKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Event", VBFeaturesResources.Declares_a_user_defined_event))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsTypeMemberDeclarationKeywordContext OrElse context.IsInterfaceMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Event) Then
-                    Return ImmutableArray.Create(New RecommendedKeyword("Event", VBFeaturesResources.Declares_a_user_defined_event))
+                    Return s_keywords
                 End If
             End If
 
@@ -37,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     Dim variableDeclarator = targetToken.GetAncestor(Of VariableDeclaratorSyntax)()
                     If variableDeclarator IsNot Nothing Then
                         If variableDeclarator.Names.Count = 1 AndAlso variableDeclarator.Names.First().Identifier = targetToken Then
-                            Return ImmutableArray.Create(New RecommendedKeyword("Event", VBFeaturesResources.Declares_a_user_defined_event))
+                            Return s_keywords
                         End If
                     End If
                 End If

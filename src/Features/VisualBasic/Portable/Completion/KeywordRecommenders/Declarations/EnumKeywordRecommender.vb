@@ -15,11 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class EnumKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Enum", VBFeaturesResources.Declares_an_enumeration_and_defines_the_values_of_its_members))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsTypeDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Enum) Then
-                    Return ImmutableArray.Create(New RecommendedKeyword("Enum", VBFeaturesResources.Declares_an_enumeration_and_defines_the_values_of_its_members))
+                    Return s_keywords
                 End If
             End If
 

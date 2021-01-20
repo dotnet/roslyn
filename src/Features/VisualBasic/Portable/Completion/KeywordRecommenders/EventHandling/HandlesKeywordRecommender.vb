@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
     Friend Class HandlesKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Handles", VBFeaturesResources.Declares_that_a_procedure_handles_a_specified_event))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -33,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
                     Return ImmutableArray(Of RecommendedKeyword).Empty
                 End If
 
-                Return ImmutableArray.Create(New RecommendedKeyword("Handles", VBFeaturesResources.Declares_that_a_procedure_handles_a_specified_event))
+                Return s_keywords
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

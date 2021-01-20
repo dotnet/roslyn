@@ -14,12 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class FromKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsAnyExpressionContext OrElse context.IsQueryOperatorContext Then
-                Return ImmutableArray.Create(New RecommendedKeyword("From", VBFeaturesResources.Specifies_a_collection_and_a_range_variable_to_use_in_a_query))
-            End If
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("From", VBFeaturesResources.Specifies_a_collection_and_a_range_variable_to_use_in_a_query))
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.IsAnyExpressionContext OrElse context.IsQueryOperatorContext,
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

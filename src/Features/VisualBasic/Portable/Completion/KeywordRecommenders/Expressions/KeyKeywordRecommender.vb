@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class KeyKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Key", VBFeaturesResources.Identifies_a_key_field_in_an_anonymous_type_definition))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -27,14 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                targetToken.Parent.IsKind(SyntaxKind.ObjectMemberInitializer) Then
                 ' We might be in an expression...
                 If targetToken.Parent.GetParentOrNull().IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
-                    Return ImmutableArray.Create(New RecommendedKeyword("Key", VBFeaturesResources.Identifies_a_key_field_in_an_anonymous_type_definition))
+                    Return s_keywords
                 End If
 
                 ' Or we might be in an AsNew. In this case, we need to check to make sure the type is correct
                 If targetToken.Parent.GetParentOrNull().GetParentOrNull().IsKind(SyntaxKind.AsNewClause) Then
                     Dim asNewClause = DirectCast(targetToken.Parent.Parent.Parent, AsNewClauseSyntax)
                     If asNewClause.Type.IsMissing Then
-                        Return ImmutableArray.Create(New RecommendedKeyword("Key", VBFeaturesResources.Identifies_a_key_field_in_an_anonymous_type_definition))
+                        Return s_keywords
                     End If
                 End If
             End If

@@ -14,18 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
     Friend Class StrictOptionsRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) = ImmutableArray.Create(
+            New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
+            New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off))
+
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, CancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
-            If context.TargetToken.IsKind(SyntaxKind.StrictKeyword) Then
-                Return ImmutableArray.Create(
-                    New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
-                    New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off))
-            Else
-                Return ImmutableArray(Of RecommendedKeyword).Empty
-            End If
+            Return If(context.TargetToken.IsKind(SyntaxKind.StrictKeyword), s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

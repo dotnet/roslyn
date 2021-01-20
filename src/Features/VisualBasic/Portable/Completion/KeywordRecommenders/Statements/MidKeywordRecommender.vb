@@ -15,17 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class MidKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsSingleLineStatementContext Then
-                Return ImmutableArray.Create(
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) = ImmutableArray.Create(
                     CreateRecommendedKeywordForIntrinsicOperator(
                         SyntaxKind.MidKeyword,
                         VBFeaturesResources.Mid_statement,
                         Glyph.Keyword,
                         New MidAssignmentDocumentation()))
-            End If
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.IsSingleLineStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

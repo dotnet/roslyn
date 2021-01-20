@@ -15,16 +15,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class IfKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsAnyExpressionContext Then
-                Return ImmutableArray.Create(
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(
                     CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.IfKeyword,
                                                                  $"{String.Format(VBFeaturesResources._0_function, "If")} (+1 {FeaturesResources.overload})",
                                                                  Glyph.MethodPublic,
                                                                  New TernaryConditionalExpressionDocumentation()))
-            End If
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.IsAnyExpressionContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

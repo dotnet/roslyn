@@ -14,6 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class ContinueKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Continue", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsMultiLineStatementContext Then
                 If context.IsInStatementBlockOfKind(
@@ -26,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                     SyntaxKind.ForEachBlock,
                     SyntaxKind.WhileBlock) Then
 
-                    Return ImmutableArray.Create(New RecommendedKeyword("Continue", VBFeaturesResources.Transfers_execution_immediately_to_the_next_iteration_of_the_loop_Can_be_used_in_a_Do_loop_a_For_loop_or_a_While_loop))
+                    Return s_keywords
                 End If
             End If
 

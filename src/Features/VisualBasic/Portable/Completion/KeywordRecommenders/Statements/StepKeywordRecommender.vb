@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class StepKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Step", VBFeaturesResources.Specifies_how_much_to_increment_between_each_loop_iteration))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.SyntaxTree.IsFollowingCompleteExpression(Of ForStatementSyntax)(
                 context.Position,
@@ -23,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
                 cancellationToken,
                 allowImplicitLineContinuation:=False) Then
 
-                Return ImmutableArray.Create(New RecommendedKeyword("Step", VBFeaturesResources.Specifies_how_much_to_increment_between_each_loop_iteration))
+                Return s_keywords
             Else
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If

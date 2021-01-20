@@ -14,6 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
     Friend Class GoToKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("GoTo", VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -21,12 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             Dim targetToken = context.TargetToken
 
-            If targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda Then
-                Return ImmutableArray.Create(New RecommendedKeyword("GoTo",
-                                                                                         VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
-            Else
-                Return ImmutableArray(Of RecommendedKeyword).Empty
-            End If
+            Return If(targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda,
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

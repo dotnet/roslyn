@@ -14,14 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class GotoKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("GoTo", VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsMultiLineStatementContext AndAlso
-               Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock) Then
-
-                Return ImmutableArray.Create(New RecommendedKeyword("GoTo", VBFeaturesResources.Branches_unconditionally_to_a_specified_line_in_a_procedure))
-            End If
-
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+            Return If(context.IsMultiLineStatementContext AndAlso Not context.IsInStatementBlockOfKind(SyntaxKind.FinallyBlock),
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

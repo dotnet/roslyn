@@ -15,13 +15,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class AsKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("As", VBFeaturesResources.Specifies_a_data_type_in_a_declaration_statement))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
-            Dim asKeyword = ImmutableArray.Create(New RecommendedKeyword("As", VBFeaturesResources.Specifies_a_data_type_in_a_declaration_statement))
+            Dim asKeyword = s_keywords
 
             ' Query: Aggregate x |
             ' Query: Group Join x |

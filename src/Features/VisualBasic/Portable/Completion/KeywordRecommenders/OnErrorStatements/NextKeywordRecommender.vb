@@ -14,19 +14,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
     Friend Class NextKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Next", VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
-            If targetToken.IsKind(SyntaxKind.ResumeKeyword) AndAlso Not context.IsInLambda AndAlso
-               targetToken.Parent.IsKind(SyntaxKind.OnErrorResumeNextStatement, SyntaxKind.ResumeStatement, SyntaxKind.ResumeNextStatement) Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Next",
-                                                                                         VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error))
-            Else
-                Return ImmutableArray(Of RecommendedKeyword).Empty
-            End If
+            Return If(targetToken.IsKind(SyntaxKind.ResumeKeyword) AndAlso Not context.IsInLambda AndAlso targetToken.Parent.IsKind(SyntaxKind.OnErrorResumeNextStatement, SyntaxKind.ResumeStatement, SyntaxKind.ResumeNextStatement),
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

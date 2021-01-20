@@ -15,11 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class DeclareKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Declare", VBFeaturesResources.Declares_a_reference_to_a_procedure_implemented_in_an_external_file))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsTypeMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.ExternalMethod) Then
-                    Return ImmutableArray.Create(New RecommendedKeyword("Declare", VBFeaturesResources.Declares_a_reference_to_a_procedure_implemented_in_an_external_file))
+                    Return s_keywords
                 End If
             End If
 

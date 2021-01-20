@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class AliasKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Alias", VBFeaturesResources.Indicates_that_an_external_procedure_has_another_name_in_its_DLL))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -22,11 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             Dim targetToken = context.TargetToken
 
-            If targetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.LibraryName.Token) Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Alias", VBFeaturesResources.Indicates_that_an_external_procedure_has_another_name_in_its_DLL))
-            Else
-                Return ImmutableArray(Of RecommendedKeyword).Empty
-            End If
+            Return If(targetToken.IsChildToken(Of DeclareStatementSyntax)(Function(declaration) declaration.LibraryName.Token),
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

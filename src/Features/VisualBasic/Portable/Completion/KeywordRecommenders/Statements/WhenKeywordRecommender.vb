@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class WhenKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("When", VBFeaturesResources.Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -23,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Dim targetToken = context.TargetToken
 
             If targetToken.IsFromIdentifierNode(Of CatchStatementSyntax)(Function(catchStatement) catchStatement.IdentifierName) Then
-                Return ImmutableArray.Create(New RecommendedKeyword("When", VBFeaturesResources.Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True))
+                Return s_keywords
             End If
 
             If context.SyntaxTree.IsFollowingCompleteExpression(Of SimpleAsClauseSyntax)(context.Position, context.TargetToken,
                 childGetter:=Function(asClause) If(TypeOf asClause.Parent Is CatchStatementSyntax, asClause.Type, Nothing), cancellationToken:=cancellationToken) Then
 
-                Return ImmutableArray.Create(New RecommendedKeyword("When", VBFeaturesResources.Adds_a_conditional_test_to_a_Catch_statement_Exceptions_are_caught_by_that_Catch_statement_only_when_the_conditional_test_that_follows_the_When_keyword_evaluates_to_True))
+                Return s_keywords
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

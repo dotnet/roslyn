@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class CovarianceModifiersKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) = ImmutableArray.Create(
+            New RecommendedKeyword("In", VBFeaturesResources.Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions),
+            New RecommendedKeyword("Out", VBFeaturesResources.Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -30,15 +34,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
-            Dim covarianceKeywords = ImmutableArray.Create(
-                New RecommendedKeyword("In", VBFeaturesResources.Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions),
-                New RecommendedKeyword("Out", VBFeaturesResources.Use_Out_for_a_type_that_will_only_be_used_as_a_return_from_functions))
-
             If parent.IsChildNode(Of DelegateStatementSyntax)(Function(declaration) declaration.TypeParameterList) Then
-                Return covarianceKeywords
+                Return s_keywords
             ElseIf parent.IsChildNode(Of TypeStatementSyntax)(Function(declaration) declaration.TypeParameterList) Then
                 If parent.GetAncestor(Of TypeStatementSyntax)().IsKind(SyntaxKind.InterfaceStatement) Then
-                    Return covarianceKeywords
+                    Return s_keywords
                 End If
             End If
 

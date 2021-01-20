@@ -11,6 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class AsyncKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Async", VBFeaturesResources.Indicates_an_asynchronous_method_that_can_use_the_Await_operator))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             ' Function/Sub declaration
             If context.IsTypeMemberDeclarationKeywordContext OrElse context.IsInterfaceMemberDeclarationKeywordContext Then
@@ -19,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                    context.ModifierCollectionFacts.OverridableSharedOrPartialKeyword.Kind <> SyntaxKind.PartialKeyword AndAlso
                    context.ModifierCollectionFacts.MutabilityOrWithEventsKeyword.Kind = SyntaxKind.None Then
 
-                    Return ImmutableArray.Create(New RecommendedKeyword("Async", VBFeaturesResources.Indicates_an_asynchronous_method_that_can_use_the_Await_operator))
+                    Return s_keywords
                 End If
             End If
 

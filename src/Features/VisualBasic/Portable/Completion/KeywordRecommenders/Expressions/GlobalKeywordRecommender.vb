@@ -14,13 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class GlobalKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Global"))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
-            If context.IsNamespaceContext AndAlso Not context.IsInImportsDirective Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Global"))
-            End If
-
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+            Return If(context.IsNamespaceContext AndAlso Not context.IsInImportsDirective, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

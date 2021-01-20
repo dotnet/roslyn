@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class ImportsKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Imports", VBFeaturesResources.Imports_all_or_specified_elements_of_a_namespace_into_a_file))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsPreProcessorDirectiveContext Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -35,12 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             ' If we have no left token, then we're at the start of the file
             If targetToken.Kind = SyntaxKind.None Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Imports", VBFeaturesResources.Imports_all_or_specified_elements_of_a_namespace_into_a_file))
+                Return s_keywords
             End If
 
             ' Show if after an earlier option statement
             If context.IsAfterStatementOfKind(SyntaxKind.OptionStatement, SyntaxKind.ImportsStatement) Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Imports", VBFeaturesResources.Imports_all_or_specified_elements_of_a_namespace_into_a_file))
+                Return s_keywords
             End If
 
             Return ImmutableArray(Of RecommendedKeyword).Empty

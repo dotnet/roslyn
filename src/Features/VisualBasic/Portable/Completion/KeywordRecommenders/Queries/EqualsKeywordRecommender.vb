@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class EqualsKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.SyntaxTree.IsFollowingCompleteExpression(Of JoinConditionSyntax)(
-               context.Position, context.TargetToken, Function(joinCondition) joinCondition.Left, cancellationToken) Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Equals", VBFeaturesResources.Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation))
-            End If
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Equals", VBFeaturesResources.Specifies_the_relationship_between_element_keys_to_use_as_the_basis_of_a_join_operation))
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.SyntaxTree.IsFollowingCompleteExpression(Of JoinConditionSyntax)(context.Position, context.TargetToken, Function(joinCondition) joinCondition.Left, cancellationToken),
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

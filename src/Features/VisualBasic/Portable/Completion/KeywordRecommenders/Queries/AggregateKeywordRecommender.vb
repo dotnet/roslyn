@@ -14,12 +14,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Quer
     Friend Class AggregateKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            If context.IsAnyExpressionContext OrElse context.IsQueryOperatorContext Then
-                Return ImmutableArray.Create(New RecommendedKeyword("Aggregate", VBFeaturesResources.Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence))
-            End If
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Aggregate", VBFeaturesResources.Applies_an_aggregation_function_such_as_Sum_Average_or_Count_to_a_sequence))
 
-            Return ImmutableArray(Of RecommendedKeyword).Empty
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.IsAnyExpressionContext OrElse context.IsQueryOperatorContext,
+                s_keywords,
+                ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

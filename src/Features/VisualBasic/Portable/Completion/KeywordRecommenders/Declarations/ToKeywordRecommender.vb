@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class ToKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
                 Return ImmutableArray(Of RecommendedKeyword).Empty
@@ -27,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 If modifiedIdentifier IsNot Nothing Then
                     If modifiedIdentifier.ArrayBounds IsNot Nothing AndAlso
                        modifiedIdentifier.ArrayBounds.Arguments.Contains(simpleArgument) Then
-                        Return ImmutableArray.Create(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
+                        Return s_keywords
                     End If
                 End If
 
@@ -37,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     Dim redimStatement = targetToken.GetAncestor(Of ReDimStatementSyntax)()
                     If redimStatement IsNot Nothing Then
                         If redimStatement.Clauses.Contains(clause) Then
-                            Return ImmutableArray.Create(New RecommendedKeyword("To", VBFeaturesResources.Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range))
+                            Return s_keywords
                         End If
                     End If
                 End If

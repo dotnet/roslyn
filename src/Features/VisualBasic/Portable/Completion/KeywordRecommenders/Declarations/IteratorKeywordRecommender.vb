@@ -15,13 +15,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class IteratorKeywordRecommender
         Inherits AbstractKeywordRecommender
 
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("Iterator", VBFeaturesResources.Indicates_an_iterator_method_that_can_use_the_Yield_statement))
+
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsTypeMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.IteratorFunction Or PossibleDeclarationTypes.IteratorProperty) AndAlso
                    modifiers.IteratorKeyword.Kind = SyntaxKind.None Then
 
-                    Return ImmutableArray.Create(New RecommendedKeyword("Iterator", VBFeaturesResources.Indicates_an_iterator_method_that_can_use_the_Yield_statement))
+                    Return s_keywords
                 End If
             End If
 
