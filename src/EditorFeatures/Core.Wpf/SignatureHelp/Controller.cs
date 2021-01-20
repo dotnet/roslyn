@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _completionBroker = completionBroker;
         }
 
-        public event EventHandler<Model> ModelUpdated;
+        public event EventHandler<ModelUpdatedEventsArgs> ModelUpdated;
 
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            ModelUpdated?.Invoke(this, modelOpt);
+            ModelUpdated?.Invoke(this, new ModelUpdatedEventsArgs(modelOpt));
         }
 
         private void StartSession(
