@@ -725,7 +725,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                symbol.Type.Accept(this.NotFirstVisitor);
+                var symbolType = ShouldBeNullableAnnotated(symbol, symbol.Type, FlowAnalysisAnnotations.MaybeNull)
+                    ? symbol.Type.WithNullableAnnotation(CodeAnalysis.NullableAnnotation.Annotated)
+                    : symbol.Type;
+                symbolType.Accept(this.NotFirstVisitor);
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 

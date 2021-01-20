@@ -7936,5 +7936,83 @@ public class ClosedStruct: A<int> { }
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation);
         }
+
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        [Theory]
+        [InlineData("[MaybeNull]")]
+        [InlineData("[MaybeNullWhen(true)]")]
+        [InlineData("[MaybeNullWhen(false)]")]
+        public void NullableAttributes_MayBeNullAndMayBeNullWhenOnParameter(string mayBeNullAttribute)
+        {
+            var source = @$"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{{
+    public bool M({mayBeNullAttribute}out T p)
+    {{
+        p = default;
+        return true;
+    }}
+}}
+
+public class ClosedClass: A<object> {{ }}
+public class ClosedStruct: A<int> {{ }}
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, MaybeNullWhenAttributeDefinition });
+            var closedGenericClassMember = compilation.GetTypeByMetadataName("ClosedClass").BaseType().GetMember("M");
+            var closedGenericStructMember = compilation.GetTypeByMetadataName("ClosedStruct").BaseType().GetMember("M");
+            var openGenericMember = compilation.GetTypeByMetadataName("A`1").GetMember("M");
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue | SymbolDisplayParameterOptions.IncludeExtensionThis | SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                closedGenericClassMember.ToDisplayParts(format),
+                "Boolean M(out Object? p)",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                closedGenericStructMember.ToDisplayParts(format),
+                "Boolean M(out Int32 p)",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+            Verify(
+                openGenericMember.ToDisplayParts(format),
+                "Boolean M(out T? p)",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
     }
 }
