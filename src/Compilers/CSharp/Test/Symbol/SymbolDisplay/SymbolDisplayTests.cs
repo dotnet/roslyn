@@ -7832,5 +7832,103 @@ public class Test: A<object> { }
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
         }
+
+        [Fact]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        public void NullableAttributes_MayBeNullOnField()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{
+    [MaybeNull]
+    public T F;
+}
+
+public class ClosedClass: A<object> { }
+public class ClosedStruct: A<int> { }
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
+            var closedGenericClassMember = compilation.GetTypeByMetadataName("ClosedClass").BaseType().GetMember("F");
+            var closedGenericStructMember = compilation.GetTypeByMetadataName("ClosedStruct").BaseType().GetMember("F");
+            var openGenericMember = compilation.GetTypeByMetadataName("A`1").GetMember("F");
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                closedGenericClassMember.ToDisplayParts(format),
+                "Object? F",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+            Verify(
+                closedGenericStructMember.ToDisplayParts(format),
+                "Int32 F",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+            Verify(
+                openGenericMember.ToDisplayParts(format),
+                "T? F",
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact]
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        public void NullableAttributes_MayBeNullOnRetrun()
+        {
+            var source = @"
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
+
+public class A<T>
+{
+    [return: MaybeNull]
+    public T M() => default;
+}
+
+public class ClosedClass: A<object> { }
+public class ClosedStruct: A<int> { }
+";
+            var compilation = CreateCompilation(new[] { source, MaybeNullAttributeDefinition });
+            var closedGenericClassMember = compilation.GetTypeByMetadataName("ClosedClass").BaseType().GetMember("M");
+            var closedGenericStructMember = compilation.GetTypeByMetadataName("ClosedStruct").BaseType().GetMember("M");
+            var openGenericMember = compilation.GetTypeByMetadataName("A`1").BaseType().GetMember("M");
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+            Verify(
+                closedGenericClassMember.ToDisplayParts(format),
+                "Object? M()",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                closedGenericStructMember.ToDisplayParts(format),
+                "Int32 M()",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                openGenericMember.ToDisplayParts(format),
+                "T? M()",
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
     }
 }
