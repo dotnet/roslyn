@@ -360,15 +360,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
             }
 
-            protected override void ProcessReturnValue(IOperation? returnValueOperation)
+            protected override void ProcessReturnValue(IOperation? returnValue)
             {
-                base.ProcessReturnValue(returnValueOperation);
+                base.ProcessReturnValue(returnValue);
 
                 // Escape the return value if we are not analyzing an invoked method during interprocedural analysis.
-                if (returnValueOperation != null &&
+                if (returnValue != null &&
                     DataFlowAnalysisContext.InterproceduralAnalysisData == null)
                 {
-                    HandleEscapingOperation(escapingOperation: returnValueOperation, escapedInstance: returnValueOperation, _escapedReturnValueLocationsBuilder);
+                    HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue, _escapedReturnValueLocationsBuilder);
                 }
             }
 

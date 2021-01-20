@@ -642,19 +642,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
-            protected override void ProcessReturnValue(IOperation? returnValueOperation)
+            protected override void ProcessReturnValue(IOperation? returnValue)
             {
-                base.ProcessReturnValue(returnValueOperation);
+                base.ProcessReturnValue(returnValue);
 
-                if (returnValueOperation != null
-                    && this.TrackedTypeSymbols.Any(s => returnValueOperation.Type.GetBaseTypesAndThis().Contains(s))
+                if (returnValue != null
+                    && this.TrackedTypeSymbols.Any(s => returnValue.Type.GetBaseTypesAndThis().Contains(s))
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
                         out HazardousUsageEvaluator hazardousUsageEvaluator))
                 {
                     this.EvaluatePotentialHazardousUsage(
-                        returnValueOperation.Syntax,
+                        returnValue.Syntax,
                         null,
-                        returnValueOperation,
+                        returnValue,
                         (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                 }
             }

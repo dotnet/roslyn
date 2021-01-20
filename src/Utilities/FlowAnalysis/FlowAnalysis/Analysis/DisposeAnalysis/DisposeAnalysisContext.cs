@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal bool TrackInstanceFields { get; }
         internal Func<ISymbol, bool> IsConfiguredToSkipAnalysis { get; }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder(TrackInstanceFields.GetHashCode());
-            builder(DisposeOwnershipTransferAtConstructor.GetHashCode());
-            builder(DisposeOwnershipTransferAtMethodCall.GetHashCode());
-            builder(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
+            addPart(TrackInstanceFields.GetHashCode());
+            addPart(DisposeOwnershipTransferAtConstructor.GetHashCode());
+            addPart(DisposeOwnershipTransferAtMethodCall.GetHashCode());
+            addPart(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
         }
     }
 }

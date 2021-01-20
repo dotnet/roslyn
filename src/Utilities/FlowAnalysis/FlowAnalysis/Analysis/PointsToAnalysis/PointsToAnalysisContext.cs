@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder(PointsToAnalysisKind.GetHashCode());
+            addPart(PointsToAnalysisKind.GetHashCode());
         }
     }
 }

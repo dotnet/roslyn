@@ -139,11 +139,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder(SourceInfos.GetHashCode());
-            builder(SanitizerInfos.GetHashCode());
-            builder(SinkInfos.GetHashCode());
+            addPart(SourceInfos.GetHashCode());
+            addPart(SanitizerInfos.GetHashCode());
+            addPart(SinkInfos.GetHashCode());
         }
     }
 }

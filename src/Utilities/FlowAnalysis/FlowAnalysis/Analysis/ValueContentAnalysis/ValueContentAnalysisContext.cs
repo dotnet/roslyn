@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder(HashUtilities.Combine(AdditionalSupportedValueTypes));
+            addPart(HashUtilities.Combine(AdditionalSupportedValueTypes));
         }
     }
 }

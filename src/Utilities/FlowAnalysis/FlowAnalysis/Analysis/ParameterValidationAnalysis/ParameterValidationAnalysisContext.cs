@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         public bool IsNullCheckValidationMethod(IMethodSymbol method)
             => NullCheckValidationMethodNames.Contains(method);
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> builder)
+        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            builder(TrackHazardousParameterUsages.GetHashCode());
-            builder(NullCheckValidationMethodNames.GetHashCode());
+            addPart(TrackHazardousParameterUsages.GetHashCode());
+            addPart(NullCheckValidationMethodNames.GetHashCode());
         }
     }
 }
