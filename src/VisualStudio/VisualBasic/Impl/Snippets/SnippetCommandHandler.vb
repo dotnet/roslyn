@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -22,6 +23,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
 
@@ -39,8 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider, <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
-            MyBase.New(threadingContext, editorAdaptersFactoryService, serviceProvider)
+        Public Sub New(threadingContext As IThreadingContext, signatureHelpControllerProvider As SignatureHelpControllerProvider, editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider, <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
+            MyBase.New(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, serviceProvider)
             _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
@@ -53,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Protected Overrides Function GetSnippetExpansionClient(textView As ITextView, subjectBuffer As ITextBuffer) As AbstractSnippetExpansionClient
-            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, EditorAdaptersFactoryService, _argumentProviders)
+            Return SnippetExpansionClient.GetSnippetExpansionClient(ThreadingContext, textView, subjectBuffer, SignatureHelpControllerProvider, EditorCommandHandlerServiceFactory, EditorAdaptersFactoryService, _argumentProviders)
         End Function
 
         Protected Overrides Function TryInvokeInsertionUI(textView As ITextView, subjectBuffer As ITextBuffer, Optional surroundWith As Boolean = False) As Boolean

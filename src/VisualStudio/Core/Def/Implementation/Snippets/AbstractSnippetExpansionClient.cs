@@ -30,11 +30,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -49,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
     {
+        private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
+        private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
@@ -68,6 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             Guid languageServiceGuid,
             ITextView textView,
             ITextBuffer subjectBuffer,
+            SignatureHelpControllerProvider signatureHelpControllerProvider,
+            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext)
@@ -75,6 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
+            this._signatureHelpControllerProvider = signatureHelpControllerProvider;
+            this._editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
             this._allArgumentProviders = argumentProviders;
         }
@@ -493,9 +497,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         Debug.Assert(_state._symbols == methodSymbols);
                         Debug.Assert(_state._symbol == null);
 
-                        var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-                        var controllerProvider = componentModel.DefaultExportProvider.GetExportedValue<SignatureHelpControllerProvider>();
-                        if (controllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
+                        if (_signatureHelpControllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
                         {
                             // Register a handler for ModelUpdated. To avoid the possibility of more than one
                             // handler being in the list, remove any current one before adding the new one. This
@@ -509,8 +511,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         //
                         // TODO: Figure out why ISignatureHelpBroker.TriggerSignatureHelp doesn't work but this does.
                         // https://github.com/dotnet/roslyn/issues/50036
-                        var editorCommandHandlerServiceFactory = componentModel.DefaultExportProvider.GetExportedValue<IEditorCommandHandlerServiceFactory>();
-                        var editorCommandHandlerService = editorCommandHandlerServiceFactory.GetService(TextView, SubjectBuffer);
+                        var editorCommandHandlerService = _editorCommandHandlerServiceFactory.GetService(TextView, SubjectBuffer);
                         editorCommandHandlerService.Execute((view, buffer) => new InvokeSignatureHelpCommandArgs(view, buffer), nextCommandHandler: null);
 
                         return true;

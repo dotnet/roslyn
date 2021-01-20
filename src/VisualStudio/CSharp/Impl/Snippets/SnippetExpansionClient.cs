@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
@@ -36,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
-            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
+        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, SignatureHelpControllerProvider signatureHelpControllerProvider, IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
         {
         }
 

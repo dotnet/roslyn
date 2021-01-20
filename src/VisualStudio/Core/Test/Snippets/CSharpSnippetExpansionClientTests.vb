@@ -317,6 +317,8 @@ using G=   H.I;
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
                     document.GetTextBuffer(),
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
@@ -338,6 +340,8 @@ using G=   H.I;
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.GetTextBuffer(),
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
@@ -378,6 +382,8 @@ using G=   H.I;
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),
+                    signatureHelpControllerProvider:=Nothing,
+                    editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 

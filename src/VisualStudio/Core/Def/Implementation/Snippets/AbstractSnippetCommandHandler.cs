@@ -7,6 +7,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -35,14 +36,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<InsertSnippetCommandArgs>,
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
+        protected readonly SignatureHelpControllerProvider SignatureHelpControllerProvider;
+        protected readonly IEditorCommandHandlerServiceFactory EditorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
         protected readonly SVsServiceProvider ServiceProvider;
 
         public string DisplayName => FeaturesResources.Snippets;
 
-        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public AbstractSnippetCommandHandler(IThreadingContext threadingContext, SignatureHelpControllerProvider signatureHelpControllerProvider, IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
+            this.SignatureHelpControllerProvider = signatureHelpControllerProvider;
+            this.EditorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
             this.ServiceProvider = serviceProvider;
         }
