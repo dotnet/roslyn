@@ -42,6 +42,11 @@ namespace RunTests
                 return ExitFailure;
             }
 
+            ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
+            var dotnetResult = await ProcessRunner.CreateProcess(options.DotnetFilePath, arguments: "--version", captureOutput: true).Result;
+            ConsoleUtil.WriteLine(string.Join(Environment.NewLine, dotnetResult.OutputLines));
+            ConsoleUtil.WriteLine(ConsoleColor.Red, string.Join(Environment.NewLine, dotnetResult.ErrorLines));
+
             if (options.CollectDumps)
             {
                 if (!DumpUtil.IsAdministrator())

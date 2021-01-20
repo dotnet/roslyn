@@ -125,6 +125,19 @@ internal static class MinimizeUtil
                 .Where(x => x.Value.Count > 1)
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
                 .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
+
+            // The "rehydrate-all" script assumes we are running all tests on a single machine instead of on Helix.
+            var rehydrateAllBuilder = new StringBuilder();
+            if (isUnix)
+            {
+                writeUnixHeaderContent(rehydrateAllBuilder);
+                rehydrateAllBuilder.AppendLine("export HELIX_CORRELATION_PAYLOAD=$scriptroot/.duplicate");
+            }
+            else
+            {
+                rehydrateAllBuilder.AppendLine(@"set HELIX_CORRELATION_PAYLOAD=%~dp0\.duplicate");
+            }
+
             var builder = new StringBuilder();
             foreach (var group in grouping)
             {
@@ -134,16 +147,20 @@ internal static class MinimizeUtil
                 {
                     filename = "rehydrate.sh";
                     writeUnixRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, "rehydrate.sh") + @"""");
                 }
                 else
                 {
                     filename = "rehydrate.cmd";
                     writeWindowsRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, "rehydrate.cmd"));
                 }
 
-                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, filename));
                 File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
             }
+
+            string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
+            File.WriteAllText(Path.Combine(destinationDirectory, rehydrateAllFilename), rehydrateAllBuilder.ToString());
 
             static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
             {
@@ -172,7 +189,7 @@ if %errorlevel% neq 0 (
                 builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
             }
 
-            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            static void writeUnixHeaderContent(StringBuilder builder)
             {
                 builder.AppendLine(@"#!/bin/bash
 
@@ -188,6 +205,11 @@ source=""$(readlink ""$source"")""
 done
 scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
 ");
+            }
+
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                writeUnixHeaderContent(builder);
 
                 var count = 0;
                 foreach (var tuple in group)

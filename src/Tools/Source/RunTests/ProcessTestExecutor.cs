@@ -27,12 +27,13 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool unix)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes)
         {
             // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
             // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
             // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
-            var sep = unix ? "'" : @"""";
+            // We also need double quotes when building an arguments string for Process.Start in .NET Core so that splitting/unquoting works as expected.
+            var sep = useSingleQuotes ? "'" : @"""";
 
             var builder = new StringBuilder();
             builder.Append($@"test");
@@ -112,7 +113,7 @@ namespace RunTests
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo, unix: !RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;

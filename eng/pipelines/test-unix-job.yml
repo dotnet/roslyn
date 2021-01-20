@@ -43,14 +43,10 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    # Work around for files not maintaining permissions after pipeline download
-    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
-    - bash: |
-        chmod 755 eng/build.sh
-      workingDirectory: '$(Build.SourcesDirectory)'
-      displayName: Fix executable permissions in pipeline artifact
-
-    - script: ./eng/build.sh --ci --helix --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+    - task: ShellScript@2
+      inputs:
+        scriptPath: ./eng/build.sh
+        args: --ci --helix --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
