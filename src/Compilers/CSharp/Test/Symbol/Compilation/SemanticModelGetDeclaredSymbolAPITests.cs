@@ -360,6 +360,8 @@ class C
             Assert.Equal(MethodKind.PropertySet, setterSymbol.MethodKind);
             Assert.Equal(propertySymbol.SetMethod, setterSymbol);
             Assert.Equal("void C.this[System.Int32 x, System.Int32 y].set", setterSymbol.ToTestDisplayString());
+
+            Assert.Null(propertySymbol.BackingField);
         }
 
         [Fact]
@@ -389,6 +391,7 @@ class C
             Assert.Equal(2, accessorList.Count);
             Assert.Same(eventSymbol.AddMethod, model.GetDeclaredSymbol(accessorList[0]));
             Assert.Same(eventSymbol.RemoveMethod, model.GetDeclaredSymbol(accessorList[1]));
+            Assert.Null(eventSymbol.BackingField);
         }
 
         [WorkItem(543494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543494")]
@@ -406,11 +409,13 @@ class C
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var eventDecl = (EventFieldDeclarationSyntax)typeDecl.Members[0];
             var model = compilation.GetSemanticModel(tree);
-            var eventSymbol = model.GetDeclaredSymbol(eventDecl.Declaration.Variables[0]);
+            var eventSymbol = (IEventSymbol)model.GetDeclaredSymbol(eventDecl.Declaration.Variables[0]);
             Assert.NotNull(eventSymbol);
             Assert.Null(model.GetDeclaredSymbol(eventDecl)); // the event decl may have multiple variable declarators, the result for GetDeclaredSymbol will always be null
             Assert.Equal("E", eventSymbol.Name);
             Assert.IsType<SourceFieldLikeEventSymbol>(eventSymbol.GetSymbol());
+            Assert.NotNull(eventSymbol.BackingField);
+            Assert.Equal(eventSymbol, eventSymbol.BackingField.AssociatedSymbol);
         }
 
         [WorkItem(543574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543574")]
@@ -2883,6 +2888,8 @@ class C : I
             Assert.Equal("I.set_P", explicitPropertySetterSymbol.Name);
             Assert.Equal(1, explicitPropertySetterSymbol.ExplicitInterfaceImplementations.Length);
             Assert.Same(explicitPropertySymbol.SetMethod, explicitPropertySetterSymbol);
+
+            Assert.NotNull(explicitPropertySymbol.BackingField);
         }
 
         [WorkItem(527284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527284")]

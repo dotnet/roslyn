@@ -302,6 +302,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IEventSymbol_BackingField As IFieldSymbol Implements IEventSymbol.BackingField
+            Get
+                Return Me.AssociatedField
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_OriginalDefinition As IEventSymbol Implements IEventSymbol.OriginalDefinition
             Get
                 Return Me.OriginalDefinition

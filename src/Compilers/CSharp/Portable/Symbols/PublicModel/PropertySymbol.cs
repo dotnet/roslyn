@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get { return _underlying.SetMethod.GetPublicSymbol(); }
         }
 
+        IFieldSymbol IPropertySymbol.BackingField
+        {
+            get { return (_underlying as SourcePropertySymbolBase)?.BackingField.GetPublicSymbol(); }
+        }
+
         IPropertySymbol IPropertySymbol.OriginalDefinition
         {
             get
