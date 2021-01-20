@@ -50,7 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
             if (isLspEditorEnabled)
             {
-                return new VSServerCapabilities();
+                return new VSServerCapabilities
+                {
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        OpenClose = false,
+                        Change = TextDocumentSyncKind.None,
+                    }
+                };
             }
 
             return _defaultCapabilitiesProvider.GetCapabilities();
