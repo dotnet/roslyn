@@ -251,11 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (workspace.CurrentSolution.GetDocument(documentId) == null)
                 {
-                    // We unfortunately don't have a cancellation token to pass here right now; we don't expect this to
-                    // be expensive though, because if a feature is asking to navigate to this file, it's because they
-                    // already know this file contains something interesting; that probably means generators have
-                    // already ran so this should be a no-op. If this proves to be wrong, we may want to refactor this
-                    // further to have the SourceGeneratedFileManager instead open the file asynchronously.
                     var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
                                                                      .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
                                                                      .GetAwaiter().GetResult();
