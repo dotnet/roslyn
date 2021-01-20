@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
+        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
+
         static SymbolCompletionProvider()
         {
             for (var importDirective = 0; importDirective < 2; importDirective++)
@@ -85,8 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (context != null)
             {
                 var document = context.Document;
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                if (ShouldTriggerInArgumentLists(sourceText, options))
+                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, options))
                 {
                     // Avoid preselection & hard selection when triggered via insertion in an argument list.
                     // If an item is hard selected, then a user trying to type MethodCall() will get
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return ShouldTriggerInArgumentLists(text, options)
+            return Workspace.TryGetWorkspace(text.Container, out var workspace) && ShouldTriggerInArgumentLists(workspace, options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -134,12 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
-
-        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
-            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
-                ShouldTriggerInArgumentLists(workspace, options);
-
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
 
         private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
         {
