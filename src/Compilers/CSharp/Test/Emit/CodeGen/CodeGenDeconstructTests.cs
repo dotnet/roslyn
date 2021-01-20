@@ -10027,5 +10027,54 @@ class B
                     //         (x4, var (y4, z4)) = new B();
                     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4", isSuppressed: false).WithArguments("x4").WithLocation(12, 10));
         }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentUseDeclaredVariableInAssignment()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        (var x1, x1) = new A();
+        (x2, var x2) = new A();
+        (var x3, (var y3, x3)) = new B();
+        (x4, (var y4, var x4)) = new B();
+    }
+}
+
+class A
+{
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (6,18): error CS0841: Cannot use local variable 'x1' before it is declared
+                    //         (var x1, x1) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 18),
+                    // (7,10): error CS0841: Cannot use local variable 'x2' before it is declared
+                    //         (x2, var x2) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(7, 10),
+                    // (8,27): error CS0841: Cannot use local variable 'x3' before it is declared
+                    //         (var x3, (var y3, x3)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x3").WithArguments("x3").WithLocation(8, 27),
+                    // (9,10): error CS0841: Cannot use local variable 'x4' before it is declared
+                    //         (x4, (var y4, var x4)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 10));
+        }
     }
 }
