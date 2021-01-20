@@ -144,8 +144,10 @@ $$", "class {$$}");
 {
     void Method()
     {
-        if (true) 
+        if (true)
+        {
             $$
+        }
     }
 }", @"class C
 {
@@ -558,7 +560,7 @@ $$", @"         using
         {
             Test(@"class C
 {
-    event System.EventHandler e = null  int i = 2;  
+    event System.EventHandler e = null  int i = 2;
     $$
 }", @"class C
 {
@@ -594,7 +596,9 @@ $$", @"         using
     void Method()
     {
         foreach (var x in y)
+        {
             $$
+        }
     }
 }", @"class Program
 {

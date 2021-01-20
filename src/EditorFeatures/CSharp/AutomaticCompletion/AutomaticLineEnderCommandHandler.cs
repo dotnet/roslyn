@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Windows;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var insertionPosition = selectedNode switch
                 {
                     NamespaceDeclarationSyntax or BaseTypeDeclarationSyntax => selectedNode.GetBraces().openBrace.SpanStart,
-                    BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax => selectedNode.GetParameterList().Span.End,
+                    BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax => selectedNode.GetParameterList()!.Span.End,
                     IndexerDeclarationSyntax indexerNode => indexerNode.ParameterList.Span.End,
                     ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.Span.End,
                     DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.Span.End,
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             CancellationToken cancellationToken)
         {
             // Only support remove braces for ObjectCreationExpression with Empty Initializer
-            if (node is ObjectCreationExpressionSyntax { Initializer: not null } objectCreationNode)
+            if (node is ObjectCreationExpressionSyntax objectCreationNode && objectCreationNode.Initializer != null)
             {
                 var initializer = objectCreationNode.Initializer;
                 var lineEnd = document.GetTextSynchronously(cancellationToken).Lines.GetLineFromPosition(caretPosition).End;
@@ -170,12 +171,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             var nodeCandidate = token.GetAncestor(node => ShouldAddBraces(node) || ShouldRemoveBraces(node));
-            return nodeCandidate;
+            return IsCaretOnHeader(nodeCandidate, caretPosition) ? nodeCandidate : null;
+        }
+
+        private static bool IsCaretOnHeader(SyntaxNode? node, int caretPosition)
+            => node switch
+            {
+                NamespaceDeclarationSyntax or BaseTypeDeclarationSyntax
+                    => !WithinAttributes(node, caretPosition) && !WithinBraces(node, caretPosition),
+                BaseMethodDeclarationSyntax {ExpressionBody: null} or LocalFunctionStatementSyntax {ExpressionBody: null}
+                    => !WithinAttributes(node, caretPosition) && !WithinMethodBody(node, caretPosition),
+                IndexerDeclarationSyntax {AccessorList: not null} indexerDeclarationNode
+                    => !WithinAttributes(node, caretPosition) && !WithinBraces(indexerDeclarationNode.AccessorList, caretPosition),
+                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.FullSpan.Contains(caretPosition),
+                DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.FullSpan.Contains(caretPosition),
+                ForEachStatementSyntax or ForStatementSyntax or IfStatementSyntax or LockStatementSyntax or UsingStatementSyntax or WhileStatementSyntax
+                    => !WithinEmbeddedStatement(node, caretPosition),
+                ElseClauseSyntax elseClauseNode => elseClauseNode.Statement is IfStatementSyntax
+                    ? IsCaretOnHeader(elseClauseNode.Statement, caretPosition)
+                    : !WithinEmbeddedStatement(node, caretPosition),
+                SwitchStatementSyntax switchStatementNode => !WithinBraces(switchStatementNode, caretPosition),
+                TryStatementSyntax tryStatementNode => !tryStatementNode.Block.Span.Contains(caretPosition),
+                CatchClauseSyntax catchClauseNode => !catchClauseNode.Block.Span.Contains(caretPosition),
+                _ => false,
+            };
+
+        private static bool WithinMethodBody(SyntaxNode node, int caretPosition)
+        {
+            if (node is BaseMethodDeclarationSyntax methodDeclarationNode)
+            {
+                return methodDeclarationNode.Body?.Span.Contains(caretPosition) ?? false;
+            }
+
+            if (node is LocalFunctionStatementSyntax localFunctionStatementNode)
+            {
+                return localFunctionStatementNode.Body?.Span.Contains(caretPosition) ?? false;
+            }
+
+            return false;
+        }
+
+        private static bool WithinEmbeddedStatement(SyntaxNode node, int caretPosition)
+            => node.GetEmbeddedStatement()?.Span.Contains(caretPosition) ?? false;
+
+        private static bool WithinAttributes(SyntaxNode node, int caretPosition)
+        {
+            var attributeLists = node.GetAttributeLists();
+            return attributeLists.Span.Contains(caretPosition);
+        }
+
+        private static bool WithinBraces(SyntaxNode node, int caretPosition)
+        {
+            var (openBrace, closeBrace) = node.GetBraces();
+            return TextSpan.FromBounds(openBrace.SpanStart, closeBrace.Span.End).Contains(caretPosition);
         }
 
         private static bool ShouldRemoveBraces(SyntaxNode node)
         {
-            if (node is ObjectCreationExpressionSyntax { Initializer: not null } objectCreationNode)
+            if (node is ObjectCreationExpressionSyntax objectCreationNode
+                && objectCreationNode.Initializer != null)
             {
                 var expressions = objectCreationNode.Initializer.Expressions;
                 if (expressions.IsEmpty())
