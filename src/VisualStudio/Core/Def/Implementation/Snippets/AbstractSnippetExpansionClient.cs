@@ -485,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         Debug.Assert(_state._symbol == null);
 
                         var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-                        var controllerProvider = componentModel.DefaultExportProvider.GetExportedValue<ControllerProvider>();
+                        var controllerProvider = componentModel.DefaultExportProvider.GetExportedValue<SignatureHelpControllerProvider>();
                         if (controllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
                         {
                             // Register a handler for ModelUpdated. To avoid the possibility of more than one

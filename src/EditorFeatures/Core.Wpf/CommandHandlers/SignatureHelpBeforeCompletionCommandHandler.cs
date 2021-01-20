@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpBeforeCompletionCommandHandler(
             IThreadingContext threadingContext,
-            ControllerProvider controllerProvider)
+            SignatureHelpControllerProvider controllerProvider)
             : base(threadingContext, controllerProvider)
         {
         }

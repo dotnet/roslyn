@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 {
     [Export]
     [Shared]
-    internal class ControllerProvider : ForegroundThreadAffinitizedObject
+    internal class SignatureHelpControllerProvider : ForegroundThreadAffinitizedObject
     {
         private static readonly object s_controllerPropertyKey = new();
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ControllerProvider(
+        public SignatureHelpControllerProvider(
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     internal abstract class AbstractSignatureHelpCommandHandler :
         ForegroundThreadAffinitizedObject
     {
-        private readonly ControllerProvider _controllerProvider;
+        private readonly SignatureHelpControllerProvider _controllerProvider;
 
         public AbstractSignatureHelpCommandHandler(
             IThreadingContext threadingContext,
-            ControllerProvider controllerProvider)
+            SignatureHelpControllerProvider controllerProvider)
             : base(threadingContext)
         {
             _controllerProvider = controllerProvider;
