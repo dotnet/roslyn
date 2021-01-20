@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 
-        internal virtual CompletionItemRules GetRules()
+        protected static CompletionItemRules GetRules()
             => s_defaultRules;
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

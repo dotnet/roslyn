@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -11,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -22,12 +20,12 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(CSharpSuggestionModeCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
     [Shared]
-    internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
+    internal class CSharpSuggestionModeCompletionProvider : AbstractSuggestionModeCompletionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,24 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
         {
         }
 
-        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(
+        protected override async Task<CompletionItem?> GetSuggestionModeItemAsync(
             Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default)
         {
             if (trigger.Kind != CompletionTriggerKind.Snippets)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
                 if (token.Kind() == SyntaxKind.None)
-                {
                     return null;
-                }
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
-                var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-                if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
+                var typeInferrer = document.GetRequiredLanguageService<ITypeInferenceService>();
+                if (IsLambdaExpression(semanticModel, tree, position, token, typeInferrer, cancellationToken))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return false;
         }
 
-        private static bool IsLambdaExpression(SemanticModel semanticModel, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
+        private static bool IsLambdaExpression(SemanticModel semanticModel, SyntaxTree tree, int position, SyntaxToken token, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
         {
             // Not after `new`
             if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -140,8 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // A lambda that is being typed may be parsed as a tuple without names
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
-            if (token.SyntaxTree.IsPossibleTupleContext(token, position) &&
-                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression) &&
+            if (tree.IsPossibleTupleContext(token, position) &&
+                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tupleExpression) &&
                 !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;
@@ -150,17 +146,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             // Walk up a single level to allow for typing the beginning of a lambda:
             // new AssemblyLoadEventHandler(($$
             if (token.Kind() == SyntaxKind.OpenParenToken &&
-                token.Parent.Kind() == SyntaxKind.ParenthesizedExpression)
+                token.GetRequiredParent().Kind() == SyntaxKind.ParenthesizedExpression)
             {
-                position = token.Parent.SpanStart;
+                position = token.GetRequiredParent().SpanStart;
             }
 
             // WorkItem 834609: Automatic brace completion inserts the closing paren, making it
             // like a cast.
             if (token.Kind() == SyntaxKind.OpenParenToken &&
-                token.Parent.Kind() == SyntaxKind.CastExpression)
+                token.GetRequiredParent().Kind() == SyntaxKind.CastExpression)
             {
-                position = token.Parent.SpanStart;
+                position = token.GetRequiredParent().SpanStart;
             }
 
             // In the following situation, the type inferrer will infer Task to support target type preselection
@@ -192,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             return inferredTypeInfo.Any(type => GetDelegateType(type, semanticModel.Compilation).IsDelegateType());
         }
 
-        private static ITypeSymbol GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
+        private static ITypeSymbol? GetDelegateType(TypeInferenceInfo typeInferenceInfo, Compilation compilation)
         {
             var typeSymbol = typeInferenceInfo.InferredType;
             if (typeInferenceInfo.IsParams && typeInferenceInfo.InferredType.IsArrayType())
