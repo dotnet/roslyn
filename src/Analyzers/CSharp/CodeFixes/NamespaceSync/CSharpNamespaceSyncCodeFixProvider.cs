@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SyncNamespace), Shared]
-    internal sealed class CSharpNamespaceSyncCodeFixProvider : AbstractSyncNamespaceCodeFixProvider
+    internal sealed class CSharpNamespaceSyncCodeFixProvider : AbstractNamespaceSyncCodeFixProvider
     {
 
         [ImportingConstructor]
@@ -23,16 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
         {
         }
 
-        protected override CodeAction CreateCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-            => new MyCodeAction(createChangedSolution);
-
-        private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(CSharpAnalyzersResources.Namespace_does_not_match_folder_structure, createChangedSolution)
-            {
-
-            }
-        }
+        protected override string Title => CSharpAnalyzersResources.Namespace_does_not_match_folder_structure;
     }
 }

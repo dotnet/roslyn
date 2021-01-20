@@ -5,27 +5,26 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
 {
-    internal abstract class AbstractSyncNamespaceCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractNamespaceSyncCodeFixProvider : CodeFixProvider
     {
-        protected abstract CodeAction CreateCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution);
+        protected abstract string Title { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                CreateCodeAction(cancellationToken => FixAsync(context.Document, context.Diagnostics, cancellationToken)),
+                new MyCodeAction(Title, cancellationToken => FixAsync(context.Document, context.Diagnostics, cancellationToken)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
@@ -35,18 +34,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
         {
             var currentDocument = document;
 
+
             foreach (var diagnostic in diagnostics)
             {
-                currentDocument = await FixSingleDiagnosticAsync(currentDocument, diagnostic, cancellationToken).ConfigureAwait(false);
+                var targetNamespace = diagnostic.Properties["TargetNamespace"];
+                Contract.ThrowIfNull(targetNamespace);
+
+                var newSolution = await FixSingleDiagnosticAsync(currentDocument, targetNamespace, cancellationToken).ConfigureAwait(false);
+                currentDocument = newSolution.GetRequiredDocument(document.Id);
             }
 
             return currentDocument.Project.Solution;
         }
 
-        private static async Task<Document> FixSingleDiagnosticAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Solution> FixSingleDiagnosticAsync(Document document, string targetNamespace, CancellationToken cancellationToken)
         {
-            var targetNamespace = diagnostic.Properties["TargetNamespace"];
-
             // Use the Renamer.RenameDocumentAsync API to sync namespaces in the document. This allows
             // us to keep in line with the sync methodology that we have as a public API and not have 
             // to rewrite or move the complex logic. RenameDocumentAsync is designed to behave the same
@@ -61,11 +63,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
 
             var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
             Debug.Assert(newSolution != document.Project.Solution);
-
-            return newSolution.GetRequiredDocument(document.Id);
+            return newSolution;
         }
 
         public override FixAllProvider? GetFixAllProvider()
-            => WellKnownFixAllProviders.BatchFixer;
+            => CustomFixAllProvider.Instance;
     }
 }
