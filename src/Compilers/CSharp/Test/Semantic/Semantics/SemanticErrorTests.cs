@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2218,7 +2217,7 @@ interface I
     event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (4,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E1 { add; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 30),
@@ -12975,6 +12974,36 @@ class C
         }
 
         [Fact]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        {
+            var text =
+@"using System;
+using System.Collections;
+using System.Linq.Expressions;
+
+public class Collection : IEnumerable
+{
+    public void Add(int i, int j = 0) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class C {
+    public void M() {
+        Expression<Func<Collection>> expr =
+            () => new Collection { 1 }; // 1
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                //             () => new Collection { 1 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+        }
+
+        [Fact]
         public void CS0855ERR_ExpressionTreeContainsIndexedProperty()
         {
             var source1 =
@@ -22597,6 +22626,7 @@ public class Program
         var z8 = new Func<string, string>(ref Program.BarP); 
         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
         var z10 = new Func<string, string>(ref Id); // compat
+        var z11 = new Func<string, string>(ref new(x => x));
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
@@ -22617,7 +22647,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (13,47): error CS0149: Method name expected
@@ -22649,7 +22683,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
                 // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
                 //         var z10 = new Func<string, string>(ref Id); // compat
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
         }
 
         [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]

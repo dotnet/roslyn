@@ -629,12 +629,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             => New(ctor, args.ToImmutableArray());
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
-            => new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
+            => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
 
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
             var ctor = WellKnownMethod(wm);
-            return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
+            return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MakeIsNotANumberTest(BoundExpression input)
@@ -735,9 +735,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 Syntax, receiver, method, args,
-                default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
-                hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
+                argumentNamesOpt: default(ImmutableArray<String>), argumentRefKindsOpt: method.ParameterRefKinds, isDelegateCall: false, expanded: false,
+                invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
+                type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
 
@@ -746,8 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
                 Syntax, receiver, method, args,
-                default(ImmutableArray<String>), refKinds, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
+                argumentNamesOpt: default(ImmutableArray<String>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
+                argsToParamsOpt: ImmutableArray<int>.Empty, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
 

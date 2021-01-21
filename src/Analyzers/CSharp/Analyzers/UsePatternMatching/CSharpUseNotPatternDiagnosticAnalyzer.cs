@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpUseNotPatternDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNotPatternDiagnosticId,
+                   EnforceOnBuildValues.UseNotPattern,
                    CSharpCodeStyleOptions.PreferNotPattern,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

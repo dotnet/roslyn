@@ -229,6 +229,11 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.Record:
                     return ClassificationTypeNames.RecordName;
 
+                case TextTags.ContainerStart:
+                case TextTags.ContainerEnd:
+                    // These tags are not visible so classify them as whitespace
+                    return ClassificationTypeNames.WhiteSpace;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(taggedTextTag);
             }

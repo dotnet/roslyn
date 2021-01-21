@@ -35,7 +35,7 @@
          
          Metadata:
          - ItemSpec: service name
-         - Audience ('Local'|'Process'): Microsoft.VisualStudio.Shell.ServiceBroker.ServiceAudience enum value
+         - Audience ('Local'|'Process'|...): Microsoft.VisualStudio.Shell.ServiceBroker.ServiceAudience enum value
          - ProfferingPackageId (guid, optional): GUID of the proffering package or empty for ServiceHub services
 
       4) PkgDefBindingRedirect
@@ -96,8 +96,12 @@
           BeforeTargets="GeneratePkgDef">
     <ItemGroup>
       <PkgDefBrokeredService Update="@(PkgDefBrokeredService)">
-        <_Audience>dword:00000003</_Audience> <!-- Local -->
+        <_Audience>dword:00000003</_Audience> <!-- default: Local -->
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'Process'">dword:00000001</_Audience>
+        <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'RemoteExclusiveClient'">dword:00000100</_Audience>
+        <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'LiveShareGuest'">dword:00000400</_Audience>
+        <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'RemoteExclusiveServer'">dword:00000800</_Audience>
+        <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'AllClientsIncludingGuests'">dword:00000503</_Audience>
       </PkgDefBrokeredService>
     </ItemGroup>
   </Target>

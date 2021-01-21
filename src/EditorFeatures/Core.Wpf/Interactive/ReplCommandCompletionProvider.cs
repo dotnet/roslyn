@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
     internal abstract class ReplCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string GetCompletionString(string commandName);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                     var window = workspace.Window;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
+                    if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))
                     {
                         var commands = window.GetInteractiveCommands();
                         if (commands != null)

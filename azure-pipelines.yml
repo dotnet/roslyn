@@ -21,12 +21,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
+    queueName: BuildPool.Windows.10.Amd64.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
+    vmImageName: windows-2019
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -36,16 +38,6 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
-
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Spanish Debug 32'
-    jobName: Test_Windows_Desktop_Spanish_Debug_32
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
-    testArguments: -testDesktop -test32
-    queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -73,6 +65,16 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Release 32'
+    jobName: Test_Windows_Desktop_Spanish_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test32
+    queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -112,8 +114,8 @@ jobs:
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
-    testRunName: 'Test OSX Debug'
-    jobName: Test_OSX_Debug
+    testRunName: 'Test macOS Debug'
+    jobName: Test_macOS_Debug
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
@@ -128,6 +130,8 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
@@ -142,6 +146,8 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-build-correctness.cmd -configuration Release
       displayName: Build - Validate correctness
 
@@ -172,6 +178,8 @@ jobs:
    queue: BuildPool.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
       displayName: Build
 

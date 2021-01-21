@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
@@ -73,11 +74,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                         Assert.NotNull(expectedSymbolChanges);
 
                         var checkedCodeActions = new HashSet<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>(renamedCodeActionsOperations.Length);
-                        foreach (var kvp in expectedSymbolChanges)
+                        foreach (var (originalName, newName) in expectedSymbolChanges)
                         {
-                            var originalName = kvp.Key;
-                            var newName = kvp.Value;
-
                             var codeAction = renamedCodeActionsOperations.FirstOrDefault(a => a._symbol.ToDisplayString() == originalName);
                             Assert.Equal(newName, codeAction?._newName);
                             Assert.False(checkedCodeActions.Contains(codeAction));

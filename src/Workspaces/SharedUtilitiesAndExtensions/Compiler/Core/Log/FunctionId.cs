@@ -500,5 +500,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSPCompletion_MissingLSPCompletionTriggerKind = 450,
 
         Workspace_Project_CompilationThrownAway = 460,
+
+        CommandHandler_Paste_ImportsOnPaste = 470,
+
+        FindDocumentInWorkspace = 480,
+        RegisterWorkspace = 481,
     }
 }

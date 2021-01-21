@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Convert_GetType_to_NameOf">
         <source>Convert 'GetType' to 'NameOf'</source>
-        <target state="new">Convert 'GetType' to 'NameOf'</target>
+        <target state="translated">Convertir "GetType" en "NameOf"</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">

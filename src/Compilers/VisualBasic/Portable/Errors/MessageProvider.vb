@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property WRN_AnalyzerReferencesFramework As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_AnalyzerReferencesFramework
             End Get
         End Property
 
@@ -584,13 +584,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Generators
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitialization As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_GeneratorFailedDuringInitialization
             End Get
         End Property
 
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGeneration As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_GeneratorFailedDuringGeneration
             End Get
         End Property
 

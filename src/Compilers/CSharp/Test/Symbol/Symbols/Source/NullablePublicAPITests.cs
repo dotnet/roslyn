@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1736,9 +1735,20 @@ class C
 }
 ";
 
-            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "false");
+            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "never");
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
+            comp.VerifyDiagnostics(
+                // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(5, 12),
+                // (9,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16));
+
+            Assert.False(isNullableAnalysisEnabled(comp));
+
+            comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
                 //     object field = null;
@@ -1753,7 +1763,13 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled);
+            Assert.True(isNullableAnalysisEnabled(comp));
+
+            static bool isNullableAnalysisEnabled(CSharpCompilation comp)
+            {
+                var tree = (CSharpSyntaxTree)comp.SyntaxTrees.Single();
+                return comp.IsNullableAnalysisEnabledIn(tree, new Text.TextSpan(0, tree.Length));
+            }
         }
 
         private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
@@ -2557,8 +2573,8 @@ class C
             }
         }
 
-        [InlineData("true")]
-        [InlineData("false")]
+        [InlineData("always")]
+        [InlineData("never")]
         [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
         public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
         {
@@ -4174,6 +4190,68 @@ class Test
         }
 
         [Fact]
+        public void ParameterDefaultValue()
+        {
+            var source = @"
+class Test
+{
+    void M0(object obj = default) { } // 1
+    void M1(int i = default) { }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     void M0(object obj = default) { } // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 26));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(0).Value;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(1).Value;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
+        public void AttributeDefaultValue()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute
+{
+    public Attr(object obj, int i) { }
+}
+
+[Attr(default, default)] // 1
+class Test
+{
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [Attr(default, default)] // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(9, 7));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(0).Expression;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(1).Expression;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
         [WorkItem(38638, "https://github.com/dotnet/roslyn/issues/38638")]
         public void TypeParameter_Default()
         {
@@ -4797,6 +4875,90 @@ M();")]
             var model = comp.GetSemanticModel(tree);
 
             AssertEx.Equal("void M()", model.GetDeclaredSymbol(localFunction).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleNames_DifferentTernaryBranches_PrivateTupleField()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    static void M(int a, int b, bool c)
+    {
+        var (x, y) = c ? ((object)1, a) : (b, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        private T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Minimal);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ternary = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var operation = model.GetOperation(ternary);
+            AssertEx.Equal("(System.Object, System.Int32 a)", operation.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleNames_BadSignatures()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var x = (a: ""Alice"", b: ""Bob"");
+        System.Console.WriteLine($""{x.a}"");
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public int Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item2 = 2;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, assemblyName: "comp", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.WriteLine($"{x.a}");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
+                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
+                // (17,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(17, 16),
+                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
+                // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
+                //             this.Item2 = 2;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleLiteral = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
         }
     }
 }

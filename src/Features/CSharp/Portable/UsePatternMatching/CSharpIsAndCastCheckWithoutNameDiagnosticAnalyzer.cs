@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
-                   option: CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+                   EnforceOnBuildValues.InlineIsTypeWithoutName,
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))

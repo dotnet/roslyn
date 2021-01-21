@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsRecord(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -667,27 +670,35 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPropertyPatternClause(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertyPatternClause;
 
-        public bool IsObjectInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
-            => IsObjectInitializerNamedAssignmentIdentifier(node, out _);
+        public bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
+            => IsMemberInitializerNamedAssignmentIdentifier(node, out _);
 
-        public bool IsObjectInitializerNamedAssignmentIdentifier(
+        public bool IsMemberInitializerNamedAssignmentIdentifier(
             [NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance)
         {
             initializedInstance = null;
             if (node is IdentifierNameSyntax identifier &&
-                identifier.IsLeftSideOfAssignExpression() &&
-                identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
+                identifier.IsLeftSideOfAssignExpression())
             {
-                var objectInitializer = identifier.Parent.Parent;
-                if (objectInitializer.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                if (identifier.Parent.IsParentKind(SyntaxKind.WithInitializerExpression))
                 {
-                    initializedInstance = objectInitializer.Parent!;
+                    var withInitializer = identifier.Parent.GetRequiredParent();
+                    initializedInstance = withInitializer.GetRequiredParent();
                     return true;
                 }
-                else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
+                else if (identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
                 {
-                    initializedInstance = assignment.Left;
-                    return true;
+                    var objectInitializer = identifier.Parent.GetRequiredParent();
+                    if (objectInitializer.Parent is BaseObjectCreationExpressionSyntax)
+                    {
+                        initializedInstance = objectInitializer.Parent;
+                        return true;
+                    }
+                    else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
+                    {
+                        initializedInstance = assignment.Left;
+                        return true;
+                    }
                 }
             }
 
@@ -1108,6 +1119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         break;
                     case ClassDeclarationSyntax @class:
                         AppendConstructors(@class.Members, constructors, cancellationToken);
+                        break;
+                    case RecordDeclarationSyntax record:
+                        AppendConstructors(record.Members, constructors, cancellationToken);
                         break;
                     case StructDeclarationSyntax @struct:
                         AppendConstructors(@struct.Members, constructors, cancellationToken);
@@ -2142,5 +2156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+
+        public void GetPartsOfInterpolationExpression(SyntaxNode node,
+            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
+        {
+            var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
+            stringStartToken = interpolatedStringExpression.StringStartToken;
+            contents = interpolatedStringExpression.Contents;
+            stringEndToken = interpolatedStringExpression.StringEndToken;
+        }
+
+        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
+            => node is InterpolatedStringExpressionSyntax interpolatedString &&
+                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
     }
 }

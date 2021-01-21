@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool isAccessedByConditionalAccess,
             CancellationToken cancellationToken);
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => text[insertedCharacterPosition] == '.';
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

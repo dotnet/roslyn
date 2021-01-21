@@ -943,7 +943,7 @@
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
         <Field Name="SuppressVirtualCalls" PropertyOverrides="true" Type="Boolean"/>
 
-        <Field Name="ConstantsInProgressOpt" Type="SymbolsInProgress(Of FieldSymbol)" Null="allow"/>
+        <Field Name="ConstantsInProgressOpt" Type="ConstantFieldsInProgress" Null="allow"/>
     </Node>
  
     <Node Name="BoundPropertyAccess" Base="BoundExpression" HasValidate="true">

@@ -15,15 +15,27 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
     </PackageDescription>
+
+    <!-- Enable output of generated files back into our Generated directory -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Tools\Source\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <!-- The generator project currently builds as both a console app and a source generator,
+           depending upon which TFM is built. No matter what the this project builds as,
+           we want to grab the generator.-->
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />
     <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />
-    <None Include="Syntax\Syntax.xml" />
+    <AdditionalFiles Include="Syntax\Syntax.xml" />
     <None Include="Syntax\Syntax.xsd" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
@@ -33,6 +45,11 @@
     </None>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+
+    <!-- Don't include the output from a previous source generator execution into future runs; the */** trick here ensures that there's
+         at least one subdirectory, which is our key that it's coming from a source generator as opposed to something that is coming from
+         some other tool. -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/*/**/*.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpResources.resx" GenerateSource="true" />

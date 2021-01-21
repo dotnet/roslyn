@@ -37,16 +37,6 @@
         <target state="translated">Procedere comunque? Il codice ottenuto potrebbe essere danneggiato.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">elementi da spazi dei nomi non importati</target>
@@ -79,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">Suggerimenti inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -122,11 +112,6 @@
         <target state="translated">Punteggiatura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">La rimozione del documento non è supportata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Rinomina _file (il tipo non corrisponde al nome file)</target>
@@ -144,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">Dividi commento</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +244,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">Tipi utente - Record</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -994,7 +979,7 @@
       </trans-unit>
       <trans-unit id="Not_a_source_error_line_column_unavailable">
         <source>Not a source error, line/column unavailable</source>
-        <target state="translated">L'errore non dipende dall'origine. La riga o la colonna non è disponibile.</target>
+        <target state="translated">L'errore non dipende dall'origine. La riga o la colonna non è disponibile</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">

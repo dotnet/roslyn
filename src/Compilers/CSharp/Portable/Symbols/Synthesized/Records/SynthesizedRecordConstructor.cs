@@ -11,11 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordConstructor(
              SourceMemberContainerTypeSymbol containingType,
-             RecordDeclarationSyntax syntax,
-             DiagnosticBag diagnostics) :
+             RecordDeclarationSyntax syntax) :
              base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
-            this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
+            this.MakeFlags(
+                MethodKind.Constructor,
+                containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
+                returnsVoid: true,
+                isExtensionMethod: false,
+                isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
         internal RecordDeclarationSyntax GetSyntax()
@@ -34,6 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override bool AllowRefOrOut => false;
 
         internal override bool IsExpressionBodied => false;
+
+        internal override bool IsNullableAnalysisEnabled()
+        {
+            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+        }
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {

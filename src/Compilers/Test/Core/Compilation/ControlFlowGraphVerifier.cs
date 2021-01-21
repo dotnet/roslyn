@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Roslyn.Utilities;
@@ -373,6 +372,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var referencedIds = PooledHashSet<CaptureId>.GetInstance();
                 var entryStates = ArrayBuilder<PooledHashSet<CaptureId>>.GetInstance(blocks.Length, fillWithValue: null);
                 var regions = ArrayBuilder<ControlFlowRegion>.GetInstance();
+                var finalGraph = stringBuilder.ToString();
 
                 for (int i = 1; i < blocks.Length - 1; i++)
                 {
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 {
                                     foreach (CaptureId id in region.CaptureIds)
                                     {
-                                        Assert.True(currentState.Contains(id), $"Backward branch from [{getBlockId(predecessor.Source)}] to [{getBlockId(block)}] before capture [{id.Value}] is initialized.");
+                                        Assert.True(currentState.Contains(id), $"Backward branch from [{getBlockId(predecessor.Source)}] to [{getBlockId(block)}] before capture [{id.Value}] is initialized.\n{finalGraph}");
                                     }
                                 }
                             }
@@ -402,18 +402,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         var operation = block.Operations[j];
                         if (operation is IFlowCaptureOperation capture)
                         {
-                            assertCaptureReferences(currentState, capture.Value, block, j, longLivedIds, referencedIds);
-                            Assert.True(currentState.Add(capture.Id), $"Operation [{j}] in [{getBlockId(block)}] re-initialized capture [{capture.Id.Value}].");
+                            assertCaptureReferences(currentState, capture.Value, block, j, longLivedIds, referencedIds, finalGraph);
+                            Assert.True(currentState.Add(capture.Id), $"Operation [{j}] in [{getBlockId(block)}] re-initialized capture [{capture.Id.Value}].\n{finalGraph}");
                         }
                         else
                         {
-                            assertCaptureReferences(currentState, operation, block, j, longLivedIds, referencedIds);
+                            assertCaptureReferences(currentState, operation, block, j, longLivedIds, referencedIds, finalGraph);
                         }
                     }
 
                     if (block.BranchValue != null)
                     {
-                        assertCaptureReferences(currentState, block.BranchValue, block, block.Operations.Length, longLivedIds, referencedIds);
+                        assertCaptureReferences(currentState, block.BranchValue, block, block.Operations.Length, longLivedIds, referencedIds, finalGraph);
 
                         if (block.ConditionalSuccessor != null)
                         {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         adjustAndGetEntryState(entryStates, blocks[i + 1], currentState);
                     }
 
-                    verifyLeftRegions(block, longLivedIds, referencedIds, regions);
+                    verifyLeftRegions(block, longLivedIds, referencedIds, regions, finalGraph);
 
                     currentState.Free();
                 }
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 regions.Free();
             }
 
-            void verifyLeftRegions(BasicBlock block, PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, ArrayBuilder<ControlFlowRegion> regions)
+            void verifyLeftRegions(BasicBlock block, PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, ArrayBuilder<ControlFlowRegion> regions, string finalGraph)
             {
                 regions.Clear();
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                             Assert.True(referencesAfter.Length > 0 &&
                                         referencesAfter.All(r => isLongLivedCaptureReferenceSyntax(r.Syntax)),
-                                $"Capture [{id.Value}] is not used in region [{getRegionId(region)}] before leaving it after block [{getBlockId(block)}]");
+                                $"Capture [{id.Value}] is not used in region [{getRegionId(region)}] before leaving it after block [{getBlockId(block)}]\n{finalGraph}");
                         }
                     }
 
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             void assertCaptureReferences(
                 PooledHashSet<CaptureId> state, IOperation operation, BasicBlock block, int operationIndex,
-                PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds)
+                PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, string finalGraph)
             {
                 foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                 {
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].");
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].\n{finalGraph}");
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
                     // or they should come from the enclosing region.
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                      isConditionalAccessReceiver(reference) ||
                                      isCoalesceAssignmentTarget(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?");
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?\n{finalGraph}");
                 }
             }
 
@@ -1029,7 +1029,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             switch (syntax.Kind())
                             {
                                 case CSharp.SyntaxKind.ObjectCreationExpression:
-                                    if (((CSharp.Syntax.ObjectCreationExpressionSyntax)syntax).Initializer?.Expressions.Any() == true)
+                                case CSharp.SyntaxKind.ImplicitObjectCreationExpression:
+                                    if (((CSharp.Syntax.BaseObjectCreationExpressionSyntax)syntax).Initializer?.Expressions.Any() == true)
                                     {
                                         return true;
                                     }

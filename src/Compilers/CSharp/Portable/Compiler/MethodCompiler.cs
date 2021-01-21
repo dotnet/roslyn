@@ -609,7 +609,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetSynthesizedEmptyBody(containingType),
                     _diagnostics,
                     useConstructorExitWarnings: true,
-                    initialNullableState: null);
+                    initialNullableState: null,
+                    getFinalNullableState: false,
+                    finalNullableState: out _);
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
@@ -1689,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    if (compilation.NullableSemanticAnalysisEnabled)
+                    if (compilation.IsNullableAnalysisEnabledIn(method))
                     {
                         methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
                             compilation,
@@ -1706,7 +1708,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics, useConstructorExitWarnings: true, nullableInitialState);
+                        NullableWalker.AnalyzeIfNeeded(
+                            compilation,
+                            method,
+                            methodBody,
+                            diagnostics,
+                            useConstructorExitWarnings: true,
+                            nullableInitialState,
+                            getFinalNullableState: false,
+                            finalNullableState: out _);
                     }
 
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
@@ -1754,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoProperty)
+                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -1780,7 +1790,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
             {
-                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? GetSynthesizedEmptyBody(method), diagnostics, useConstructorExitWarnings: true, nullableInitialState);
+                NullableWalker.AnalyzeIfNeeded(
+                    compilationState.Compilation,
+                    method,
+                    body ?? GetSynthesizedEmptyBody(method),
+                    diagnostics,
+                    useConstructorExitWarnings: true,
+                    nullableInitialState,
+                    getFinalNullableState: false,
+                    finalNullableState: out _);
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)
@@ -2018,8 +2036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
+                defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
@@ -2065,8 +2083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
+                defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: false)
             { WasCompilerGenerated = true };

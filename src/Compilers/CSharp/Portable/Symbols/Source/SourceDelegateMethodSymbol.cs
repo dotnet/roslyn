@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(delegateType, syntax.GetReference(), location: syntax.Identifier.GetLocation(), isIterator: false)
         {
             _returnType = returnType;
-            this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, _returnType.IsVoidType(), isExtensionMethod: false, isNullableAnalysisEnabled: false);
         }
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)
@@ -138,8 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {

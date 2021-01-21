@@ -13,14 +13,16 @@ namespace Microsoft.CodeAnalysis.Structure
     {
         private readonly ImmutableArray<BlockSpan>.Builder _spans = ImmutableArray.CreateBuilder<BlockSpan>();
 
-        public Document Document { get; }
+        public SyntaxTree SyntaxTree { get; }
+        public BlockStructureOptionProvider OptionProvider { get; }
         public CancellationToken CancellationToken { get; }
 
         internal ImmutableArray<BlockSpan> Spans => _spans.ToImmutable();
 
-        public BlockStructureContext(Document document, CancellationToken cancellationToken)
+        public BlockStructureContext(SyntaxTree syntaxTree, BlockStructureOptionProvider optionProvider, CancellationToken cancellationToken)
         {
-            Document = document;
+            SyntaxTree = syntaxTree;
+            OptionProvider = optionProvider;
             CancellationToken = cancellationToken;
         }
 

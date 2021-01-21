@@ -7,7 +7,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -55,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(CrefCompletionProvider),
                 typeof(SnippetCompletionProvider),
                 typeof(ExternAliasCompletionProvider),
+                typeof(PreprocessorCompletionProvider),
                 typeof(OverrideCompletionProvider),
                 typeof(PartialMethodCompletionProvider),
                 typeof(PartialTypeCompletionProvider),

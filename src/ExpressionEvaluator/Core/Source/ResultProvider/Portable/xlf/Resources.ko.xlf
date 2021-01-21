@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
-        <target state="translated">{0}'을(를) 역참조할 수 없습니다. 포인터가 잘못되었습니다.</target>
+        <target state="translated">'{0}'을(를) 역참조할 수 없습니다. 포인터가 잘못되었습니다.</target>
         <note>Invalid pointer dereference</note>
       </trans-unit>
       <trans-unit id="NativeView">

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     var position = SymbolCompletionItem.GetContextPosition(item);
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
+                    var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(root, position);
 
                     var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
                     // base.ProvideCompletionsAsync checks GetParentExpressionOfToken is not null.
