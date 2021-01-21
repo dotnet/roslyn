@@ -2,27 +2,60 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public abstract class ProjectState
+    public class ProjectState
     {
-        private readonly string _defaultPrefix;
-        private readonly string _defaultExtension;
-
-        protected ProjectState(string name, string defaultPrefix, string defaultExtension)
+        public ProjectState(string name, string language, string defaultPrefix, string defaultExtension)
         {
             Name = name;
-            _defaultPrefix = defaultPrefix;
-            _defaultExtension = defaultExtension;
+            Language = language;
+            DefaultPrefix = defaultPrefix;
+            DefaultExtension = defaultExtension;
 
             Sources = new SourceFileList(defaultPrefix, defaultExtension);
+        }
+
+        internal ProjectState(ProjectState sourceState)
+        {
+            Name = sourceState.Name;
+            Language = sourceState.Language;
+            ReferenceAssemblies = sourceState.ReferenceAssemblies;
+            OutputKind = sourceState.OutputKind;
+            DocumentationMode = sourceState.DocumentationMode;
+            DefaultPrefix = sourceState.DefaultPrefix;
+            DefaultExtension = sourceState.DefaultExtension;
+            Sources = new SourceFileList(DefaultPrefix, DefaultExtension);
+
+            Sources.AddRange(sourceState.Sources);
+            AdditionalFiles.AddRange(sourceState.AdditionalFiles);
+            AdditionalFilesFactories.AddRange(sourceState.AdditionalFilesFactories);
+            AdditionalProjectReferences.AddRange(sourceState.AdditionalProjectReferences);
         }
 
         public string Name { get; }
 
         public string AssemblyName => Name;
 
-        public abstract string Language { get; }
+        public string Language { get; }
+
+        /// <summary>
+        /// Gets or sets the reference assemblies to use for the project.
+        /// </summary>
+        /// <value>
+        /// A <see cref="Testing.ReferenceAssemblies"/> instance to use specific reference assemblies; otherwise,
+        /// <see langword="null"/> to inherit the reference assemblies from
+        /// <see cref="AnalyzerTest{TVerifier}.ReferenceAssemblies"/>.
+        /// </value>
+        public ReferenceAssemblies? ReferenceAssemblies { get; set; }
+
+        public OutputKind? OutputKind { get; set; }
+
+        public DocumentationMode? DocumentationMode { get; set; }
 
         /// <summary>
         /// Gets the set of source files for analyzer or code fix testing. Files may be added to this list using one of
@@ -30,6 +63,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public SourceFileList Sources { get; }
 
+        public SourceFileCollection AdditionalFiles { get; } = new SourceFileCollection();
+
+        public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
+
+        public List<string> AdditionalProjectReferences { get; } = new List<string>();
+
         public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
+
+        private protected string DefaultPrefix { get; }
+
+        private protected string DefaultExtension { get; }
     }
 }
