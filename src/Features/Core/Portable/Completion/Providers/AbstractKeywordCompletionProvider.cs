@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LSPCompletionProvider
         where TContext : SyntaxContext
     {
-        private static readonly Comparer s_comparer = new();
-
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
         protected AbstractKeywordCompletionProvider(ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.AddItems(await ForkJoinItemsFromAllRelatedDocumentsAsync(
                     context.Document,
-                    s_comparer,
+                    KeywordCompletionItemComparer.Instance,
                     d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken),
                     cancellationToken).ConfigureAwait(false));
             }
@@ -83,8 +81,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
             => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
 
-        private class Comparer : IEqualityComparer<CompletionItem>
+        private class KeywordCompletionItemComparer : IEqualityComparer<CompletionItem>
         {
+            public static readonly IEqualityComparer<CompletionItem> Instance = new KeywordCompletionItemComparer();
+
+            private KeywordCompletionItemComparer()
+            {
+            }
+
             public bool Equals(CompletionItem? x, CompletionItem? y)
                 => x?.DisplayText == y?.DisplayText;
 
