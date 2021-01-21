@@ -2396,6 +2396,74 @@ unsafe
             );
         }
 
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_CallingConventionMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<string, void>[] ptr1 = null;
+    Test1(ptr1);
+    Test1<string>(ptr1);
+    delegate* unmanaged[Cdecl, Stdcall]<string, void>[] ptr2 = null;
+    Test1(ptr2);
+    Test1<string>(ptr2);
+
+    static void Test1<T1>(delegate* unmanaged<T1, void>[] func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1>(delegate* unmanaged<T1, void>[])").WithLocation(5, 5),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'delegate*<string, void>[]' to 'delegate* unmanaged<string, void>[]'
+                //     Test1<string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<string, void>[]", "delegate* unmanaged<string, void>[]").WithLocation(6, 19),
+                // (8,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1>(delegate* unmanaged<T1, void>[])").WithLocation(8, 5),
+                // (9,19): error CS1503: Argument 1: cannot convert from 'delegate* unmanaged[Cdecl, Stdcall]<string, void>[]' to 'delegate* unmanaged<string, void>[]'
+                //     Test1<string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate* unmanaged[Cdecl, Stdcall]<string, void>[]", "delegate* unmanaged<string, void>[]").WithLocation(9, 19)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMismatch()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<ref string, string>[] ptr1 = null;
+    Test1(ptr1);
+    Test1<string, string>(ptr1);
+    delegate*<string, ref string>[] ptr2 = null;
+    Test1(ptr2);
+    Test1<string, string>(ptr2);
+
+    static void Test1<T1, T2>(delegate*<T1, T2>[] func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(5, 5),
+                // (6,27): error CS1503: Argument 1: cannot convert from 'delegate*<ref string, string>[]' to 'delegate*<string, string>[]'
+                //     Test1<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<ref string, string>[]", "delegate*<string, string>[]").WithLocation(6, 27),
+                // (8,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test1(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(8, 5),
+                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>[]' to 'delegate*<string, string>[]'
+                //     Test1<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
+            );
+        }
+
         [Fact]
         public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
         {

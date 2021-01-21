@@ -1650,6 +1650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                      target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
                      sourceParameterCount == targetParameterCount)
             {
+                if (sourceSignature.RefKind != targetSignature.RefKind
+                    || sourceSignature.ParameterRefKinds != targetSignature.ParameterRefKinds
+                    || !callingConventionsEqual(sourceSignature, targetSignature))
+                {
+                    return false;
+                }
+
                 for (int i = 0; i < sourceParameterCount; i++)
                 {
                     ExactInference(sourceSignature.ParameterTypesWithAnnotations[i], targetSignature.ParameterTypesWithAnnotations[i], ref useSiteDiagnostics);
@@ -1660,6 +1667,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+
+            static bool callingConventionsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
+            {
+                if (sourceSignature.CallingConvention != targetSignature.CallingConvention)
+                {
+                    return false;
+                }
+
+                return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
+                {
+                    (null, null) => true,
+                    ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
+                    _ => false
+                };
+            }
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
