@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -18,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public OperatorCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(OperatorCompletionProvider);
 
