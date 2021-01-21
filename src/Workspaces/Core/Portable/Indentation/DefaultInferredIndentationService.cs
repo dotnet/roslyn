@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Indentation
 {
     [ExportWorkspaceService(typeof(IInferredIndentationService), ServiceLayer.Default), Shared]
-    internal sealed class InferredIndentationService
+    internal sealed class DefaultInferredIndentationService
         : IInferredIndentationService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InferredIndentationService()
+        public DefaultInferredIndentationService()
         {
         }
 
