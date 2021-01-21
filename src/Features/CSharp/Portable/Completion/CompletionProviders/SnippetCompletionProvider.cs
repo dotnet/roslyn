@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -79,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static async Task<ImmutableArray<CompletionItem>> GetSnippetsForDocumentAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
             var leftToken = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
@@ -98,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {
                 var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
+                Contract.ThrowIfNull(directive);
+
                 if (!directive.DirectiveNameToken.IsKind(
                         SyntaxKind.IfKeyword,
                         SyntaxKind.RegionKeyword,
@@ -112,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         SyntaxKind.WarningKeyword))
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                    return await GetSnippetCompletionItemsAsync(
+                    return GetSnippetCompletionItems(
                         document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: true,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken);
                 }
             }
             else
@@ -131,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
-                    return await GetSnippetCompletionItemsAsync(
+                    return GetSnippetCompletionItems(
                         document.Project.Solution.Workspace, semanticModel, isPreProcessorContext: false,
-                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        isTupleContext: isPossibleTupleContext, cancellationToken: cancellationToken);
                 }
             }
 
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_tupleRules = CompletionItemRules.Default.
           WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        private static async Task<ImmutableArray<CompletionItem>> GetSnippetCompletionItemsAsync(
+        private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
             Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
@@ -156,7 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 snippets = snippets.Where(snippet => snippet.Shortcut != null && snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return snippets.SelectAsArray(snippet =>
             {
                 var rules = isTupleContext ? s_tupleRules : CompletionItemRules.Default;
