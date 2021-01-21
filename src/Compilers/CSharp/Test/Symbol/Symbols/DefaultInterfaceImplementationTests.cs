@@ -55194,7 +55194,7 @@ interface I1 : Interface
 class C1 : I1, Interface
 {}
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });;
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
