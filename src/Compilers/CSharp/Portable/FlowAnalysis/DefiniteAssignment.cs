@@ -57,12 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
 
         /// <summary>
-        /// Variable slots are allocated to local variables sequentially and never reused.  This is
-        /// the index of the next slot number to use.
-        /// </summary>
-        protected int nextVariableSlot = 1;
-
-        /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
         /// </summary>
         private readonly HashSet<Symbol> initiallyAssignedVariables;
@@ -237,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override int AddVariable(VariableIdentifier identifier)
         {
-            int slot = nextVariableSlot++;
+            int slot = variableBySlot.Count;
             _variableSlot.Add(identifier, slot);
             variableBySlot.Add(identifier);
             return slot;
@@ -908,8 +902,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Normalize(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
-            state.Assigned.EnsureCapacity(nextVariableSlot);
-            for (int i = oldNext; i < nextVariableSlot; i++)
+            int n = variableBySlot.Count;
+            state.Assigned.EnsureCapacity(n);
+            for (int i = oldNext; i < n; i++)
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
@@ -1075,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (slot >= _alreadyReported.Capacity)
             {
-                _alreadyReported.EnsureCapacity(nextVariableSlot);
+                _alreadyReported.EnsureCapacity(variableBySlot.Count);
             }
 
             if (skipIfUseBeforeDeclaration &&
@@ -1525,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableBottomState()
         {
-            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(variableBySlot.Count));
             result.Assigned[0] = false; // make the state reachable
             return result;
         }

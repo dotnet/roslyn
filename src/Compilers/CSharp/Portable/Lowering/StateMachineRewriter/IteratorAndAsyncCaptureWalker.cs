@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MarkLocalsUnassigned()
         {
-            for (int i = 0; i < nextVariableSlot; i++)
+            for (int i = 0; i < variableBySlot.Count; i++)
             {
                 var symbol = variableBySlot[i].Symbol;
 

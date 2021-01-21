@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LocalFunctionState CreateLocalFunctionState()
             => new LocalFunctionState(
                 // The bottom state should assume all variables, even new ones, are assigned
-                new LocalState(BitVector.AllSet(nextVariableSlot), normalizeToBottom: true),
+                new LocalState(BitVector.AllSet(variableBySlot.Count), normalizeToBottom: true),
                 UnreachableState());
 
         protected override void VisitLocalFunctionUse(
@@ -125,8 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BitVector GetCapturedBitmask()
         {
-            BitVector mask = BitVector.AllSet(nextVariableSlot);
-            for (int slot = 1; slot < nextVariableSlot; slot++)
+            int n = variableBySlot.Count;
+            BitVector mask = BitVector.AllSet(n);
+            for (int slot = 1; slot < n; slot++)
             {
                 mask[slot] = IsCapturedInLocalFunction(slot);
             }
