@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports System.Composition
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     <ExportLanguageServiceFactory(GetType(ICodeModelService), LanguageNames.VisualBasic), [Shared]>

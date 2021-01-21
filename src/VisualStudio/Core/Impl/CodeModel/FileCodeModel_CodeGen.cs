@@ -378,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
-            var options = GetDocumentOptions(CancellationToken.None);
+            var options = State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(CancellationToken.None));
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
             var newProperty = CreatePropertyDeclaration(
                 containerNode,

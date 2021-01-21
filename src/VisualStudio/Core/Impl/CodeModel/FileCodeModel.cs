@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () => 
+                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
                     var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
                     formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
@@ -420,18 +420,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return GetDocument().GetSyntaxRootSynchronously(CancellationToken.None);
         }
 
-        internal DocumentOptionSet GetDocumentOptions(CancellationToken cancellationToken)
-            => State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(cancellationToken));
-
         internal SemanticModel GetSemanticModel()
-            => State.ThreadingContext.JoinableTaskFactory.Run(() => 
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
                 return GetDocument()
                     .GetSemanticModelAsync(CancellationToken.None);
             });
 
         internal Compilation GetCompilation()
-            => State.ThreadingContext.JoinableTaskFactory.Run(() => 
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
                 return GetDocument().Project
                     .GetCompilationAsync(CancellationToken.None);
