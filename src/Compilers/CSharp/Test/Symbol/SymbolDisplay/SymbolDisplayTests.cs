@@ -7773,6 +7773,21 @@ End Class";
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
+            // VB Symbols displayed by CSharp Symbol display
+            Verify(
+                CSharp.SymbolDisplay.ToDisplayParts(closedGenericMember, format),
+                "Object P",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                CSharp.SymbolDisplay.ToDisplayParts(openGenericMember, format),
+                "T P",
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+
+            // VB Symbols displayed by VB Symbol display
             Verify(
                 closedGenericMember.ToDisplayParts(format),
                 "Overloads P As Object",
@@ -7793,6 +7808,7 @@ End Class";
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.TypeParameterName);
+
         }
 
         [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
