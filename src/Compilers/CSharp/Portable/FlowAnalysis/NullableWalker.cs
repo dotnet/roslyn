@@ -1461,9 +1461,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             state.Normalize(this, _variables);
         }
 
-        private NullableFlowState GetDefaultState(int slot)
+        private NullableFlowState GetDefaultState(ref LocalState state, int slot)
         {
             Debug.Assert(slot > 0);
+
+            if (!state.Reachable)
+                return NullableFlowState.NotNull;
 
             var variable = _variables[slot];
             var symbol = variable.Symbol;
@@ -2790,7 +2793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot = GetOrCreateSlot(local);
                 if (slot > 0)
                 {
-                    this.State[slot] = GetDefaultState(slot);
+                    this.State[slot] = GetDefaultState(ref this.State, slot);
                     InheritDefaultState(GetDeclaredLocalResult(local).Type, slot);
                 }
             }
@@ -9738,7 +9741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int index = start; index < capacity; index++)
                 {
                     int slot = Variables.ConstructSlot(Id, index);
-                    SetValue(Id, index, walker.GetDefaultState(slot));
+                    SetValue(Id, index, walker.GetDefaultState(ref this, slot));
                 }
             }
 

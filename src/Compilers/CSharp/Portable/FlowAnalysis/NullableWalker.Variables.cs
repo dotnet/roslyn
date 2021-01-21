@@ -212,24 +212,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return -1;
                 }
-                if (GetSlotDepth(identifier.ContainingSlot) >= MaxSlotDepth)
-                {
-                    return -1;
-                }
                 var variables = GetVariablesForVariable(identifier);
                 return variables.AddInternal(identifier);
             }
 
             private int AddInternal(VariableIdentifier identifier)
             {
+                if (getSlotDepth(identifier.ContainingSlot) >= MaxSlotDepth)
+                {
+                    return -1;
+                }
                 int index = Count;
                 _variableSlot.Add(identifier, index);
-                while (index >= _variableBySlot.Count)
-                {
-                    _variableBySlot.Add(default);
-                }
-                _variableBySlot[index] = identifier;
+                _variableBySlot.Add(identifier);
                 return ConstructSlot(Id, index);
+
+                int getSlotDepth(int slot)
+                {
+                    int depth = 0;
+                    while (slot > 0)
+                    {
+                        depth++;
+                        var (id, index) = DeconstructSlot(slot);
+                        Debug.Assert(id == Id);
+                        slot = _variableBySlot[index].ContainingSlot;
+                    }
+                    return depth;
+                }
             }
 
             internal bool TryGetType(Symbol symbol, out TypeWithAnnotations type)
@@ -333,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return variables;
                     }
-                    variables = variables.Container!;
+                    variables = variables.Container;
                     if (variables is null)
                     {
                         return null;
@@ -341,26 +350,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private int GetSlotDepth(int slot)
-            {
-                int depth = 0;
-                while (slot > 0)
-                {
-                    depth++;
-                    slot = this[slot].ContainingSlot;
-                }
-                return depth;
-            }
-
             internal static int ConstructSlot(int id, int index)
             {
-                return index < 0 ? index : (id << IdOffset) + index;
+                Debug.Assert(id >= 0);
+                Debug.Assert(id <= IdMask);
+                Debug.Assert(index >= 0);
+                Debug.Assert(index <= IndexMask);
+
+                return index < 0 ? index : (id << IdOffset) | index;
             }
 
             internal static (int Id, int Index) DeconstructSlot(int slot)
             {
                 Debug.Assert(slot > -1);
-                return slot < 0 ? (0, slot) : ((slot >> IdOffset & IdMask), slot & IndexMask);
+                return slot < 0 ? (0, slot) : (slot >> IdOffset & IdMask, slot & IndexMask);
             }
 
             private string GetDebuggerDisplay()

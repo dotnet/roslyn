@@ -239,11 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int slot = nextVariableSlot++;
             _variableSlot.Add(identifier, slot);
-            while (slot >= variableBySlot.Count)
-            {
-                variableBySlot.Add(default);
-            }
-            variableBySlot[slot] = identifier;
+            variableBySlot.Add(identifier);
             return slot;
         }
 
