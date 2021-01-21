@@ -19,10 +19,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class VariablesSnapshot
         {
+            /// <summary>
+            /// Unique identifier in the chain of nested VariablesSnapshot instances. The value starts at 0
+            /// for the outermost method and increases at each nested function.
+            /// </summary>
             internal readonly int Id;
+
+            /// <summary>
+            /// VariablesSnapshot instance for containing method, or null if this is the outermost method.
+            /// </summary>
             internal readonly VariablesSnapshot? Container;
+
+            /// <summary>
+            /// Symbol the contains this set of variables. This is typically a method but may be a field
+            /// when analyzing a field initializer. The symbol may be null at the outermost scope when
+            /// analyzing an attribute argument value or a parameter default value.
+            /// </summary>
             internal readonly Symbol? Symbol;
+
+            /// <summary>
+            /// Mapping from variable to slot.
+            /// </summary>
             internal readonly ImmutableArray<KeyValuePair<VariableIdentifier, int>> VariableSlot;
+
+            /// <summary>
+            /// Mapping from local or parameter to inferred type.
+            /// </summary>
             internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
 
             internal VariablesSnapshot(int id, VariablesSnapshot? container, Symbol? symbol, ImmutableArray<KeyValuePair<VariableIdentifier, int>> variableSlot, ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes)
@@ -46,6 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A collection of variables associated with a method scope. For a particular method, the variables
+        /// may contain parameters and locals and any fields from other variables in the collection. If the method
+        /// is a nested function (a lambda or a local function), there is a reference to the variables collection at
+        /// the containing method scope. The outermost scope may also contain variables for static fields.
+        /// Each variable (parameter, local, or field of other variable) must be associated with the variables collection
+        /// for that method where the parameter or local are declared, even if the variable is used in a nested scope.
+        /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Variables
         {
@@ -54,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private const int MaxSlotDepth = 5;
 
             // An int slot is a combination of a 15-bit id (in the high-order 16 bits) and a 16-bit index.
-            // Id values start at 0 for the outermost method, and increase at each nested function.
+            // Id value starts at 0 for the outermost method and increases at each nested function.
             // There is no relationship between ids of sibling nested functions - the ids of sibling
             // functions may be the same or different.
             private const int IdOffset = 16;
@@ -69,8 +99,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Random _nextIdOffset;
 #endif
 
+            /// <summary>
+            /// Unique identifier in the chain of nested Variables instances. The value starts at 0
+            /// for the outermost method and increases at each nested function.
+            /// </summary>
             internal readonly int Id;
+
+            /// <summary>
+            /// Variables instance for containing method, or null if this is the outermost method.
+            /// </summary>
             internal readonly Variables? Container;
+
+            /// <summary>
+            /// Symbol the contains this set of variables. This is typically a method but may be a field
+            /// when analyzing a field initializer. The symbol may be null at the outermost scope when
+            /// analyzing an attribute argument value or a parameter default value.
+            /// </summary>
             internal readonly Symbol? Symbol;
 
             /// <summary>
@@ -208,12 +252,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal int Add(VariableIdentifier identifier)
             {
-                if (Count > IndexMask)
-                {
-                    return -1;
-                }
                 var variables = GetVariablesForVariable(identifier);
-                return variables.AddInternal(identifier);
+                int slot = variables.AddInternal(identifier);
+                // ContainingSlot must be from the same Variables collection.
+                Debug.Assert(slot <= 0 ||
+                    identifier.ContainingSlot <= 0 ||
+                    DeconstructSlot(slot).Id == DeconstructSlot(identifier.ContainingSlot).Id);
+                return slot;
             }
 
             private int AddInternal(VariableIdentifier identifier)
@@ -222,7 +267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return -1;
                 }
-                int index = Count;
+                int index = NextAvailableIndex;
+                if (index > IndexMask)
+                {
+                    return -1;
+                }
                 _variableSlot.Add(identifier, index);
                 _variableBySlot.Add(identifier);
                 return ConstructSlot(Id, index);
@@ -264,7 +313,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            internal int Count => _variableBySlot.Count;
+            internal int NextAvailableIndex => _variableBySlot.Count;
+
+            internal int GetTotalVariableCount()
+            {
+                int fromContainer = Container?.GetTotalVariableCount() ?? 0;
+                return fromContainer + _variableSlot.Count;
+            }
 
             internal void GetMembers(ArrayBuilder<(VariableIdentifier, int)> builder, int containingSlot)
             {
@@ -305,6 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                 }
+                // Fallback to the outermost scope for the remaining cases. Those cases include: static fields;
+                // variables declared in field initializers; locals and parameters when the root symbol is null;
+                // and error cases such as an instance field referenced in a static method (no containing slot).
                 return GetVariablesRoot();
             }
 
@@ -369,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private string GetDebuggerDisplay()
             {
                 var symbol = (object?)Symbol ?? "<null>";
-                return $"Id={Id}, Symbol={symbol}, Count={Count}";
+                return $"Id={Id}, Symbol={symbol}, Count={_variableSlot.Count}";
             }
         }
     }

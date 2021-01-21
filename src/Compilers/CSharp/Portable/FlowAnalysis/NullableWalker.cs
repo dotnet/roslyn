@@ -1392,16 +1392,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ex.AddAnError(diagnostics);
             }
 
-            if (walker.compilation.NullableAnalysisData is { } state)
+            walker.RecordNullableAnalysisData(symbol, requiresAnalysis);
+        }
+
+        private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
+        {
+            if (compilation.NullableAnalysisData is { } state)
             {
-                var key = (object?)symbol ?? walker.methodMainNode.Syntax;
+                var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
                 {
-                    Debug.Assert(result.RequiredAnalysis == requiresAnalysis);
+                    Debug.Assert(result.RequiredAnalysis == requiredAnalysis);
                 }
                 else
                 {
-                    state.TryAdd(key, new Data(walker._variables.Count - 1, requiresAnalysis));
+                    state.TryAdd(key, new Data(_variables.GetTotalVariableCount(), requiredAnalysis));
                 }
             }
         }
@@ -9583,6 +9588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A bit array containing the nullability of variables associated with a method scope. If the method is a
+        /// nested function (a lambda or a local function), there is a reference to the corresponding instance for
+        /// the containing method scope. The instances in the chain are associated with a corresponding
+        /// Variables chain, and the Id field in this type matches the Id in the Variables chain.
+        /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct LocalState : ILocalDataFlowState
         {
@@ -9641,14 +9652,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var container = variables.Container is null ?
                     null :
                     new Boxed(CreateReachableOrUnreachableState(variables.Container, reachable));
-                int capacity = reachable ? variables.Count : 1;
+                int capacity = reachable ? variables.NextAvailableIndex : 1;
                 return new LocalState(variables.Id, container, CreateBitVector(capacity, reachable));
             }
 
             public LocalState CreateNestedFunction(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
-                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.Count, reachable: true));
+                return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.NextAvailableIndex, reachable: true));
             }
 
             private static BitVector CreateBitVector(int capacity, bool reachable)
@@ -9724,7 +9735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _container?.Value.Normalize(walker, variables.Container!);
                     int start = Capacity;
-                    EnsureCapacity(variables.Count);
+                    EnsureCapacity(variables.NextAvailableIndex);
                     Populate(walker, start);
                 }
             }
