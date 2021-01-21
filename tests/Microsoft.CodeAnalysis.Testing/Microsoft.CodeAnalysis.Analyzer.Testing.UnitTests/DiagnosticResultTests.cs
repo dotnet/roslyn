@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 

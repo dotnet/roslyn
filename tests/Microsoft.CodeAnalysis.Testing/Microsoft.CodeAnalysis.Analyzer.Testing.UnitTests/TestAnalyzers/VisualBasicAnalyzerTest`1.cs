@@ -6,20 +6,20 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Microsoft.CodeAnalysis.Testing
+namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
 {
     internal class VisualBasicAnalyzerTest<TAnalyzer> : AnalyzerTest<DefaultVerifier>
         where TAnalyzer : DiagnosticAnalyzer, new()
     {
-        public override string Language => LanguageNames.VisualBasic;
+        public sealed override string Language => LanguageNames.VisualBasic;
 
-        protected override string DefaultFileExt => "vb";
+        protected sealed override string DefaultFileExt => "vb";
 
         protected override CompilationOptions CreateCompilationOptions()
             => new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         protected override ParseOptions CreateParseOptions()
-            => new VisualBasicParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            => new VisualBasicParseOptions(LanguageVersion.Default);
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class DiagnosticLocationTests
     {
+        private static DiagnosticResult Diagnostic<TAnalyzer>()
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            => AnalyzerVerifier<TAnalyzer, CSharpAnalyzerTest<TAnalyzer>, DefaultVerifier>.Diagnostic();
+
         [Fact]
         public async Task TestDiagnosticMatchesCorrectSpan()
         {
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 await new CSharpAnalyzerTest<HighlightBraceSpanAnalyzer>
                 {
                     TestCode = @"class TestClass { }",
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBraceAnalyzer.Descriptor) },
+                    ExpectedDiagnostics = { Diagnostic<HighlightBraceSpanAnalyzer>() },
                 }.RunAsync();
             });
 
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 await new CSharpAnalyzerTest<HighlightBraceSpanAnalyzer>
                 {
                     TestCode = @"class TestClass { }",
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBraceAnalyzer.Descriptor).WithNoLocation() },
+                    ExpectedDiagnostics = { Diagnostic<HighlightBraceSpanAnalyzer>().WithNoLocation() },
                 }.RunAsync();
             });
 
@@ -223,53 +227,22 @@ namespace Microsoft.CodeAnalysis.Testing
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
-        private abstract class HighlightBraceAnalyzer : DiagnosticAnalyzer
-        {
-            internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.EnableConcurrentExecution();
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
-            }
-
-            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
-            {
-                foreach (var token in context.Tree.GetRoot(context.CancellationToken).DescendantTokens())
-                {
-                    if (!token.IsKind(SyntaxKind.OpenBraceToken))
-                    {
-                        continue;
-                    }
-
-                    context.ReportDiagnostic(CreateDiagnostic(token));
-                }
-            }
-
-            protected abstract Diagnostic CreateDiagnostic(SyntaxToken token);
-        }
-
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class HighlightBracePositionAnalyzer : HighlightBraceAnalyzer
+        private class HighlightBracePositionAnalyzer : AbstractHighlightBracesAnalyzer
         {
             protected override Diagnostic CreateDiagnostic(SyntaxToken token)
             {
                 var location = token.GetLocation();
-                return Diagnostic.Create(Descriptor, Location.Create(location.SourceTree, new TextSpan(location.SourceSpan.Start, 0)));
+                return CodeAnalysis.Diagnostic.Create(Descriptor, Location.Create(location.SourceTree!, new TextSpan(location.SourceSpan.Start, 0)));
             }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class HighlightBraceSpanAnalyzer : HighlightBraceAnalyzer
+        private class HighlightBraceSpanAnalyzer : AbstractHighlightBracesAnalyzer
         {
             protected override Diagnostic CreateDiagnostic(SyntaxToken token)
             {
-                return Diagnostic.Create(Descriptor, token.GetLocation());
+                return CodeAnalysis.Diagnostic.Create(Descriptor, token.GetLocation());
             }
         }
 
@@ -291,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             private void HandleCompilation(CompilationAnalysisContext context)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, location: null));
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, location: null));
             }
         }
     }

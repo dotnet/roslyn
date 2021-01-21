@@ -9,6 +9,15 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class DictionaryExtensions
     {
+        public static void AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<TKey, TValue>> items)
+            where TKey : notnull
+        {
+            foreach (var (key, value) in items)
+            {
+                dictionary.Add(key, value);
+            }
+        }
+
         // Copied from ConcurrentDictionary since IDictionary doesn't have this useful method
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> function)
             where TKey : notnull
