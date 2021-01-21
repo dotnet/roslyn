@@ -4,12 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
@@ -21,8 +21,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitFormatter
         Implements ICommitFormatter
 
-        Private ReadOnly _inferredIndentationService As IInferredIndentationService
-
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
                 Return p.Name <> PredefinedCodeCleanupProviderNames.Simplification AndAlso
@@ -30,9 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
         <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
-        Public Sub New(inferredIndentationService As IInferredIndentationService)
-            _inferredIndentationService = inferredIndentationService
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -59,7 +56,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim documentOptions = _inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
+                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If

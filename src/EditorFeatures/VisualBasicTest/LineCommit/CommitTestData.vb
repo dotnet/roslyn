@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
                 End If
 
-                Dim realCommitFormatter As New CommitFormatter(_testWorkspace.GetService(Of IInferredIndentationService))
+                Dim realCommitFormatter = Assert.IsType(Of CommitFormatter)(_testWorkspace.GetService(Of ICommitFormatter)())
                 realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
             End Sub
         End Class
