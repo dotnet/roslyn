@@ -17,18 +17,32 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 {
-    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
-        where TNamespaceSyntax : SyntaxNode
+    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string RootNamespaceOption = "build_property.RootNamespace";
         public const string ProjectDirOption = "build_property.ProjectDir";
+        public const string TargetNamespace = "TargetNamespace";
 
-        public AbstractNamespaceSyncDiagnosticAnalyzer(LocalizableResourceString title, LocalizableResourceString message)
+        protected AbstractNamespaceSyncDiagnosticAnalyzer(LocalizableResourceString title, LocalizableResourceString message, ILanguageSpecificOption? option, string languageName)
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
-                EnforceOnBuild.Recommended,
-                (IPerLanguageOption?)null,
+                EnforceOnBuildValues.NamespaceSync,
+                option,
+                languageName,
                 title,
                 message)
+        {
+        }
+    }
+
+    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceSyncDiagnosticAnalyzer
+        where TNamespaceSyntax : SyntaxNode
+    {
+        protected AbstractNamespaceSyncDiagnosticAnalyzer(
+            LocalizableResourceString title,
+            LocalizableResourceString message,
+            ILanguageSpecificOption? option,
+            string languageName)
+            : base(title, message, option, languageName)
         {
         }
 
@@ -67,12 +81,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             {
                 var currentNamespace = GetNamespaceName(namespaceDecl, rootNamespace);
 
-                if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, out var targetNamespace) &&
+                if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
                 {
                     var nameSyntax = GetNameSyntax(namespaceDecl);
                     AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax>.ReportDiagnostics(context, Descriptor, nameSyntax.GetLocation(), targetNamespace, currentNamespace);
                 }
+            }
+
+            string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string? rootNamespace)
+            {
+                var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
+                var syntaxFacts = GetSyntaxFacts();
+                return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None, rootNamespace);
             }
         }
 
@@ -121,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             TNamespaceSyntax namespaceDeclaration,
             string? rootNamespace,
             string projectDir,
+            string currentNamespace,
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
             if (!PathUtilities.IsChildPath(projectDir, namespaceDeclaration.SyntaxTree.FilePath))
@@ -137,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 
-            if (RoslynString.IsNullOrWhiteSpace(expectedNamespace) || expectedNamespace.Equals(GetNamespaceName(namespaceDeclaration, rootNamespace), StringComparison.OrdinalIgnoreCase))
+            if (RoslynString.IsNullOrWhiteSpace(expectedNamespace) || expectedNamespace.Equals(currentNamespace, StringComparison.OrdinalIgnoreCase))
             {
                 // The namespace currently matches the folder structure or is invalid, in which case we don't want
                 // to provide a diagnostic.
@@ -149,13 +171,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             return true;
         }
 
-        private string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string? rootNamespace)
-        {
-            var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
-            var syntaxFacts = GetSyntaxFacts();
-            return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None, rootNamespace);
-        }
-
         private static void ReportDiagnostics(
            SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
            Location location, string targetNamespace, string originalNamespace)
@@ -164,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 descriptor,
                 location,
                 additionalLocations: null,
-                properties: ImmutableDictionary<string, string?>.Empty.Add("TargetNamespace", targetNamespace),
+                properties: ImmutableDictionary<string, string?>.Empty.Add(AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax>.TargetNamespace, targetNamespace),
                 messageArgs: new[] { originalNamespace, targetNamespace }));
         }
     }

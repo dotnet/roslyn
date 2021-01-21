@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Analyzers.NamespaceSync;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
 
             foreach (var diagnostic in diagnostics)
             {
-                var targetNamespace = diagnostic.Properties["TargetNamespace"];
+                var targetNamespace = diagnostic.Properties[AbstractNamespaceSyncDiagnosticAnalyzer.TargetNamespace];
                 Contract.ThrowIfNull(targetNamespace);
 
                 var newSolution = await FixSingleDiagnosticAsync(currentDocument, targetNamespace, cancellationToken).ConfigureAwait(false);

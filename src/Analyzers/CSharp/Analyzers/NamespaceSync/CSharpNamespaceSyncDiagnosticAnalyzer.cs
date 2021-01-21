@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Analyzers.NamespaceSync;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync
 
         public CSharpNamespaceSyncDiagnosticAnalyzer()
             : base(s_localizableTitle,
-                s_localizableInsideMessage)
+                s_localizableInsideMessage,
+                CSharpCodeStyleOptions.PreferNamespaceMatchFolderStructure,
+                LanguageNames.CSharp)
         {
         }
 
