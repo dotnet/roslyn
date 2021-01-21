@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (IsInIdeMode(this.Workspace))
+            if (!IVsShellExtensions.IsInCommandLineMode)
             {
                 // not every derived package support object browser and for those languages
                 // this is a no op
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
-                if (IsInIdeMode(Workspace))
+                if (!IVsShellExtensions.IsInCommandLineMode)
                 {
                     ThreadHelper.JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
                 }
@@ -155,8 +155,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // base package implementations
             return Task.CompletedTask;
         }
-
-        private static bool IsInIdeMode(Workspace workspace)
-            => workspace != null && !IVsShellExtensions.IsInCommandLineMode;
     }
 }
