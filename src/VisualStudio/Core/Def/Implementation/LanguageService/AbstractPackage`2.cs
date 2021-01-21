@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -32,8 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
-
-        public VisualStudioWorkspaceImpl Workspace { get; private set; }
 
         protected AbstractPackage()
         {
@@ -72,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-            this.Workspace = this.CreateWorkspace();
             if (!IVsShellExtensions.IsInCommandLineMode)
             {
                 // not every derived package support object browser and for those languages
@@ -85,18 +81,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
+
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
-            _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
+            _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
-
-        protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
 
         internal IComponentModel ComponentModel
         {
