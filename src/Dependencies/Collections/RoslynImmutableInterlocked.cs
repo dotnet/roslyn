@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            bool successful;
             var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            do
+            while (true)
             {
                 var newValue = transformer(oldValue);
                 if (oldValue == newValue)
@@ -46,12 +45,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 var interlockedResult = InterlockedCompareExchange(ref location, newValue, oldValue);
-                successful = oldValue == interlockedResult;
+                if (oldValue == interlockedResult)
+                    return true;
+
                 oldValue = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
-            while (!successful);
-
-            return true;
         }
 
         /// <summary>
@@ -79,9 +77,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            bool successful;
             var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            do
+            while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
                 if (oldValue == newValue)
@@ -91,12 +88,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 var interlockedResult = InterlockedCompareExchange(ref location, newValue, oldValue);
-                successful = oldValue == interlockedResult;
+                if (oldValue == interlockedResult)
+                    return true;
+
                 oldValue = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
-            while (!successful);
-
-            return true;
         }
 
         /// <summary>
@@ -191,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -204,14 +199,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.Add(key, value);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
+                if (priorCollection == interlockedResult)
+                {
+                    // We won the race-condition and have updated the collection.
+                    // Return the value that is in the collection (as of the Interlocked operation).
+                    return value;
+                }
+
                 priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
-            while (!successful);
-
-            // We won the race-condition and have updated the collection.
-            // Return the value that is in the collection (as of the Interlocked operation).
-            return value;
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.AddOrUpdate{TKey, TValue}(ref ImmutableDictionary{TKey, TValue}, TKey, Func{TKey, TValue}, Func{TKey, TValue, TValue})"/>
@@ -225,8 +221,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             TValue newValue;
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -242,14 +237,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.SetItem(key, newValue);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
+                if (priorCollection == interlockedResult)
+                {
+                    // We won the race-condition and have updated the collection.
+                    // Return the value that is in the collection (as of the Interlocked operation).
+                    return newValue;
+                }
+
                 priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
-            while (!successful);
-
-            // We won the race-condition and have updated the collection.
-            // Return the value that is in the collection (as of the Interlocked operation).
-            return newValue;
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.AddOrUpdate{TKey, TValue}(ref ImmutableDictionary{TKey, TValue}, TKey, TValue, Func{TKey, TValue, TValue})"/>
@@ -261,8 +257,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             TValue newValue;
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -278,14 +273,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.SetItem(key, newValue);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
+                if (priorCollection == interlockedResult)
+                {
+                    // We won the race-condition and have updated the collection.
+                    // Return the value that is in the collection (as of the Interlocked operation).
+                    return newValue;
+                }
+
                 priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
-            while (!successful);
-
-            // We won the race-condition and have updated the collection.
-            // Return the value that is in the collection (as of the Interlocked operation).
-            return newValue;
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.TryAdd{TKey, TValue}(ref ImmutableDictionary{TKey, TValue}, TKey, TValue)"/>
@@ -293,8 +289,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -306,11 +301,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.Add(key, value);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
-                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
-            } while (!successful);
+                if (priorCollection == interlockedResult)
+                {
+                    return true;
+                }
 
-            return true;
+                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
+            }
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.TryUpdate{TKey, TValue}(ref ImmutableDictionary{TKey, TValue}, TKey, TValue, TValue)"/>
@@ -319,8 +316,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var valueComparer = EqualityComparer<TValue>.Default;
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -333,11 +329,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.SetItem(key, newValue);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
-                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
-            } while (!successful);
+                if (priorCollection == interlockedResult)
+                {
+                    return true;
+                }
 
-            return true;
+                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
+            }
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.TryRemove{TKey, TValue}(ref ImmutableDictionary{TKey, TValue}, TKey, out TValue)"/>
@@ -345,8 +343,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
-            bool successful;
-            do
+            while (true)
             {
                 if (priorCollection.IsDefault)
                     throw new ArgumentNullException(nameof(location));
@@ -358,11 +355,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 var updatedCollection = priorCollection.Remove(key);
                 var interlockedResult = InterlockedCompareExchange(ref location, updatedCollection, priorCollection);
-                successful = priorCollection == interlockedResult;
-                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
-            } while (!successful);
+                if (priorCollection == interlockedResult)
+                {
+                    return true;
+                }
 
-            return true;
+                priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
+            }
         }
     }
 }
