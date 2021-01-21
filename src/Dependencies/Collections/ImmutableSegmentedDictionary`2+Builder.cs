@@ -13,7 +13,15 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         public sealed partial class Builder : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
         {
+            /// <summary>
+            /// The immutable collection this builder is based on.
+            /// </summary>
             private ImmutableSegmentedDictionary<TKey, TValue> _dictionary;
+
+            /// <summary>
+            /// The current mutable collection this builder is operating on. This field is initialized to a copy of
+            /// <see cref="_dictionary"/> the first time a change is made.
+            /// </summary>
             private SegmentedDictionary<TKey, TValue>? _mutableDictionary;
 
             internal Builder(ImmutableSegmentedDictionary<TKey, TValue> dictionary)

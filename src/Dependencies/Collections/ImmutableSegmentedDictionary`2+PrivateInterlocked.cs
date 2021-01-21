@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.Collections
 {
     internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
     {
+        /// <summary>
+        /// Private helper class for use only by <see cref="RoslynImmutableInterlocked"/>.
+        /// </summary>
         internal static class PrivateInterlocked
         {
             internal static ImmutableSegmentedDictionary<TKey, TValue> VolatileRead(in ImmutableSegmentedDictionary<TKey, TValue> location)
