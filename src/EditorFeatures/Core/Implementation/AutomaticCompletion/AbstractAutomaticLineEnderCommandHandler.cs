@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract bool TreatAsReturn(Document document, int caretPosition, CancellationToken cancellationToken);
 
-        protected abstract void AddOrRemoveBracePairIfRequired(ITextView textView, Document document, int caretPosition, CancellationToken cancellationToken);
+        protected abstract void ModifyBraces(AutomaticLineEnderCommandArgs args, Document document, int caretPosition, CancellationToken cancellationToken);
 
         protected abstract SyntaxNode? GetValidNodeToInsertBraces(Document document, int caretPosition, CancellationToken cancellationToken);
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             using (context.OperationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
             {
                 // This is a non cancellable command
-                var cancellationToken = CancellationToken.None;
+                var cancellationToken = context.OperationContext.UserCancellationToken;
 
                 // caret is not on the subject buffer. nothing we can do
                 var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 var subjectLineWhereCaretIsOn = caretPosition.Value.GetContainingLine();
-                var endInsertionPoint = GetInsertionPointForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
+                var endingInsertionPosition= GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
                 var node = GetValidNodeToInsertBraces(document, caretPosition.Value, cancellationToken);
-                if (node == null && !endInsertionPoint.HasValue)
+                if (node == null && !endingInsertionPosition.HasValue)
                 {
                     NextAction(operations, nextHandler);
                     return;
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                 using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
                 var newDocument = document;
-                if (endInsertionPoint.HasValue)
-                {
-                    newDocument = InsertEndingAndFormat(args.TextView, document, endInsertionPoint.Value, caretPosition.Value, cancellationToken);
-                }
 
                 if (node != null)
                 {
-                    AddOrRemoveBracePairIfRequired(args.TextView, newDocument, caretPosition.Value, cancellationToken);
+                    ModifyBraces(args, newDocument, caretPosition.Value, cancellationToken);
+                }
+                else if (endingInsertionPosition.HasValue)
+                {
+                    InsertEndingAndFormat(args.TextView, document, endingInsertionPosition.Value, caretPosition.Value, cancellationToken);
                 }
 
                 // now, insert new line
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// return insertion point for the ending string
         /// </summary>
-        private static int? GetInsertionPointForEndingString(Document document, ITextSnapshotLine line, CancellationToken cancellationToken)
+        private static int? GetInsertionPositionForEndingString(Document document, ITextSnapshotLine line, CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// insert ending string if there is one to insert
         /// </summary>
-        private Document InsertEndingAndFormat(
+        private void InsertEndingAndFormat(
             ITextView textView,
             Document document,
             int insertPosition,
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             // format the document and apply the changes to the workspace
-            return FormatAndApplyBasedOnEndToken(newDocument, insertPosition, cancellationToken);
+            FormatAndApplyBasedOnEndToken(newDocument, insertPosition, cancellationToken);
         }
     }
 }

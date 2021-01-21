@@ -834,8 +834,8 @@ $$
 {
     void Method()
     {
-        var pet = new List<int> ;
-        $$
+        var pet = new List<int> 
+            $$
     }
 }", @"class TestClass
 {
@@ -1111,7 +1111,7 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo()
+        var f = new Foo
         {
             $$
         };
@@ -1126,7 +1126,7 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo()$$
+        var f = new Foo$$
     }
 }
 public class Foo

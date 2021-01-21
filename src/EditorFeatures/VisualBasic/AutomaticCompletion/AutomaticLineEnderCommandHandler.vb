@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return False
         End Function
 
-        Protected Overrides Sub AddOrRemoveBracePairIfRequired(textView as ITextView, document As Document, caretPosition As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifyBraces(args as AutomaticLineEnderCommandArgs, document As Document, caretPosition As Integer, cancellationToken As CancellationToken)
         End Sub
 
         Protected Overrides Function GetValidNodeToInsertBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As SyntaxNode
