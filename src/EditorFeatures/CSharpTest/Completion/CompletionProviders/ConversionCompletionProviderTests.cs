@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ConversionCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public ConversionCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private static string FormatExplicitConversionDescription(string fromType, string toType)
         {
-            var template = CSharpFeaturesResources.Explicit_conversion_of_see_cref_T_0_to_see_cref_T_1;
+            var template = CSharpFeaturesResources.@Explicit_conversion_of_0_to_1;
             template = template
                 .Replace(@"<see cref=""T:{0}""/>", fromType)
                 .Replace(@"<see cref=""T:{1}""/>", toType);
