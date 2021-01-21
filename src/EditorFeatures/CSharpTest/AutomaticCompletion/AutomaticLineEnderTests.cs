@@ -81,7 +81,7 @@ $$", "class {$$}");
     $$
 }", @"class C
 {
-    event System.EventHandler e = null$$
+    e$$vent System.Even$$tHandler e$$ = null$$
 }");
         }
 
