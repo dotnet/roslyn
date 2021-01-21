@@ -4,13 +4,11 @@
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -44,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return False
         End Function
 
-        Protected Overrides Sub ModifyBraces(args as AutomaticLineEnderCommandArgs, document As Document, caretPosition As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifyBraces(args as AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, caretPosition As Integer, cancellationToken As CancellationToken)
         End Sub
 
-        Protected Overrides Function GetValidNodeToInsertBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Function GetValidNodeToModifyBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As SyntaxNode
             Return Nothing
         End Function
 

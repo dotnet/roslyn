@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
-        public AbstractAutomaticLineEnderCommandHandler(
+        protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
@@ -53,9 +53,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         protected abstract bool TreatAsReturn(Document document, int caretPosition, CancellationToken cancellationToken);
 
-        protected abstract void ModifyBraces(AutomaticLineEnderCommandArgs args, Document document, int caretPosition, CancellationToken cancellationToken);
+        /// <summary>
+        /// Add or remove the braces for <param name="selectedNode"/>.
+        /// </summary>
+        protected abstract void ModifyBraces(AutomaticLineEnderCommandArgs args, Document document, SyntaxNode selectedNode, int caretPosition, CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode? GetValidNodeToInsertBraces(Document document, int caretPosition, CancellationToken cancellationToken);
+        /// <summary>
+        /// Get the syntax node needs add/remove braces.
+        /// </summary>
+        protected abstract SyntaxNode? GetValidNodeToModifyBraces(Document document, int caretPosition, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
             => CommandState.Available;
@@ -86,19 +92,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             using (context.OperationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
             {
-                // This is a non cancellable command
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
                 // caret is not on the subject buffer. nothing we can do
-                var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                if (!caretPosition.HasValue)
+                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!caret.HasValue)
                 {
                     NextAction(operations, nextHandler);
                     return;
                 }
 
+                var caretPosition = caret.Value;
                 // special cases where we treat this command simply as Return.
-                if (TreatAsReturn(document, caretPosition.Value.Position, cancellationToken))
+                if (TreatAsReturn(document, caretPosition, cancellationToken))
                 {
                     // leave it to the VS editor to handle this command.
                     // VS editor's default implementation of SmartBreakLine is simply BreakLine, which inserts
@@ -107,30 +113,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                var subjectLineWhereCaretIsOn = caretPosition.Value.GetContainingLine();
-                var endingInsertionPosition= GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
-                var node = GetValidNodeToInsertBraces(document, caretPosition.Value, cancellationToken);
-                if (node == null && !endingInsertionPosition.HasValue)
+                var subjectLineWhereCaretIsOn = caretPosition.GetContainingLine();
+
+                // Two possible operations
+                // 1. Add/remove the brace for the selected syntax node (only for C#)
+                // 2. Append an ending string to the line. (For C#, it is semicolon ';', For VB, it is underline '_')
+
+                // Check if the node could be used to add/remove brace.
+                var selectedNode = GetValidNodeToModifyBraces(document, caretPosition, cancellationToken);
+                if (selectedNode != null)
                 {
+                    using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
+                    ModifyBraces(args, document, selectedNode, caretPosition, cancellationToken);
                     NextAction(operations, nextHandler);
+                    transaction.Complete();
                     return;
                 }
 
-                using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                var newDocument = document;
-
-                if (node != null)
+                // Check if we could find the ending position
+                var endingInsertionPosition= GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
+                if (endingInsertionPosition != null)
                 {
-                    ModifyBraces(args, newDocument, caretPosition.Value, cancellationToken);
-                }
-                else if (endingInsertionPosition.HasValue)
-                {
-                    InsertEndingAndFormat(args.TextView, document, endingInsertionPosition.Value, caretPosition.Value, cancellationToken);
+                    using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
+                    InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, cancellationToken);
+                    NextAction(operations, nextHandler);
+                    transaction.Complete();
+                    return;
                 }
 
-                // now, insert new line
+                // Neither of the two operations could be performed
                 NextAction(operations, nextHandler);
-                transaction.Complete();
             }
         }
 
@@ -176,24 +188,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// insert ending string if there is one to insert
         /// </summary>
-        private void InsertEndingAndFormat(
+        private void InsertEnding(
             ITextView textView,
             Document document,
             int insertPosition,
             SnapshotPoint caretPosition,
             CancellationToken cancellationToken)
         {
+            // 1. Move the caret to line end.
             textView.TryMoveCaretToAndEnsureVisible(caretPosition.GetContainingLine().End);
 
+            // 2. Insert ending to the document.
             var newDocument = document;
             var endingString = GetEndingString(document, caretPosition, cancellationToken);
             if (endingString != null)
             {
-                // apply end string to workspace
                 newDocument = document.InsertText(insertPosition, endingString, cancellationToken);
             }
 
-            // format the document and apply the changes to the workspace
+            // 3. format the document and apply the changes to the workspace
             FormatAndApplyBasedOnEndToken(newDocument, insertPosition, cancellationToken);
         }
     }
