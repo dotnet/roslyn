@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             try
             {
                 var document = context.Document;
-                var position = context.Position;
-                var options = context.Options;
                 var cancellationToken = context.CancellationToken;
 
                 using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
@@ -64,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                         UnionCompletionItemComparer.Instance,
-                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
+                        d => GetSnippetsForDocumentAsync(d, context.Position, cancellationToken),
+                        cancellationToken).ConfigureAwait(false));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))

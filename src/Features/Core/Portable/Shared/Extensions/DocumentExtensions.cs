@@ -65,17 +65,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker,
+            CancellationToken cancellationToken)
         {
-            var totalItems = new HashSet<T>(comparer);
-
-            var values = await getItemsWorker(document).ConfigureAwait(false);
-            totalItems.AddRange(values.NullToEmpty());
+            using var _ = ArrayBuilder<Task<ImmutableArray<T>>>.GetInstance(out var tasks);
+            tasks.Add(Task.Run(() => getItemsWorker(document), cancellationToken));
 
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+                tasks.Add(Task.Run(() => getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var totalItems = new HashSet<T>(comparer);
+            foreach (var task in tasks)
             {
-                values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
-                totalItems.AddRange(values.NullToEmpty());
+                var items = await task.ConfigureAwait(false);
+                totalItems.AddRange(items.NullToEmpty());
             }
 
             return totalItems.ToImmutableArray();

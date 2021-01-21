@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
                     s_comparer,
-                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
+                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken),
+                    cancellationToken).ConfigureAwait(false));
             }
         }
 
@@ -60,10 +61,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
                 return ImmutableArray<RecommendedKeyword>.Empty;
 
-            using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<Task<ImmutableArray<RecommendedKeyword>>>.GetInstance(out var tasks);
             foreach (var recommender in _keywordRecommenders)
+                tasks.Add(Task.Run(() => recommender.RecommendKeywords(position, context, cancellationToken), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            using var _2 = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
+            foreach (var task in tasks)
             {
-                var keywords = recommender.RecommendKeywords(position, context, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                var keywords = await task.ConfigureAwait(false);
                 result.AddRange(keywords.NullToEmpty());
             }
 
