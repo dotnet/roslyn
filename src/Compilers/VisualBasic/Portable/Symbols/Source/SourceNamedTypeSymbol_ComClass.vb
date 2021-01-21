@@ -1195,6 +1195,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property IsVararg As Boolean
                     Get
                         Return ClonedFrom.IsVararg

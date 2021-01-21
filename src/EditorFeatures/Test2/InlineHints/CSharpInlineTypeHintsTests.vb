@@ -335,5 +335,131 @@ class A
 
             Await VerifyTypeHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_InMethodArgument() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(int i) { }
+
+    void Main(string[] args) 
+    {
+        M(new{| int:|}())
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_FieldInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int field = new{| int:|}();
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_LocalInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M()
+    {
+        int i = new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_ParameterInitializer() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(System.Threading.CancellationToken ct = new{| CancellationToken:|}()) { }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_Return() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithImplicitObjectCreation_IfExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    int M()
+    {
+        return true
+            ? 1
+            : new{| int:|}();
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
     End Class
 End Namespace

@@ -73,6 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_lambda_parameter_types
             => ServicesVSResources.Show_hints_for_lambda_parameter_types;
 
+        public static string Option_Show_hints_for_implicit_object_creation
+            => ServicesVSResources.Show_hints_for_implicit_object_creation;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 
