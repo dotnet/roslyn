@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return attributeLists.Span.Contains(caretPosition);
         }
 
-        private static bool WithinBraces(SyntaxNode node, int caretPosition)
+        private static bool WithinBraces(SyntaxNode? node, int caretPosition)
         {
             var (openBrace, closeBrace) = node.GetBraces();
             return TextSpan.FromBounds(openBrace.SpanStart, closeBrace.Span.End).Contains(caretPosition);
