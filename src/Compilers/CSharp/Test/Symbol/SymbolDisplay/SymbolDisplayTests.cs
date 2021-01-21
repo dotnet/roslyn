@@ -7833,6 +7833,52 @@ public class Test: A<object> { }
                 SymbolDisplayPartKind.PropertyName);
         }
 
+        [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
+        [Fact]
+        public void NullableAttributes_SymbolDisplayForVBSymbol()
+        {
+            var sourceVB = @"
+Public Class A(Of T)
+    Public ReadOnly Property P As T
+End Class
+
+Public Class ClosedClass
+    Inherits A(Of Object)
+End Class
+
+Public Class ClosedStruct
+    Inherits A(Of Integer)
+End Class
+";
+            var compVB = CreateVisualBasicCompilation(GetUniqueName(), sourceVB);
+            var closedGenericClassMember = compVB.GetTypeByMetadataName("ClosedClass").BaseType.GetMember("P");
+            var closedGenericStructMember = compVB.GetTypeByMetadataName("ClosedStruct").BaseType.GetMember("P");
+            var openGenericMember = compVB.GetTypeByMetadataName("A`1").GetMember("P");
+            var format = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            // Verify that symbols from a VB compilation can be passed to CSharp SymbolDisplay.
+            Verify(
+                CSharp.SymbolDisplay.ToDisplayParts(closedGenericClassMember, format),
+                "Object P",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                CSharp.SymbolDisplay.ToDisplayParts(closedGenericStructMember, format),
+                "Int32 P",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+            Verify(
+                CSharp.SymbolDisplay.ToDisplayParts(openGenericMember, format),
+                "T P",
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
+
         [Fact]
         [WorkItem(48023, "https://github.com/dotnet/roslyn/issues/48023")]
         public void NullableAttributes_MayBeNullOnField()
