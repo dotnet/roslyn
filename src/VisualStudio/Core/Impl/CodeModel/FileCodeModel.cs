@@ -332,8 +332,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () => 
                 {
-                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(false);
-                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
 
                     return formatted;
                 });
@@ -689,8 +689,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     {
                         // perform expensive operations at once
                         var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            Simplifier
-                            .ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
 
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
