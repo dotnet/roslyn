@@ -8,8 +8,10 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -311,15 +313,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            return symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is ITypeSymbol to
+            return symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is INamedTypeSymbol to
                 ? await GetBuiltInConversionDescriptionAsync(document, item, from, to, cancellationToken).ConfigureAwait(false)
                 : await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document,
-            CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
+            CompletionItem item, INamedTypeSymbol fromType, INamedTypeSymbol toType, CancellationToken cancellationToken)
         {
-            var symbol = new BuiltinOperatorMethodSymbol(toType, fromType);
+            var symbol = CodeGenerationSymbolFactory.CreateConversionSymbol(
+                attributes: default,
+                accessibility: Accessibility.Public,
+                modifiers: DeclarationModifiers.Static,
+                toType: toType,
+                fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"));
             return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
                 item, document, ImmutableArray.Create<ISymbol>(symbol), cancellationToken).ConfigureAwait(false);
         }
