@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -61,11 +61,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
             }
 
             return await SearchProjectInCurrentProcessAsync(
                 project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<ImmutableArray<INavigateToSearchResult>> RehydrateAsync(
+            Optional<ImmutableArray<SerializableNavigateToSearchResult>> result,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (result.HasValue)
+            {
+                var resultTasks = result.Value.SelectAsArray(r => r.RehydrateAsync(solution, cancellationToken).AsTask());
+                return (await Task.WhenAll(resultTasks).ConfigureAwait(false)).ToImmutableArray();
+            }
+            else
+            {
+                return ImmutableArray<INavigateToSearchResult>.Empty;
+            }
         }
     }
 }

@@ -7,6 +7,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -78,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Remote
                    result.Summary,
                    SerializableNavigableItem.Dehydrate(result.NavigableItem));
 
-        internal INavigateToSearchResult Rehydrate(Solution solution)
+        internal async ValueTask<INavigateToSearchResult> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
                 Name, NameMatchSpans,
-                SecondarySort, Summary, NavigableItem.Rehydrate(solution));
+                SecondarySort, Summary, await NavigableItem.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
         }
 
         private class NavigateToSearchResult : INavigateToSearchResult
@@ -172,15 +174,18 @@ namespace Microsoft.CodeAnalysis.Remote
                    item.SourceSpan,
                    item.ChildItems.SelectAsArray(Dehydrate));
 
-        public INavigableItem Rehydrate(Solution solution)
+        public async ValueTask<INavigableItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var childItems = ChildItems == null
                 ? ImmutableArray<INavigableItem>.Empty
-                : ChildItems.SelectAsArray(c => c.Rehydrate(solution));
+                : ImmutableArray.Create(
+                    await Task.WhenAll(
+                        ChildItems.SelectAsArray(c => c.RehydrateAsync(solution, cancellationToken).AsTask())).ConfigureAwait(false));
+
             return new NavigableItem(
                 Glyph, DisplayTaggedParts,
                 DisplayFileLocation, IsImplicitlyDeclared,
-                solution.GetDocument(Document),
+                solution.GetDocument(Document) ?? await solution.GetSourceGeneratedDocumentAsync(Document, cancellationToken).ConfigureAwait(false),
                 SourceSpan,
                 childItems);
         }
