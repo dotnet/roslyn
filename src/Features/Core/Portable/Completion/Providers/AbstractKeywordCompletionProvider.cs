@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                context.AddItems(await ForkJoinItemsFromAllRelatedDocumentsAsync(
+                    context.Document,
                     s_comparer,
                     d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken),
                     cancellationToken).ConfigureAwait(false));

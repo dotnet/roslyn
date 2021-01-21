@@ -62,30 +62,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
-            this Document document,
-            IEqualityComparer<T> comparer,
-            Func<Document, Task<ImmutableArray<T>>> getItemsWorker,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<Task<ImmutableArray<T>>>.GetInstance(out var tasks);
-            tasks.Add(Task.Run(() => getItemsWorker(document), cancellationToken));
-
-            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-                tasks.Add(Task.Run(() => getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            var totalItems = new HashSet<T>(comparer);
-            foreach (var task in tasks)
-            {
-                var items = await task.ConfigureAwait(false);
-                totalItems.AddRange(items.NullToEmpty());
-            }
-
-            return totalItems.ToImmutableArray();
-        }
-
         public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
             this Document document,
             Func<Document, CancellationToken, Task<bool>> contextChecker,

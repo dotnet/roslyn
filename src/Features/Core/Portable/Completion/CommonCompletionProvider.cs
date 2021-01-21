@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -102,6 +104,38 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: "",
                 description: description == null ? default : description.ToSymbolDisplayParts(),
                 rules: s_suggestionItemRules);
+        }
+
+        /// <summary>
+        /// Computes, in parallel, <paramref name="getItemsWorker"/> against all <see
+        /// cref="Solution.GetRelatedDocumentIds(DocumentId)"/> of <paramref name="document"/>.  The results of each
+        /// call are then merged all together in the end, using <paramref name="comparer"/> to remove duplicates if any.
+        /// </summary>
+        protected static async Task<ImmutableArray<T>> ForkJoinItemsFromAllRelatedDocumentsAsync<T>(
+            Document document,
+            IEqualityComparer<T> comparer,
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<Task<ImmutableArray<T>>>.GetInstance(out var tasks);
+
+            // Place the initial document as the first item in the queue.  This will give all the values returned by it
+            // priority over any values computed from any of its related documents.
+            tasks.Add(Task.Run(() => getItemsWorker(document), cancellationToken));
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+                tasks.Add(Task.Run(() => getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)), cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var totalItems = new HashSet<T>(comparer);
+            foreach (var task in tasks)
+            {
+                var items = await task.ConfigureAwait(false);
+                totalItems.AddRange(items.NullToEmpty());
+            }
+
+            return totalItems.ToImmutableArray();
         }
     }
 }
