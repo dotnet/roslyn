@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
             // to keep the rename action from deadlocking.
-            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(_threadingContext);
+            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -1068,12 +1068,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 formattingRules = additionalRules.Concat(formattingRules);
             }
 
-            return Formatter.FormatAsync(
+            return _threadingContext.JoinableTaskFactory.Run(() => Formatter.FormatAsync(
                 document,
                 new TextSpan[] { formattingSpan },
                 options: null,
                 rules: formattingRules,
-                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(_threadingContext);
+                cancellationToken: cancellationToken));
         }
 
         private SyntaxNode InsertNode(
@@ -1106,7 +1106,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(_threadingContext);
+                document = _threadingContext.JoinableTaskFactory.Run(() =>
+                    Simplifier.ReduceAsync(
+                        document, 
+                        annotation, 
+                        optionSet: null,
+                        cancellationToken: cancellationToken)
+                );
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

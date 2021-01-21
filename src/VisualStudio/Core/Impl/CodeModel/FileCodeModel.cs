@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -329,8 +330,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var result = action(document);
 
-                var formatted = Formatter.FormatAsync(result, Formatter.Annotation).WaitAndGetResult_CodeModel(State.ThreadingContext);
-                formatted = Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).WaitAndGetResult_CodeModel(State.ThreadingContext);
+                var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () => 
+                {
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(false);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(false);
+
+                    return formatted;
+                });
 
                 ApplyChanges(workspace, formatted);
             });
@@ -414,19 +420,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return GetDocument().GetSyntaxRootSynchronously(CancellationToken.None);
         }
 
+        internal DocumentOptionSet GetDocumentOptions(CancellationToken cancellationToken)
+            => State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(cancellationToken));
+
         internal SemanticModel GetSemanticModel()
-        {
-            return GetDocument()
-                .GetSemanticModelAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(State.ThreadingContext);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() => 
+            {
+                return GetDocument()
+                    .GetSemanticModelAsync(CancellationToken.None);
+            });
 
         internal Compilation GetCompilation()
-        {
-            return GetDocument().Project
-                .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_CodeModel(State.ThreadingContext);
-        }
+            => State.ThreadingContext.JoinableTaskFactory.Run(() => 
+            {
+                return GetDocument().Project
+                    .GetCompilationAsync(CancellationToken.None);
+            });
 
         internal ProjectId GetProjectId()
             => GetDocumentId().ProjectId;
@@ -679,9 +688,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = Simplifier
-                            .ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None)
-                            .WaitAndGetResult_CodeModel(State.ThreadingContext);
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            Simplifier
+                            .ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
 
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
