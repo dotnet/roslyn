@@ -55068,7 +55068,7 @@ class C1 : I1, Interface<int>
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
             {
-                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });;
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });
 
                 void Validate(ModuleSymbol m)
                 {
