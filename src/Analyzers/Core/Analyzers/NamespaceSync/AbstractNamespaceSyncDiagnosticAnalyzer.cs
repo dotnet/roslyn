@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 {
     internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public const string RootNamespaceOption = "build_property.RootNamespace";
         public const string ProjectDirOption = "build_property.ProjectDir";
         public const string TargetNamespace = "TargetNamespace";
 
@@ -67,9 +66,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
         protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
-            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace);
-
             // Project directory is a must to correctly get the relative path and construct a namespace
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
                 || string.IsNullOrEmpty(projectDir))
@@ -79,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             if (context.Node is TNamespaceSyntax namespaceDecl)
             {
-                var currentNamespace = GetNamespaceName(namespaceDecl, rootNamespace);
+                var currentNamespace = GetNamespaceName(namespaceDecl);
 
-                if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
+                if (IsFileAndNamespaceMismatch(namespaceDecl, projectDir, currentNamespace, out var targetNamespace) &&
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
                 {
                     var nameSyntax = GetNameSyntax(namespaceDecl);
@@ -89,11 +85,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 }
             }
 
-            string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string? rootNamespace)
+            string GetNamespaceName(TNamespaceSyntax namespaceSyntax)
             {
                 var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
                 var syntaxFacts = GetSyntaxFacts();
-                return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None, rootNamespace);
+                return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None);
             }
         }
 
@@ -140,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
         private bool IsFileAndNamespaceMismatch(
             TNamespaceSyntax namespaceDeclaration,
-            string? rootNamespace,
             string projectDir,
             string currentNamespace,
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
@@ -157,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 PathUtilities.GetDirectoryName(namespaceDeclaration.SyntaxTree.FilePath)!);
             var folders = relativeDirectoryPath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
-            var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
+            var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts());
 
             if (RoslynString.IsNullOrWhiteSpace(expectedNamespace) || expectedNamespace.Equals(currentNamespace, StringComparison.OrdinalIgnoreCase))
             {
