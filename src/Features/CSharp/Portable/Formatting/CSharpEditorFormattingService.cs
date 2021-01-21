@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // If format-on-typing is not on, then we don't support formatting on any other characters.
-            var autoFormattingOnTyping = options.GetOption(FormattingFeatureOptions.AutoFormattingOnTyping, LanguageNames.CSharp);
+            var autoFormattingOnTyping = options.GetOption(FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp);
             if (!autoFormattingOnTyping)
             {
                 return false;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            if (ch == ';' && !options.GetOption(FormattingFeatureOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp))
+            if (ch == ';' && !options.GetOption(FormattingOptions2.AutoFormattingOnSemicolon, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
             return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
-                   !options.GetOption(FormattingFeatureOptions.AutoFormattingOnTyping);
+                   !options.GetOption(FormattingOptions2.AutoFormattingOnTyping);
         }
 
         private static bool OnlySmartIndentOpenBrace(DocumentOptionSet options)
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // User does not want auto-formatting .  So we only smart indent open braces when typed.
             // Note: there is no specific option for controlling formatting on open brace.  So we
             // don't have the symmetry with OnlySmartIndentCloseBrace.
-            return !options.GetOption(FormattingFeatureOptions.AutoFormattingOnTyping);
+            return !options.GetOption(FormattingOptions2.AutoFormattingOnTyping);
         }
 
         private static async Task<SyntaxToken> GetTokenBeforeTheCaretAsync(Document document, int caretPosition, CancellationToken cancellationToken)

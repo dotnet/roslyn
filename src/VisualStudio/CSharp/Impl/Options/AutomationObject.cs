@@ -130,14 +130,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.FormatOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.FormatOnPaste, value); }
+            get { return GetBooleanOption(FormattingOptions2.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptions2.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(FormattingFeatureOptions.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FormattingFeatureOptions.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon, value); }
         }
 
         public int HighlightReferences
