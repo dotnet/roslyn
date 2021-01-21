@@ -84,17 +84,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             T[] manualArray = new T[expectedResults.Count];
             int i = 0;
 
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+            Assert.Equal(default(T), enumerator.Current);
 
             while (enumerator.MoveNext())
             {
                 manualArray[i++] = enumerator.Current;
             }
 
-            enumerator.MoveNext();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            enumerator.MoveNext();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+            Assert.False(enumerator.MoveNext());
+            Assert.Equal(default(T), enumerator.Current);
+            Assert.False(enumerator.MoveNext());
+            Assert.Equal(default(T), enumerator.Current);
 
             Assert.Equal(expectedResults.Count, i); //, "Enumeration did not produce enough elements.");
             Assert.Equal<T>(expectedResults, manualArray);

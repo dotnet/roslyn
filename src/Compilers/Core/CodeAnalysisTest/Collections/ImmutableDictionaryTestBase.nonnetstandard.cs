@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Test optimization for empty map.
             var map2 = Empty<int, GenericParameterHelper>();
             var jointMap = map2.AddRange(map);
-            Assert.Same(map, jointMap);
+            Assert.True(IsSame(map, jointMap));
 
             jointMap = map2.AddRange(map.ToReadOnlyDictionary());
-            Assert.Same(map, jointMap);
+            Assert.True(IsSame(map, jointMap));
 
             jointMap = map2.AddRange(map.ToBuilder());
-            Assert.Same(map, jointMap);
+            Assert.True(IsSame(map, jointMap));
         }
 
         [Fact]
@@ -191,12 +191,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(0, map.Count);
         }
 
-        protected static void AddRemoveEnumerableTestHelper(IImmutableDictionary<int, int> empty)
+        protected void AddRemoveEnumerableTestHelper(IImmutableDictionary<int, int> empty)
         {
             Assert.NotNull(empty);
 
-            Assert.Same(empty, empty.RemoveRange(Enumerable.Empty<int>()));
-            Assert.Same(empty, empty.AddRange(Enumerable.Empty<KeyValuePair<int, int>>()));
+            Assert.True(IsSame(empty, empty.RemoveRange(Enumerable.Empty<int>())));
+            Assert.True(IsSame(empty, empty.AddRange(Enumerable.Empty<KeyValuePair<int, int>>())));
             var list = new List<KeyValuePair<int, int>> { new KeyValuePair<int, int>(3, 5), new KeyValuePair<int, int>(8, 10) };
             var nonEmpty = empty.AddRange(list);
             var halfRemoved = nonEmpty.RemoveRange(Enumerable.Range(1, 5));
@@ -261,10 +261,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             var manualEnum = map.GetEnumerator();
-            Assert.Throws<InvalidOperationException>(() => manualEnum.Current);
+            Assert.Equal(default(KeyValuePair<int, GenericParameterHelper>), manualEnum.Current);
             while (manualEnum.MoveNext()) { }
             Assert.False(manualEnum.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => manualEnum.Current);
+            Assert.Equal(default(KeyValuePair<int, GenericParameterHelper>), manualEnum.Current);
         }
 
         private static List<T> ToListNonGeneric<T>(IEnumerable sequence)

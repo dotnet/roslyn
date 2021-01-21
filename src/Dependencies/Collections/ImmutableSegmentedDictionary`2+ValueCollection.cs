@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 => GetEnumerator();
 
             void ICollection<TValue>.CopyTo(TValue[] array, int arrayIndex)
-                => ((ICollection<TValue>)_dictionary.Values).CopyTo(array, arrayIndex);
+                => ((ICollection<TValue>)_dictionary._dictionary.Values).CopyTo(array, arrayIndex);
 
             void ICollection.CopyTo(Array array, int index)
-                => ((ICollection)_dictionary.Values).CopyTo(array, index);
+                => ((ICollection)_dictionary._dictionary.Values).CopyTo(array, index);
 
             void ICollection<TValue>.Add(TValue item)
                 => throw new NotSupportedException();

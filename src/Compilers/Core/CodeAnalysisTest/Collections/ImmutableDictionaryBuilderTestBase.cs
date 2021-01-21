@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             var manualEnum = builder.GetEnumerator();
-            Assert.Throws<InvalidOperationException>(() => manualEnum.Current);
+            Assert.Equal(default(KeyValuePair<string, int>), manualEnum.Current);
             while (manualEnum.MoveNext()) { }
             Assert.False(manualEnum.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => manualEnum.Current);
+            Assert.Equal(default(KeyValuePair<string, int>), manualEnum.Current);
         }
 
         [Fact]
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var dictionary = (IDictionary)builder;
             dictionary.Add("a", 1);
             var enumerator = dictionary.GetEnumerator();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.True(enumerator.MoveNext());
             Assert.Equal(enumerator.Entry, enumerator.Current);
             Assert.Equal(enumerator.Key, enumerator.Entry.Key);
@@ -207,27 +207,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal("a", enumerator.Key);
             Assert.Equal(1, enumerator.Value);
             Assert.False(enumerator.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.False(enumerator.MoveNext());
 
             enumerator.Reset();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.True(enumerator.MoveNext());
             Assert.Equal(enumerator.Key, ((DictionaryEntry)enumerator.Current).Key);
             Assert.Equal(enumerator.Value, ((DictionaryEntry)enumerator.Current).Value);
             Assert.Equal("a", enumerator.Key);
             Assert.Equal(1, enumerator.Value);
             Assert.False(enumerator.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.False(enumerator.MoveNext());
         }
 
@@ -245,7 +245,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var array = new object[builder.Count + 1];
             collection.CopyTo(array, 1);
             Assert.Null(array[0]);
-            Assert.Equal(new object?[] { null, new DictionaryEntry("b", 2), }, array);
+            Assert.Equal(new object?[] { null, new KeyValuePair<string, int>("b", 2) }, array);
+
+            var entryArray = new DictionaryEntry[builder.Count + 1];
+            collection.CopyTo(entryArray, 1);
+            Assert.Equal(default(DictionaryEntry), entryArray[0]);
+            Assert.Equal(new DictionaryEntry[] { default, new DictionaryEntry("b", 2) }, entryArray);
 
             Assert.False(collection.IsSynchronized);
             Assert.NotNull(collection.SyncRoot);

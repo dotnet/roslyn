@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         public sealed partial class Builder : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
         {
-            private readonly ImmutableSegmentedDictionary<TKey, TValue> _dictionary;
+            private ImmutableSegmentedDictionary<TKey, TValue> _dictionary;
             private SegmentedDictionary<TKey, TValue>? _mutableDictionary;
 
             internal Builder(ImmutableSegmentedDictionary<TKey, TValue> dictionary)
@@ -21,7 +21,27 @@ namespace Microsoft.CodeAnalysis.Collections
                 _dictionary = dictionary;
             }
 
-            public IEqualityComparer<TKey> KeyComparer => _dictionary.KeyComparer;
+            public IEqualityComparer<TKey> KeyComparer
+            {
+                get
+                {
+                    return ReadOnlyDictionary.Comparer;
+                }
+
+                set
+                {
+                    if (value is null)
+                        throw new ArgumentNullException(nameof(value));
+
+                    if (value != KeyComparer)
+                    {
+                        // Rewrite the mutable dictionary using a new comparer
+                        var valuesToAdd = ReadOnlyDictionary;
+                        _mutableDictionary = new SegmentedDictionary<TKey, TValue>(value);
+                        AddRange(valuesToAdd);
+                    }
+                }
+            }
 
             public int Count => ReadOnlyDictionary.Count;
 
@@ -71,7 +91,12 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             public void Add(TKey key, TValue value)
-                => GetOrCreateMutableDictionary().Add(key, value);
+            {
+                if (Contains(new KeyValuePair<TKey, TValue>(key, value)))
+                    return;
+
+                GetOrCreateMutableDictionary().Add(key, value);
+            }
 
             public void Add(KeyValuePair<TKey, TValue> item)
                 => Add(item.Key, item.Value);
@@ -179,9 +204,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public ImmutableSegmentedDictionary<TKey, TValue> ToImmutable()
             {
-                var dictionary = ReadOnlyDictionary;
+                _dictionary = new ImmutableSegmentedDictionary<TKey, TValue>(ReadOnlyDictionary);
                 _mutableDictionary = null;
-                return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
+                return _dictionary;
             }
 
             void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Set it to the same thing again and make sure it's all good.
             var sameMap = map.SetItem("Microsoft", 200);
-            Assert.Same(map, sameMap);
+            Assert.True(IsSame(map, sameMap));
         }
 
         [Fact]
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(dictionary.SyncRoot);
             Assert.Same(dictionary.SyncRoot, dictionary.SyncRoot);
 
-            var array = new object[2];
+            var array = new DictionaryEntry[2];
             dictionary.CopyTo(array, 1);
-            Assert.Null(array[0]);
+            Assert.Null(array[0].Value);
             Assert.Equal(new DictionaryEntry("a", 1), (DictionaryEntry)array[1]);
         }
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<NotSupportedException>(() => dictionary.Clear());
             Assert.False(dictionary.Contains("a"));
             Assert.True(dictionary.Contains("c"));
-            Assert.Throws<KeyNotFoundException>(() => dictionary["a"]);
+            Assert.Null(dictionary["a"]);
             Assert.Equal(3, dictionary["c"]);
             Assert.True(dictionary.IsFixedSize);
             Assert.True(dictionary.IsReadOnly);
@@ -184,10 +184,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var dictionary = (IDictionary)Empty<string, int>().Add("a", 1);
             var enumerator = dictionary.GetEnumerator();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.True(enumerator.MoveNext());
             Assert.Equal(enumerator.Entry, enumerator.Current);
             Assert.Equal(enumerator.Key, enumerator.Entry.Key);
@@ -195,27 +195,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal("a", enumerator.Key);
             Assert.Equal(1, enumerator.Value);
             Assert.False(enumerator.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.False(enumerator.MoveNext());
 
             enumerator.Reset();
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.True(enumerator.MoveNext());
             Assert.Equal(enumerator.Key, ((DictionaryEntry)enumerator.Current).Key);
             Assert.Equal(enumerator.Value, ((DictionaryEntry)enumerator.Current).Value);
             Assert.Equal("a", enumerator.Key);
             Assert.Equal(1, enumerator.Value);
             Assert.False(enumerator.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Key);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Value);
-            Assert.Throws<InvalidOperationException>(() => enumerator.Entry);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Current);
+            Assert.Null(enumerator.Key);
+            Assert.Equal(0, enumerator.Value);
+            Assert.Equal(new DictionaryEntry(null!, 0), enumerator.Entry);
             Assert.False(enumerator.MoveNext());
         }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected void EmptyTestHelper<K, V>(IImmutableDictionary<K, V?> empty, K someKey)
             where K : notnull
         {
-            Assert.Same(empty, empty.Clear());
+            Assert.True(IsSame(empty, empty.Clear()));
             Assert.Equal(0, empty.Count);
             Assert.Equal(0, empty.Count());
             Assert.Equal(0, empty.Keys.Count());
@@ -259,8 +259,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(GetValueComparer(map).Equals(value1, value2));
 
             map = map.Add(key, value1);
-            Assert.Same(map, map.Add(key, value2));
-            Assert.Same(map, map.AddRange(new[] { new KeyValuePair<TKey, TValue>(key, value2) }));
+            Assert.True(IsSame(map, map.Add(key, value2)));
+            Assert.True(IsSame(map, map.AddRange(new[] { new KeyValuePair<TKey, TValue>(key, value2) })));
         }
 
         /// <summary>
@@ -304,11 +304,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(map.Add(key, value).Contains(key, value));
         }
 
-        protected static void RemoveTestHelper<TKey, TValue>(IImmutableDictionary<TKey, TValue?> map, TKey key)
+        protected void RemoveTestHelper<TKey, TValue>(IImmutableDictionary<TKey, TValue?> map, TKey key)
+            where TKey : notnull
         {
             // no-op remove
-            Assert.Same(map, map.Remove(key));
-            Assert.Same(map, map.RemoveRange(Enumerable.Empty<TKey>()));
+            Assert.True(IsSame(map, map.Remove(key)));
+            Assert.True(IsSame(map, map.RemoveRange(Enumerable.Empty<TKey>())));
 
             // substantial remove
             var addedMap = map.Add(key, default(TValue));
@@ -321,6 +322,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             where TKey : notnull;
 
         protected abstract IImmutableDictionary<string, TValue> Empty<TValue>(StringComparer comparer);
+
+        protected abstract bool IsSame<TKey, TValue>(IImmutableDictionary<TKey, TValue> first, IImmutableDictionary<TKey, TValue> second)
+            where TKey : notnull;
 
         protected abstract IEqualityComparer<TValue> GetValueComparer<TKey, TValue>(IImmutableDictionary<TKey, TValue> dictionary)
             where TKey : notnull;

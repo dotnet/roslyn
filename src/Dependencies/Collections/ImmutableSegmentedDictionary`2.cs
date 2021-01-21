@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool IDictionary.IsFixedSize => true;
 
-        object ICollection.SyncRoot => this;
+        object ICollection.SyncRoot => _dictionary;
 
         bool ICollection.IsSynchronized => true;
 
@@ -144,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Collections
         public ImmutableSegmentedDictionary<TKey, TValue> Add(TKey key, TValue value)
         {
             var self = this;
+            if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
+                return self;
+
             var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary.Add(key, value);
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
@@ -152,11 +155,26 @@ namespace Microsoft.CodeAnalysis.Collections
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
             var self = this;
-            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
+
+            // Optimize the case of adding to an empty collection
+            if (self.IsEmpty && TryCastToImmutableSegmentedDictionary(pairs, out var other) && self.KeyComparer == other.KeyComparer)
+            {
+                return other;
+            }
+
+            SegmentedDictionary<TKey, TValue>? dictionary = null;
             foreach (var pair in pairs)
             {
+                ICollection<KeyValuePair<TKey, TValue>> collectionToCheck = dictionary ?? self._dictionary;
+                if (collectionToCheck.Contains(pair))
+                    continue;
+
+                dictionary ??= new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
                 dictionary.Add(pair.Key, pair.Value);
             }
+
+            if (dictionary is null)
+                return self;
 
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
@@ -211,6 +229,11 @@ namespace Microsoft.CodeAnalysis.Collections
         public ImmutableSegmentedDictionary<TKey, TValue> SetItem(TKey key, TValue value)
         {
             var self = this;
+            if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
+            {
+                return self;
+            }
+
             var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary[key] = value;
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
@@ -352,5 +375,23 @@ namespace Microsoft.CodeAnalysis.Collections
 
         void IDictionary.Remove(object key)
             => throw new NotSupportedException();
+
+        private static bool TryCastToImmutableSegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> pairs, out ImmutableSegmentedDictionary<TKey, TValue> other)
+        {
+            if (pairs is ImmutableSegmentedDictionary<TKey, TValue> dictionary)
+            {
+                other = dictionary;
+                return true;
+            }
+
+            if (pairs is ImmutableSegmentedDictionary<TKey, TValue>.Builder builder)
+            {
+                other = builder.ToImmutable();
+                return true;
+            }
+
+            other = default;
+            return false;
+        }
     }
 }
