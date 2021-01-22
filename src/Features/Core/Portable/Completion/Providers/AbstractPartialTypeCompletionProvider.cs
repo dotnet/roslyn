@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (node != null)
                 {
                     var semanticModel = await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(false);
-                    var service = document.GetRequiredLanguageService<ISyntaxContextService>();
-
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
-                        var syntaxContext = (TSyntaxContext)await service.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+                        var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
+                        var syntaxContext = (TSyntaxContext)syntaxContextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
                         var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                         var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 

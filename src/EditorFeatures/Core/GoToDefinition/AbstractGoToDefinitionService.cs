@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return _threadingContext.JoinableTaskFactory.Run(() =>
                 _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions));
+                    _threadingContext, solution.Workspace, title, definitions, cancellationToken));
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
