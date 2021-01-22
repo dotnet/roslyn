@@ -85,8 +85,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Ensure the nuget package services are initialized after we've loaded
-            // the solution.
+            // Ensure the nuget package services are initialized. This initialization pass will only run
+            // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
+            // loading us) or through something like the IVsEditorFactory or a debugger service. Right now it's fine
+            // we only load this there, because we only use these to provide code fixes. But we only show code fixes in
+            // open files, and so you would have had to open a file, which loads the editor factory, which loads our package,
+            // which will run this.
+            //
+            // This code will have to be moved elsewhere once any of that load path is changed such that the package
+            // no longer loads if a file is opened.
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
