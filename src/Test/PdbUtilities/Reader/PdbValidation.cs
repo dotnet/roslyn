@@ -619,5 +619,40 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualId = new BlobContentId(pdbReader.DebugMetadataHeader.Id);
             Assert.Equal(expectedId, actualId);
         }
+
+        internal static void VerifyPdbLambdasAndClosures(this Compilation compilation, SourceWithMarkedNodes source)
+        {
+            var pdb = GetPdbXml(compilation);
+            var pdbXml = XElement.Parse(pdb);
+
+            // We need to get the method start index from the input source, as its not in the PDB
+            var methodStart = source.MarkedSpans.Single(s => s.TagName == "M").MatchedSpan.Start;
+
+            // Calculate the expected tags for closures
+            var expectedTags = pdbXml.DescendantsAndSelf("closure").Select((c, i) => new { Tag = $"<C:{i}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }).ToList();
+
+            // Add the expected tags for lambdas
+            expectedTags.AddRange(pdbXml.DescendantsAndSelf("lambda").Select((c, i) => new { Tag = $"<L:{i}.{int.Parse(c.Attribute("closure").Value)}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }));
+
+            // Order by start index so they line up nicely
+            expectedTags.Sort((x, y) => x.StartIndex.CompareTo(y.StartIndex));
+
+            // Ensure the tag for the method start is the first element
+            expectedTags.Insert(0, new { Tag = "<M>", StartIndex = methodStart });
+
+            // Now reverse the list so we can insert without worrying about offsets
+            expectedTags.Reverse();
+
+            var expected = source.StrippedSource;
+
+            // Loop backwards so our inserts don't affect subsequent inserts
+            foreach (var tag in expectedTags)
+            {
+                expected = expected.Insert(tag.StartIndex, tag.Tag);
+            }
+
+            AssertEx.EqualOrDiff(expected, source.Input);
+        }
     }
 }
+
