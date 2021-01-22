@@ -39,7 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     internal partial class InProcLanguageServer : IAsyncDisposable
     {
         /// <summary>
+        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
+        /// server is restarted that we can have a new logstream for the new server.
+        /// </summary>
+        private static int s_logHubSessionId;
+
+        /// <summary>
         /// Legacy support for LSP push diagnostics.
+        /// 
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
@@ -142,7 +149,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             if (asyncServiceProvider == null)
                 return null;
 
-            var logId = new LogId($"Roslyn.{clientName ?? "Default"}", new ServiceMoniker(typeof(InProcLanguageServer).FullName));
+            var logName = $"Roslyn.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
+            var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
 
             var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();
