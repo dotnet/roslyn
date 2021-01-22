@@ -41,7 +41,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <RestrictedInternalsVisibleTo Include="TypeScriptAddIn" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
+    <RestrictedInternalsVisibleTo Include="TypeScriptAddin" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
   </ItemGroup>
   <ItemGroup>
