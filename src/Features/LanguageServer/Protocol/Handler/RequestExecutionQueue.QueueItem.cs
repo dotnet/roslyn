@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
             /// tracing/logging subsystem.
             /// </summary>
-            private readonly Guid _activityId;
+            public readonly Guid ActivityId;
             private readonly ILspLogger _logger;
 
             /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CancellationToken cancellationToken)
             {
                 _callbackAsync = callbackAsync;
-                _activityId = activityId;
                 _logger = logger;
 
+                ActivityId = activityId;
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public async Task CallbackAsync(RequestContext context, CancellationToken cancellationToken)
             {
                 // Restore our activity id so that logging/tracking works.
-                Trace.CorrelationManager.ActivityId = _activityId;
+                Trace.CorrelationManager.ActivityId = ActivityId;
                 _logger.TraceStart($"{MethodName} - Roslyn");
                 try
                 {
