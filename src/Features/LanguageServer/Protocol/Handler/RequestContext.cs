@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     // Where ever the document came from, thats the "main" solution for this request
-                    _logger.TraceInformation($"Found document: {document.FilePath}");
                     workspaceSolution = document.Project.Solution;
+                    _logger.TraceInformation($"Found document in workspace {workspaceSolution.Workspace.Kind}: {document.FilePath}");
                 }
             }
 
