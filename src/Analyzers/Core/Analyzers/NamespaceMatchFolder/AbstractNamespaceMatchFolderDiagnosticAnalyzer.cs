@@ -23,29 +23,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         public const string ProjectDirOption = "build_property.ProjectDir";
         public const string TargetNamespace = "TargetNamespace";
 
-        protected AbstractNamespaceMatchFolderDiagnosticAnalyzer(LocalizableResourceString title, LocalizableResourceString message, ILanguageSpecificOption? option, string languageName)
+        private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
+          nameof(AnalyzersResources.Namespace_does_not_match_folder_structure), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+
+        private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
+            nameof(AnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+
+        protected AbstractNamespaceMatchFolderDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
                 EnforceOnBuildValues.NamespaceSync,
-                option,
-                languageName,
-                title,
-                message)
+                CodeStyleOptions2.PreferNamespaceMatchFolderStructure,
+                s_localizableTitle,
+                s_localizableInsideMessage)
         {
         }
     }
 
-    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceMatchFolderDiagnosticAnalyzer
+    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceMatchFolderDiagnosticAnalyzer
         where TNamespaceSyntax : SyntaxNode
     {
-        protected AbstractNamespaceSyncDiagnosticAnalyzer(
-            LocalizableResourceString title,
-            LocalizableResourceString message,
-            ILanguageSpecificOption? option,
-            string languageName)
-            : base(title, message, option, languageName)
-        {
-        }
-
         /// <summary>
         /// Gets the language specific syntax facts
         /// </summary>

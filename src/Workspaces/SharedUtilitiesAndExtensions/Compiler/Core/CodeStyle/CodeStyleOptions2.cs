@@ -348,6 +348,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation2[]{
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
+        public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceMatchFolderStructure = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceMatchFolderStructure),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation2[] {
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamespaceMatchFolderStructure)}")});
+
         static CodeStyleOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

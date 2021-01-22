@@ -67,16 +67,6 @@
         <target state="translated">Alterar a função local para 'static'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
-        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
-        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
-        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Namespace_does_not_match_folder_structure">
-        <source>Namespace does not match folder structure</source>
-        <target state="new">Namespace does not match folder structure</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
         <target state="translated">Negar expressão (altera a semântica)</target>
