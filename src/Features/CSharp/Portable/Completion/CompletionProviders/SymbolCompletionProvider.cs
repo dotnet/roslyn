@@ -243,12 +243,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (symbol.IsKind(SymbolKind.Method))
             {
                 var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-                if (!isInferredTypeDelegate)
+                if (!context.IsNameOfContext && !isInferredTypeDelegate)
                 {
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
-            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            else if (symbol.IsKind(SymbolKind.NamedType)
+                || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
             {
                 if (context.IsObjectCreationTypeContext)
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
