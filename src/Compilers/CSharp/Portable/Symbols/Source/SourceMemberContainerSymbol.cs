@@ -2468,8 +2468,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public void Free()
             {
                 NonTypeNonIndexerMembers.Free();
+
+                foreach (var group in StaticInitializers)
+                {
+                    group.Free();
+                }
                 StaticInitializers.Free();
+
+                foreach (var group in InstanceInitializers)
+                {
+                    group.Free();
+                }
                 InstanceInitializers.Free();
+
                 IndexerDeclarations.Free();
             }
 
@@ -2649,6 +2660,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public void Free()
             {
                 NonTypeNonIndexerMembers.Free();
+                foreach (var group in InstanceInitializers)
+                {
+                    group.Free();
+                }
                 InstanceInitializers.Free();
             }
         }
