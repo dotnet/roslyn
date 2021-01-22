@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        protected override MembersAndInitializersBuilder BuildDeclaredMembersAndInitializers(DiagnosticBag diagnostics)
+        protected override MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
         {
             bool reportAnError = false;
             foreach (var singleDecl in declaration.Declarations)
@@ -212,15 +212,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new MembersAndInitializersBuilder();
-        }
-
-        protected override void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
-        {
-            foreach (SingleTypeDeclaration singleDeclaration in declaration.Declarations)
-            {
-                builder.NonTypeNonIndexerMembers.Add(new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics));
-            }
+            return new MembersAndInitializers(nonTypeNonIndexerMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
+                                   staticInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
+                                   instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
+                                   indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
+                                   staticInitializersSyntaxLength: 0,
+                                   instanceInitializersSyntaxLength: 0,
+                                   isNullableEnabledForInstanceConstructorsAndFields: false,
+                                   isNullableEnabledForStaticConstructorsAndFields: false);
         }
 
         public override bool IsImplicitlyDeclared => false;
