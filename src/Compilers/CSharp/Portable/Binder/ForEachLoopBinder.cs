@@ -858,14 +858,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Well-known members are matched by signature: we shouldn't find it if it doesn't have exactly 1 parameter.
                     Debug.Assert(getEnumeratorMethod is null or { ParameterCount: 1 });
 
-                    // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional.
-                    // https://github.com/dotnet/roslyn/issues/50182 tracks enabling this error and breaking the scenario.
-                    // if (getEnumeratorMethod?.Parameters[0].IsOptional == false)
-                    // {
-                    //     // This indicates a problem with the well-known IAsyncEnumerable type - it should have an optional cancellation token.
-                    //     diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, _syntax.Expression.Location, unwrappedCollectionExprType, GetAsyncEnumeratorMethodName);
-                    //     return EnumeratorResult.FailedAndReported;
-                    // }
+                    if (getEnumeratorMethod?.Parameters[0].IsOptional == false)
+                    {
+                        // This indicates a problem with the well-known IAsyncEnumerable type - it should have an optional cancellation token.
+                        diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, _syntax.Expression.Location, unwrappedCollectionExprType, GetAsyncEnumeratorMethodName);
+                        return EnumeratorResult.FailedAndReported;
+                    }
                 }
                 else
                 {

@@ -1203,12 +1203,14 @@ This version used in: {2}</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big" xml:space="preserve">
     <value>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</value>
   </data>
   <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
   </data>
   <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements" xml:space="preserve">
     <value>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</value>
@@ -2802,5 +2804,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_dash_1" xml:space="preserve">
     <value>{0} - {1}</value>
+  </data>
+  <data name="Convert_to_record" xml:space="preserve">
+    <value>Convert to record</value>
   </data>
 </root>

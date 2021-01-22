@@ -7,123 +7,123 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
     Public Class AddressOfKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "AddressOf")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfNotInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfNotInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AddressOfAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "AddressOf")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AddressOfAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "AddressOf")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfInAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>AddHandler goo, |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfInAddHandlerTest()
+            VerifyRecommendationsContain(<MethodBody>AddHandler goo, |</MethodBody>, "AddressOf")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfInRemoveHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
-        End Function
+        Public Sub AddressOfInRemoveHandlerTest()
+            VerifyRecommendationsContain(<MethodBody>RemoveHandler goo, |</MethodBody>, "AddressOf")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfInDelegateCreationTest() As Task
+        Public Sub AddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Module Program
     Sub Main(args As String())
@@ -137,13 +137,13 @@ Module Program
     End Function
 End Module
 ]]></ModuleDeclaration>
-            Await VerifyRecommendationsContainAsync(code, "AddressOf")
-        End Function
+            VerifyRecommendationsContain(code, "AddressOf")
+        End Sub
 
         <Fact>
         <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfNotAfterAddressOfTest() As Task
+        Public Sub AddressOfNotAfterAddressOfTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
     Dim d As Func(Of Boolean) = AddressOf |
@@ -152,26 +152,26 @@ Function Goo() As Boolean
     Return True
 End Function
 ]]></ModuleDeclaration>
-            Await VerifyRecommendationsMissingAsync(code, "AddressOf")
-        End Function
+            VerifyRecommendationsMissing(code, "AddressOf")
+        End Sub
 
         <Fact>
         <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfNotAfterAddressOfInDelegateCreationTest() As Task
+        Public Sub AddressOfNotAfterAddressOfInDelegateCreationTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
     Dim d As New Goo(AddressOf |
 End Sub
 Delegate Sub Goo()
 ]]></ModuleDeclaration>
-            Await VerifyRecommendationsMissingAsync(code, "AddressOf")
-        End Function
+            VerifyRecommendationsMissing(code, "AddressOf")
+        End Sub
 
         <Fact>
         <WorkItem(545206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545206")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddressOfNestedInsideAddressOfExpressionTest() As Task
+        Public Sub AddressOfNestedInsideAddressOfExpressionTest()
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
     Sub M(args As String())
@@ -186,7 +186,7 @@ Class C
     End Function
 End Class
 ]]></ModuleDeclaration>
-            Await VerifyRecommendationsContainAsync(code, "AddressOf")
-        End Function
+            VerifyRecommendationsContain(code, "AddressOf")
+        End Sub
     End Class
 End Namespace

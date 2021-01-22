@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 options: compilationOptions,
                 // TFM needs to specified so the references are always the same, and not
                 // dependent on the testrun environment
-                targetFramework: TargetFramework.NetCoreApp30);
+                targetFramework: TargetFramework.NetCoreApp);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
 
