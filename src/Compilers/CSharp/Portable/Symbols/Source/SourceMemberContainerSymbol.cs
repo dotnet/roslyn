@@ -3354,6 +3354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
             members.AddRange(builder.NonTypeNonIndexerMembers);
+            builder.NonTypeNonIndexerMembers.Free();
             builder.NonTypeNonIndexerMembers = members;
 
             return;
