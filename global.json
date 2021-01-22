@@ -1,11 +1,11 @@
 {
   "sdk": {
-    "version": "5.0.100",
+    "version": "5.0.102",
     "allowPrerelease": true,
     "rollForward": "major"
   },
   "tools": {
-    "dotnet": "5.0.100",
+    "dotnet": "5.0.102",
     "vs": {
       "version": "16.8"
     },
