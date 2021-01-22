@@ -145,6 +145,7 @@
       <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
       <_Dependency Remove="System.ValueTuple"/>
