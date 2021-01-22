@@ -69,14 +69,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 
-            if (TestData == null || !TestData.IsInProc)
-            {
-                // Try setting this process's priority BelowNormal.
-                // this should let us to freely try to use all resources possible without worrying about affecting
-                // host's work such as responsiveness or build.
-                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
-            }
-
             // this service provide a way for client to make sure remote host is alive
             StartService();
         }

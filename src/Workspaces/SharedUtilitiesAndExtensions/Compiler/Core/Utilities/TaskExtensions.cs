@@ -89,6 +89,7 @@ namespace Roslyn.Utilities
             {
                 ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
             }
+
             return task.Result;
         }
 

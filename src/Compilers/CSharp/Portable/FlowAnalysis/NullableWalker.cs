@@ -647,15 +647,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
-                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                var annotations = symbol.GetFlowAnalysisAnnotations();
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
+                    // We assume that if a member has AllowNull then the user
+                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
-                var annotations = symbol.GetFlowAnalysisAnnotations();
-                if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
+                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
                 {
-                    // We assume that if a member has MaybeNull or AllowNull then the user
-                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
                 var slot = GetOrCreateSlot(symbol, thisSlot);
@@ -805,6 +806,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     case FieldSymbol { IsConst: true }:
                                         continue;
                                     case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
+                                        // this is a property where assigning 'default' causes us to simply update
+                                        // the state to the output state of the property
+                                        // thus we skip setting an initial state for it here
+                                        if (IsPropertyOutputMoreStrictThanInput(prop))
+                                        {
+                                            continue;
+                                        }
+
                                         // We want to initialize auto-property state to the default state, but not computed properties.
                                         memberToInitialize = prop;
                                         break;
@@ -843,6 +852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    // We don't use a default initial state for value type instance constructors without `: this()` because
+                    // any usages of uninitialized fields will get definite assignment errors anyway.
                     if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
                         return true;
@@ -5614,7 +5625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the argument type has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax.Location);
 
-                        AdjustSetValue(argument, declaredType, lValueType, ref parameterWithState);
+                        AdjustSetValue(argument, ref parameterWithState);
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
 
                         // report warnings if parameter would unsafely let a null out in the worst case
@@ -6192,7 +6203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (symbol is TupleElementFieldSymbol)
+            if (symbol is TupleElementFieldSymbol or TupleErrorFieldSymbol)
             {
                 return symbol.SymbolAsMember(containingType);
             }
@@ -7623,7 +7634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the LHS has annotations, we perform an additional check for nullable value types
                 CheckDisallowedNullAssignment(rightState, leftAnnotations, right.Syntax.Location);
 
-                AdjustSetValue(left, declaredType, leftLValueType, ref rightState);
+                AdjustSetValue(left, ref rightState);
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightState, MakeSlot(right));
 
                 if (left is BoundDiscardExpression)
@@ -7641,41 +7652,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private bool IsPropertyOutputMoreStrictThanInput(PropertySymbol property)
+        {
+            var type = property.TypeWithAnnotations;
+            var annotations = IsAnalyzingAttribute ? FlowAnalysisAnnotations.None : property.GetFlowAnalysisAnnotations();
+            var lValueType = ApplyLValueAnnotations(type, annotations);
+            if (lValueType.NullableAnnotation.IsOblivious() || !lValueType.CanBeAssignedNull)
+            {
+                return false;
+            }
+
+            var rValueType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), annotations);
+            return rValueType.IsNotNull;
+        }
+
         /// <summary>
         /// When the allowed output of a property/indexer is not-null but the allowed input is maybe-null, we store a not-null value instead.
         /// This way, assignment of a legal input value results in a legal output value.
         /// This adjustment doesn't apply to oblivious properties/indexers.
         /// </summary>
-        private void AdjustSetValue(BoundExpression left, TypeWithAnnotations declaredType, TypeWithAnnotations leftLValueType, ref TypeWithState rightState)
+        private void AdjustSetValue(BoundExpression left, ref TypeWithState rightState)
         {
-            if ((left is BoundPropertyAccess || left is BoundIndexerAccess) &&
-                !declaredType.NullableAnnotation.IsOblivious() &&
-                isAllowedOutputStricter(leftLValueType, declaredType, getRValueAnnotations(left)))
+            var property = left switch
+            {
+                BoundPropertyAccess propAccess => propAccess.PropertySymbol,
+                BoundIndexerAccess indexerAccess => indexerAccess.Indexer,
+                _ => null
+            };
+
+            if (property is not null && IsPropertyOutputMoreStrictThanInput(property))
             {
                 rightState = rightState.WithNotNullState();
-            }
-            return;
-
-            static bool isAllowedOutputStricter(TypeWithAnnotations allowedInput, TypeWithAnnotations declaredType, FlowAnalysisAnnotations outputAnnotations)
-            {
-                if (!allowedInput.CanBeAssignedNull)
-                {
-                    // allowed input is `!`, ie. stricter
-                    return false;
-                }
-
-                var allowedOutput = ApplyUnconditionalAnnotations(declaredType.ToTypeWithState(), outputAnnotations);
-                return allowedOutput.IsNotNull;
-            }
-
-            FlowAnalysisAnnotations getRValueAnnotations(BoundExpression expr)
-            {
-                return expr switch
-                {
-                    BoundPropertyAccess property => GetRValueAnnotations(property.PropertySymbol),
-                    BoundIndexerAccess indexer => GetRValueAnnotations(indexer.Indexer),
-                    _ => throw ExceptionUtilities.UnexpectedValue(expr.Kind)
-                };
             }
         }
 
@@ -7949,7 +7956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckDisallowedNullAssignment(valueType, leftAnnotations, right.Syntax.Location);
 
                     int targetSlot = MakeSlot(variable.Expression);
-                    AdjustSetValue(variable.Expression, variable.Type, lvalueType, ref valueType);
+                    AdjustSetValue(variable.Expression, ref valueType);
                     TrackNullableStateForAssignment(rightPart, lvalueType, targetSlot, valueType, valueSlot);
 
                     // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
@@ -8219,7 +8226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             }
 
-            AdjustSetValue(left, declaredType, leftLValueType, ref resultType);
+            AdjustSetValue(left, ref resultType);
             TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
 
             SetResultType(node, resultType);

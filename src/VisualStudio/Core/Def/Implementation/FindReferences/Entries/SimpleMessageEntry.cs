@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -36,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private Document TryGetDocument()
                 => DefinitionBucket.DefinitionItem.SourceSpans.FirstOrDefault().Document;
 
-            protected override object GetValueWorker(string keyName)
+            protected override object? GetValueWorker(string keyName)
             {
                 switch (keyName)
                 {

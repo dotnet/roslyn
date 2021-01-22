@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
                 {
                     return constValue;
                 }
+
                 return null;
             }
         }
