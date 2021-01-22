@@ -626,7 +626,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var pdbXml = XElement.Parse(pdb);
 
             // We need to get the method start index from the input source, as its not in the PDB
-            var methodStart = source.MarkedSpans.Single(s => s.TagName == "M").MatchedSpan.Start;
+            var methodStartTags = source.MarkedSpans.WhereAsArray(s => s.TagName == "M");
+            Assert.True(methodStartTags.Length == 1, "There must be one and only one method start tag per test input.");
+            var methodStart = methodStartTags[0].MatchedSpan.Start;
 
             // Calculate the expected tags for closures
             var expectedTags = pdbXml.DescendantsAndSelf("closure").Select((c, i) => new { Tag = $"<C:{i}>", StartIndex = methodStart + int.Parse(c.Attribute("offset").Value) }).ToList();
