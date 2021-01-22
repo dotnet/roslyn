@@ -2420,9 +2420,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return new DeclaredMembersAndInitializers(
                     NonTypeNonIndexerMembers.ToImmutableAndFree(),
-                    ToReadonlyAndFree(StaticInitializers),
+                    MembersAndInitializersBuilder.ToReadonlyAndFree(StaticInitializers, out int staticInitializersSyntaxLength),
                     ToReadonlyAndFree(InstanceInitializers),
                     IndexerDeclarations.ToImmutable(),
+                    staticInitializersSyntaxLength,
                     RecordDeclarationWithParameters,
                     InstanceInitializersIndexForRecordDeclarationWithParameters,
                     isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
@@ -2481,10 +2482,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed class DeclaredMembersAndInitializers
         {
             public readonly ImmutableArray<Symbol> NonTypeNonIndexerMembers;
-            public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> StaticInitializers;
+            public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> InstanceInitializers;
             public readonly ImmutableArray<SyntaxReference> IndexerDeclarations;
             public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
+            public readonly int StaticInitializersSyntaxLength;
 
             /// <summary>
             /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
@@ -2496,9 +2498,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public DeclaredMembersAndInitializers(
                 ImmutableArray<Symbol> nonTypeNonIndexerMembers,
-                ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> staticInitializers,
+                ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> instanceInitializers,
                 ImmutableArray<SyntaxReference> indexerDeclarations,
+                int staticInitializersSyntaxLength,
                 RecordDeclarationSyntax? recordDeclarationWithParameters,
                 int instanceInitializersIndexForRecordDeclarationWithParameters,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
@@ -2517,6 +2520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.StaticInitializers = staticInitializers;
                 this.InstanceInitializers = instanceInitializers;
                 this.IndexerDeclarations = indexerDeclarations;
+                this.StaticInitializersSyntaxLength = staticInitializersSyntaxLength;
                 this.RecordDeclarationWithParameters = recordDeclarationWithParameters;
                 this.InstanceInitializersIndexForRecordDeclarationWithParameters = instanceInitializersIndexForRecordDeclarationWithParameters;
                 this.IsNullableEnabledForInstanceConstructorsAndFields = isNullableEnabledForInstanceConstructorsAndFields;
@@ -2573,10 +2577,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return new MembersAndInitializers(
                     NonTypeNonIndexerMembers.ToImmutable(),
-                    ToReadonly(declaredMembers.StaticInitializers, out int staticInitializersSyntaxLength),
+                    declaredMembers.StaticInitializers,
                     ToReadonlyAndFree(InstanceInitializers, out int instanceInitializersSyntaxLength),
                     declaredMembers.IndexerDeclarations,
-                    staticInitializersSyntaxLength,
+                    declaredMembers.StaticInitializersSyntaxLength,
                     instanceInitializersSyntaxLength,
                     isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
                     isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields);
@@ -2593,7 +2597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
             }
 
-            private static ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> ToReadonlyAndFree(ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> initializers, out int syntaxLength)
+            internal static ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> ToReadonlyAndFree(ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> initializers, out int syntaxLength)
             {
                 syntaxLength = 0;
 
@@ -2604,6 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var builder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(initializers.Count);
+
                 foreach (ArrayBuilder<FieldOrPropertyInitializer.Builder> group in initializers)
                 {
                     builder.Add(ToReadonlyAndFree(group, ref syntaxLength));
@@ -2622,13 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance(group.Count);
-                AddFieldOrPropertyInitializers(group, builder, ref syntaxLength);
-                group.Free();
-                return builder.ToImmutableAndFree();
-            }
 
-            private static void AddFieldOrPropertyInitializers(IEnumerable<FieldOrPropertyInitializer.Builder> group, ArrayBuilder<FieldOrPropertyInitializer> builder, ref int syntaxLength)
-            {
                 foreach (FieldOrPropertyInitializer.Builder initializer in group)
                 {
                     builder.Add(new FieldOrPropertyInitializer(initializer.FieldOpt, initializer.Syntax, syntaxLength));
@@ -2642,35 +2641,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         syntaxLength += initializer.Syntax.Span.Length;
                     }
                 }
-            }
 
-            private static ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> ToReadonly(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> initializers, out int syntaxLength)
-            {
-                syntaxLength = 0;
-
-                if (initializers.Length == 0)
-                {
-                    return ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty;
-                }
-
-                var builder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(initializers.Length);
-                foreach (ImmutableArray<FieldOrPropertyInitializer.Builder> group in initializers)
-                {
-                    builder.Add(ToReadonly(group, ref syntaxLength));
-                }
-
-                return builder.ToImmutableAndFree();
-            }
-
-            private static ImmutableArray<FieldOrPropertyInitializer> ToReadonly(ImmutableArray<FieldOrPropertyInitializer.Builder> group, ref int syntaxLength)
-            {
-                if (group.Length == 0)
-                {
-                    return ImmutableArray<FieldOrPropertyInitializer>.Empty;
-                }
-
-                var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance(group.Length);
-                AddFieldOrPropertyInitializers(group, builder, ref syntaxLength);
+                group.Free();
                 return builder.ToImmutableAndFree();
             }
 
@@ -3806,7 +3778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> staticInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -3876,7 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(scriptEntryPoint);
             }
 
-            static bool hasNonConstantInitializer(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer.Builder>> initializers)
+            static bool hasNonConstantInitializer(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
             {
                 return initializers.Any(siblings => siblings.Any(initializer => !initializer.FieldOpt.IsConst));
             }
