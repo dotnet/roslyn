@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext Create(
             TextDocumentIdentifier? textDocument,
             string? clientName,
-            Action<string> traceInformation,
+            ILspLogger _logger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
@@ -37,16 +38,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document? document = null;
 
             // If we were given a document, find it in whichever workspace it exists in
-            if (textDocument is not null)
+            if (textDocument is null)
             {
+                _logger.TraceInformation("Request contained no document id");
+            }
+            else
+            {
+                _logger.TraceInformation($"Finding document corresponding to: {textDocument.Uri}");
+
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
                 document = FindDocument(lspWorkspaceRegistrationService, textDocument, clientName);
 
-                if (document is not null)
+                if (document is null)
+                {
+                    _logger.TraceWarning($"Found no corresponding document");
+                }
+                else
                 {
                     // Where ever the document came from, thats the "main" solution for this request
+                    _logger.TraceInformation($"Found document: {document.FilePath}");
                     workspaceSolution = document.Project.Solution;
                 }
             }
@@ -55,11 +67,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
-            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
-            // document text. If document id is null here, this will just return null
-            document = lspSolution.GetDocument(document?.Id);
+            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the
+            // latest document text.
+            if (document != null)
+            {
+                document = lspSolution.GetRequiredDocument(document.Id);
+            }
 
-            return new RequestContext(lspSolution, traceInformation, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)

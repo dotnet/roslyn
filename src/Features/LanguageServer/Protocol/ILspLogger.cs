@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal interface ILspLogger
     {
         void TraceInformation(string message);
+        void TraceWarning(string message);
         void TraceException(Exception exception);
         void TraceStart(string message);
         void TraceStop(string message);
@@ -18,24 +19,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         public static readonly ILspLogger Instance = new NoOpLspLogger();
 
-        private NoOpLspLogger()
-        {
-        }
+        private NoOpLspLogger() { }
 
-        public void TraceException(Exception exception)
-        {
-        }
-
-        public void TraceInformation(string message)
-        {
-        }
-
-        public void TraceStart(string message)
-        {
-        }
-
-        public void TraceStop(string message)
-        {
-        }
+        public void TraceException(Exception exception) { }
+        public void TraceInformation(string message) { }
+        public void TraceWarning(string message) { }
+        public void TraceStart(string message) { }
+        public void TraceStop(string message) { }
     }
 }

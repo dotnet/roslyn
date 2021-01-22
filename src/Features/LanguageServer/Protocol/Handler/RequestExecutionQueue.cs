@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
+                    // Restore our activity id so that logging/tracking works across asynchronous calls.
+                    Trace.CorrelationManager.ActivityId = work.ActivityId;
                     var context = CreateRequestContext(work);
 
                     if (work.MutatesSolutionState)
@@ -258,7 +260,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return RequestContext.Create(
                 queueItem.TextDocument,
                 queueItem.ClientName,
-                _logger.TraceInformation,
+                _logger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
