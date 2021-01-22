@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                return _text?.Lines.IndexOf(_start) ?? 0;
+                return _text.Lines.IndexOf(_start);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                if (_text == null || _text.Length == 0 || _endIncludingBreaks == _start)
+                if (_text.Length == 0 || _endIncludingBreaks == _start)
                 {
                     return 0;
                 }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override string ToString()
         {
-            if (_text == null || _text.Length == 0)
+            if (_text.Length == 0)
             {
                 return string.Empty;
             }
