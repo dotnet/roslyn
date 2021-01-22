@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,8 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.WorkspaceSymbolName, mutatesSolutionState: false)]
+    [LspMethod(Methods.WorkspaceSymbolName, mutatesSolutionState: false)]
     internal class WorkspaceSymbolsHandler : IRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
@@ -38,11 +34,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceSymbolsHandler(IAsynchronousOperationListenerProvider listenerProvider)
+        public WorkspaceSymbolsHandler(IAsynchronousOperationListener asyncListener)
         {
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
+            _asyncListener = asyncListener;
         }
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceSymbolParams request) => null;

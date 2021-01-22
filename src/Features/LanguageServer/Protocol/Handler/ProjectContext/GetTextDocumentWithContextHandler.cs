@@ -4,27 +4,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
+    [LspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
     internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler()
-        {
-        }
-
         public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
         public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)

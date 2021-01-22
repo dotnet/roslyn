@@ -4,25 +4,26 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    /// <summary>
-    /// Implements Language Server Protocol
-    /// TODO - Make this public when we're ready.
-    /// </summary>
-    [Shared]
-    [Export(typeof(LanguageServerProtocol))]
-    internal sealed class LanguageServerProtocol : AbstractRequestHandlerProvider
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    internal class HoverHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-            : base(requestHandlers)
+        public HoverHandlerProvider()
         {
+        }
+
+        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        {
+            return ImmutableArray.Create(new HoverHandler());
         }
     }
 }

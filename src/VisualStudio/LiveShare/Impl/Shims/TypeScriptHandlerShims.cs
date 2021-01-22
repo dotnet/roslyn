@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -76,7 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService) : base(completionListCache: null)
+        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+            : base(completionListCache: new LSP.Completion.CompletionListCache())
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptWorkspaceSymbolsHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService, IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider)
+            : base(listenerProvider.GetListener(FeatureAttribute.NavigateTo))
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }

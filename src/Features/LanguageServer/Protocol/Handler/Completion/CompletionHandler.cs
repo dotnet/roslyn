@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,8 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
+    [LspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
@@ -34,10 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private readonly CompletionListCache? _completionListCache;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler(
-            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
+            IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
             CompletionListCache? completionListCache)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
@@ -254,6 +249,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return LSP.CompletionItemKind.Text;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionHandler _completionHandler;
+
+            public TestAccessor(CompletionHandler completionHandler)
+                => _completionHandler = completionHandler;
+
+            public CompletionListCache? GetCache()
+                => _completionHandler._completionListCache;
         }
     }
 }

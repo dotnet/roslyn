@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -17,16 +16,15 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentSignatureHelpName, mutatesSolutionState: false)]
+    [LspMethod(LSP.Methods.TextDocumentSignatureHelpName, mutatesSolutionState: false)]
     internal class SignatureHelpHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
-            => _allProviders = allProviders;
+        public SignatureHelpHandler(IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
+        {
+            _allProviders = allProviders;
+        }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 

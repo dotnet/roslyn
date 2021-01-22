@@ -1,0 +1,55 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Composition;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+{
+    /// <summary>
+    /// Defines a metadata attribute for <see cref="IRequestHandler{RequestType, ResponseType}"/>
+    /// to use to specify the kind of LSP request the handler accepts.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class LspMethodAttribute : Attribute, ILspMethodMetadata
+    {
+        /// <summary>
+        /// Name of the LSP method to handle.
+        /// </summary>
+        public string MethodName { get; }
+
+        /// <summary>
+        /// Whether or not handling this method results in changes to the current solution state.
+        /// Mutating requests will block all subsequent requests from starting until after they have
+        /// completed and mutations have been applied. See <see cref="RequestExecutionQueue"/>.
+        /// </summary>
+        public bool MutatesSolutionState { get; }
+
+        /// <summary>
+        /// If the <see cref="MethodName"/> is <see cref="Methods.WorkspaceExecuteCommandName"/>
+        /// then this is the name of the command to execute.
+        /// </summary>
+        public string? CommandName { get; }
+
+        public LspMethodAttribute(string methodName, bool mutatesSolutionState, string? commandName = null)
+        {
+            MethodName = methodName;
+            MutatesSolutionState = mutatesSolutionState;
+            CommandName = commandName;
+            if (Methods.WorkspaceExecuteCommandName.Equals(methodName, StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(CommandName))
+            {
+                throw new ArgumentException($"Cannot export a ${Methods.WorkspaceExecuteCommandName} handler without a command name");
+            }
+        }
+
+        public static ILspMethodMetadata GetLspMethodMetadata(Type instance)
+        {
+            var attribute = (ILspMethodMetadata?)Attribute.GetCustomAttribute(instance, typeof(LspMethodAttribute));
+            Contract.ThrowIfNull(attribute, $"Handler {instance} does not declare an [LspMethod] attribute");
+            return attribute;
+        }
+    }
+}
