@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                 RegisterService(Of IVbTempPECompilerFactory)(
                     Async Function(ct)
-                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
+                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
                         Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                         Return New TempPECompilerFactory(workspace)
                     End Function)
