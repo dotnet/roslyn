@@ -18,10 +18,11 @@ using Xunit;
 
 namespace Roslyn.Test.Utilities
 {
-    internal sealed class SourceWithMarkedNodes
+    internal sealed partial class SourceWithMarkedNodes
     {
         public readonly string Source;
         public readonly SyntaxTree Tree;
+        public readonly ImmutableArray<MarkedSpan> MarkedSpans;
         public readonly ImmutableArray<ValueTuple<TextSpan, int, int>> SpansAndKindsAndIds;
 
         public SourceWithMarkedNodes(string markedSource, Func<string, SyntaxTree> parser, Func<string, int> getSyntaxKind)
@@ -29,20 +30,25 @@ namespace Roslyn.Test.Utilities
             Source = ClearTags(markedSource);
             Tree = parser(Source);
 
-            SpansAndKindsAndIds = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
+            MarkedSpans = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
+            SpansAndKindsAndIds = ImmutableArray.CreateRange(MarkedSpans.Select(s => (s.MarkedSyntax, s.SyntaxKind, s.Id)));
         }
 
-        private static IEnumerable<(TextSpan, int, int)> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
+        private static IEnumerable<MarkedSpan> GetSpansRecursive(string markedSource, int offset, Func<string, int> getSyntaxKind)
         {
             foreach (var match in s_markerPattern.Matches(markedSource).ToEnumerable())
             {
+                var tagName = match.Groups["TagName"];
                 var markedSyntax = match.Groups["MarkedSyntax"];
                 var syntaxKindOpt = match.Groups["SyntaxKind"].Value;
-                var id = int.Parse(match.Groups["Id"].Value);
+                var idOpt = match.Groups["Id"].Value;
+                var id = string.IsNullOrEmpty(idOpt) ? 0 : int.Parse(idOpt);
+                var parentIdOpt = match.Groups["ParentId"].Value;
+                var parentId = string.IsNullOrEmpty(parentIdOpt) ? 0 : int.Parse(parentIdOpt);
                 var parsedKind = string.IsNullOrEmpty(syntaxKindOpt) ? 0 : getSyntaxKind(syntaxKindOpt);
                 int absoluteOffset = offset + markedSyntax.Index;
 
-                yield return (new TextSpan(absoluteOffset, markedSyntax.Length), parsedKind, id);
+                yield return new MarkedSpan(new TextSpan(absoluteOffset, markedSyntax.Length), new TextSpan(match.Index, match.Length), tagName.Value, parsedKind, id, parentId);
 
                 foreach (var nestedSpan in GetSpansRecursive(markedSyntax.Value, absoluteOffset, getSyntaxKind))
                 {
