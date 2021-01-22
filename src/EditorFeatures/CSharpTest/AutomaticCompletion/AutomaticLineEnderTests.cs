@@ -834,7 +834,7 @@ $$
 {
     void Method()
     {
-        var pet = new List<int> 
+        var pet = new List<int>();
             $$
     }
 }", @"class TestClass
@@ -860,7 +860,7 @@ public {typeKeyword} Bar
 {{
     $$
 }}", $@"
-public {typeKeyword} $$Bar");
+pu$$blic {typeKeyword} $$Bar$$");
         }
 
         [WpfTheory]
@@ -880,7 +880,7 @@ public {typeKeyword} Bar2
 public {typeKeyword} Bar
 {{
 }}", $@"
-public {typeKeyword} B$$ar2
+pub$$lic {typeKeyword} B$$ar2$$
 public {typeKeyword} Bar
 {{
 }}");
@@ -902,7 +902,7 @@ public {typeKeyword} Bar1
 $@"
 public {typeKeyword} Bar1
 {{
-    public {typeKeyword} B$$ar2
+    publ$$ic {typeKeyword} B$$ar2$$
 }}");
         }
 
@@ -918,7 +918,7 @@ public {typeKeyword} Bar1
             Test($@"
 public {typeKeyword} Bar {{
     $$", $@"
-public {typeKeyword} B$$ar {{");
+pub$$lic {typeKeyword} B$$ar {{$$");
         }
 
         [WpfTheory]
@@ -932,7 +932,7 @@ public {typeKeyword} B$$ar {{");
         {
             Test($@"public {typeKeyword} Bar {{}}
 $$",
-                $@"public {typeKeyword} Ba$$r {{}}");
+                $@"public {typeKeyword}$$ Ba$$r {{}}$$");
         }
 
         [WpfFact]
@@ -948,7 +948,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    void Ma$$in()
+    v$$oid Ma$$in()$$
 }");
         }
 
@@ -963,7 +963,7 @@ public interface Bar
 }", @"
 public interface Bar
 {
-    void Mai$$n();
+    v$$oid Mai$$n()$$;
 }");
         }
 
@@ -985,7 +985,7 @@ public class Bar
 {
     void Main()
     {
-        void Loc$$al()
+        v$$oid Loc$$al()$$
         {
         }
     }
@@ -1010,7 +1010,7 @@ public class Bar
 {
     void Main()
     {
-        void Loca$$l()
+        v$$oid Loca$$l()$$
     }
 }");
         }
@@ -1028,7 +1028,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    public int thi$$s[int i]
+    p$$ublic in$$t thi$$s[in$$t i]$$
 }");
         }
 
@@ -1046,7 +1046,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    public int thi$$s[int i]
+    p$$ublic in$$t thi$$s[in$$t i]$$
     void Main() {}
 }");
         }
@@ -1064,8 +1064,404 @@ public class Bar
 }", @"
 public class Bar
 {
-    public int thi$$s[int i]
+    p$$ublic i$$nt thi$$s[in$$t i]$$
     {
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfProperty1()
+        {
+            Test(@"
+public class Bar
+{
+    public int P
+    {
+        get
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        ge$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfProperty2()
+        {
+            Test(@"
+public class Bar
+{
+    public int P
+    {
+        get;
+        $$
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        get
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfProperty1()
+        {
+            Test(@"
+public class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        get;
+        se$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfProperty2()
+        {
+            Test(@"
+public class Bar
+{
+    public int P
+    {
+        get;
+        set;
+        $$
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfIndexer1()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        ge$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestGetAccessorOfIndexer2()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get
+        {
+
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        get
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfIndexer1()
+        {
+            Test(@"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int this[int i]
+    {
+        get;
+        se$$t
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSetAccessorOfIndexer2()
+        {
+            Test(@"
+public class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestAddAccessor1()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+            $$
+        }
+        remove {}
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        ad$$d
+        remove {}
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestAddAccessor2()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+
+            $$
+        }
+        remove {}
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+            $$
+        }
+        remove {}
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveAccessor1()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add {}
+        remove
+        {
+            $$
+        }
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add {}
+        remo$$ve
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveAccessor2()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add {}
+        remove
+        {
+
+            $$
+        }
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add {}
+        remove
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestFieldToProperty()
+        {
+            Test(@"
+public class Bar
+{
+    public int iii
+    {
+        $$
+    }
+}
+", @"
+public class Bar
+{
+    public int iii$$
+}");
+        }
+
+        [WpfFact]
+        public void TestPropertyToField()
+        {
+            Test(@"
+public class Bar
+{
+    public int iii;
+    $$
+}
+", @"
+public class Bar
+{
+    public int iii
+    {
+        $$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestEventFieldToEventDeclaration()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler cc
+    {
+        $$
+    }
+}
+", @"
+using System;
+public class Bar
+{
+    public event EventHandler c$$c
+}");
+        }
+
+        [WpfFact]
+        public void TestEventDeclarationToEventField()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler cc;
+    $$
+}
+", @"
+using System;
+public class Bar
+{
+    public event EventHandler cc
+    {
+        $$
     }
 }");
         }
@@ -1093,7 +1489,7 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo()$$
+        var f = n$$ew F$$oo()$$
     }
 }
 public class Foo
@@ -1126,7 +1522,7 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo$$
+        var f = n$$ew F$$oo$$
     }
 }
 public class Foo
@@ -1157,7 +1553,7 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo() { $$ };
+        var f = ne$$w Foo() { $$ }$$;
     }
 }
 public class Foo
@@ -1186,7 +1582,7 @@ public class Bar
 {
     public void Main(bool x)
     {
-        if$$ (x)
+        i$$f$$ ($$x)$$
         var x = 1;
     }
 }");
@@ -1210,7 +1606,7 @@ public class Bar
 {
     public void Main()
     {
-        do$$
+        d$$o$$
     }
 }");
         }
@@ -1239,13 +1635,13 @@ public class Bar
         if (true)
         {
         }
-        else$$
+        e$$lse$$
     }
 }");
         }
 
         [WpfFact]
-        public void TestElseIfStatement()
+        public void TestElseIfStatement1()
         {
             Test(@"
 public class Bar
@@ -1268,7 +1664,7 @@ public class Bar
         if (true)
         {
         }
-        e$$lse if (false)
+        e$$lse i$$f ($$false)$$
     }
 }");
         }
@@ -1291,7 +1687,7 @@ public class Bar
 {
     public void Fo()
     {
-        for (int i; i < 10;$$ i++)
+        f$$or (i$$nt i; i < 10;$$ i++)$$
     }
 }");
         }
@@ -1314,7 +1710,7 @@ public class Bar
 {
     public void Fo()
     {
-        foreach (var x $$in """")
+        forea$$ch (var x $$in """")$$
     }
 }");
         }
@@ -1339,7 +1735,7 @@ public class Bar
     object o = new object();
     public void Fo()
     {
-        lock$$(o)
+        l$$ock$$(o)$$
     }
 }");
         }
@@ -1369,7 +1765,40 @@ public class Bar
 {
     public void Fo()
     {
-        usi$$ng (var d = new D())
+        usi$$ng (var d = n$$ew D())$$
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingInLocalDeclarationStatement()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        using var d = new D();
+        $$
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}", @"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        usi$$ng var$$ d = ne$$w D()$$
     }
 }
 public class D : IDisposable
@@ -1397,7 +1826,7 @@ public class Bar
 {
     public void Fo()
     {
-        while (tr$$ue)
+        wh$$ile (tr$$ue)$$
     }
 }");
         }
@@ -1422,7 +1851,7 @@ public class bar
     public void TT()
     {
         int i = 10;
-        switc$$h (i)
+        switc$$h ($$i)$$
     }
 }");
         }
@@ -1445,7 +1874,7 @@ public class bar
 {
     public void TT()
     {
-        tr$$y
+        tr$$y$$
     }
 }");
         }
@@ -1474,7 +1903,7 @@ public class Bar
         try
         {
         }
-        cat$$ch (System.Exception)
+        cat$$ch (Syste$$m.Exception)$$
     }
 }");
         }
@@ -1503,9 +1932,74 @@ public class bar
         try
         {
         }
-        cat$$ch
+        cat$$ch$$
     }
 }");
+        }
+
+        [WpfFact]
+        public void TestCatchClause3()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch (Exception) when (true)
+        {
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        c$$atch (Ex$$ception) whe$$n (tru$$e)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestFinallyCaluse()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        finally
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        $$fin$$ally$$
+    }
+}");
+
         }
 
         protected override string Language => LanguageNames.CSharp;
