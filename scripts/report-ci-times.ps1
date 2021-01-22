@@ -1,7 +1,7 @@
 # This script scrapes AzDo data and writes out a CSV of build runtimes
 # after running this script you can open 'roslyn/artifacts/ci-times.csv' and paste into 'roslyn/scripts/all-ci-times.xlsx' to graph the data
 
-. (Join-Path $PSScriptRoot "build-utils.ps1")
+. (Join-Path $PSScriptRoot ".." "eng" "build-utils.ps1")
 
 $roslynPipelineId = "15"
 $minDate = [DateTime]"2021-01-14"
