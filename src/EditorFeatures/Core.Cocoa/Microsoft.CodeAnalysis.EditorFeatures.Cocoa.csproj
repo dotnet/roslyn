@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Core.Wpf\ExternalAccess\**\*.cs" LinkBase="ExternalAccess" />
+    <Compile Include="..\Core.Wpf\ExternalAccess\VSTypeScript\**\*.cs" LinkBase="ExternalAccess\VSTypeScript" />
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
   </ItemGroup>
@@ -41,7 +41,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
+    <RestrictedInternalsVisibleTo Include="TypeScriptAddIn" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
   </ItemGroup>
   <ItemGroup>
