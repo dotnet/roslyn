@@ -9592,7 +9592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A bit array containing the nullability of variables associated with a method scope. If the method is a
         /// nested function (a lambda or a local function), there is a reference to the corresponding instance for
         /// the containing method scope. The instances in the chain are associated with a corresponding
-        /// <see cref="Variables"/> chain, and the Id field in this type matches the Id in the <see cref="Variables"/> chain.
+        /// <see cref="Variables"/> chain, and the <see cref="Id"/> field in this type matches <see cref="Variables.Id"/>.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct LocalState : ILocalDataFlowState

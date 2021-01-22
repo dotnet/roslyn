@@ -400,10 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variables = this;
                 while (true)
                 {
-                    if (variables.Symbol is null)
-                    {
-                        return null;
-                    }
                     if ((object)method == variables.Symbol)
                     {
                         return variables;
