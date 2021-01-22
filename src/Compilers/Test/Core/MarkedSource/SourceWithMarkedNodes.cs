@@ -8,12 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -21,6 +18,8 @@ namespace Roslyn.Test.Utilities
     internal sealed partial class SourceWithMarkedNodes
     {
         public readonly string Source;
+        public readonly string StrippedSource;
+        public readonly string Input;
         public readonly SyntaxTree Tree;
         public readonly ImmutableArray<MarkedSpan> MarkedSpans;
         public readonly ImmutableArray<ValueTuple<TextSpan, int, int>> SpansAndKindsAndIds;
@@ -28,6 +27,8 @@ namespace Roslyn.Test.Utilities
         public SourceWithMarkedNodes(string markedSource, Func<string, SyntaxTree> parser, Func<string, int> getSyntaxKind)
         {
             Source = ClearTags(markedSource);
+            StrippedSource = RemoveTags(markedSource);
+            Input = markedSource;
             Tree = parser(Source);
 
             MarkedSpans = ImmutableArray.CreateRange(GetSpansRecursive(markedSource, 0, getSyntaxKind));
@@ -55,6 +56,11 @@ namespace Roslyn.Test.Utilities
                     yield return nestedSpan;
                 }
             }
+        }
+
+        internal static string RemoveTags(string source)
+        {
+            return s_tags.Replace(source, "");
         }
 
         internal static string ClearTags(string source)
