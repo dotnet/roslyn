@@ -39,6 +39,7 @@
       "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.DesktopCommon": "vssdk",
 
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
@@ -94,6 +95,7 @@
       "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "arcade",
+      "Microsoft.CodeAnalysis.EditorFeatures.DesktopCommon": "arcade",
 
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "arcade",
       "Microsoft.CodeAnalysis.LanguageServer.Protocol": "arcade",
