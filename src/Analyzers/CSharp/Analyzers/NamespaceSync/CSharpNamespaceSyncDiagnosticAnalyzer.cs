@@ -36,26 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync
             context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
         }
 
-        protected override bool ContainsPartialTypeWithMultipleDeclarations(NamespaceDeclarationSyntax namespaceDeclaration, SemanticModel semanticModel)
-        {
-            var partialMemberDecls = namespaceDeclaration
-                .Members.OfType<TypeDeclarationSyntax>()
-                .Where(t => t.Modifiers.Any(SyntaxKind.PartialKeyword));
-
-            foreach (var memberDecl in partialMemberDecls)
-            {
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl);
-
-                // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol && typeSymbol.DeclaringSyntaxReferences.Length > 1)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         protected override SyntaxNode GetNameSyntax(NamespaceDeclarationSyntax namespaceDeclaration) => namespaceDeclaration.Name;
     }
 }

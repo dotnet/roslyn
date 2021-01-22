@@ -4,22 +4,19 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.NamespaceSync;
+using Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceMatchFolder
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SyncNamespace), Shared]
-    internal sealed class CSharpNamespaceSyncCodeFixProvider : AbstractNamespaceSyncCodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeNamespaceToMatchFolder), Shared]
+    internal sealed class CSharpChangeNamespaceToMatchFolderCodeFixProvider : AbstractChangeNamespaceToMatchFolderCodeFixProvider
     {
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpNamespaceSyncCodeFixProvider()
+        public CSharpChangeNamespaceToMatchFolderCodeFixProvider()
         {
         }
 

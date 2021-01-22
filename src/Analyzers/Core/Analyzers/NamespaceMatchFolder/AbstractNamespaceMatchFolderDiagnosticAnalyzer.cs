@@ -17,13 +17,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 {
-    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string RootNamespaceOption = "build_property.RootNamespace";
         public const string ProjectDirOption = "build_property.ProjectDir";
         public const string TargetNamespace = "TargetNamespace";
 
-        protected AbstractNamespaceSyncDiagnosticAnalyzer(LocalizableResourceString title, LocalizableResourceString message, ILanguageSpecificOption? option, string languageName)
+        protected AbstractNamespaceMatchFolderDiagnosticAnalyzer(LocalizableResourceString title, LocalizableResourceString message, ILanguageSpecificOption? option, string languageName)
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
                 EnforceOnBuildValues.NamespaceSync,
                 option,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         }
     }
 
-    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceSyncDiagnosticAnalyzer
+    internal abstract class AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceMatchFolderDiagnosticAnalyzer
         where TNamespaceSyntax : SyntaxNode
     {
         protected AbstractNamespaceSyncDiagnosticAnalyzer(
@@ -50,12 +50,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         /// Gets the language specific syntax facts
         /// </summary>
         protected abstract ISyntaxFacts GetSyntaxFacts();
-
-        /// <summary>
-        /// Returns true if the namespace declaration contains one or more partial types with multiple declarations.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract bool ContainsPartialTypeWithMultipleDeclarations(TNamespaceSyntax namespaceDeclaration, SemanticModel semanticModel);
 
         /// <summary>
         /// Gets the syntax representing the name of a namespace declaration
@@ -85,7 +79,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
                 {
                     var nameSyntax = GetNameSyntax(namespaceDecl);
-                    AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax>.ReportDiagnostics(context, Descriptor, nameSyntax.GetLocation(), targetNamespace, currentNamespace);
+
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor,
+                        nameSyntax.GetLocation(),
+                        additionalLocations: null,
+                        properties: ImmutableDictionary<string, string?>.Empty.Add(TargetNamespace, targetNamespace),
+                        messageArgs: new[] { currentNamespace, targetNamespace }));
                 }
             }
 
@@ -102,10 +102,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             var root = namespaceDeclaration.SyntaxTree.GetRoot(cancellationToken);
 
             // It should not be nested in other namespaces
-            if (namespaceDeclaration
-                .Ancestors()
-                .OfType<TNamespaceSyntax>()
-                .Any())
+            if (namespaceDeclaration.Ancestors().OfType<TNamespaceSyntax>().Any())
             {
                 return false;
             }
@@ -119,18 +116,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 return false;
             }
 
-            // It should not contain partial classes with more than one instance in the semantic model. The
-            // fixer does not support this scenario.
-            var containsPartialType = ContainsPartialTypeWithMultipleDeclarations(namespaceDeclaration, semanticModel);
-            if (containsPartialType)
-            {
-                return false;
-            }
-
             // The current namespace should be valid
             var isCurrentNamespaceInvalid = GetNameSyntax(namespaceDeclaration)
                 .GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
             if (isCurrentNamespaceInvalid)
+            {
+                return false;
+            }
+
+            // It should not contain partial classes with more than one instance in the semantic model. The
+            // fixer does not support this scenario.
+            var containsPartialType = ContainsPartialTypeWithMultipleDeclarations(namespaceDeclaration, semanticModel);
+            if (containsPartialType)
             {
                 return false;
             }
@@ -171,16 +168,29 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             return true;
         }
 
-        private static void ReportDiagnostics(
-           SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
-           Location location, string targetNamespace, string originalNamespace)
+        /// <summary>
+        /// Returns true if the namespace declaration contains one or more partial types with multiple declarations.
+        /// </summary>
+        /// <returns></returns>
+        protected bool ContainsPartialTypeWithMultipleDeclarations(TNamespaceSyntax namespaceDeclaration, SemanticModel semanticModel)
         {
-            context.ReportDiagnostic(Diagnostic.Create(
-                descriptor,
-                location,
-                additionalLocations: null,
-                properties: ImmutableDictionary<string, string?>.Empty.Add(AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax>.TargetNamespace, targetNamespace),
-                messageArgs: new[] { originalNamespace, targetNamespace }));
+            var syntaxFacts = GetSyntaxFacts();
+
+            var typeDeclarations = syntaxFacts.GetMembersOfNamespaceDeclaration(namespaceDeclaration)
+                .Where(member => syntaxFacts.IsTypeDeclaration(member));
+
+            foreach (var typeDecl in typeDeclarations)
+            {
+                var symbol = semanticModel.GetDeclaredSymbol(typeDecl);
+
+                // Simplify the check by assuming no multiple partial declarations in one document
+                if (symbol is ITypeSymbol typeSymbol && typeSymbol.DeclaringSyntaxReferences.Length > 1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

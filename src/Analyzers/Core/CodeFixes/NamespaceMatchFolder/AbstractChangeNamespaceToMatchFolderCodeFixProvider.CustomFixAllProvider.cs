@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
+namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
 {
     /// <summary>
     /// Custom fix all provider for namespace sync. Does fix all on per document level. Since
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
     /// on a sequential level instead of batch fixing and merging the changes. This prevents
     /// collissions that the batch fixer won't handle correctly but is slower.
     /// </summary>
-    internal abstract partial class AbstractNamespaceSyncCodeFixProvider
+    internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider
     {
         private class CustomFixAllProvider : FixAllProvider
         {
@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {
                     var document = newSolution.GetRequiredDocument(documentId);
-                    newSolution = await FixAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
+
+                    newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
                 }
 
                 return newSolution;
