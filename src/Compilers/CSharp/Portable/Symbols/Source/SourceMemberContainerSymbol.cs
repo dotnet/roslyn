@@ -1013,9 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersAndInitializers = GetMembersAndInitializers();
             var allInitializers = isStatic ? membersAndInitializers.StaticInitializers : membersAndInitializers.InstanceInitializers;
 
-            var siblingInitializers = GetInitializersInSourceTree(tree, allInitializers);
-            int index = IndexOfInitializerContainingPosition(siblingInitializers, position);
-            if (index < 0)
+            if (!findInitializer(allInitializers, position, tree, out FieldOrPropertyInitializer initializer, out int precedingLength))
             {
                 syntaxOffset = 0;
                 return false;
@@ -1027,17 +1025,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //                             position
 
             int initializersLength = getInitializersLength(isStatic ? membersAndInitializers.StaticInitializers : membersAndInitializers.InstanceInitializers);
-            int distanceFromInitializerStart = position - siblingInitializers[index].Syntax.Span.Start;
+            int distanceFromInitializerStart = position - initializer.Syntax.Span.Start;
 
             int distanceFromCtorBody =
                 initializersLength + ctorInitializerLength -
-                (getPrecedingInitializersLength(siblingInitializers, index) + distanceFromInitializerStart);
+                (precedingLength + distanceFromInitializerStart);
 
             Debug.Assert(distanceFromCtorBody > 0);
 
             // syntax offset 0 is at the start of the ctor body:
             syntaxOffset = -distanceFromCtorBody;
             return true;
+
+            static bool findInitializer(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers, int position, SyntaxTree tree,
+                out FieldOrPropertyInitializer found, out int precedingLength)
+            {
+                precedingLength = 0;
+                for (var groupIndex = 0; groupIndex < initializers.Length; groupIndex++)
+                {
+                    var group = initializers[groupIndex];
+                    if (!group.IsEmpty &&
+                        group[0].Syntax.SyntaxTree == tree &&
+                        position < group.Last().Syntax.Span.End)
+                    {
+                        // Found group of interest
+                        var initializerIndex = IndexOfInitializerContainingPosition(group, position);
+                        if (initializerIndex < 0)
+                        {
+                            break;
+                        }
+
+                        precedingLength += getPrecedingInitializersLength(group, initializerIndex);
+                        found = group[initializerIndex];
+                        return true;
+                    }
+
+                    precedingLength += getGroupLength(group);
+                }
+
+                found = default;
+                return false;
+            }
+
+            static int getGroupLength(ImmutableArray<FieldOrPropertyInitializer> initializers)
+            {
+                int length = 0;
+                foreach (var initializer in initializers)
+                {
+                    length += getInitializerLength(initializer);
+                }
+
+                return length;
+            }
 
             static int getPrecedingInitializersLength(ImmutableArray<FieldOrPropertyInitializer> initializers, int index)
             {
@@ -1077,22 +1116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return 0;
             }
-        }
-
-        private static ImmutableArray<FieldOrPropertyInitializer> GetInitializersInSourceTree(SyntaxTree tree, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
-        {
-            var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance();
-            foreach (var siblingInitializers in initializers)
-            {
-                Debug.Assert(!siblingInitializers.IsEmpty);
-
-                if (siblingInitializers[0].Syntax.SyntaxTree == tree)
-                {
-                    builder.AddRange(siblingInitializers);
-                }
-            }
-
-            return builder.ToImmutableAndFree();
         }
 
         private static int IndexOfInitializerContainingPosition(ImmutableArray<FieldOrPropertyInitializer> initializers, int position)
@@ -2558,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public MembersAndInitializersBuilder(DeclaredMembersAndInitializers declaredMembersAndInitializers)
             {
                 this.IsNullableEnabledForInstanceConstructorsAndFields = declaredMembersAndInitializers.IsNullableEnabledForInstanceConstructorsAndFields;
-                this.IsNullableEnabledForStaticConstructorsAndFields =  declaredMembersAndInitializers.IsNullableEnabledForStaticConstructorsAndFields;
+                this.IsNullableEnabledForStaticConstructorsAndFields = declaredMembersAndInitializers.IsNullableEnabledForStaticConstructorsAndFields;
             }
 
             public MembersAndInitializers ToReadOnlyAndFree(DeclaredMembersAndInitializers declaredMembers)
@@ -2587,18 +2610,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var insertedInitializers = InstanceInitializersForPositionalMembers;
                             var declaredInitializers = declaredMembers.InstanceInitializers[i];
+#if DEBUG
                             if (declaredInitializers.Length > 0)
                             {
                                 // initializers should be added in syntax order:
                                 Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.SyntaxTree == declaredInitializers[0].Syntax.SyntaxTree);
                                 Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.Span.Start < declaredInitializers[0].Syntax.Span.Start);
                             }
+#endif
 
-                            var builder = ArrayBuilder<FieldOrPropertyInitializer>.GetInstance(insertedInitializers.Count + declaredInitializers.Length);
-                            builder.AddRange(insertedInitializers);
-                            builder.AddRange(declaredInitializers);
-                            groupsBuilder.Add(builder.ToImmutableAndFree());
-                            InstanceInitializersForPositionalMembers.Free();
+                            insertedInitializers.AddRange(declaredInitializers);
+                            groupsBuilder.Add(insertedInitializers.ToImmutableAndFree());
                         }
                         else
                         {
@@ -2610,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public void AddInstanceInitializersForPositionalMembers(FieldOrPropertyInitializer initializer)
+            public void AddInstanceInitializerForPositionalMembers(FieldOrPropertyInitializer initializer)
             {
                 if (InstanceInitializersForPositionalMembers is null)
                 {
@@ -3621,7 +3643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
 
-                        builder.AddInstanceInitializersForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
+                        builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
                     }
                 }
