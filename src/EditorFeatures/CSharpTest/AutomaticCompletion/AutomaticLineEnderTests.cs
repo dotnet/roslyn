@@ -1431,10 +1431,8 @@ public class Bar
             Test(@"
 public class Bar
 {
-    public int iii
-    {
-        $$
-    }
+    public readonly int iii;
+    $$
 }", @"
 public class Bar
 {

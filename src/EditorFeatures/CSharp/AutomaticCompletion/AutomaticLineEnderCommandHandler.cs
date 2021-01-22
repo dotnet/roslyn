@@ -366,6 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 IndexerDeclarationSyntax indexerNode => indexerNode.ParameterList.Span.End,
                 ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.GetLastToken().Span.End,
                 BaseFieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.SemicolonToken.SpanStart,
+                AccessorDeclarationSyntax accessorDeclarationNode => accessorDeclarationNode.Keyword.Span.End,
                 DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.Span.End,
                 ForEachStatementSyntax forEachStatementNode => forEachStatementNode.CloseParenToken.Span.End,
                 ForStatementSyntax forStatementNode => forStatementNode.CloseParenToken.Span.End,
@@ -474,6 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 IndexerDeclarationSyntax {AccessorList: not null} indexerDeclarationNode
                     => !WithinAttributeLists(node, caretPosition) && !WithinBraces(indexerDeclarationNode.AccessorList, caretPosition),
                 BaseFieldDeclarationSyntax => node.FullSpan.Contains(caretPosition),
+                AccessorDeclarationSyntax accessorDeclarationNode => accessorDeclarationNode.Keyword.FullSpan.Contains(caretPosition),
                 ObjectCreationExpressionSyntax => node.FullSpan.Contains(caretPosition),
                 DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.FullSpan.Contains(caretPosition),
                 ForEachStatementSyntax or ForStatementSyntax or IfStatementSyntax or LockStatementSyntax or UsingStatementSyntax or WhileStatementSyntax
@@ -579,12 +581,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             if (node is BaseFieldDeclarationSyntax baseFieldDeclaration
                 && baseFieldDeclaration.Declaration.Variables.Count == 1
                 && baseFieldDeclaration.Declaration.Variables[0].Initializer == null
-                && !baseFieldDeclaration.Modifiers.Contains(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                && !baseFieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
                 && baseFieldDeclaration.SemicolonToken.IsMissing)
             {
                 return true;
             }
 
+            if (node is AccessorDeclarationSyntax {Body: null, ExpressionBody: null, SemicolonToken: {IsMissing: true}})
+            {
+                return true;
+            }
 
             // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
             // use its parent's close brace as its own.
