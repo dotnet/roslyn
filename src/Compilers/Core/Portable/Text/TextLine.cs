@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public readonly struct TextLine : IEquatable<TextLine>
     {
-        private readonly SourceText? _text;
+        private readonly SourceText _text;
         private readonly int _start;
         private readonly int _endIncludingBreaks;
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets the source text.
         /// </summary>
-        public SourceText? Text
+        public SourceText Text
         {
             get { return _text; }
         }
