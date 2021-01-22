@@ -16,17 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal sealed class ClassificationTypeDefinitions
     {
-        // Only used for theming, does not need localized
-        public const string InlineRenameField = "Inline Rename Field Text";
-
         [Export]
-        [Name(InlineRenameField)]
+        [Name(RenameClassificationTypeNames.InlineRenameField)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineRenameFieldTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = InlineRenameField)]
-        [Name(InlineRenameField)]
+        [ClassificationType(ClassificationTypeNames = RenameClassificationTypeNames.InlineRenameField)]
+        [Name(RenameClassificationTypeNames.InlineRenameField)]
         [Order(After = Priority.High)]
         [UserVisible(true)]
         private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
