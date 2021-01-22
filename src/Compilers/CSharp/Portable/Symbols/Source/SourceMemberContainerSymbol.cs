@@ -1404,6 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
+            _lazyDeclaredMembersAndInitializers = null;
 
             return membersAndInitializers!;
         }
@@ -2674,6 +2675,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual MembersAndInitializers? BuildMembersAndInitializers(DiagnosticBag diagnostics)
         {
             var declaredMembersAndInitializers = getDeclaredMembersAndInitializers();
+            if (declaredMembersAndInitializers is null)
+            {
+                // Another thread completed the work before this one
+                return null;
+            }
+
             var membersAndInitializersBuilder = new MembersAndInitializersBuilder(declaredMembersAndInitializers);
             AddSynthesizedMembers(membersAndInitializersBuilder, declaredMembersAndInitializers, diagnostics);
 
@@ -2686,12 +2693,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return membersAndInitializersBuilder.ToReadOnlyAndFree(declaredMembersAndInitializers);
 
-            DeclaredMembersAndInitializers getDeclaredMembersAndInitializers()
+            DeclaredMembersAndInitializers? getDeclaredMembersAndInitializers()
             {
                 var declaredMembersAndInitializers = _lazyDeclaredMembersAndInitializers;
                 if (declaredMembersAndInitializers != null)
                 {
                     return declaredMembersAndInitializers;
+                }
+
+                if (_lazyMembersAndInitializers is not null)
+                {
+                    // We're previously computed declared members and already cleared them out
+                    // No need to compute them again
+                    return null;
                 }
 
                 var diagnostics = DiagnosticBag.GetInstance();
