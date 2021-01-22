@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,7 +43,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel));
+                System.Collections.Generic.IEnumerable<SyntaxNode> expressionsToAnalyze = context.Node.DescendantNodes().Where(n => ShouldAnalyzeExpression(n, context.SemanticModel, context.CancellationToken));
 
                 foreach (SyntaxNode expression in expressionsToAnalyze)
                 {
@@ -53,18 +56,18 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                             AnalyzeInitializerExpression(((ImplicitArrayCreationExpressionSyntax)expression).Initializer, context.ReportDiagnostic);
                             break;
                         case SyntaxKind.SimpleMemberAccessExpression:
-                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic);
+                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
                             break;
                     }
                 }
             }
 
-            private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel)
+            private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return (expression.Kind()) switch
                 {
                     SyntaxKind.ArrayCreationExpression
-                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel),
+                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken),
                     SyntaxKind.SimpleMemberAccessExpression => true,
                     _ => false,
                 };
