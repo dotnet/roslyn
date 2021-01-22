@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var knownMissingTypes = new HashSet<int>()
             {
-                (int)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
             };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
