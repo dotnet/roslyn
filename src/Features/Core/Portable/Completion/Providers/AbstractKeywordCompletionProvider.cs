@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -26,13 +23,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
-        protected AbstractKeywordCompletionProvider(
-            ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
-        {
-            _keywordRecommenders = keywordRecommenders;
-        }
+        protected AbstractKeywordCompletionProvider(ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
+            => _keywordRecommenders = keywordRecommenders;
 
-        protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context);
+        protected abstract CompletionItem CreateItem(RecommendedKeyword keyword, TContext context, CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -48,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var contextService = document.GetRequiredLanguageService<ISyntaxContextService>();
-            var syntaxContext = (TContext)contextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+            var syntaxContext = (TContext)syntaxContextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
-            return keywords.NullToEmpty().SelectAsArray(k => CreateItem(k, syntaxContext));
+            return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }
 
         private async Task<ImmutableArray<RecommendedKeyword>> RecommendKeywordsAsync(
@@ -62,22 +56,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
-                return default;
+                return ImmutableArray<RecommendedKeyword>.Empty;
 
-            using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var set);
+            using var _ = ArrayBuilder<RecommendedKeyword>.GetInstance(out var result);
             foreach (var recommender in _keywordRecommenders)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var keywords = await recommender.RecommendKeywordsAsync(position, context, cancellationToken).ConfigureAwait(false);
-                if (keywords != null)
-                    set.AddRange(keywords);
+                var keywords = recommender.RecommendKeywords(position, context, cancellationToken);
+                result.AddRange(keywords.NullToEmpty());
             }
 
-            set.RemoveDuplicates();
-            return set.ToImmutable();
+            result.RemoveDuplicates();
+            return result.ToImmutable();
         }
 
         public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
@@ -85,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class Comparer : IEqualityComparer<CompletionItem>
         {
-            public bool Equals(CompletionItem x, CompletionItem y)
-                => x.DisplayText == y.DisplayText;
+            public bool Equals(CompletionItem? x, CompletionItem? y)
+                => x?.DisplayText == y?.DisplayText;
 
             public int GetHashCode(CompletionItem obj)
                 => Hash.Combine(obj.DisplayText.GetHashCode(), obj.DisplayText.GetHashCode());
