@@ -2549,47 +2549,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers;
+            public ArrayBuilder<Symbol>? NonTypeNonIndexerMembers;
             private ArrayBuilder<FieldOrPropertyInitializer>? InstanceInitializersForPositionalMembers;
             private bool IsNullableEnabledForInstanceConstructorsAndFields;
             private bool IsNullableEnabledForStaticConstructorsAndFields;
 
             public MembersAndInitializersBuilder(DeclaredMembersAndInitializers declaredMembersAndInitializers)
-                : this(
-                    declaredMembersAndInitializers.NonTypeNonIndexerMembers,
-                    declaredMembersAndInitializers.IsNullableEnabledForInstanceConstructorsAndFields,
-                    declaredMembersAndInitializers.IsNullableEnabledForStaticConstructorsAndFields)
             {
-            }
-
-            private MembersAndInitializersBuilder(
-                ImmutableArray<Symbol> nonTypeNonIndexerMembers,
-                bool isNullableEnabledForInstanceConstructorsAndFields,
-                bool isNullableEnabledForStaticConstructorsAndFields)
-            {
-                Debug.Assert(!nonTypeNonIndexerMembers.IsDefault);
-
-                this.NonTypeNonIndexerMembers = getAndFillBuilder(nonTypeNonIndexerMembers);
-
-                this.IsNullableEnabledForInstanceConstructorsAndFields = isNullableEnabledForInstanceConstructorsAndFields;
-                this.IsNullableEnabledForStaticConstructorsAndFields = isNullableEnabledForStaticConstructorsAndFields;
-
-                static ArrayBuilder<T> getAndFillBuilder<T>(ImmutableArray<T> original)
-                {
-                    var result = ArrayBuilder<T>.GetInstance(original.Length);
-                    result.AddRange(original);
-                    return result;
-                }
+                this.IsNullableEnabledForInstanceConstructorsAndFields = declaredMembersAndInitializers.IsNullableEnabledForInstanceConstructorsAndFields;
+                this.IsNullableEnabledForStaticConstructorsAndFields =  declaredMembersAndInitializers.IsNullableEnabledForStaticConstructorsAndFields;
             }
 
             public MembersAndInitializers ToReadOnlyAndFree(DeclaredMembersAndInitializers declaredMembers)
             {
+                var nonTypeNonIndexerMembers = NonTypeNonIndexerMembers?.ToImmutableAndFree() ?? declaredMembers.NonTypeNonIndexerMembers;
+
                 var instanceInitializers = InstanceInitializersForPositionalMembers is null
                     ? declaredMembers.InstanceInitializers
                     : mergeInitializers();
 
                 return new MembersAndInitializers(
-                    NonTypeNonIndexerMembers.ToImmutableAndFree(),
+                    nonTypeNonIndexerMembers,
                     declaredMembers.StaticInitializers,
                     instanceInitializers,
                     declaredMembers.IndexerDeclarations,
@@ -2639,6 +2619,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 InstanceInitializersForPositionalMembers.Add(initializer);
             }
 
+            public IReadOnlyCollection<Symbol> GetNonTypeNonIndexerMembers(DeclaredMembersAndInitializers declaredMembers)
+            {
+                return NonTypeNonIndexerMembers ?? (IReadOnlyCollection<Symbol>)declaredMembers.NonTypeNonIndexerMembers;
+            }
+
+            public void AddNonTypeNonIndexMember(Symbol member, DeclaredMembersAndInitializers declaredMembers)
+            {
+                if (NonTypeNonIndexerMembers is null)
+                {
+                    NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance(declaredMembers.NonTypeNonIndexerMembers.Length + 1);
+                    NonTypeNonIndexerMembers.AddRange(declaredMembers.NonTypeNonIndexerMembers);
+                }
+
+                NonTypeNonIndexerMembers.Add(member);
+            }
+
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
             {
                 ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
@@ -2670,7 +2666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void Free()
             {
-                NonTypeNonIndexerMembers.Free();
+                NonTypeNonIndexerMembers?.Free();
                 InstanceInitializersForPositionalMembers?.Free();
             }
         }
@@ -2773,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Interface:
                 case TypeKind.Submission:
                     AddSynthesizedRecordMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
-                    AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, declaredMembersAndInitializers.StaticInitializers, diagnostics);
+                    AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     break;
 
                 default:
@@ -3292,8 +3288,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters?.ParameterList;
 
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
-            var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
-            foreach (var member in builder.NonTypeNonIndexerMembers)
+            var membersSoFar = builder.GetNonTypeNonIndexerMembers(declaredMembersAndInitializers);
+            var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
+            foreach (var member in membersSoFar)
             {
                 switch (member)
                 {
@@ -3358,8 +3355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
-            members.AddRange(builder.NonTypeNonIndexerMembers);
-            builder.NonTypeNonIndexerMembers.Free();
+            members.AddRange(membersSoFar);
+            builder.NonTypeNonIndexerMembers?.Free();
             builder.NonTypeNonIndexerMembers = members;
 
             return;
@@ -3789,7 +3786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, DiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -3799,7 +3796,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // CONSIDER: if this traversal becomes a bottleneck, the flags could be made outputs of the
             // dictionary construction process.  For now, this is more encapsulated.
-            foreach (var member in members)
+            var membersSoFar = builder.GetNonTypeNonIndexerMembers(declaredMembersAndInitializers);
+            foreach (var member in membersSoFar)
             {
                 if (member.Kind == SymbolKind.Method)
                 {
@@ -3835,28 +3833,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((!hasParameterlessInstanceConstructor && this.IsStructType()) ||
                 (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
-                members.Add((this.TypeKind == TypeKind.Submission) ?
+                builder.AddNonTypeNonIndexMember((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :
-                    new SynthesizedInstanceConstructor(this));
+                    new SynthesizedInstanceConstructor(this),
+                    declaredMembersAndInitializers);
             }
 
             // constants don't count, since they do not exist as fields at runtime
             // NOTE: even for decimal constants (which require field initializers),
             // we do not create .cctor here since a static constructor implicitly created for a decimal
             // should not appear in the list returned by public API like GetMembers().
-            if (!hasStaticConstructor && hasNonConstantInitializer(staticInitializers))
+            if (!hasStaticConstructor && hasNonConstantInitializer(declaredMembersAndInitializers.StaticInitializers))
             {
                 // Note: we don't have to put anything in the method - the binder will
                 // do that when processing field initializers.
-                members.Add(new SynthesizedStaticConstructor(this));
+                builder.AddNonTypeNonIndexMember(new SynthesizedStaticConstructor(this), declaredMembersAndInitializers);
             }
 
             if (this.IsScriptClass)
             {
                 var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
-                members.Add(scriptInitializer);
+                builder.AddNonTypeNonIndexMember(scriptInitializer, declaredMembersAndInitializers);
                 var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics);
-                members.Add(scriptEntryPoint);
+                builder.AddNonTypeNonIndexMember(scriptEntryPoint, declaredMembersAndInitializers);
             }
 
             static bool hasNonConstantInitializer(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)

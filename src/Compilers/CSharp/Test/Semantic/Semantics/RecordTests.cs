@@ -27260,7 +27260,7 @@ public sealed class Hamster : Document
 }
 ";
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
