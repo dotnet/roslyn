@@ -57,13 +57,25 @@ namespace Roslyn.Test.Utilities
         }
 
         private static readonly Regex s_tags = new Regex(
-            @"[<][/]?N[:][:A-Za-z0-9]+[>]",
+            @"[<][/]?[NMCL][:]?[:\.A-Za-z0-9]*[>]",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         private static readonly Regex s_markerPattern = new Regex(
-            @"[<]N[:] (?<Id>[0-9]+) ([:](?<SyntaxKind>[A-Za-z]+))? [>]
-              (?<MarkedSyntax>.*)
-              [<][/]N[:](\k<Id>) [>]",
+            @"[<]                                # Open tag
+              (?<TagName>[NMCL])                 # The actual tag name can be any of these letters
+
+              (                                  # Start a group so that everything after the tag can be optional
+                [:]                              # A colon
+                (?<Id>[0-9]+)                    # The first number after the colon is the Id
+                ([.](?<ParentId>[0-9]+))?        # Digits after a decimal point are the parent Id
+                ([:](?<SyntaxKind>[A-Za-z]+))?   # A second colon separates the syntax kind
+              )?                                 # Close the group for the things after the tag name
+              [>]                                # Close tag
+
+              (                                  # Start a group so that the closing tag is optional
+                (?<MarkedSyntax>.*)              # This matches the source within the tags
+                [<][/][NMCL][:]?(\k<Id>)* [>]    # The closing tag with its optional Id
+              )?                                 # End of the group for the closing tag",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         public ImmutableDictionary<SyntaxNode, int> MapSyntaxNodesToMarks()
