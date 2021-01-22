@@ -886,24 +886,40 @@ public {typeKeyword} Bar
 }}");
         }
 
-        [WpfTheory]
-        [InlineData("namespace")]
-        [InlineData("class")]
-        public void TestNestedNamespaceAndTypeDeclaration(string typeKeyword)
+        [WpfFact]
+        public void TestNestedTypeDeclaration()
         {
-            Test($@"
-public {typeKeyword} Bar1
-{{
-    public {typeKeyword} Bar2
-    {{
+            Test(@"
+public class Bar1
+{
+    public class Bar2
+    {
         $$
-    }}
-}}",
-$@"
-public {typeKeyword} Bar1
-{{
-    publ$$ic {typeKeyword} B$$ar2$$
-}}");
+    }
+}",
+@"
+public class Bar1
+{
+    pu$$blic cla$$ss B$$ar2$$
+}");
+        }
+
+        [WpfFact]
+        public void TestNestedNamespace()
+        {
+            Test(@"
+namespace Bar1
+{
+    namespace Bar2
+    {
+        $$
+    }
+}",
+@"
+namespace Bar1
+{
+    namespa$$ce $$B$$ar2$$
+}");
         }
 
         [WpfTheory]
