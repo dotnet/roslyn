@@ -10938,6 +10938,34 @@ namespace Bar1
 }";
             await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
         }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonUnderNameofContext()
+        {
+            var markup = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(B$$)
+        }
+    }
+}";
+            var expected = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(Bar;)
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: ';');
+        }
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
