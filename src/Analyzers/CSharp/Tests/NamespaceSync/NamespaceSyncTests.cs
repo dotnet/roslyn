@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync.CSharpNamespaceSyncDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync.CSharpNamespaceSyncCodeFixProvider>;
-using System.IO;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceSync
 {
