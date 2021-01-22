@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class NullableWalker
     {
         /// <summary>
-        /// An immutable copy of Variables.
+        /// An immutable copy of <see cref="Variables"/>.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class VariablesSnapshot
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly VariablesSnapshot? Container;
 
             /// <summary>
-            /// Symbol the contains this set of variables. This is typically a method but may be a field
+            /// Symbol that contains this set of variables. This is typically a method but may be a field
             /// when analyzing a field initializer. The symbol may be null at the outermost scope when
             /// analyzing an attribute argument value or a parameter default value.
             /// </summary>
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly Variables? Container;
 
             /// <summary>
-            /// Symbol the contains this set of variables. This is typically a method but may be a field
+            /// Symbol that contains this set of variables. This is typically a method but may be a field
             /// when analyzing a field initializer. The symbol may be null at the outermost scope when
             /// analyzing an attribute argument value or a parameter default value.
             /// </summary>
@@ -211,9 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary.CreateRange(_variableTypes));
             }
 
-            internal Variables CreateNestedFunction(MethodSymbol method)
+            internal Variables CreateNestedMethodScope(MethodSymbol method)
             {
-                Debug.Assert(GetVariablesForSymbol(method) is null or { Symbol: null });
+                Debug.Assert(GetVariablesForMethodScope(method) is null);
+                Debug.Assert(!(method.ContainingSymbol is MethodSymbol containingMethod) || ((object?)GetVariablesForMethodScope(containingMethod) == this));
+
                 return new Variables(id: GetNextId(), this, method);
             }
 
@@ -292,13 +294,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal bool TryGetType(Symbol symbol, out TypeWithAnnotations type)
             {
-                var variables = GetVariablesContainingVariable(symbol);
+                var variables = GetVariablesContainingSymbol(symbol);
                 return variables._variableTypes.TryGetValue(symbol, out type);
             }
 
             internal void SetType(Symbol symbol, TypeWithAnnotations type)
             {
-                var variables = GetVariablesContainingVariable(symbol);
+                var variables = GetVariablesContainingSymbol(symbol);
                 Debug.Assert((object)variables == this);
                 variables._variableTypes[symbol] = type;
             }
@@ -343,18 +345,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return GetVariablesForId(DeconstructSlot(containingSlot).Id)!;
                 }
-                return GetVariablesContainingVariable(identifier.Symbol);
+                return GetVariablesContainingSymbol(identifier.Symbol);
             }
 
-            internal Variables GetVariablesContainingVariable(Symbol symbol)
+            private Variables GetVariablesContainingSymbol(Symbol symbol)
             {
                 switch (symbol)
                 {
                     case LocalSymbol:
                     case ParameterSymbol:
-                    case MethodSymbol { MethodKind: MethodKind.LocalFunction }:
                         if (symbol.ContainingSymbol is MethodSymbol method &&
-                            GetVariablesForSymbol(method.PartialImplementationPart ?? method) is { } variables)
+                            GetVariablesForMethodScope(method) is { } variables)
                         {
                             return variables;
                         }
@@ -363,10 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Fallback to the outermost scope for the remaining cases. Those cases include: static fields;
                 // variables declared in field initializers; locals and parameters when the root symbol is null;
                 // and error cases such as an instance field referenced in a static method (no containing slot).
-                return GetVariablesRoot();
+                return GetRootScope();
             }
 
-            private Variables GetVariablesRoot()
+            internal Variables GetRootScope()
             {
                 var variables = this;
                 while (variables.Container is { } container)
@@ -391,12 +392,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            private Variables? GetVariablesForSymbol(MethodSymbol symbol)
+            internal Variables? GetVariablesForMethodScope(MethodSymbol method)
             {
+                method = method.PartialImplementationPart ?? method;
                 var variables = this;
                 while (true)
                 {
-                    if (variables.Symbol is null || (object)symbol == variables.Symbol)
+                    if (variables.Symbol is null)
+                    {
+                        return null;
+                    }
+                    if ((object)method == variables.Symbol)
                     {
                         return variables;
                     }

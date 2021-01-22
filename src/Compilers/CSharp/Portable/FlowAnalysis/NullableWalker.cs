@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt)
         {
             var symbol = lambda.Symbol;
-            var variables = Variables.Create(initialState.Variables).CreateNestedFunction(symbol);
+            var variables = Variables.Create(initialState.Variables).CreateNestedMethodScope(symbol);
             var walker = new NullableWalker(
                 compilation,
                 symbol,
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilderOpt: null);
             try
             {
-                var localState = LocalState.Create(initialState.VariableNullableStates).CreateNestedFunction(variables);
+                var localState = LocalState.Create(initialState.VariableNullableStates).CreateNestedMethodState(variables);
                 Analyze(walker, symbol, diagnostics, localState, snapshotBuilderOpt: null);
             }
             finally
@@ -2637,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nestedFunctionVariables ??= PooledDictionary<MethodSymbol, Variables>.GetInstance();
             if (!_nestedFunctionVariables.TryGetValue(lambdaOrLocalFunction, out var variables))
             {
-                variables = container.CreateNestedFunction(lambdaOrLocalFunction);
+                variables = container.CreateNestedMethodScope(lambdaOrLocalFunction);
                 _nestedFunctionVariables.Add(lambdaOrLocalFunction, variables);
             }
             Debug.Assert((object?)variables.Container == container);
@@ -2665,7 +2665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldState = this.State;
             _variables = GetOrCreateNestedFunctionVariables(_variables, lambdaOrFunctionSymbol);
-            this.State = state.CreateNestedFunction(_variables);
+            this.State = state.CreateNestedMethodState(_variables);
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
 
             var oldPending = SavePending();
@@ -9592,7 +9592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A bit array containing the nullability of variables associated with a method scope. If the method is a
         /// nested function (a lambda or a local function), there is a reference to the corresponding instance for
         /// the containing method scope. The instances in the chain are associated with a corresponding
-        /// Variables chain, and the Id field in this type matches the Id in the Variables chain.
+        /// <see cref="Variables"/> chain, and the Id field in this type matches the Id in the <see cref="Variables"/> chain.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct LocalState : ILocalDataFlowState
@@ -9656,7 +9656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new LocalState(variables.Id, container, CreateBitVector(capacity, reachable));
             }
 
-            public LocalState CreateNestedFunction(Variables variables)
+            public LocalState CreateNestedMethodState(Variables variables)
             {
                 Debug.Assert(Id == variables.Container!.Id);
                 return new LocalState(variables.Id, container: new Boxed(this), CreateBitVector(capacity: variables.NextAvailableIndex, reachable: true));
@@ -9943,7 +9943,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol)
         {
-            var variables = _variables.GetVariablesContainingVariable(symbol);
+            var variables = (symbol.ContainingSymbol is MethodSymbol containingMethod ? _variables.GetVariablesForMethodScope(containingMethod) : null) ??
+                _variables.GetRootScope();
             return new LocalFunctionState(LocalState.UnreachableState(variables));
         }
 
