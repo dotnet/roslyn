@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private static readonly Dictionary<(bool importDirective, bool preselect, bool tupleLiteral), CompletionItemRules> s_cachedRules = new();
 
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
-
         static SymbolCompletionProvider()
         {
             for (var importDirective = 0; importDirective < 2; importDirective++)
