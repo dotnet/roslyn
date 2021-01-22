@@ -365,6 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 BaseMethodDeclarationSyntax or LocalFunctionStatementSyntax => node.GetParameterList()!.Span.End,
                 IndexerDeclarationSyntax indexerNode => indexerNode.ParameterList.Span.End,
                 ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.GetLastToken().Span.End,
+                BaseFieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.SemicolonToken.SpanStart,
                 DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.Span.End,
                 ForEachStatementSyntax forEachStatementNode => forEachStatementNode.CloseParenToken.Span.End,
                 ForStatementSyntax forStatementNode => forStatementNode.CloseParenToken.Span.End,
@@ -472,7 +473,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     => !WithinAttributeLists(node, caretPosition) && !WithinMethodBody(node, caretPosition),
                 IndexerDeclarationSyntax {AccessorList: not null} indexerDeclarationNode
                     => !WithinAttributeLists(node, caretPosition) && !WithinBraces(indexerDeclarationNode.AccessorList, caretPosition),
-                ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.FullSpan.Contains(caretPosition),
+                BaseFieldDeclarationSyntax => node.FullSpan.Contains(caretPosition),
+                ObjectCreationExpressionSyntax => node.FullSpan.Contains(caretPosition),
                 DoStatementSyntax doStatementNode => doStatementNode.DoKeyword.FullSpan.Contains(caretPosition),
                 ForEachStatementSyntax or ForStatementSyntax or IfStatementSyntax or LockStatementSyntax or UsingStatementSyntax or WhileStatementSyntax
                     => !WithinEmbeddedStatement(node, caretPosition),
@@ -565,6 +567,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             {
                 return true;
             }
+
+            // Add braces for field and event field if they only have one variable, semicolon is missing & don't have readonly keyword
+            // Example:
+            // public int Bar$$ =>
+            // public int Bar
+            // {
+            //      $$
+            // }
+            // This would change field to property, and change event field to event declaration
+            if (node is BaseFieldDeclarationSyntax baseFieldDeclaration
+                && baseFieldDeclaration.Declaration.Variables.Count == 1
+                && baseFieldDeclaration.Declaration.Variables[0].Initializer == null
+                && !baseFieldDeclaration.Modifiers.Contains(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                && baseFieldDeclaration.SemicolonToken.IsMissing)
+            {
+                return true;
+            }
+
 
             // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
             // use its parent's close brace as its own.

@@ -68,7 +68,7 @@ $$", "class {$$}");
     $$
 }", @"class C
 {
-    private readonly int i = 3$$
+    pri$$vate re$$adonly i$$nt i = 3$$
 }");
         }
 
@@ -90,8 +90,10 @@ $$", "class {$$}");
         {
             Test(@"class C
 {
-    private readonly int i;
-    $$
+    private readonly int i
+    {
+        $$
+    }
 }", @"class C
 {
     private readonly int i$$
@@ -103,8 +105,10 @@ $$", "class {$$}");
         {
             Test(@"class C
 {
-    event System.EventHandler e;
-    $$
+    event System.EventHandler e
+    {
+        $$
+    }
 }", @"class C
 {
     event System.EventHandler e$$
@@ -1414,11 +1418,27 @@ public class Bar
     {
         $$
     }
-}
-", @"
+}", @"
 public class Bar
 {
-    public int iii$$
+    p$$ublic i$$nt i$$ii$$
+}");
+        }
+
+        [WpfFact]
+        public void TestReadonlyField()
+        {
+            Test(@"
+public class Bar
+{
+    public int iii
+    {
+        $$
+    }
+}", @"
+public class Bar
+{
+    p$$ublic reado$$nly i$$nt i$$ii$$
 }");
         }
 
@@ -1452,12 +1472,11 @@ public class Bar
     {
         $$
     }
-}
-", @"
+}", @"
 using System;
 public class Bar
 {
-    public event EventHandler c$$c
+    pu$$blic e$$vent EventHand$$ler c$$c$$
 }");
         }
 
