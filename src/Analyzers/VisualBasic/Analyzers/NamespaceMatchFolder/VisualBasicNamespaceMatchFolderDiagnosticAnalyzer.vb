@@ -9,20 +9,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceMatchFolder
+Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.NamespaceMatchFolder
     Friend Class VisualBasicNamespaceMatchFolderDiagnosticAnalyzer
-        Inherits AbstractNamespaceMatchFolderDiagnosticAnalyzer(Of NamespaceStatementSyntax)
+        Inherits AbstractNamespaceMatchFolderDiagnosticAnalyzer(Of NamespaceBlockSyntax)
 
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(Sub(syntaxContext As SyntaxNodeAnalysisContext) AnalyzeNamespaceNode(syntaxContext), SyntaxKind.NamespaceStatement)
+            context.RegisterSyntaxNodeAction(Sub(syntaxContext As SyntaxNodeAnalysisContext) AnalyzeNamespaceNode(syntaxContext), SyntaxKind.NamespaceBlock)
         End Sub
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function
 
-        Protected Overrides Function GetNameSyntax(namespaceDeclaration As NamespaceStatementSyntax) As SyntaxNode
-            Return namespaceDeclaration.Name
+        Protected Overrides Function GetNameSyntax(namespaceDeclaration As NamespaceBlockSyntax) As SyntaxNode
+            Return namespaceDeclaration.NamespaceStatement.Name
         End Function
     End Class
 
