@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBLambdaTests : CSharpPDBTestBase
@@ -77,34 +79,38 @@ class C
         [Fact]
         public void Nested()
         {
-            var source = WithWindowsLineBreaks(@"
+            var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 class Test
 {
     public static int Main()
     {
-         if (M(1) != 10) 
+        if (M(1) != 10) 
             return 1;
         return 0;
     }
 
     static public int M(int p)
-    {|method:{|closure:{
+    <M><C:0>{
         Func<int, int> f1 = delegate(int x)
-        {|closure:{|lambda:{
+        <C:1><L:0.0>{
             int q = 2;
             Func<int, int> f2 = (y) => 
-            {|lambda:{
+            <L:1.1>{
                 return p + q + x + y;
-            }|};
+            };
             return f2(3);
-        }|}|};
+        };
         return f1(4);
-    }|}|}
+    }
 }
-");
+"));
 
-            TestLambdasAndClosures(source);
+            // Because lambda and closure information is offset based on method start, stripping tags
+            // is necessary to be able to recreate expected input
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.StrippedSource, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
         }
 
         [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
