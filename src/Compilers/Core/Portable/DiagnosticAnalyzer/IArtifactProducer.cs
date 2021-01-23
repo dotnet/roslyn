@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
         {
-            throw new InvalidOperationException("Caller should call initialize method on ArtifactProducerInstead");
+            throw new InvalidOperationException("Caller should call initialize method on ArtifactProducer instead");
         }
 #pragma warning restore RS1025 // Configure generated code analysis
 #pragma warning restore RS1026 // Enable concurrent execution
