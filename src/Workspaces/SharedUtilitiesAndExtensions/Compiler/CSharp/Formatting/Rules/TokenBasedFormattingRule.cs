@@ -472,6 +472,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // pointer case for regular pointers
+            if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
+                (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
             {
@@ -483,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
+                    // This isn't correct for a tuple pointer `(int, int)* p` where there shouldn't be a space after
+                    // the closing parenthesis. This case is already handled above. So we're okay here.
                     var space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -503,13 +512,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ! *, except where ! is the suppress nullable warning operator
             if (previousToken.Kind() == SyntaxKind.ExclamationToken
                 && !previousToken.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // pointer case for regular pointers
-            if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
-                (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
