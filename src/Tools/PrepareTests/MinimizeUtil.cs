@@ -15,7 +15,7 @@ internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
 
-    internal static void Run(string sourceDirectory, string destinationDirectory)
+    internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
         // Map of all PE files MVID to the path information
         var idToFilePathMap = new Dictionary<Guid, List<FilePathInfo>>();
@@ -77,7 +77,8 @@ internal static class MinimizeUtil
             // we should avoid copying the files under Resources.
             var individualFiles = new[]
             {
-                "./global.json",
+                "global.json",
+                "NuGet.config",
                 "src/Workspaces/MSBuildTest/Resources/.editorconfig",
                 "src/Workspaces/MSBuildTest/Resources/global.json",
                 "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
@@ -88,13 +89,10 @@ internal static class MinimizeUtil
 
             foreach (var individualFile in individualFiles)
             {
-                var currentDirName = Path.GetDirectoryName(individualFile)!;
-                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
-                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                Directory.CreateDirectory(currentOutputDirectory);
-
-                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
-                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
+                var outputPath = Path.Combine(destinationDirectory, individualFile);
+                var outputDirectory = Path.GetDirectoryName(outputPath)!;
+                Directory.CreateDirectory(outputDirectory);
+                CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
             }
         }
 
@@ -116,7 +114,7 @@ internal static class MinimizeUtil
             }
         }
 
-        string getPeFileName(Guid mvid) => mvid.ToString();
+        static string getPeFileName(Guid mvid) => mvid.ToString();
 
         string getPeFilePath(Guid mvid) => Path.Combine(duplicateDirectory, getPeFileName(mvid));
 
@@ -126,26 +124,136 @@ internal static class MinimizeUtil
             var grouping = idToFilePathMap
                 .Where(x => x.Value.Count > 1)
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
-                .GroupBy(fp => fp.FilePath.RelativeDirectory);
+                .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
+
+            // The "rehydrate-all" script assumes we are running all tests on a single machine instead of on Helix.
+            var rehydrateAllBuilder = new StringBuilder();
+            if (isUnix)
+            {
+                writeUnixHeaderContent(rehydrateAllBuilder);
+                rehydrateAllBuilder.AppendLine("export HELIX_CORRELATION_PAYLOAD=$scriptroot/.duplicate");
+            }
+            else
+            {
+                rehydrateAllBuilder.AppendLine(@"set HELIX_CORRELATION_PAYLOAD=%~dp0\.duplicate");
+            }
+
             var builder = new StringBuilder();
-            var count = 0;
             foreach (var group in grouping)
             {
+                string filename;
+                builder.Clear();
+                if (isUnix)
+                {
+                    filename = "rehydrate.sh";
+                    writeUnixRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, "rehydrate.sh") + @"""");
+                }
+                else
+                {
+                    filename = "rehydrate.cmd";
+                    writeWindowsRehydrateContent(builder, group);
+                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, "rehydrate.cmd"));
+                }
+
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
+            }
+
+            string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
+            File.WriteAllText(Path.Combine(destinationDirectory, rehydrateAllFilename), rehydrateAllBuilder.ToString());
+
+            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                builder.AppendLine("@echo off");
+                var count = 0;
                 foreach (var tuple in group)
                 {
-                    var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
-                    var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
-                    builder.AppendLine($@"New-Item -ItemType HardLink -Name {destFileName} -Value {source} -ErrorAction Stop | Out-Null");
+                    var source = getPeFileName(tuple.Id);
+                    var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir %~dp0\{directory} 2> nul");
+                    }
+                    builder.AppendLine($@"
+mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
+if %errorlevel% neq 0 (
+    echo Cmd failed: mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
+    exit /b 1
+)");
+                    count++;
+                    if (count % 1_000 == 0)
+                    {
+                        builder.AppendLine($"echo {count:n0} hydrated");
+                    }
+                }
+                builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
+            }
+
+            static void writeUnixHeaderContent(StringBuilder builder)
+            {
+                builder.AppendLine(@"#!/bin/bash
+
+source=""${BASH_SOURCE[0]}""
+
+# resolve $source until the file is no longer a symlink
+while [[ -h ""$source"" ]]; do
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+source=""$(readlink ""$source"")""
+# if $source was a relative symlink, we need to resolve it relative to the path where the
+# symlink file was located
+[[ $source != /* ]] && source=""$scriptroot/$source""
+done
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+");
+            }
+
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                writeUnixHeaderContent(builder);
+
+                var count = 0;
+                foreach (var tuple in group)
+                {
+                    var source = getPeFileName(tuple.Id);
+                    var destFilePath = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFilePath) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
+                    }
+                    builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
 
                     count++;
                     if (count % 1_000 == 0)
                     {
-                        builder.AppendLine($"Write-Host '{count:n0} hydrated'");
+                        builder.AppendLine($"echo '{count:n0} hydrated'");
                     }
                 }
+
+                // Working around an AzDo file permissions bug.
+                // We want this to happen at the end so we can be agnostic about whether ilasm was already in the directory, or was linked in from the .duplicate directory.
+                builder.AppendLine();
+                builder.AppendLine(@"find $scriptroot -name ilasm -exec chmod 755 {} +");
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.ps1"), builder.ToString());
+            static string getGroupDirectory(string relativePath)
+            {
+                // artifacts/TestProject/Debug/net472/whatever/etc should become:
+                // artifacts/TestProject/Debug/net472
+
+                var groupDirectory = relativePath;
+                while (Path.GetFileName(Path.GetDirectoryName(groupDirectory)) is not (null or "Debug" or "Release"))
+                    groupDirectory = Path.GetDirectoryName(groupDirectory);
+
+                if (groupDirectory is null)
+                {
+                    // So far, this scenario doesn't seem to happen.
+                    // If it *did* happen, we'd want to know, but it isn't necessarily a problem.
+                    Console.WriteLine("Directory not grouped under configuration/TFM: " + relativePath);
+                    return relativePath;
+                }
+
+                return groupDirectory;
+            }
         }
     }
 
