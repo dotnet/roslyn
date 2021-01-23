@@ -264,6 +264,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         IMethodSymbol? PartialImplementationPart { get; }
 
+        /// <summary>
+        /// Returns the implementation attributes for the given method symbol.
+        /// </summary>
+        /// <remarks>
+        /// These attributes are not always emitted as attributes.
+        /// </remarks>
         MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
