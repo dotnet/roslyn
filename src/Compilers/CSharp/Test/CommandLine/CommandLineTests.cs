@@ -13120,6 +13120,27 @@ class C
         }
 
         [Fact]
+        public void ArtifactProducer_MultipleStreamsWithSamePath()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var producer1 = new DoNotCloseStreamArtifactProducer(" ", "file.cs");
+            var producer2 = new DoNotCloseStreamArtifactProducer(" ", "file.cs");
+
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer1, producer2 });
+            Assert.Contains("error CS0016", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
         public void ArtifactProducer_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
         {
             var dir = Temp.CreateDirectory();

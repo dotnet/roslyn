@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis
                     if (Directory.Exists(directory))
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-                    var fileStream = FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                    var fileStream = FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.Delete);
 
                     artifactStreams.Add((path, fileStream));
                     touchedFilesLogger?.AddWritten(path);
