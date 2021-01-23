@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -40,6 +41,11 @@ class C
 
             var nonNullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
             var nullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
+
+            Assert.True(nonNullPlus.ImplementationAttributes == MethodImplAttributes.IL);
+            Assert.True(nonNullPlus.ImplementationAttributes == MethodImplAttributes.Managed);
+            Assert.True(nullPlus.ImplementationAttributes == MethodImplAttributes.IL);
+            Assert.True(nullPlus.ImplementationAttributes == MethodImplAttributes.Managed);
 
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus.GetSymbol());
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus.GetSymbol());
@@ -86,6 +92,11 @@ class C
 
             var nullStringExt = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
             Assert.NotNull(nullStringExt);
+
+            Assert.True(nonNullStringExt.ImplementationAttributes == MethodImplAttributes.IL);
+            Assert.True(nonNullStringExt.ImplementationAttributes == MethodImplAttributes.Managed);
+            Assert.True(nullStringExt.ImplementationAttributes == MethodImplAttributes.IL);
+            Assert.True(nullStringExt.ImplementationAttributes == MethodImplAttributes.Managed);
 
             Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt.GetSymbol());
             Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt.GetSymbol());
