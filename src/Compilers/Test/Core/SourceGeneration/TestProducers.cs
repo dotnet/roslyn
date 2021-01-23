@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities.TestGenerators
 {
-    internal class SingleFileArtifactProducer : ArtifactProducer
+    internal class SingleFileArtifactProducer : IArtifactProducer
     {
         private readonly string _content;
         private readonly string _hintName;
@@ -23,14 +23,16 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _hintName = hintName;
         }
 
-        public override void Initialize(AnalysisContext context)
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+
+        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
         {
-            context.RegisterCompilationAction(AnalyzeCompilation);
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
         }
 
-        private void AnalyzeCompilation(CompilationAnalysisContext context)
+        private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
         {
-            this.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            artifactContext.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
     }
 
@@ -41,7 +43,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class CallbackArtifactProducer : ArtifactProducer
+    internal class CallbackArtifactProducer : IArtifactProducer
     {
         private readonly Action<AnalysisContext> _onInit;
         private readonly Action<CompilationAnalysisContext> _onExecute;
@@ -54,18 +56,20 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _source = source;
         }
 
-        public override void Initialize(AnalysisContext context)
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+
+        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
         {
             _onInit(context);
-            context.RegisterCompilationAction(Execute);
+            context.RegisterCompilationAction(c => Execute(c, artifactContext));
         }
 
-        private void Execute(CompilationAnalysisContext context)
+        private void Execute(CompilationAnalysisContext context, ArtifactContext artifactContext)
         {
             _onExecute(context);
             if (!string.IsNullOrWhiteSpace(_source))
             {
-                this.WriteArtifact("source", SourceText.From(_source, Encoding.UTF8));
+                artifactContext.WriteArtifact("source", SourceText.From(_source, Encoding.UTF8));
             }
         }
     }
@@ -74,6 +78,34 @@ namespace Roslyn.Test.Utilities.TestGenerators
     {
         public CallbackArtifactProducer2(Action<AnalysisContext> onInit, Action<CompilationAnalysisContext> onExecute, string? source = "") : base(onInit, onExecute, source)
         {
+        }
+    }
+
+    internal class DoNotCloseStreamArtifactProducer : IArtifactProducer
+    {
+        private readonly string _content;
+        private readonly string _hintName;
+
+        public DoNotCloseStreamArtifactProducer(string content, string hintName = "generatedFile")
+        {
+            _content = content;
+            _hintName = hintName;
+        }
+
+        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+
+        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
+        {
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
+        }
+
+        private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
+        {
+            var stream = artifactContext.CreateArtifactStream(_hintName);
+            var bytes = Encoding.UTF8.GetBytes(_content);
+            stream.Write(bytes, 0, bytes.Length);
+
+            // purposefully do not close the stream.
         }
     }
 }

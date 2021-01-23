@@ -9775,6 +9775,7 @@ public class Program
                                            int? expectedExitCode = null,
                                            bool errorlog = false,
                                            IEnumerable<ISourceGenerator> generators = null,
+                                           IEnumerable<IArtifactProducer> artifactProducers = null,
                                            params DiagnosticAnalyzer[] analyzers)
         {
             var args = new[] {
@@ -9796,7 +9797,7 @@ public class Program
                 args = args.Append(additionalFlags);
             }
 
-            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty());
+            var csc = CreateCSharpCompiler(null, sourceDir.Path, args, analyzers: analyzers.ToImmutableArrayOrEmpty(), generators: generators.ToImmutableArrayOrEmpty(), artifactProducers: artifactProducers.ToImmutableArrayOrEmpty());
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
@@ -9831,7 +9832,7 @@ public class Program
 
             if (expectedErrorCount == 0)
             {
-                Assert.DoesNotContain("error", output, StringComparison.Ordinal);
+                Assert.DoesNotContain("error", output.Split('\n').First(), StringComparison.Ordinal);
             }
             else
             {
@@ -13025,9 +13026,31 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
-            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+            var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: generator);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer });
+
+            ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_NonClosedStreams()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var producer = new DoNotCloseStreamArtifactProducer(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer });
 
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
 
@@ -13047,16 +13070,16 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource1 = "class D { } class E { }";
-            var generator1 = new SingleFileArtifactProducer(generatedSource1, "generatedSource.cs");
+            var producer1 = new SingleFileArtifactProducer(generatedSource1, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator1 });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer1 });
 
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource1 } } } });
 
             var generatedSource2 = "public class D { }";
-            var generator2 = new SingleFileArtifactProducer(generatedSource2, "generatedSource.cs");
+            var producer2 = new SingleFileArtifactProducer(generatedSource2, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator2 });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer2 });
 
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource2 } } } });
 
@@ -13080,10 +13103,10 @@ class C
 }");
             var generatedDir = dir.CreateDirectory("generated");
 
-            var generator = new SingleFileArtifactProducer(source1, Path.Combine("gen1", source1Name));
-            var generator2 = new SingleFileArtifactProducer2(source2, Path.Combine("gen2", source2Name));
+            var producer1 = new SingleFileArtifactProducer(source1, Path.Combine("gen1", source1Name));
+            var producer2 = new SingleFileArtifactProducer2(source2, Path.Combine("gen2", source2Name));
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator, generator2 });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer1, producer2 });
 
             ValidateWrittenSources(new()
             {
@@ -13107,9 +13130,9 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
-            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+            var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer });
             ValidateWrittenSources(new() { { generatedDir.Path, new() } });
 
             // Clean up temp files
@@ -13128,9 +13151,9 @@ class C
 
             var generatedDirPath = Path.Combine(dir.Path, "noexist");
             var generatedSource = "public class D { }";
-            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+            var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer });
             Assert.Contains("CS0016:", output);
 
             // Clean up temp files
@@ -13165,9 +13188,9 @@ class C
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
-            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+            var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, artifactProducers: new[] { producer });
 
             var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
             Assert.Equal(2, touchedFiles.Length);
@@ -13195,9 +13218,9 @@ class C
 [*.cs]
 key = value");
 
-            var generator = new SingleFileArtifactProducer("public class D {}", "generated.cs");
+            var producer = new SingleFileArtifactProducer("public class D {}", "generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path }, analyzers: new[] { generator });
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path }, artifactProducers: new[] { producer });
         }
 
         [Theory]
@@ -13207,9 +13230,9 @@ key = value");
             var dir = Temp.CreateDirectory();
             var generatedDir = dir.CreateDirectory("generated");
             var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
-            var generator = new CallbackArtifactProducer(i => { }, e => throw null);
+            var producer = new CallbackArtifactProducer(i => { }, e => throw null);
 
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:" + version.ToDisplayString() }, artifactProducers: new[] { producer }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
             Assert.Contains("warning AD0001: Analyzer 'Roslyn.Test.Utilities.TestGenerators.CallbackArtifactProducer' threw an exception of type 'System.NullReferenceException' with message 'Object reference not set to an instance of an object.'", output);
         }
 

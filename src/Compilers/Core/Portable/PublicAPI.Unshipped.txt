@@ -1,10 +1,14 @@
 Microsoft.CodeAnalysis.CommandLineArguments.GeneratedArtifactsOutputDirectory.get -> string
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.ArtifactProducer() -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.WriteArtifact(string fileName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.WriteArtifact(string fileName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.WriteArtifact(string fileName, System.Action<System.IO.Stream> writeStream) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.WriteArtifact(string fileName, System.Text.StringBuilder builder) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.ArtifactContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.CreateArtifactStream(string fileName) -> System.IO.Stream
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string fileName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string fileName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string fileName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string fileName, System.Text.StringBuilder builder) -> void
+Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer
+Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext analysisContext, Microsoft.CodeAnalysis.Diagnostics.ArtifactContext artifactContext) -> void
+Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string[]
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
@@ -12,7 +16,6 @@ Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string
-override Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>

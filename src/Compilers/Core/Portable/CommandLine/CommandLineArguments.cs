@@ -478,6 +478,7 @@ namespace Microsoft.CodeAnalysis
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
+            var artifactProducerBuilder = ImmutableArray.CreateBuilder<IArtifactProducer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -536,10 +537,15 @@ namespace Microsoft.CodeAnalysis
                 if (!skipAnalyzers)
                     resolvedReference.AddAnalyzers(analyzerBuilder, language);
                 resolvedReference.AddGenerators(generatorBuilder, language);
+                resolvedReference.AddArtifactProducers(artifactProducerBuilder, language);
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
+
+            // Wrap all the artifact producers in a type that will allow them to participate in the diagnostic pipeline.
+            foreach (var artifactProducer in artifactProducerBuilder)
+                analyzerBuilder.Add(new ArtifactProducerDiagnosticAnalyzer(artifactProducer));
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();

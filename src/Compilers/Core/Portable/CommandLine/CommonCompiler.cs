@@ -933,6 +933,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag? analyzerExceptionDiagnostics = null;
+            ConcurrentSet<(string filePath, Stream stream)>? artifactStreams = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -981,6 +982,7 @@ namespace Microsoft.CodeAnalysis
                     ref analyzerExceptionDiagnostics,
                     diagnostics,
                     analyzerConfigProvider,
+                    ref artifactStreams,
                     cancellationToken);
             }
 
@@ -1247,9 +1249,25 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            // after running all analyzers, flush and close any artifact producer streams that haven't already been closed.
+            FlushAndCloseArtifactStreams(diagnostics, artifactStreams);
+
             if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
+            }
+        }
+
+        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)>? artifactStreams)
+        {
+            if (artifactStreams != null)
+            {
+                foreach (var (path, stream) in artifactStreams)
+                {
+                    using var disposer = new NoThrowStreamDisposer(stream, path, diagnostics, MessageProvider);
+                    if (stream.CanWrite)
+                        stream.Flush();
+                }
             }
         }
 
@@ -1264,10 +1282,10 @@ namespace Microsoft.CodeAnalysis
             ref DiagnosticBag? analyzerExceptionDiagnostics,
             DiagnosticBag diagnostics,
             CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
+            ref ConcurrentSet<(string path, Stream stream)>? artifactStreams,
             CancellationToken cancellationToken)
         {
-            AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                   additionalTextFiles, analyzerConfigProvider);
+            AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
 
             if (!analyzers.IsEmpty)
             {
@@ -1283,10 +1301,12 @@ namespace Microsoft.CodeAnalysis
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                Action<string, Action<Stream>>? createArtifactStreamArg = null;
+                Func<string, Stream>? createArtifactStreamArg = null;
                 if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
-                    createArtifactStreamArg = createArtifactStream;
+                    artifactStreams = new ConcurrentSet<(string path, Stream stream)>();
+                    createArtifactStreamArg = GetArtifactStream(
+                        Arguments.GeneratedArtifactsOutputDirectory, diagnostics, touchedFilesLogger, artifactStreams);
                 }
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
@@ -1302,18 +1322,34 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
             }
+        }
 
-            return;
-
-            void createArtifactStream(string hint, Action<Stream> callback)
+        private Func<string, Stream> GetArtifactStream(
+            string directory,
+            DiagnosticBag diagnostics,
+            TouchedFileLogger? touchedFilesLogger,
+            ConcurrentSet<(string path, Stream stream)> artifactStreams)
+        {
+            return fileName =>
             {
-                CreateFileStream(diagnostics, Arguments.GeneratedArtifactsOutputDirectory, hint, out var path, out var fileStream);
-                if (fileStream is not null)
+                var path = Path.Combine(directory, fileName);
+                try
                 {
-                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                    callback(fileStream);
+                    if (Directory.Exists(directory))
+                        Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+                    var fileStream = FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+
+                    artifactStreams.Add((path, fileStream));
                     touchedFilesLogger?.AddWritten(path);
-                };
+                    return fileStream;
+                }
+                catch (Exception e)
+                {
+                    MessageProvider.ReportStreamWriteException(e, path, diagnostics);
+                    throw;
+                }
+
             };
         }
 

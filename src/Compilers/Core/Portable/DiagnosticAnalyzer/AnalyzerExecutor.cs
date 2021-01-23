@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
-        public readonly Action<string, Action<Stream>>? CreateArtifactStream;
+        public readonly Func<string, Stream>? CreateArtifactStream;
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
         {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
-            Action<string, Action<Stream>>? createArtifactStream,
+            Func<string, Stream>? createArtifactStream,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
-            Action<string, Action<Stream>>? createArtifactStream,
+            Func<string, Stream>? createArtifactStream,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
-            Action<string, Action<Stream>>? createArtifactStream,
+            Func<string, Stream>? createArtifactStream,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -329,19 +329,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // generated, then actually initialize the generator with the necessary context values it needs to
                     // generate artifacts.  In all other circumstances, we will not initialize it, and as such it will
                     // not have any opportunity to register callbacks for us to call into in the future.
-                    //
-                    // Note: this looks odd as we're statefully setting this property on this shared instance.  However
-                    // this only runs during command-line-build scenarios, so there's no concern about stateful mutation
-                    // here as these instances are not ever used more than once.
-                    if (analyzer is ArtifactProducer artifactProducer)
+                    if (data.analyzer is ArtifactProducerDiagnosticAnalyzer artifactProducer)
                     {
                         if (CreateArtifactStream == null)
                             return;
 
-                        artifactProducer.CreateArtifactStream = CreateArtifactStream;
+                        artifactProducer.ArtifactProducer.Initialize(data.context, new ArtifactContext(CreateArtifactStream));
                     }
-
-                    data.analyzer.Initialize(data.context);
+                    else
+                    {
+                        data.analyzer.Initialize(data.context);
+                    }
                 },
                 (analyzer, context));
         }
@@ -1694,7 +1692,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e, AnalysisContextInfo? info = null)
         {
-            var analyzerName = analyzer.ToString();
+            var analyzerName = analyzer is ArtifactProducerDiagnosticAnalyzer artifactProducer
+                ? artifactProducer.ArtifactProducer.GetType().ToString()
+                : analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();

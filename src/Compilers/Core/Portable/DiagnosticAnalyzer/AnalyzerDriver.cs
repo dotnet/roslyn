@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            CompilationWithAnalyzersOptions analysisOptions,
            CompilationData compilationData,
            bool categorizeDiagnostics,
-           Action<string, Action<Stream>>? createArtifactStream,
+           Func<string, Stream>? createArtifactStream,
            CancellationToken cancellationToken)
         {
             Debug.Assert(_lazyInitializeTask == null);
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
-            Action<string, Action<Stream>>? createArtifactStream,
+            Func<string, Stream>? createArtifactStream,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
             out Compilation newCompilation,
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
-            Action<string, Action<Stream>>? createArtifactStream,
+            Func<string, Stream>? createArtifactStream,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             bool reportAnalyzer,

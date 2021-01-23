@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
         private readonly Extensions<ISourceGenerator> _generators;
+        private readonly Extensions<IArtifactProducer> _artifactProducers;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
+            _artifactProducers = new(this, typeof(ArtifactProducerAttribute), GetArtifactProducerSupportedLanguages, allowNetFramework: true);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -196,6 +198,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
+        /// <summary>
+        /// Adds the <see cref="ImmutableArray{T}"/> of <see cref="IArtifactProducer"/> defined in this assembly reference of given <paramref name="language"/>.
+        /// </summary>
+        internal void AddArtifactProducers(ImmutableArray<IArtifactProducer>.Builder builder, string language)
+        {
+            _artifactProducers.AddExtensions(builder, language);
+        }
+
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:
@@ -264,6 +274,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // The DiagnosticAnalyzerAttribute has one constructor, which has a string parameter for the
             // first supported language and an array parameter for additional supported languages.
             // Parse the argument blob to extract the languages.
+            BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+            return ReadLanguagesFromAttribute(ref argsReader);
+        }
+
+        private static IEnumerable<string> GetArtifactProducerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            // The ArtifactProducerAttribute has one constructor, which has a string parameter for the first supported
+            // language and an array parameter for additional supported languages. Parse the argument blob to extract
+            // the languages.
             BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
             return ReadLanguagesFromAttribute(ref argsReader);
         }

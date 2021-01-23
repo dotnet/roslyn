@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            if (analyzer is ArtifactProducer)
+            if (analyzer is ArtifactProducerDiagnosticAnalyzer)
             {
                 // artifact generators only run if we're generating output files to disk (and thus have an artifact
                 // stream). Otherwise they are suppressed as there's no purpose running them.
