@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Place this attribute onto a type to cause it to be considered a source generator
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed partial class GeneratorAttribute : Attribute
+    public sealed class GeneratorAttribute : Attribute
     {
         /// <summary>
         /// The source languages to which this generator applies. See <see cref="LanguageNames"/>.
@@ -49,5 +48,6 @@ namespace Microsoft.CodeAnalysis
 
             this.Languages = languages;
         }
+
     }
 }
