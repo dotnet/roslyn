@@ -1024,6 +1024,33 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WorkItem(49325, "https://github.com/dotnet/roslyn/issues/49325")]
+        public async Task TestTopLevelStatements()
+        {
+            var markup = @"
+using System;
+
+AppDomain.CurrentDomain.AssemblyResolve +$$
+";
+            using var testState = EventHookupTestState.CreateTestState(markup);
+            testState.SendTypeChar('=');
+            testState.SendTab();
+            await testState.WaitForAsynchronousOperationsAsync();
+
+            var expectedCode = @"
+using System;
+
+AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
+System.Reflection.Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
+{
+    throw new NotImplementedException();
+}
+";
+            testState.AssertCodeIs(expectedCode);
+        }
+
         private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
