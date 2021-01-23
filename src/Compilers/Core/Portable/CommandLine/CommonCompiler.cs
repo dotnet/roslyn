@@ -1426,7 +1426,13 @@ namespace Microsoft.CodeAnalysis
 
             void writeSourceText(string directory, string filePath, Encoding? encoding, SourceText sourceText)
             {
-                CreateFileStream(diagnostics, directory, filePath, out var path, out var fileStream);
+                var path = Path.Combine(directory, filePath);
+                if (Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                }
+
+                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                 if (fileStream is not null)
                 {
                     Debug.Assert(encoding is not null);
@@ -1438,18 +1444,6 @@ namespace Microsoft.CodeAnalysis
                     touchedFilesLogger?.AddWritten(path);
                 }
             }
-
-        }
-
-        private void CreateFileStream(DiagnosticBag diagnostics, string directory, string filePath, out string path, out Stream? fileStream)
-        {
-            path = Path.Combine(directory, filePath);
-            if (Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-
-            fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
         }
 
         // virtual for testing
