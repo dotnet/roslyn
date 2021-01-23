@@ -1332,16 +1332,22 @@ namespace Microsoft.CodeAnalysis
         {
             return fileName =>
             {
+                // Get the final destination based on the command line option and file name provided.
                 var path = Path.Combine(directory, fileName);
                 try
                 {
+                    // Attempt to open a stream to that location.  If the file is already opened (for example, if
+                    // another artifact producer used the same name), we'll get an sharing violation exception that will
+                    // terminate that analyzer.
                     if (Directory.Exists(directory))
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
 
                     var fileStream = FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.Delete);
 
+                    // Keep track of the stream.
                     artifactStreams.Add((path, fileStream));
                     touchedFilesLogger?.AddWritten(path);
+
                     return fileStream;
                 }
                 catch (Exception e)
@@ -1349,7 +1355,6 @@ namespace Microsoft.CodeAnalysis
                     MessageProvider.ReportStreamWriteException(e, path, diagnostics);
                     throw;
                 }
-
             };
         }
 
