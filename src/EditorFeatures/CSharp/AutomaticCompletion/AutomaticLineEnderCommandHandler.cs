@@ -392,6 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 SwitchStatementSyntax switchStatementNode => switchStatementNode.CloseParenToken.Span.End,
                 TryStatementSyntax tryStatementNode => tryStatementNode.TryKeyword.Span.End,
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
+                FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
@@ -486,6 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 SwitchStatementSyntax switchStatementNode => !WithinBraces(switchStatementNode, caretPosition),
                 TryStatementSyntax tryStatementNode => !tryStatementNode.Block.Span.Contains(caretPosition),
                 CatchClauseSyntax catchClauseNode => !catchClauseNode.Block.Span.Contains(caretPosition),
+                FinallyClauseSyntax finallyClauseNode => !finallyClauseNode.Block.Span.Contains(caretPosition),
                 _ => false,
             };
 
@@ -617,6 +619,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             if (node is CatchClauseSyntax {CatchKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true }}})
+            {
+                return true;
+            }
+
+            if (node is FinallyClauseSyntax {FinallyKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true}}})
             {
                 return true;
             }

@@ -1831,7 +1831,7 @@ public class Bar
 {
     public void Fo()
     {
-        usi$$ng var$$ d = ne$$w D()$$
+        usi$$ng v$$ar$$ d = new D()
     }
 }
 public class D : IDisposable
@@ -2029,10 +2029,46 @@ public class Bar
         catch (System.Exception)
         {
         }
-        $$fin$$ally$$
+        fin$$ally$$
     }
 }");
+        }
 
+        [WpfFact]
+        public void TestValidFinallyCaluse()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        finally
+        $$
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Bar2()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+        fin$$ally
+        {
+        }
+    }
+}");
         }
 
         protected override string Language => LanguageNames.CSharp;
