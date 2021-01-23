@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly MergedTypeDeclaration declaration;
 
         // To compute explicitly declared members, binding must be limited (to avoid race conditions where binder cache captures symbols that aren't part of the final set)
-        private DeclaredMembersAndInitializers? _lazyDeclaredMembersAndInitializers;
+        // The value changes from "uninitialized" to "real value" to null. The transition from "uninitialized" can only happen once.
+        private DeclaredMembersAndInitializers? _lazyDeclaredMembersAndInitializers = DeclaredMembersAndInitializers.UninitializedSentinel;
 
         private MembersAndInitializers? _lazyMembersAndInitializers;
         private Dictionary<string, ImmutableArray<Symbol>>? _lazyMembersDictionary;
@@ -1427,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
-            _lazyDeclaredMembersAndInitializers = null;
+            Interlocked.Exchange(ref _lazyDeclaredMembersAndInitializers, null);
 
             return membersAndInitializers!;
         }
@@ -2541,6 +2542,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
 
+            public static DeclaredMembersAndInitializers UninitializedSentinel = new DeclaredMembersAndInitializers();
+
+            private DeclaredMembersAndInitializers()
+            {
+            }
+
             public DeclaredMembersAndInitializers(
                 ImmutableArray<Symbol> nonTypeNonIndexerMembers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
@@ -2580,6 +2587,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public MembersAndInitializersBuilder(DeclaredMembersAndInitializers declaredMembersAndInitializers)
             {
+                Debug.Assert(declaredMembersAndInitializers != DeclaredMembersAndInitializers.UninitializedSentinel);
+
                 this.IsNullableEnabledForInstanceConstructorsAndFields = declaredMembersAndInitializers.IsNullableEnabledForInstanceConstructorsAndFields;
                 this.IsNullableEnabledForStaticConstructorsAndFields = declaredMembersAndInitializers.IsNullableEnabledForStaticConstructorsAndFields;
             }
@@ -2706,7 +2715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var membersAndInitializersBuilder = new MembersAndInitializersBuilder(declaredMembersAndInitializers);
             AddSynthesizedMembers(membersAndInitializersBuilder, declaredMembersAndInitializers, diagnostics);
 
-            if (_lazyMembersAndInitializers != null)
+            if (Volatile.Read(ref _lazyMembersAndInitializers) != null)
             {
                 // Another thread completed the work before this one
                 membersAndInitializersBuilder.Free();
@@ -2718,12 +2727,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclaredMembersAndInitializers? getDeclaredMembersAndInitializers()
             {
                 var declaredMembersAndInitializers = _lazyDeclaredMembersAndInitializers;
-                if (declaredMembersAndInitializers != null)
+                if (declaredMembersAndInitializers != DeclaredMembersAndInitializers.UninitializedSentinel &&
+                    declaredMembersAndInitializers != null)
                 {
                     return declaredMembersAndInitializers;
                 }
 
-                if (_lazyMembersAndInitializers is not null)
+                if (Volatile.Read(ref _lazyMembersAndInitializers) is not null)
                 {
                     // We're previously computed declared members and already cleared them out
                     // No need to compute them again
@@ -2733,8 +2743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 declaredMembersAndInitializers = buildDeclaredMembersAndInitializers(diagnostics);
 
-                var alreadyKnown = Interlocked.CompareExchange(ref _lazyDeclaredMembersAndInitializers, declaredMembersAndInitializers, null);
-                if (alreadyKnown is not null)
+                var alreadyKnown = Interlocked.CompareExchange(ref _lazyDeclaredMembersAndInitializers, declaredMembersAndInitializers, DeclaredMembersAndInitializers.UninitializedSentinel);
+                if (alreadyKnown != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
                     diagnostics.Free();
                     return alreadyKnown;
@@ -2785,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // during member building on this thread and bailed, which results in incomplete data in the builder.
                 // In such case we have to avoid creating the instance of MemberAndInitializers since it checks the consistency
                 // of the data in the builder and would fail in an assertion if we tried to construct it from incomplete builder.
-                if (_lazyDeclaredMembersAndInitializers != null)
+                if (Volatile.Read(ref _lazyDeclaredMembersAndInitializers) != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
                     builder.Free();
                     return null;
