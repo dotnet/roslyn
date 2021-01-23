@@ -1403,12 +1403,7 @@ namespace Microsoft.CodeAnalysis
 
                         // write out the file if we have an output path
                         if (!string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory))
-                        {
-                            WriteSourceText(
-                                touchedFilesLogger, diagnostics,
-                                Arguments.GeneratedFilesOutputDirectory!, filePath,
-                                encoding, sourceText, cancellationToken);
-                        }
+                            writeSourceText(Arguments.GeneratedFilesOutputDirectory!, filePath, encoding, sourceText);
                     }
 
                     embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
@@ -1426,24 +1421,24 @@ namespace Microsoft.CodeAnalysis
                     embeddedTextBuilder.Free();
                 }
             }
-        }
 
-        private void WriteSourceText(
-            TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics,
-            string directory, string filePath,
-            Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
-        {
-            CreateFileStream(diagnostics, directory, filePath, out var path, out var fileStream);
-            if (fileStream is not null)
+            return;
+
+            void writeSourceText(string directory, string filePath, Encoding? encoding, SourceText sourceText)
             {
-                Debug.Assert(encoding is not null);
+                CreateFileStream(diagnostics, directory, filePath, out var path, out var fileStream);
+                if (fileStream is not null)
+                {
+                    Debug.Assert(encoding is not null);
 
-                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                using var writer = new StreamWriter(fileStream, encoding);
+                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                    using var writer = new StreamWriter(fileStream, encoding);
 
-                sourceText.Write(writer, cancellationToken);
-                touchedFilesLogger?.AddWritten(path);
+                    sourceText.Write(writer, cancellationToken);
+                    touchedFilesLogger?.AddWritten(path);
+                }
             }
+
         }
 
         private void CreateFileStream(DiagnosticBag diagnostics, string directory, string filePath, out string path, out Stream? fileStream)
