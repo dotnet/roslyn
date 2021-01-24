@@ -8,4 +8,5 @@ steps:
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
       git checkout "$(Build.SourceVersion)"
+    workingDirectory: 'D:\roslyn\'
     displayName: Shallow Checkout
