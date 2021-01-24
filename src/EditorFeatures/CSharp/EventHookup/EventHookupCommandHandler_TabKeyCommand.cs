@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
-            typeDecl ??= eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
+            SyntaxNode destination = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
+            destination ??= eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
-            var typeDeclWithMethodAdded = CodeGenerator.AddMethodDeclaration(typeDecl, generatedMethodSymbol, document.Project.Solution.Workspace, new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation()));
+            var destinationWithMethodAdded = CodeGenerator.AddMethodDeclaration(destination, generatedMethodSymbol, document.Project.Solution.Workspace, new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation()));
 
-            return root.ReplaceNode(typeDecl, typeDeclWithMethodAdded);
+            return root.ReplaceNode(destination, destinationWithMethodAdded);
         }
 
         private static IMethodSymbol GetMethodSymbol(
