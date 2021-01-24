@@ -473,8 +473,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // pointer case for regular pointers
-            if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
-                (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
+            if (currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // unary asterisk operator (PointerIndirectionExpression)
+            if (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -490,8 +495,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
-                    // This isn't correct for a tuple pointer `(int, int)* p` where there shouldn't be a space after
-                    // the closing parenthesis. This case is already handled above. So we're okay here.
                     var space = (previousToken.Kind() == currentToken.Kind()) ? 0 : 1;
                     return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
