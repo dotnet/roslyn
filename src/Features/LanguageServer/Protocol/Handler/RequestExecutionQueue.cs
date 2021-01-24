@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                _logger.TraceException(e);
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
         }
