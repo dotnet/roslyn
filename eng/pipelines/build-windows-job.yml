@@ -28,6 +28,11 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - pwsh: |
+        New-Item -Path 'D:\roslyn\' -ItemType Directory
+        Set-Location 'D:\roslyn\'
+      displayName: Set Working Directory
+
     - template: checkout-windows-task.yml
 
     - task: PowerShell@2
