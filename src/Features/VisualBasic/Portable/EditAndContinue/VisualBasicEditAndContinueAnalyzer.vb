@@ -1158,8 +1158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Sub ReportMethodBodySyntaxRudeEditsForLambda(oldLambda As SyntaxNode, newLambda As SyntaxNode, bodyMatch As Match(Of SyntaxNode), diagnostics As List(Of RudeEditDiagnostic))
-            ' VB has no local functions so we don't have anything to check here
+        Protected Overrides Sub ReportLocalFunctionsDeclarationRudeEdits(bodyMatch As Match(Of SyntaxNode), diagnostics As List(Of RudeEditDiagnostic))
+            ' VB has no local functions so we don't have anything to report
         End Sub
 
 #End Region
