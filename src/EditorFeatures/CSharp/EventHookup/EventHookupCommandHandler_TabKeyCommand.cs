@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             }
 
             var typeDecl = eventHookupExpression.GetAncestor<TypeDeclarationSyntax>();
+            typeDecl ??= eventHookupExpression.GetAncestor<CompilationUnitSyntax>();
 
             var typeDeclWithMethodAdded = CodeGenerator.AddMethodDeclaration(typeDecl, generatedMethodSymbol, document.Project.Solution.Workspace, new CodeGenerationOptions(afterThisLocation: eventHookupExpression.GetLocation()));
 
