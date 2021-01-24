@@ -39,35 +39,35 @@ jobs:
       displayName: Restore
       inputs:
         workingDirectory: 'D:\roslyn\'
-        filePath: eng/build.ps1
+        filePath: D:/roslyn/eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
 
     - task: PowerShell@2 
       displayName: Build
       inputs:
         workingDirectory: 'D:\roslyn\'
-        filePath: eng/build.ps1
+        filePath: D:/roslyn/eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests
       inputs:
         workingDirectory: 'D:\roslyn\'
-        filePath: eng/prepare-tests.ps1
+        filePath: D:/roslyn/eng/prepare-tests.ps1
         arguments: -configuration ${{ parameters.configuration }}
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         workingDirectory: 'D:\roslyn\'
-        targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
+        targetPath: 'D:\roslyn\artifacts\testPayload'
         artifactName: ${{ parameters.testArtifactName }}
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Prepare Tests Trace
       inputs:
         workingDirectory: 'D:\roslyn\'
-        targetPath: '$(Build.SourcesDirectory)\trace.speedscope.json'
+        targetPath: 'D:\roslyn\trace.speedscope.json'
         artifactName: trace.speedscope.windows.${{ parameters.configuration }}.json
 
     - template: publish-logs.yml
