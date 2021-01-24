@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForTypes, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitVariableTypes, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLambdaParameterTypes, TaggerDelay.NearImmediate),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForImplicitObjectCreation, TaggerDelay.NearImmediate));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
