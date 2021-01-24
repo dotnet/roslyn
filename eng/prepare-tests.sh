@@ -28,5 +28,5 @@ InitializeDotNetCli true
 # permissions issues make this a pain to do in PrepareTests itself.
 rm -rf "$repo_root/artifacts/testPayload"
 
-dotnet trace collect --format speedscope -- dotnet exec "$repo_root/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll" "$repo_root" "$repo_root/artifacts/testPayload"
+dotnet trace collect --format speedscope -- dotnet exec "$repo_root/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll" --source "$repo_root" --destination "$repo_root/artifacts/testPayload" --unix
 cat "$repo_root/artifacts/prepare-stats.log"

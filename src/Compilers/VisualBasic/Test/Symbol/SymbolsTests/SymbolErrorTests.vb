@@ -6359,6 +6359,7 @@ BC31029: Method 'EventHandler' cannot handle event 'Event1' because they do not 
                                                                           ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation1, expectedErrors1)
         End Sub
 
         <Fact>
@@ -22329,6 +22330,149 @@ BC30270: 'Iterator' is not valid on an interface method declaration.
 ]]></errors>
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_01()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost.SomeEvent
+    End Sub
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost.SomeEvent
+                                         ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_02()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Sub Handler() Handles EventHost.SomeEvent
+    End Sub
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC30594: Events of shared WithEvents variables cannot be handled by non-shared methods.
+    Private Sub Handler() Handles EventHost.SomeEvent
+                                  ~~~~~~~~~
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Sub Handler() Handles EventHost.SomeEvent
+                                  ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_03()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost.SomeEvent, EventHost2.SomeEvent
+    End Sub
+
+    Protected Shared WithEvents EventHost2 As EventHost
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost.SomeEvent, EventHost2.SomeEvent
+                                         ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
+        End Sub
+
+        <Fact>
+        <WorkItem(50472, "https://github.com/dotnet/roslyn/issues/50472")>
+        <WorkItem(1263908, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1263908")>
+        Public Sub UnsupportedHandles_04()
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class DerivedClass
+    Inherits BaseClass
+
+    Private Shared Sub Handler() Handles EventHost2.SomeEvent, EventHost.SomeEvent
+    End Sub
+
+    Protected Shared WithEvents EventHost2 As EventHost
+End Class
+
+Public MustInherit Class BaseClass
+    Protected Shared WithEvents EventHost As EventHost
+End Class
+
+Public Class EventHost
+    Public Event SomeEvent()
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim expectedErrors = <errors><![CDATA[ 
+BC36611: Events of shared WithEvents variables cannot be handled by methods in a different type.
+    Private Shared Sub Handler() Handles EventHost2.SomeEvent, EventHost.SomeEvent
+                                                               ~~~~~~~~~
+]]></errors>
+
+            compilation.AssertTheseDeclarationDiagnostics(expectedErrors)
+            compilation.AssertTheseEmitDiagnostics(expectedErrors)
         End Sub
 
         <Fact>

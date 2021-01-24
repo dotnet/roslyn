@@ -38,11 +38,10 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: PowerShell@2
+    - task: BatchScript@1
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: rehydrate.ps1
-        pwsh: true
+        filename: rehydrate-all.cmd
 
     - task: PowerShell@2
       displayName: Run Unit Tests

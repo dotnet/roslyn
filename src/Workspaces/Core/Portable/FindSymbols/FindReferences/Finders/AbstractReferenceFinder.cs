@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var documents = ArrayBuilder<Document>.GetInstance();
-            foreach (var document in project.Documents)
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (scope != null && !scope.Contains(document))
                 {

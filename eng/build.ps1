@@ -62,6 +62,8 @@ param (
   [switch]$testCoreClr,
   [switch]$testIOperation,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -178,6 +180,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -234,6 +241,7 @@ function BuildSolution() {
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -261,6 +269,7 @@ function BuildSolution() {
       $msbuildWarnAsError `
       $buildFromSource `
       $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
@@ -391,6 +400,14 @@ function TestUsingRunTests() {
 
   if ($sequential) {
     $args += " --sequential"
+  }
+
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
   }
 
   try {
