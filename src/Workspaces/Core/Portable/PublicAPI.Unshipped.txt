@@ -8,7 +8,6 @@ Microsoft.CodeAnalysis.Editing.DeclarationKind.Record = 29 -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
 Microsoft.CodeAnalysis.SourceGeneratedDocument
 Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
-Microsoft.CodeAnalysis.SourceGeneratedDocument.SourceGenerator.get -> Microsoft.CodeAnalysis.ISourceGenerator
 override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
 override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
 virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> string
