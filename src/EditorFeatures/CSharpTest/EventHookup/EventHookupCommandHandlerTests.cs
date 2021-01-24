@@ -1041,7 +1041,7 @@ AppDomain.CurrentDomain.AssemblyResolve +$$
             var expectedCode = @"
 using System;
 
-AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
 
 System.Reflection.Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
 {
