@@ -1650,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
                      sourceParameterCount == targetParameterCount)
             {
-                if (!refKindsEqual(sourceSignature, targetSignature) || !callingConventionsEqual(sourceSignature, targetSignature))
+                if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature) || !callingConventionsEqual(sourceSignature, targetSignature))
                 {
                     return false;
                 }
@@ -1666,14 +1666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
 
-            static bool refKindsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
-            {
-                return sourceSignature.RefKind == targetSignature.RefKind
-                       && sourceSignature.ParameterRefKinds.IsDefault
-                          ? targetSignature.ParameterRefKinds.IsDefault
-                          : sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds);
-            }
-
             static bool callingConventionsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
             {
                 if (sourceSignature.CallingConvention != targetSignature.CallingConvention)
@@ -1688,6 +1680,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => false
                 };
             }
+        }
+
+        private static bool FunctionPointerRefKindsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
+        {
+            return sourceSignature.RefKind == targetSignature.RefKind
+                   && (sourceSignature.ParameterRefKinds.IsDefault, targetSignature.ParameterRefKinds.IsDefault) switch
+                   {
+                       (true, true) => true,
+                       (true, _) or (_, true) => false,
+                       _ => sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds)
+                   };
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2142,14 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (sourceSignature.RefKind != targetSignature.RefKind)
-            {
-                return false;
-            }
-
-            if (sourceSignature.ParameterRefKinds.IsDefault
-                ? !targetSignature.ParameterRefKinds.IsDefault
-                : !sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds))
+            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature))
             {
                 return false;
             }
@@ -2499,14 +2495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (sourceSignature.RefKind != targetSignature.RefKind)
-            {
-                return false;
-            }
-
-            if (sourceSignature.ParameterRefKinds.IsDefault
-                ? !targetSignature.ParameterRefKinds.IsDefault
-                : !sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds))
+            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature))
             {
                 return false;
             }
