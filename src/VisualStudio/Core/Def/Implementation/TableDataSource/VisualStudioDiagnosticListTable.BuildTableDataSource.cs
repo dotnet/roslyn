@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -209,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab, bool activate)
+                    public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
                     {
                         var item = GetItem(index);
                         if (item?.DocumentId == null)
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var solution = item.Workspace.CurrentSolution;
 
                         return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate);
+                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
                     }
 
                     private DocumentId GetProperDocumentId(DiagnosticTableItem item)
