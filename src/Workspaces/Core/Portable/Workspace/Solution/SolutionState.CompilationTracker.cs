@@ -774,7 +774,8 @@ namespace Microsoft.CodeAnalysis
                         var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
 
                         var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
-                        (compilation, transformerDiagnostics) = runTransformers(compilation);
+                        if (runTransformers != null)
+                            (compilation, transformerDiagnostics) = runTransformers(compilation);
                     }
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
