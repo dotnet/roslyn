@@ -459,15 +459,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     var value = TypeWithState.Create(tempType, tempState);
                                     var inferredType = value.ToTypeWithAnnotations(compilation, asAnnotatedType: boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType);
-                                    if (_variableTypes.TryGetValue(local, out var existingType))
+                                    if (_variables.TryGetType(local, out var existingType))
                                     {
                                         // merge inferred nullable annotation from different branches of the decision tree
-                                        _variableTypes[local] = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                        inferredType = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
                                     }
-                                    else
-                                    {
-                                        _variableTypes[local] = inferredType;
-                                    }
+                                    _variables.SetType(local, inferredType);
 
                                     int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
                                     if (localSlot > 0)
