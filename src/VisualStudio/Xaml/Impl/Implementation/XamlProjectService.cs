@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 }
             }
 
-            if(_rdtDocumentIds.TryGetValue(docCookie, out DocumentId docId))
+            if (_rdtDocumentIds.TryGetValue(docCookie, out var docId))
             {
                 return docId;
             }

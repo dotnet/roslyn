@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlLanguageServerProtocol(
-            [ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, 
+            [ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
             : base(requestHandlers, languageName: StringConstants.XamlLanguageName)
@@ -55,8 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     return await base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, handler, cancellationToken).ConfigureAwait(false);
                 }
-                catch(Exception e) when (e is not OperationCanceledException)
+                catch (Exception e) when (e is not OperationCanceledException)
                 {
+                    // Inform Xaml language service that the RequestScope failed.
+                    // This doesn't send the exception to Telemetry or Watson
                     requestScope?.RecordFailure(e);
                     throw;
                 }
