@@ -1406,7 +1406,7 @@ unsafe class C
         }
 
         [Fact]
-        public void Record_ImplementSynthesizedMember1()
+        public void Record_ImplementSynthesizedMember_ToString()
         {
             var source0 = @"
 public record R
@@ -1434,7 +1434,35 @@ public record R
         }
 
         [Fact]
-        public void Record_ImplementSynthesizedMember2()
+        public void Record_ImplementSynthesizedMember_PrintMembers()
+        {
+            var source0 = @"
+public record R
+{
+}";
+            var source1 = @"
+public record R
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => true;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
+            var other = matcher.MapDefinition(member.GetCciAdapter());
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesizedMember_Property()
         {
             var source0 = @"
 public record R(int X);";
@@ -1460,7 +1488,7 @@ public record R(int X)
         }
 
         [Fact]
-        public void Record_ImplementSynthesizedMember3()
+        public void Record_ImplementSynthesizedMember_Constructor()
         {
             var source0 = @"
 public record R(int X);";
