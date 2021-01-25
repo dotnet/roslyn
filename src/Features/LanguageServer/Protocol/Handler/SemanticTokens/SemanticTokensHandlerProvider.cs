@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
             var semanticTokensCache = new SemanticTokensCache();
             return ImmutableArray.Create<IRequestHandler>(

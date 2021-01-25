@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,9 +26,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
-            return ImmutableArray.Create(new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService));
+            return ImmutableArray.Create<IRequestHandler>(new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService));
         }
     }
 }

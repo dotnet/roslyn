@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -25,9 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
-            return ImmutableArray.Create(new FailingRequestHandler());
+            return ImmutableArray.Create<IRequestHandler>(new FailingRequestHandler());
         }
     }
 

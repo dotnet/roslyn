@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 #nullable disable
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -23,9 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
-            return ImmutableArray.Create(new FailingMutatingRequestHandler());
+            return ImmutableArray.Create<IRequestHandler>(new FailingMutatingRequestHandler());
         }
     }
 

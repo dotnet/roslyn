@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
             var codeActionsCache = new CodeActionsCache();
             return ImmutableArray.Create<IRequestHandler>(

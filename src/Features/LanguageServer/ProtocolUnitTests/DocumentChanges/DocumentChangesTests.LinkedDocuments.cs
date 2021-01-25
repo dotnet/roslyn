@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
             }
 
-            protected override IEnumerable<IRequestHandler> InitializeHandlers() => ImmutableArray.Create(new GetLSPSolutionHandler());
+            protected override ImmutableArray<IRequestHandler> InitializeHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
         }
 
         [LspMethod(nameof(GetLSPSolutionHandler), mutatesSolutionState: false)]

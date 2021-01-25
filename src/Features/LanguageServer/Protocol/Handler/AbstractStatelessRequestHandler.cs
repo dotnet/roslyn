@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
-            return ImmutableArray.Create(this);
+            return ImmutableArray.Create<IRequestHandler>(this);
         }
     }
 }

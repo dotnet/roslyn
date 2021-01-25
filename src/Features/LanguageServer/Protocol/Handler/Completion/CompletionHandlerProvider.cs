@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        protected override IEnumerable<IRequestHandler> InitializeHandlers()
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
             var completionListCache = new CompletionListCache();
             return ImmutableArray.Create<IRequestHandler>(

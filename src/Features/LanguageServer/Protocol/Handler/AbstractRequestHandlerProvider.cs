@@ -26,15 +26,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Instantiates new handler instances and returns the instance
         /// with the LSP method metadata.
         /// </summary>
-        public IEnumerable<(IRequestHandler Handler, ILspMethodMetadata Metadata)> CreateRequestHandlers()
+        public ImmutableArray<(IRequestHandler Handler, ILspMethodMetadata Metadata)> CreateRequestHandlers()
         {
             var handlers = InitializeHandlers();
-            return handlers.Select(handler => (handler, LspMethodAttribute.GetLspMethodMetadata(handler.GetType())));
+            return handlers.Select(handler => (handler, LspMethodAttribute.GetLspMethodMetadata(handler.GetType()))).ToImmutableArray();
         }
 
         /// <summary>
         /// Instantiates new handler instances.
         /// </summary>
-        protected abstract IEnumerable<IRequestHandler> InitializeHandlers();
+        protected abstract ImmutableArray<IRequestHandler> InitializeHandlers();
     }
 }
