@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext Create(
             TextDocumentIdentifier? textDocument,
             string? clientName,
+            ILspLogger _logger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
@@ -36,17 +38,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document? document = null;
 
             // If we were given a document, find it in whichever workspace it exists in
-            if (textDocument is not null)
+            if (textDocument is null)
             {
+                _logger.TraceInformation("Request contained no document id");
+            }
+            else
+            {
+                _logger.TraceInformation($"Finding document corresponding to: {textDocument.Uri}");
+
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
                 document = FindDocument(lspWorkspaceRegistrationService, textDocument, clientName);
 
-                if (document is not null)
+                if (document is null)
+                {
+                    _logger.TraceWarning($"Found no corresponding document");
+                }
+                else
                 {
                     // Where ever the document came from, thats the "main" solution for this request
                     workspaceSolution = document.Project.Solution;
+                    _logger.TraceInformation($"Found document in workspace {workspaceSolution.Workspace.Kind}: {document.FilePath}");
                 }
             }
 
@@ -54,11 +67,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
-            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
-            // document text. If document id is null here, this will just return null
-            document = lspSolution.GetDocument(document?.Id);
+            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the
+            // latest document text.
+            if (document != null)
+            {
+                document = lspSolution.GetRequiredDocument(document.Id);
+            }
 
-            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -166,13 +182,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        /// <summary>
+        /// Tracing object that can be used to log information about the status of requests.
+        /// </summary>
+        private readonly Action<string> _traceInformation;
+
+        public RequestContext(
+            Solution solution,
+            Action<string> traceInformation,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            Document? document,
+            IDocumentChangeTracker documentChangeTracker)
         {
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
             _documentChangeTracker = documentChangeTracker;
+            _traceInformation = traceInformation;
         }
 
         /// <summary>
@@ -195,6 +223,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public bool IsTracking(Uri documentUri)
             => _documentChangeTracker.IsTracking(documentUri);
+
+        /// <summary>
+        /// Logs an informational message.
+        /// </summary>
+        public void TraceInformation(string message)
+            => _traceInformation(message);
 
         private class NoOpDocumentChangeTracker : IDocumentChangeTracker
         {
