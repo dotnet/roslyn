@@ -432,6 +432,11 @@
         <target state="translated">在“{0}”中生成隐式转换运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="record_">
+        <source>record</source>
+        <target state="new">record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">switch 语句</target>

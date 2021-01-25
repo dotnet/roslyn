@@ -1373,6 +1373,149 @@ class C
 
         #endregion
 
+        #region Records
+
+        [Fact]
+        public void Record_Name_Update()
+        {
+            var src1 = "record C { }";
+            var src2 = "record D { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C { }]@0 -> [record D { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "record D", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void Record_NoModifiers_Insert()
+        {
+            var src1 = "";
+            var src2 = "record C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_NoModifiers_IntoNamespace_Insert()
+        {
+            var src1 = "namespace N { }";
+            var src2 = "namespace N { record C { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_NoModifiers_IntoType_Insert()
+        {
+            var src1 = "struct N { }";
+            var src2 = "struct N { record C { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_BaseTypeUpdate1()
+        {
+            var src1 = "record C { }";
+            var src2 = "record C : D { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C { }]@0 -> [record C : D { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void Record_BaseTypeUpdate2()
+        {
+            var src1 = "record C : D1 { }";
+            var src2 = "record C : D2 { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C : D1 { }]@0 -> [record C : D2 { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void Record_BaseInterfaceUpdate1()
+        {
+            var src1 = "record C { }";
+            var src2 = "record C : IDisposable { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C { }]@0 -> [record C : IDisposable { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void Record_BaseInterfaceUpdate2()
+        {
+            var src1 = "record C : IGoo, IBar { }";
+            var src2 = "record C : IGoo { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C : IGoo, IBar { }]@0 -> [record C : IGoo { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void Record_BaseInterfaceUpdate3()
+        {
+            var src1 = "record C : IGoo, IBar { }";
+            var src2 = "record C : IBar, IGoo { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C : IGoo, IBar { }]@0 -> [record C : IBar, IGoo { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
+        public void RrcordInsert_AbstractVirtualOverride()
+        {
+            var src1 = "";
+            var src2 = @"
+public abstract record C<T>
+{ 
+    public abstract void F(); 
+    public virtual void G() {}
+    public override void H() {}
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics();
+        }
+
+        #endregion
+
         #region Enums
 
         [Fact]
