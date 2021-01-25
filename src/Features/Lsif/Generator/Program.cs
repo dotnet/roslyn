@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
             var msbuildWorkspace = MSBuildWorkspace.Create();
+            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading the solution: " + e.Diagnostic.Message);
+
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");

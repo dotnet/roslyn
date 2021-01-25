@@ -38,8 +38,8 @@
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll",
       "args": [
-        "${workspaceFolder}",
-        "${workspaceFolder}/artifacts/testPayload"
+        "--source", "${workspaceFolder}",
+        "--destination", "${workspaceFolder}/artifacts/testPayload"
       ],
       "cwd": "${workspaceFolder}/artifacts/bin/PrepareTests",
       "stopAtEntry": false,

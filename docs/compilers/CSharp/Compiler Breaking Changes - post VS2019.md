@@ -120,3 +120,22 @@ public class Derived : Base<string?>
     public override string? M() { ... } // Derived.M doesn't honor the nullability declaration made by Base.M with its [NotNull] attribute
 }
 ```
+
+20. In *Visual Studio 2019 version 16.9* and greater, the compiler will no longer allow query syntax over constrained type parameters. For example:
+
+```csharp
+using System;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M<T>() where T : C
+    {
+        var q = from x in T select x; // error CS0119: 'T' is a type parameter, which is not valid in the given context
+    }
+
+    static Func<Func<int, object>, IEnumerable<object>> Select = null;
+}
+```
+
+21. https://github.com/dotnet/roslyn/issues/50182 In *Visual Studio 2019 version 16.9* and greater, the compiler will no longer allow `await foreach` over variables that implement a malformed version of `IAsyncEnumerable` that has a non-optional `CancellationToken` parameter.

@@ -2978,12 +2978,12 @@ class C
             var source = @"
 class C
 {
-    public int M(uint c) => c switch
+    public int M(uint c) => /*<bind>*/c switch
     {
         == 0 => 1,
         != 2 => 2,
         _ => 7
-    };
+    }/*</bind>*/;
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
@@ -2994,6 +2994,38 @@ class C
                 //         != 2 => 2,
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 9)
                 );
+
+            VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
+ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+  Value: 
+    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
+  Arms(3):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '== 0 => 1')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '== 0') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 0, IsImplicit) (Syntax: '0')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '!= 2 => 2')
+        Pattern: 
+          IRelationalPatternOperation (BinaryOperatorKind.Equals) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '!= 2') (InputType: System.UInt32, NarrowedType: System.UInt32)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.UInt32, Constant: 2, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => 7')
+        Pattern: 
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.UInt32, NarrowedType: System.UInt32)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+");
         }
 
         [Fact]
@@ -5655,7 +5687,7 @@ class C
 }
 enum Color { Red, Greed, Blue }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics(
                 // (4,37): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
                 //     int M(int i, Color c) => (i, c) switch
@@ -7266,6 +7298,106 @@ class C
                 //     int M((object?, bool, bool, bool) t) => t switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_01()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_02()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            0 => 0,
+            red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25),
+                // (14,31): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '1' is not covered.
+                //         return color.ToArgb() switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("1").WithLocation(14, 31));
+        }
+
+        [Fact]
+        [WorkItem(50232, "https://github.com/dotnet/roslyn/issues/50232")]
+        public void Nonexhaustive_InvalidConstant_03()
+        {
+            var source =
+@"enum Color
+{
+    Red
+}
+static class Program
+{
+    static int ToArgb(this Color color)
+    {
+        return 0;
+    }
+    static int GetValue(Color color)
+    {
+        const int red = Color.Red.ToArgb();
+        return color.ToArgb() switch
+        {
+            < red => 1
+        };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (13,25): error CS0133: The expression being assigned to 'red' must be constant
+                //         const int red = Color.Red.ToArgb();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
         }
     }
 }
