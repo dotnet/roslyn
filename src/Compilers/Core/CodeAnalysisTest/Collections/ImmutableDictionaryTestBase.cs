@@ -323,9 +323,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected abstract IImmutableDictionary<string, TValue> Empty<TValue>(StringComparer comparer);
 
-        protected abstract bool IsSame<TKey, TValue>(IImmutableDictionary<TKey, TValue> first, IImmutableDictionary<TKey, TValue> second)
-            where TKey : notnull;
-
         protected abstract IEqualityComparer<TValue> GetValueComparer<TKey, TValue>(IImmutableDictionary<TKey, TValue> dictionary)
             where TKey : notnull;
     }

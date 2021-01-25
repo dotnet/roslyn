@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var dictionary = ImmutableSegmentedDictionary.Create<string, string>();
             var result = dictionary.ToImmutableSegmentedDictionary();
-            Assert.True(dictionary == result);
+            Assert.True(IsSame(dictionary, result));
 
             var cultureComparer = StringComparer.CurrentCulture;
             result = dictionary.WithComparer(cultureComparer);
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 { "a", 1 }
             }.ToImmutableSegmentedDictionary();
-            Assert.True(ImmutableSegmentedDictionary<string, int>.Empty == dictionary.Clear());
+            Assert.True(IsSame(ImmutableSegmentedDictionary<string, int>.Empty, dictionary.Clear()));
             Assert.NotEmpty(dictionary);
         }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }.ToImmutableSegmentedDictionary(StringComparer.OrdinalIgnoreCase);
 
             ImmutableSegmentedDictionary<string, int> clearedDictionary = dictionary.Clear();
-            Assert.False(ImmutableSegmentedDictionary<string, int>.Empty == clearedDictionary.Clear());
+            Assert.False(IsSame(ImmutableSegmentedDictionary<string, int>.Empty, clearedDictionary.Clear()));
             Assert.NotEmpty(dictionary);
 
             clearedDictionary = clearedDictionary.Add("a", 1);
@@ -307,17 +307,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected override IImmutableDictionary<string, TValue> Empty<TValue>(StringComparer comparer)
         {
             return ImmutableSegmentedDictionary.Create<string, TValue>(comparer);
-        }
-
-        protected override bool IsSame<TKey, TValue>(IImmutableDictionary<TKey, TValue> first, IImmutableDictionary<TKey, TValue> second)
-        {
-            if (first is ImmutableSegmentedDictionary<TKey, TValue> firstSegmented
-                && second is ImmutableSegmentedDictionary<TKey, TValue> secondSegmented)
-            {
-                return firstSegmented == secondSegmented;
-            }
-
-            return first == second;
         }
 
         protected override IEqualityComparer<TValue> GetValueComparer<TKey, TValue>(IImmutableDictionary<TKey, TValue> dictionary)

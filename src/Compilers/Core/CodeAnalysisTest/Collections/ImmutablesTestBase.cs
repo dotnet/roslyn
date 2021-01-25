@@ -10,9 +10,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -46,6 +48,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 Assert.Contains(value, actual);
             }
+        }
+
+        protected static bool IsSame<TKey, TValue>(IImmutableDictionary<TKey, TValue> first, IImmutableDictionary<TKey, TValue> second)
+            where TKey : notnull
+        {
+            if (first is ImmutableSegmentedDictionary<TKey, TValue> firstSegmented
+                && second is ImmutableSegmentedDictionary<TKey, TValue> secondSegmented)
+            {
+                return firstSegmented == secondSegmented;
+            }
+            else if (first.GetType() != second.GetType())
+            {
+                // If the instances do not have the same type, they cannot be the same
+                return false;
+            }
+            else if (first.GetType().IsValueType)
+            {
+                throw new NotSupportedException($"Unable to compare '{first.GetType()}' for identity.");
+            }
+
+            return first == second;
         }
 
         protected static string ToString(System.Collections.IEnumerable sequence)

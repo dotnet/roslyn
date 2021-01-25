@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var mutable = ImmutableSegmentedDictionary<int, string>.Empty.ToBuilder();
             var immutable1 = mutable.ToImmutable();
-            Assert.True(immutable1 == mutable.ToImmutable()); // "The Immutable property getter is creating new objects without any differences."
+            Assert.True(IsSame(immutable1, mutable.ToImmutable())); // "The Immutable property getter is creating new objects without any differences."
 
             mutable.Add(1, "a");
             var immutable2 = mutable.ToImmutable();
-            Assert.False(immutable1 == immutable2); // "Mutating the collection did not reset the Immutable property."
-            Assert.True(immutable2 == mutable.ToImmutable()); // "The Immutable property getter is creating new objects without any differences."
+            Assert.False(IsSame(immutable1, immutable2)); // "Mutating the collection did not reset the Immutable property."
+            Assert.True(IsSame(immutable2, mutable.ToImmutable())); // "The Immutable property getter is creating new objects without any differences."
             Assert.Equal(1, immutable2.Count);
         }
 
@@ -125,12 +125,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var collection = ImmutableSegmentedDictionary<int, string?>.Empty.Add(1, null);
             var builder = collection.ToBuilder();
-            Assert.True(collection == builder.ToImmutable()); // no changes at all.
+            Assert.True(IsSame(collection, builder.ToImmutable())); // no changes at all.
             builder.Add(2, null);
 
             var newImmutable = builder.ToImmutable();
-            Assert.False(collection == newImmutable); // first ToImmutable with changes should be a new instance.
-            Assert.True(newImmutable == builder.ToImmutable()); // second ToImmutable without changes should be the same instance.
+            Assert.False(IsSame(collection, newImmutable)); // first ToImmutable with changes should be a new instance.
+            Assert.True(IsSame(newImmutable, builder.ToImmutable())); // second ToImmutable without changes should be the same instance.
         }
 
         [Fact]
