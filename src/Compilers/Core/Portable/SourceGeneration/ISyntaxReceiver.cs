@@ -4,40 +4,29 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// The base interface of <see cref="ISyntaxReceiver"/>
-    /// </summary>
-    /// <remarks>
-    /// This interface is used internally in Roslyn to support backwards compatibility, and should not be implemented directly by consumers.
-    /// </remarks>
-    public interface ISyntaxReceiverBase
-    {
-        // BACK COMPAT - Do not add any members to this interface.
-    }
-
-    /// <summary>
-    /// Receives notifications of each <see cref="SyntaxNode"/> in the compilation before generation runs
-    /// </summary>
-    /// <remarks>
-    /// A <see cref="ISourceGenerator"/> can provide an instance of <see cref="ISyntaxReceiver"/>
-    /// via a <see cref="SyntaxReceiverCreator"/>.
-    /// 
-    /// The compiler will invoke the <see cref="SyntaxReceiverCreator"/> prior to generation to 
-    /// obtain an instance of <see cref="ISyntaxReceiver"/>. This instance will have its 
-    /// <see cref="OnVisitSyntaxNode(SyntaxNode)"/> called for every syntax node in the compilation.
-    /// 
-    /// The <see cref="ISyntaxReceiver"/> can record any information about the nodes visited. During
-    /// <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the 
-    /// created instance via the <see cref="GeneratorExecutionContext.SyntaxReceiver"/> property. The
-    /// information contained can be used to perform final generation.
-    /// 
-    /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning the instance
-    /// is free to store state without worrying about lifetime or reuse.
-    /// 
-    /// An <see cref="ISourceGenerator"/> may provide only a single <see cref="ISyntaxReceiver"/> or
-    /// <see cref="ISyntaxReceiverWithContext" />, not both.
-    /// </remarks>
-    public interface ISyntaxReceiver : ISyntaxReceiverBase
+     /// <summary>
+     /// Receives notifications of each <see cref="SyntaxNode"/> in the compilation before generation runs
+     /// </summary>
+     /// <remarks>
+     /// A <see cref="ISourceGenerator"/> can provide an instance of <see cref="ISyntaxReceiver"/>
+     /// via a <see cref="SyntaxReceiverCreator"/>.
+     /// 
+     /// The compiler will invoke the <see cref="SyntaxReceiverCreator"/> prior to generation to 
+     /// obtain an instance of <see cref="ISyntaxReceiver"/>. This instance will have its 
+     /// <see cref="OnVisitSyntaxNode(SyntaxNode)"/> called for every syntax node in the compilation.
+     /// 
+     /// The <see cref="ISyntaxReceiver"/> can record any information about the nodes visited. During
+     /// <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the 
+     /// created instance via the <see cref="GeneratorExecutionContext.SyntaxReceiver"/> property. The
+     /// information contained can be used to perform final generation.
+     /// 
+     /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning the instance
+     /// is free to store state without worrying about lifetime or reuse.
+     /// 
+     /// An <see cref="ISourceGenerator"/> may provide only a single <see cref="ISyntaxReceiver"/> or
+     /// <see cref="ISyntaxContextReceiver" />, not both.
+     /// </remarks>
+    public interface ISyntaxReceiver
     {
         /// <summary>
         /// Called for each <see cref="SyntaxNode"/> in the compilation
@@ -50,7 +39,7 @@ namespace Microsoft.CodeAnalysis
     /// Allows a generator to provide instances of an <see cref="ISyntaxReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxReceiver"/></returns>
-    public delegate ISyntaxReceiverBase SyntaxReceiverCreator();
+    public delegate ISyntaxReceiver SyntaxReceiverCreator();
 
     /// <summary>
     /// Receives notifications of each <see cref="SyntaxNode"/> in the compilation, along with a  
@@ -58,27 +47,34 @@ namespace Microsoft.CodeAnalysis
     /// runs.
     /// </summary>
     /// <remarks>
-    /// A <see cref="ISourceGenerator"/> can provide an instance of <see cref="ISyntaxReceiverWithContext"/>
+    /// A <see cref="ISourceGenerator"/> can provide an instance of <see cref="ISyntaxContextReceiver"/>
     /// via a <see cref="SyntaxReceiverCreator"/>.
     /// 
     /// The compiler will invoke the <see cref="SyntaxReceiverCreator"/> prior to generation to 
-    /// obtain an instance of <see cref="ISyntaxReceiverWithContext"/>. This instance will have its 
-    /// <see cref="OnVisitSyntaxNode(GeneratorSyntaxReceiverContext)"/> called for every syntax node
+    /// obtain an instance of <see cref="ISyntaxContextReceiver"/>. This instance will have its 
+    /// <see cref="OnVisitSyntaxNode(GeneratorSyntaxContext)"/> called for every syntax node
     /// in the compilation.
     /// 
-    /// The <see cref="ISyntaxReceiverWithContext"/> can record any information about the nodes visited. 
+    /// The <see cref="ISyntaxContextReceiver"/> can record any information about the nodes visited. 
     /// During <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the 
-    /// created instance via the <see cref="GeneratorExecutionContext.SyntaxReceiverWithContext"/> property. The
+    /// created instance via the <see cref="GeneratorExecutionContext.SyntaxContextReceiver"/> property. The
     /// information contained can be used to perform final generation.
     /// 
-    /// A new instance of <see cref="ISyntaxReceiverWithContext"/> is created per-generation, meaning the instance
+    /// A new instance of <see cref="ISyntaxContextReceiver"/> is created per-generation, meaning the instance
     /// is free to store state without worrying about lifetime or reuse. 
     /// 
     /// An <see cref="ISourceGenerator"/> may provide only a single <see cref="ISyntaxReceiver"/> or
-    /// <see cref="ISyntaxReceiverWithContext" />, not both.
+    /// <see cref="ISyntaxContextReceiver" />, not both.
     /// </remarks>
-    public interface ISyntaxReceiverWithContext : ISyntaxReceiverBase
+    public interface ISyntaxContextReceiver
     {
-        void OnVisitSyntaxNode(GeneratorSyntaxReceiverContext context);
+        void OnVisitSyntaxNode(GeneratorSyntaxContext context);
     }
+
+    /// <summary>
+    /// Allows a generator to provide instances of an <see cref="ISyntaxContextReceiver"/>
+    /// </summary>
+    /// <returns>An instance of an <see cref="ISyntaxContextReceiver"/></returns>
+    public delegate ISyntaxContextReceiver SyntaxContextReceiverCreator();
+
 }

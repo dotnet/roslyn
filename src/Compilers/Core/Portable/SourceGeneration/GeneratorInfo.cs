@@ -10,12 +10,15 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; }
 
+        internal SyntaxContextReceiverCreator? SyntaxReceiverWithContextCreator { get; }
+
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxReceiverCreator? receiverCreator)
+        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxReceiverCreator? receiverCreator, SyntaxContextReceiverCreator? receiverWithContextCreator)
         {
             EditCallback = editCallback;
             SyntaxReceiverCreator = receiverCreator;
+            SyntaxReceiverWithContextCreator = receiverWithContextCreator;
             Initialized = true;
         }
 
@@ -25,7 +28,9 @@ namespace Microsoft.CodeAnalysis
 
             internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxReceiverCreator);
+            internal SyntaxContextReceiverCreator? SyntaxReceiverWithContextCreator { get; set; }
+
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxReceiverCreator, SyntaxReceiverWithContextCreator);
         }
     }
 }

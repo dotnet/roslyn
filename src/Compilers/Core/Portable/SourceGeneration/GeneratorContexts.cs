@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiverBase? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, object? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver as ISyntaxReceiver;
-            SyntaxReceiverWithContext = syntaxReceiver as ISyntaxReceiverWithContext;
+            SyntaxContextReceiver = syntaxReceiver as ISyntaxContextReceiver;
             CancellationToken = cancellationToken;
             _additionalSources = additionalSources;
             _diagnostics = new DiagnosticBag();
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis
         public ISyntaxReceiver? SyntaxReceiver { get; }
 
         /// <summary>
-        /// If the generator registered an <see cref="ISyntaxReceiverWithContext"/> during initialization, this will be the instance created for this generation pass.
+        /// If the generator registered an <see cref="ISyntaxContextReceiver"/> during initialization, this will be the instance created for this generation pass.
         /// </summary>
-        public ISyntaxReceiverWithContext? SyntaxReceiverWithContext { get; }
+        public ISyntaxContextReceiver? SyntaxContextReceiver { get; }
 
         /// <summary>
         /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
@@ -141,8 +141,30 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
-            CheckIsEmpty(InfoBuilder.SyntaxReceiverCreator);
+            ValidateSyntaxReceiver(InfoBuilder);
             InfoBuilder.SyntaxReceiverCreator = receiverCreator;
+        }
+
+        /// <summary>
+        /// Register a <see cref="SyntaxContextReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxContextReceiver"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method allows generators to be 'syntax aware'. Before each generation the <paramref name="receiverCreator"/> will be invoked to create
+        /// an instance of <see cref="ISyntaxReceiver"/>. This receiver will have its <see cref="ISyntaxContextReceiver.OnVisitSyntaxNode(GeneratorSyntaxContext)"/> 
+        /// invoked for each syntax node in the compilation, allowing the receiver to build up information about the compilation before generation occurs.
+        /// 
+        /// During <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the <see cref="ISyntaxContextReceiver"/> instance that was
+        /// created by accessing the <see cref="GeneratorExecutionContext.SyntaxContextReceiver"/> property. Any information that was collected by the receiver can be
+        /// used to generate the final output.
+        /// 
+        /// A new instance of <see cref="ISyntaxContextReceiver"/> is created per-generation, meaning there is no need to manage the lifetime of the 
+        /// receiver or its contents.
+        /// </remarks>
+        /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
+        public void RegisterForSyntaxNotifications(SyntaxContextReceiverCreator receiverCreator)
+        {
+            ValidateSyntaxReceiver(InfoBuilder);
+            InfoBuilder.SyntaxReceiverWithContextCreator = receiverCreator;
         }
 
         private static void CheckIsEmpty<T>(T x)
@@ -152,14 +174,23 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeof(T).Name));
             }
         }
+
+        private static void ValidateSyntaxReceiver(GeneratorInfo.Builder builder)
+        {
+            if (builder.SyntaxReceiverCreator is object || builder.SyntaxReceiverWithContextCreator is object)
+            {
+                // only a single SyntaxReceiverCreator / SyntaxContextReceiverCreator can be registered per generator
+                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}"));
+            }
+        }
     }
 
     /// <summary>
-    /// Context passed to an <see cref="ISyntaxReceiverWithContext"/> when <see cref="ISyntaxReceiverWithContext.OnVisitSyntaxNode(GeneratorSyntaxReceiverContext)"/> is called
+    /// Context passed to an <see cref="ISyntaxContextReceiver"/> when <see cref="ISyntaxContextReceiver.OnVisitSyntaxNode(GeneratorSyntaxContext)"/> is called
     /// </summary>
-    public struct GeneratorSyntaxReceiverContext
+    public readonly struct GeneratorSyntaxContext
     {
-        internal GeneratorSyntaxReceiverContext(SyntaxNode node, SemanticModel semanticModel)
+        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
         {
             Node = node;
             SemanticModel = semanticModel;

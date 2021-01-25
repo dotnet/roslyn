@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSourceText> sourceTexts, ImmutableArray<SyntaxTree> trees, ImmutableArray<Diagnostic> diagnostics, ISyntaxReceiverBase? syntaxReceiver, Exception? exception)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSourceText> sourceTexts, ImmutableArray<SyntaxTree> trees, ImmutableArray<Diagnostic> diagnostics, object? syntaxReceiver, Exception? exception)
         {
             this.SourceTexts = sourceTexts;
             this.Trees = trees;
@@ -57,16 +57,16 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorInfo Info { get; }
 
-        internal ISyntaxReceiverBase? SyntaxReceiver { get; }
+        internal object? SyntaxReceiver { get; }
 
         internal Exception? Exception { get; }
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
 
         /// <summary>
-        /// Adds an <see cref="ISyntaxReceiverBase"/> to this generator state
+        /// Adds a syntax receiver to this generator state
         /// </summary>
-        internal GeneratorState WithReceiver(ISyntaxReceiverBase syntaxReceiver)
+        internal GeneratorState WithReceiver(object syntaxReceiver)
         {
             Debug.Assert(this.Exception is null);
             return new GeneratorState(this.Info,

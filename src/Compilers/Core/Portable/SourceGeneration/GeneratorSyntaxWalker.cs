@@ -8,18 +8,21 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class GeneratorSyntaxWalker : SyntaxWalker
     {
-        private readonly ISyntaxReceiverBase _syntaxReceiver;
+        private readonly object _syntaxReceiver;
 
         private SemanticModel? _semanticModel;
 
-        internal GeneratorSyntaxWalker(ISyntaxReceiverBase syntaxReceiver)
+        internal GeneratorSyntaxWalker(object syntaxReceiver)
         {
             _syntaxReceiver = syntaxReceiver;
         }
 
         public void VisitWithModel(SemanticModel model, SyntaxNode node)
         {
-            Debug.Assert(_semanticModel is null);
+            Debug.Assert(_semanticModel is null
+                         && model is not null
+                         && model.SyntaxTree == node.SyntaxTree);
+
             _semanticModel = model;
             Visit(node);
             _semanticModel = null;
@@ -32,9 +35,9 @@ namespace Microsoft.CodeAnalysis
                 case ISyntaxReceiver syntaxReceiver:
                     syntaxReceiver.OnVisitSyntaxNode(node);
                     break;
-                case ISyntaxReceiverWithContext syntaxReceiverWithContext:
+                case ISyntaxContextReceiver syntaxReceiverWithContext:
                     Debug.Assert(_semanticModel is object && _semanticModel.SyntaxTree == node.SyntaxTree);
-                    syntaxReceiverWithContext.OnVisitSyntaxNode(new GeneratorSyntaxReceiverContext(node, _semanticModel));
+                    syntaxReceiverWithContext.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel));
                     break;
             }
             base.Visit(node);
