@@ -13,6 +13,6 @@ steps:
     inputs:
       targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
       artifactName: '${{ parameters.jobName }} Logs'
-      workingDirectory: 'D:\roslyn\'
+      workingDirectory: 'D:\h\w\roslyn\'
     continueOnError: true
     condition: not(succeeded())
