@@ -595,9 +595,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 template.Append('$').Append(parameter.Name).Append('$');
                 declarations.Add(new XElement(
                     snippetNamespace + "Literal",
-                    new XAttribute(snippetNamespace + "Editable", "true"),
                     new XElement(snippetNamespace + "ID", new XText(parameter.Name)),
-                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})"))));
+                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})")),
+                    new XElement(snippetNamespace + "Default", new XText(""))));
             }
 
             if (!declarations.Any())
@@ -608,9 +608,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 template.Append("$placeholder$");
                 declarations.Add(new XElement(
                     snippetNamespace + "Literal",
-                    new XAttribute(snippetNamespace + "Editable", "true"),
                     new XElement(snippetNamespace + "ID", new XText("placeholder")),
-                    new XElement(snippetNamespace + "ToolTip", new XText("")),
                     new XElement(snippetNamespace + "Default", new XText(""))));
             }
 
@@ -631,14 +629,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         new XAttribute(snippetNamespace + "Format", "1.0.0"),
                         new XElement(
                             snippetNamespace + "Header",
-                            new XElement(
-                                snippetNamespace + "SnippetTypes",
-                                new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
-                            new XElement(snippetNamespace + "Title", new XText(methodName)),
-                            new XElement(snippetNamespace + "Author", "Microsoft"),
-                            new XElement(snippetNamespace + "Description"),
-                            new XElement(snippetNamespace + "HelpUrl"),
-                            new XElement(snippetNamespace + "Shortcut", methodName)),
+                            new XElement(snippetNamespace + "Title", new XText(methodName))),
                         new XElement(
                             snippetNamespace + "Snippet",
                             new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
