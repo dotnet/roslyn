@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -61,6 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
+        private readonly ILspLogger _logger;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
@@ -75,8 +75,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(ILspWorkspaceRegistrationService workspaceRegistrationService, string serverName)
+        public RequestExecutionQueue(
+            ILspLogger logger,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            string serverName)
         {
+            _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
 
@@ -128,7 +132,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
+            var item = new QueueItem(
+                mutatesSolutionState,
+                clientCapabilities,
+                clientName,
+                methodName,
+                textDocument,
+                Trace.CorrelationManager.ActivityId,
+                _logger,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -244,7 +255,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return RequestContext.Create(queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
+            return RequestContext.Create(
+                queueItem.TextDocument,
+                queueItem.ClientName,
+                _logger.TraceInformation,
+                queueItem.ClientCapabilities,
+                _workspaceRegistrationService,
+                _lspSolutionCache,
+                trackerToUse);
         }
     }
 }
