@@ -6749,22 +6749,22 @@ class C
             var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)
-Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
+PostSharp ""Caravela"" Compiler version A.B.C-d (HASH)
+Copyright (c) SharpCrafters s.r.o.All rights reserved.".Trim(),
                 patched);
 
             CleanupAllGeneratedFiles(file.Path);
         }
 
         [Theory,
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (<developer build>)",
-                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (ABCDEF01)",
-                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (abcdef90)",
-                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (12345678)",
-                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)")]
+            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (<developer build>)",
+                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
+            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (ABCDEF01)",
+                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
+            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (abcdef90)",
+                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)"),
+            InlineData("PostSharp \"Caravela\" Compiler version A.B.C-d (12345678)",
+                "PostSharp \"Caravela\" Compiler version A.B.C-d (HASH)")]
         public void TestReplaceCommitHash(string orig, string expected)
         {
             Assert.Equal(expected, ReplaceCommitHash(orig));
@@ -8589,8 +8589,8 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable \"{libSrc.Path}\"", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion}
-Copyright (C) Microsoft Corporation. All rights reserved.", output);
+PostSharp ""Caravela"" Compiler version {s_compilerVersion}
+Copyright (c) SharpCrafters s.r.o.All rights reserved.", output);
 
             // reading original content from the memory map:
             Assert.Equal(mvid, ReadMvid(new MemoryStream(imageDll.GetContent().ToArray())));
