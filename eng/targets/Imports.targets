@@ -397,4 +397,9 @@
     <_MicrosoftWindowsDesktopSdkImported>false</_MicrosoftWindowsDesktopSdkImported>
   </PropertyGroup>
 
+  <!-- Override Arcade. -->
+  <PropertyGroup>
+    <Copyright>$(CopyrightPostSharp)</Copyright>
+  </PropertyGroup>
+
 </Project>
