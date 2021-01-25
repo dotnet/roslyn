@@ -44,22 +44,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             else
             {
-                _logger.TraceInformation($"Finding document corresponding to: {textDocument.Uri}");
-
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
-                document = FindDocument(lspWorkspaceRegistrationService, textDocument, clientName);
+                document = FindDocument(_logger, lspWorkspaceRegistrationService, textDocument, clientName);
 
-                if (document is null)
-                {
-                    _logger.TraceWarning($"Found no corresponding document");
-                }
-                else
+                if (document is not null)
                 {
                     // Where ever the document came from, thats the "main" solution for this request
                     workspaceSolution = document.Project.Solution;
-                    _logger.TraceInformation($"Found document in workspace {workspaceSolution.Workspace.Kind}: {document.FilePath}");
                 }
             }
 
@@ -77,8 +70,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
-        private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
+        private static Document? FindDocument(ILspLogger logger, ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
         {
+            logger.TraceInformation($"Finding document corresponding to {textDocument.Uri}");
+
             using var workspaceKinds = TemporaryArray<string?>.Empty;
             foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
             {
@@ -87,6 +82,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (!documents.IsEmpty)
                 {
+                    var document = documents.FindDocumentInProjectContext(textDocument);
+                    logger.TraceInformation($"Found document in workspace {workspace.Kind}: {document.FilePath}");
+
                     Logger.Log(FunctionId.FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
                     {
                         m["WorkspaceKind"] = workspace.Kind;
@@ -94,18 +92,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         m["DocumentUriHashCode"] = textDocument.Uri.GetHashCode();
                     }));
 
-                    var document = documents.FindDocumentInProjectContext(textDocument);
-
                     return document;
                 }
             }
 
+            var searchedWorkspaceKinds = string.Join(";", workspaceKinds.ToImmutableAndClear());
+            logger.TraceWarning($"No document found after looking in {searchedWorkspaceKinds} workspaces, but request did contain a document uri");
+
             Logger.Log(FunctionId.FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                m["AvailableWorkspaceKinds"] = string.Join(";", workspaceKinds.ToImmutableAndClear());
+                m["AvailableWorkspaceKinds"] = searchedWorkspaceKinds;
                 m["FoundInWorkspace"] = false;
                 m["DocumentUriHashCode"] = textDocument.Uri.GetHashCode();
             }));
+
             return null;
         }
 

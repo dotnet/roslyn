@@ -176,28 +176,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
         public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
-            _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-            return Task.FromResult(new InitializeResult
+            try
             {
-                Capabilities = _languageClient.GetCapabilities(),
-            });
+                _logger?.TraceStart("Initialize");
+
+                Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
+                _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
+                return Task.FromResult(new InitializeResult
+                {
+                    Capabilities = _languageClient.GetCapabilities(),
+                });
+            }
+            finally
+            {
+                _logger?.TraceStop("Initialize");
+            }
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
         public Task InitializedAsync()
         {
-            // Publish diagnostics for all open documents immediately following initialization.
-            var solution = _workspace.CurrentSolution;
-            var openDocuments = _workspace.GetOpenDocumentIds();
-            foreach (var documentId in openDocuments)
-                DiagnosticService_DiagnosticsUpdated(solution, documentId);
+            try
+            {
+                _logger?.TraceStart("Initialized");
 
-            return Task.CompletedTask;
+                // Publish diagnostics for all open documents immediately following initialization.
+                var solution = _workspace.CurrentSolution;
+                var openDocuments = _workspace.GetOpenDocumentIds();
+                foreach (var documentId in openDocuments)
+                    DiagnosticService_DiagnosticsUpdated(solution, documentId);
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Initialized");
+            }
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public Task ShutdownAsync(CancellationToken _)
+        {
+            try
+            {
+                _logger?.TraceStart("Shutdown");
+
+                ShutdownImpl();
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Shutdown");
+            }
+        }
+
+        private void ShutdownImpl()
         {
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
@@ -207,12 +241,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             ShutdownRequestQueue();
-
-            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.ExitName)]
         public Task ExitAsync(CancellationToken _)
+        {
+            try
+            {
+                _logger?.TraceStart("Exit");
+
+                ExitImpl();
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Exit");
+            }
+        }
+
+        private void ExitImpl()
         {
             Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
 
@@ -225,8 +273,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
                 // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
             }
-
-            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
@@ -503,6 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
         {
             // log message and shut down
+            _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
 
             var message = new LogMessageParams()
             {
@@ -513,11 +560,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
             _errorShutdownTask = Task.Run(async () =>
             {
+                _logger?.TraceInformation("Shutting down language server.");
+
                 await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
 
-                // The "default" here is the cancellation token, which these methods don't use, hence the discard name
-                await ShutdownAsync(_: default).ConfigureAwait(false);
-                await ExitAsync(_: default).ConfigureAwait(false);
+                ShutdownImpl();
+                ExitImpl();
             }).CompletesAsyncOperation(asyncToken);
         }
 
