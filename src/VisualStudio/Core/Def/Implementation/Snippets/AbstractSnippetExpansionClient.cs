@@ -107,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
+            AssertIsForeground();
+
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
             // doing so will disrupt signature help.
             if (!_state._methods.IsDefault)
@@ -359,7 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    _state.Clear(forceClearSymbolInformation: true);
+                    _state.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -377,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    _state.Clear(forceClearSymbolInformation: true);
+                    _state.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -391,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (ExpansionSession != null)
             {
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                _state.Clear(forceClearSymbolInformation: true);
+                _state.Clear();
                 return true;
             }
 
@@ -424,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: leaveCaret ? 1 : 0);
-                _state.Clear(forceClearSymbolInformation: true);
+                _state.Clear();
 
                 return !leaveCaret;
             }
@@ -526,7 +528,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     }
                     else
                     {
-                        _state.Clear(forceClearSymbolInformation: true);
+                        _state.Clear();
                     }
                 }
             }
@@ -826,7 +828,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
                 else
                 {
-                    _state.Clear(forceClearSymbolInformation: true);
+                    _state.Clear();
                 }
             }
         }
@@ -843,7 +845,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // inserting a new snippet). Since _state may contain symbol information used by snippet functions during
             // the creation of the new snippet, we only want to clear symbol information if the state hasn't set the
             // _preserveSymbols flag.
-            _state.Clear(forceClearSymbolInformation: false);
+            _state.ClearActiveSession();
+            _state.ClearSymbolInformationUnlessPreserved();
 
             indentCaretOnCommit = false;
 
@@ -1139,13 +1142,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// </summary>
             public bool IsFullMethodCallSnippet => _expansionSession is not null && !_methods.IsDefaultOrEmpty;
 
-            public void Clear(bool forceClearSymbolInformation = false)
+            /// <summary>
+            /// Clear the snippet session state.
+            /// </summary>
+            /// <remarks>
+            /// This is the primary method is used to clear the snippet state when a snippet is being dismissed. The
+            /// logic is separated into helper methods as part of an IDE workaround for the fact that a snippet session
+            /// cannot dynamically add or remove placeholders. The placeholder changes used for the Full Method Call
+            /// feature work by dismissing the current session and immediately starting a new one in its place; in these
+            /// cases we dismiss the <see cref="_expansionSession"/> instance but leave the symbol information in place
+            /// for use by the next (replacement) session.
+            /// </remarks>
+            public void Clear()
+            {
+                ClearActiveSession();
+                ClearSymbolInformation();
+            }
+
+            /// <summary>
+            /// Clear the active expansion session from the state.
+            /// </summary>
+            public void ClearActiveSession()
             {
                 _expansionSession = null;
-                if (forceClearSymbolInformation || !_preserveSymbols)
-                {
-                    ClearSymbolInformation();
-                }
+            }
+
+            /// <summary>
+            /// Clears symbol information from the current snippet state, unless the state is configured to preserve
+            /// symbol information.
+            /// </summary>
+            /// <remarks>
+            /// This method only clears symbol information when <see cref="_preserveSymbols"/> is
+            /// <see langword="false"/>.
+            /// </remarks>
+            public void ClearSymbolInformationUnlessPreserved()
+            {
+                if (_preserveSymbols)
+                    return;
+
+                ClearSymbolInformation();
             }
 
             /// <summary>

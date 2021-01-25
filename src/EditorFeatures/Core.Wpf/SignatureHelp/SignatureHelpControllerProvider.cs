@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             AssertIsForeground();
 
-            if (textView.TryGetPerSubjectBufferProperty<Controller, ITextView>(subjectBuffer, s_controllerPropertyKey, out var controller))
-                return controller;
-
             // If we don't have a presenter, then there's no point in us even being involved.
             if (_signatureHelpPresenter == null)
             {
                 return null;
             }
+
+            if (textView.TryGetPerSubjectBufferProperty<Controller, ITextView>(subjectBuffer, s_controllerPropertyKey, out var controller))
+                return controller;
 
             return GetControllerSlow(textView, subjectBuffer);
         }
