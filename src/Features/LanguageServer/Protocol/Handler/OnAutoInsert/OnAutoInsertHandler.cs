@@ -15,26 +15,32 @@ using Microsoft.CodeAnalysis.Text;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    [ExportLspRequestHandlerProvider, Shared]
     [LspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
-    internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OnAutoInsertHandler(
-            ImmutableArray<IBraceCompletionService> csharpBraceCompletionServices,
-            ImmutableArray<IBraceCompletionService> visualBasicBraceCompletionServices)
+            [ImportMany(LanguageNames.CSharp)] IEnumerable<IBraceCompletionService> csharpBraceCompletionServices,
+            [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices)
         {
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
 

@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptWorkspaceSymbolsHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService, IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.NavigateTo))
+            : base(listenerProvider)
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }

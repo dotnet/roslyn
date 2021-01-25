@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
     [LspMethod(LSP.Methods.TextDocumentCodeActionName, mutatesSolutionState: false)]
-    internal partial class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
+    internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
