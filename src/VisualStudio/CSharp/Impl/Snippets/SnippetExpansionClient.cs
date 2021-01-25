@@ -38,8 +38,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, SignatureHelpControllerProvider signatureHelpControllerProvider, IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
-            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders)
+        public SnippetExpansionClient(
+            IThreadingContext threadingContext,
+            Guid languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            SignatureHelpControllerProvider signatureHelpControllerProvider,
+            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            : base(
+                threadingContext,
+                languageServiceGuid,
+                textView,
+                subjectBuffer,
+                signatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService,
+                argumentProviders)
         {
         }
 

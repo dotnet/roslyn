@@ -47,8 +47,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             mockSVsServiceProvider.Setup(Function(s) s.GetService(GetType(SVsTextManager))).Returns(Nothing)
 
             SnippetCommandHandler = If(languageName = LanguageNames.CSharp,
-                DirectCast(New CSharp.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(), Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object, Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()), AbstractSnippetCommandHandler),
-                New VisualBasic.Snippets.SnippetCommandHandler(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(), Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(), Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(), mockSVsServiceProvider.Object, Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()))
+                DirectCast(New CSharp.Snippets.SnippetCommandHandler(
+                    Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
+                    Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
+                    Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
+                    mockSVsServiceProvider.Object,
+                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()), AbstractSnippetCommandHandler),
+                New VisualBasic.Snippets.SnippetCommandHandler(
+                    Workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    Workspace.ExportProvider.GetExportedValue(Of SignatureHelpControllerProvider)(),
+                    Workspace.ExportProvider.GetExportedValue(Of IEditorCommandHandlerServiceFactory)(),
+                    Workspace.ExportProvider.GetExportedValue(Of IVsEditorAdaptersFactoryService)(),
+                    mockSVsServiceProvider.Object,
+                    Workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)()))
 
             SnippetExpansionClient = New MockSnippetExpansionClient(Workspace.ExportProvider.GetExportedValue(Of IThreadingContext), startActiveSession, If(languageName Is LanguageNames.CSharp, Guids.CSharpLanguageServiceId, Guids.VisualBasicLanguageServiceId), TextView, SubjectBuffer)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
