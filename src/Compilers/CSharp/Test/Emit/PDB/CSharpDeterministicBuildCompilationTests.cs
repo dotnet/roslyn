@@ -85,10 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationMetadataReferences, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    if (debugDocumentsCount is not null)
-                    {
-                        Assert.Equal(debugDocumentsCount, pdbReader.Documents.Count);
-                    }
+                    Assert.Equal(debugDocumentsCount ?? syntaxTrees.Length, pdbReader.Documents.Count);
 
                     VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion, syntaxTrees.Length);
                     DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
@@ -110,17 +107,17 @@ class MainType
         Console.WriteLine();
     }
 }
-", options: parseOptions, encoding: Encoding.UTF8);
+", filename: "a.cs", options: parseOptions, encoding: Encoding.UTF8);
 
             var sourceTwo = Parse(@"
 class TypeTwo
 {
-}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+}", filename: "b.cs", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.Unicode);
+}", filename: "c.cs", options: parseOptions, encoding: Encoding.Unicode);
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -234,17 +231,17 @@ class MainType
         Console.WriteLine();
     }
 }
-", options: parseOptions, encoding: Encoding.UTF8);
+", filename: "a.cs", options: parseOptions, encoding: Encoding.UTF8);
 
             var sourceTwo = Parse(@"
 class TypeTwo
 {
-}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+}", filename: "b.cs", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.GetEncoding(932)); // SJIS encoding
+}", filename: "c.cs", options: parseOptions, encoding: Encoding.GetEncoding(932)); // SJIS encoding
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
