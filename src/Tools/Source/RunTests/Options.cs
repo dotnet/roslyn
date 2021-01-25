@@ -82,6 +82,16 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
+        /// Whether to run test partitions as Helix work items.
+        /// </summary>
+        public bool UseHelix { get; set; }
+
+        /// <summary>
+        /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
+        /// </summary>
+        public string? HelixQueueName { get; set; }
+
+        /// <summary>
         /// Path to the dotnet executable we should use for running dotnet test
         /// </summary>
         public string DotnetFilePath { get; set; }
@@ -124,6 +134,8 @@ namespace RunTests
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
             var sequential = false;
+            var helix = false;
+            var helixQueueName = "Windows.10.Amd64.Open";
             var retry = false;
             string? traits = null;
             string? noTraits = null;
@@ -144,11 +156,13 @@ namespace RunTests
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
+                { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helixQueueName=", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
-                { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
-                { "logs=", "Log file directory", (string s) => logFileDirectory = s },
+                { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
+                { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => logFileDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
@@ -163,13 +177,11 @@ namespace RunTests
             }
             catch (OptionException e)
             {
-                Console.WriteLine($"Error parsing command line arguments: {e.Message}");
+                ConsoleUtil.WriteLine($"Error parsing command line arguments: {e.Message}");
                 optionSet.WriteOptionDescriptions(Console.Out);
                 return null;
             }
 
-            artifactsPath ??= TryGetArtifactsPath();
-            dotnetFilePath ??= TryGetDotNetPath();
             if (includeFilter.Count == 0)
             {
                 includeFilter.Add(".*UnitTests.*");
@@ -180,33 +192,35 @@ namespace RunTests
                 targetFrameworks.Add("net472");
             }
 
+            artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
-                Console.WriteLine($"Did not find artifacts directory at {artifactsPath}");
+                ConsoleUtil.WriteLine($"Did not find artifacts directory at {artifactsPath}");
                 return null;
             }
-            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults", configuration);
 
+            resultFileDirectory ??= helix
+                ? "."
+                : Path.Combine(artifactsPath, "TestResults", configuration);
+
+            logFileDirectory ??= resultFileDirectory;
+
+            dotnetFilePath ??= TryGetDotNetPath();
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
-                Console.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
+                ConsoleUtil.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
                 return null;
             }
 
             if (retry && includeHtml)
             {
-                Console.WriteLine($"Cannot specify both --retry and --html");
+                ConsoleUtil.WriteLine($"Cannot specify both --retry and --html");
                 return null;
             }
 
             if (procDumpFilePath is { } && !collectDumps)
             {
-                Console.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
-            }
-
-            if (logFileDirectory is null)
-            {
-                logFileDirectory = resultFileDirectory;
+                ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
             return new Options(
@@ -224,6 +238,8 @@ namespace RunTests
                 ProcDumpFilePath = procDumpFilePath,
                 CollectDumps = collectDumps,
                 Sequential = sequential,
+                UseHelix = helix,
+                HelixQueueName = helixQueueName,
                 IncludeHtml = includeHtml,
                 Trait = traits,
                 NoTrait = noTraits,

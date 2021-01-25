@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.
             //
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

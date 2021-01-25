@@ -3439,7 +3439,7 @@ class C
                 Await checkpoint.Task.ConfigureAwait(False)
             End Function
 
-            Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
                 Return True
             End Function
         End Class

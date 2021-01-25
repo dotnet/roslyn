@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
             {
-                bool didNavigate = false;
+                var didNavigate = false;
 
                 foreach (var item in items.OfType<SourceGeneratedFileItem>())
                 {
@@ -58,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     if (documentNavigationService != null)
                     {
                         // TODO: we're navigating back to the top of the file, do we have a way to just bring it to the focus and that's it?
-                        didNavigate |= documentNavigationService.TryNavigateToPosition(item.Workspace, item.DocumentId, 0);
+                        // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
+                        didNavigate |= documentNavigationService.TryNavigateToPosition(item.Workspace, item.DocumentId, position: 0, CancellationToken.None);
                     }
                 }
 
