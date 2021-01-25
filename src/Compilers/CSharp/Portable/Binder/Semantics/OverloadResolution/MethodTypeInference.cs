@@ -1650,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
                      sourceParameterCount == targetParameterCount)
             {
-                if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature) || !callingConventionsEqual(sourceSignature, targetSignature))
+                if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature) || !FunctionPointerCallingConventionsEqual(sourceSignature, targetSignature))
                 {
                     return false;
                 }
@@ -1665,21 +1665,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
 
-            static bool callingConventionsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
+        private static bool FunctionPointerCallingConventionsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
+        {
+            if (sourceSignature.CallingConvention != targetSignature.CallingConvention)
             {
-                if (sourceSignature.CallingConvention != targetSignature.CallingConvention)
-                {
-                    return false;
-                }
-
-                return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
-                {
-                    (null, null) => true,
-                    ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
-                    _ => false
-                };
+                return false;
             }
+
+            return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
+            {
+                (null, null) => true,
+                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
+                _ => false
+            };
         }
 
         private static bool FunctionPointerRefKindsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
@@ -2145,7 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature))
+            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature) || !FunctionPointerCallingConventionsEqual(sourceSignature, targetSignature))
             {
                 return false;
             }
@@ -2495,7 +2495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature))
+            if (!FunctionPointerRefKindsEqual(sourceSignature, targetSignature) || !FunctionPointerCallingConventionsEqual(sourceSignature, targetSignature))
             {
                 return false;
             }
