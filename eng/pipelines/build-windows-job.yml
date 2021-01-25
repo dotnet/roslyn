@@ -39,21 +39,21 @@ jobs:
       displayName: Restore
       inputs:
         workingDirectory: 'D:\h\w\roslyn\'
-        filePath: D:/roslyn/eng/build.ps1
+        filePath: D:/h/w/roslyn/eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
 
     - task: PowerShell@2 
       displayName: Build
       inputs:
         workingDirectory: 'D:\h\w\roslyn\'
-        filePath: D:/roslyn/eng/build.ps1
+        filePath: D:/h/w/roslyn/eng/build.ps1
         arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests
       inputs:
         workingDirectory: 'D:\h\w\roslyn\'
-        filePath: D:/roslyn/eng/prepare-tests.ps1
+        filePath: D:/h/w/roslyn/eng/prepare-tests.ps1
         arguments: -configuration ${{ parameters.configuration }}
 
     - task: PublishPipelineArtifact@1
