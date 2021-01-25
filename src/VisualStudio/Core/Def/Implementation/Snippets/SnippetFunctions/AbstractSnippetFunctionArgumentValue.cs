@@ -80,12 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return null;
             }
 
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
             var text = await document.GetTextAsync(cancellationToken);
             var position = text.Lines.GetPosition(new LinePosition(textSpan[0].iStartLine, textSpan[0].iStartIndex));
             var previousValue = snippetExpansionClient.Arguments.GetValueOrDefault(_parameterName);
             foreach (var provider in snippetExpansionClient.GetArgumentProviders(document.Project.Solution.Workspace))
             {
-                var context = new ArgumentContext(provider, document, position, parameter, previousValue, cancellationToken);
+                var context = new ArgumentContext(provider, semanticModel, position, parameter, previousValue, cancellationToken);
                 await provider.ProvideArgumentAsync(context);
                 if (context.DefaultValue is not null)
                 {

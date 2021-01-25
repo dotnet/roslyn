@@ -9,16 +9,15 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract class AbstractContextVariableArgumentProvider : ArgumentProvider
     {
-        public override async Task ProvideArgumentAsync(ArgumentContext context)
+        public override Task ProvideArgumentAsync(ArgumentContext context)
         {
             if (context.PreviousValue is not null)
             {
                 // This argument provider does not attempt to replace arguments already in code.
-                return;
+                return Task.CompletedTask;
             }
 
-            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            var symbols = semanticModel.LookupSymbols(context.Position, name: context.Parameter.Name);
+            var symbols = context.SemanticModel.LookupSymbols(context.Position, name: context.Parameter.Name);
             foreach (var symbol in symbols)
             {
                 // Currently we check for an exact type match before using a variable from context. As we hone the
@@ -27,9 +26,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (SymbolEqualityComparer.Default.Equals(context.Parameter.Type, symbol.GetSymbolType()))
                 {
                     context.DefaultValue = context.Parameter.Name;
-                    return;
+                    return Task.CompletedTask;
                 }
             }
+
+            return Task.CompletedTask;
         }
     }
 }

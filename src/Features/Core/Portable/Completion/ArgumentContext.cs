@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public ArgumentContext(
             ArgumentProvider provider,
-            Document document,
+            SemanticModel semanticModel,
             int position,
             IParameterSymbol parameter,
             string? previousValue,
             CancellationToken cancellationToken)
         {
             Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            Document = document ?? throw new ArgumentNullException(nameof(document));
+            SemanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
             Position = position;
             Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
             PreviousValue = previousValue;
@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal ArgumentProvider Provider { get; }
 
         /// <summary>
-        /// Gets the document where argument completion is requested.
+        /// Gets the semantic model where argument completion is requested.
         /// </summary>
-        public Document Document { get; }
+        public SemanticModel SemanticModel { get; }
 
         /// <summary>
-        /// Gets the position within <see cref="Document"/> where argument completion is requested.
+        /// Gets the position within <see cref="SemanticModel"/> where argument completion is requested.
         /// </summary>
         public int Position { get; }
 
