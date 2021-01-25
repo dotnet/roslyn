@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -14,12 +15,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class SyntaxAwareGeneratorTests
          : CSharpTestBase
     {
-
         [Fact]
         public void Syntax_Receiver_Is_Present_When_Registered()
         {
@@ -72,7 +73,7 @@ class C { }
         }
 
         [Fact]
-        public void Syntax_Receiver_Can_Be_Registered_Only_Once()
+        public void SyntaxContext_Receiver_Is_Present_When_Registered()
         {
             var source = @"
 class C { }
@@ -83,22 +84,130 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
+            ISyntaxContextReceiver? receiver = null;
+
             var testGenerator = new CallbackGenerator(
-                onInit: initialize,
-                onExecute: (e) => { }
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver()),
+                onExecute: (e) => receiver = e.SyntaxContextReceiver
                 );
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
-            void initialize(GeneratorInitializationContext initContext)
+            Assert.NotNull(receiver);
+            Assert.IsType<TestSyntaxContextReceiver>(receiver);
+        }
+
+        [Fact]
+        public void SyntaxContext_Receiver_Is_Null_WhenNot_Registered()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxContextReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => { },
+                onExecute: (e) => receiver = e.SyntaxContextReceiver
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+
+            Assert.Null(receiver);
+        }
+
+        [Fact]
+        public void SyntaxContext_Receiver_Is_Null_When_Syntax_Receiver_Registered()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxContextReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver()),
+                onExecute: (e) => receiver = e.SyntaxContextReceiver
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.Null(receiver);
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Is_Null_When_SyntaxContext_Receiver_Registered()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver()),
+                onExecute: (e) => receiver = e.SyntaxReceiver
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.Null(receiver);
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Can_Be_Registered_Only_Once()
+        {
+            // ISyntaxReceiver + ISyntaxReceiver
+            GeneratorInitializationContext init = new GeneratorInitializationContext(CancellationToken.None);
+            init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+            Assert.Throws<InvalidOperationException>(() =>
             {
-                initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
-                Assert.Throws<InvalidOperationException>(() =>
-                {
-                    initContext.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
-                });
-            }
+                init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+            });
+
+            // ISyntaxContextReceiver + ISyntaxContextReceiver
+            init = new GeneratorInitializationContext(CancellationToken.None);
+            init.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver());
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                init.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver());
+            });
+
+            // ISyntaxContextReceiver + ISyntaxReceiver
+            init = new GeneratorInitializationContext(CancellationToken.None);
+            init.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver());
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+            });
+
+
+            // ISyntaxReceiver + ISyntaxContextReceiver
+            init = new GeneratorInitializationContext(CancellationToken.None);
+            init.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                init.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver());
+            });
         }
 
         [Fact]
@@ -215,7 +324,7 @@ class C
 
             var exception = new Exception("Test Exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => throw exception),
+                onInit: (i) => i.RegisterForSyntaxNotifications((SyntaxReceiverCreator)(() => throw exception)),
                 onExecute: (e) => { Assert.True(false); }
                 );
 
@@ -417,27 +526,43 @@ class C
                 );
         }
 
-        class TestSyntaxReceiver : ISyntaxReceiver
+        class TestReceiverBase<T>
         {
-            private readonly Action<SyntaxNode>? _callback;
+            private readonly Action<T>? _callback;
 
-            public List<SyntaxNode> VisitedNodes { get; } = new List<SyntaxNode>();
+            public List<T> VisitedNodes { get; } = new List<T>();
 
             public int Tag { get; }
 
-            public TestSyntaxReceiver(int tag = 0, Action<SyntaxNode>? callback = null)
+            public TestReceiverBase(int tag = 0, Action<T>? callback = null)
             {
                 Tag = tag;
                 _callback = callback;
             }
 
-            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+            public void OnVisitSyntaxNode(T syntaxNode)
             {
                 VisitedNodes.Add(syntaxNode);
                 if (_callback is object)
                 {
                     _callback(syntaxNode);
                 }
+            }
+        }
+
+        class TestSyntaxReceiver : TestReceiverBase<SyntaxNode>, ISyntaxReceiver
+        {
+            public TestSyntaxReceiver(int tag = 0, Action<SyntaxNode>? callback = null)
+                : base(tag, callback)
+            {
+            }
+        }
+
+        class TestSyntaxContextReceiver : TestReceiverBase<GeneratorSyntaxContext>, ISyntaxContextReceiver
+        {
+            public TestSyntaxContextReceiver(int tag = 0, Action<GeneratorSyntaxContext>? callback = null)
+                : base(tag, callback)
+            {
             }
         }
     }
