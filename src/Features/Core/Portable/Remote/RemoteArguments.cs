@@ -178,9 +178,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var childItems = ChildItems == null
                 ? ImmutableArray<INavigableItem>.Empty
-                : ImmutableArray.Create(
-                    await Task.WhenAll(
-                        ChildItems.SelectAsArray(c => c.RehydrateAsync(solution, cancellationToken).AsTask())).ConfigureAwait(false));
+                : await ChildItems.SelectAsArrayAsync(c => c.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
 
             return new NavigableItem(
                 Glyph, DisplayTaggedParts,

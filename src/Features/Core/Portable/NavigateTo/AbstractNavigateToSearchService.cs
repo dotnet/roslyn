@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -68,19 +69,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ImmutableArray<INavigateToSearchResult>> RehydrateAsync(
+        private static ValueTask<ImmutableArray<INavigateToSearchResult>> RehydrateAsync(
             Optional<ImmutableArray<SerializableNavigateToSearchResult>> result,
             Solution solution,
             CancellationToken cancellationToken)
         {
             if (result.HasValue)
             {
-                var resultTasks = result.Value.SelectAsArray(r => r.RehydrateAsync(solution, cancellationToken).AsTask());
-                return (await Task.WhenAll(resultTasks).ConfigureAwait(false)).ToImmutableArray();
+                return result.Value.SelectAsArrayAsync(r => r.RehydrateAsync(solution, cancellationToken));
             }
             else
             {
-                return ImmutableArray<INavigateToSearchResult>.Empty;
+                return ValueTaskFactory.FromResult(ImmutableArray<INavigateToSearchResult>.Empty);
             }
         }
     }
