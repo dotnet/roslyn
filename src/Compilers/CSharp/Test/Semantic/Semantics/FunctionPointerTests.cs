@@ -2498,6 +2498,120 @@ unsafe
 ");
         }
 
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_LowerBoundInference_CallingConventionMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<int, string> ptr = null;
+    Test(ptr);
+    Test<int, string>(ptr);
+
+    static void Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate* unmanaged[Cdecl]<T1, T2>)").WithLocation(5, 5),
+                // (6,23): error CS1503: Argument 1: cannot convert from 'delegate*<int, string>' to 'delegate* unmanaged[Cdecl]<int, string>'
+                //     Test<int, string>(ptr);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr").WithArguments("1", "delegate*<int, string>", "delegate* unmanaged[Cdecl]<int, string>").WithLocation(6, 23)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_LowerBoundInference_RefKindMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<ref string, string> ptr1 = null;
+    Test(ptr1);
+    Test<string, string>(ptr1);
+    delegate*<string, ref string> ptr2 = null;
+    Test(ptr2);
+    Test<string, string>(ptr2);
+
+    static void Test<T1, T2>(delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<ref string, string>' to 'delegate*<string, string>'
+                //     Test<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<ref string, string>", "delegate*<string, string>").WithLocation(6, 26),
+                // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(8, 5),
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>' to 'delegate*<string, string>'
+                //     Test<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>", "delegate*<string, string>").WithLocation(9, 26)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_UpperBoundInference_CallingConventionMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<delegate*<string, string>, void> ptr = null;
+    Test(ptr);
+    Test<string, string>(ptr);
+
+    static void Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate* unmanaged[Cdecl]<T1, T2>, void>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate* unmanaged[Cdecl]<string, string>, void>'
+                //     Test<string, string>(ptr);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate* unmanaged[Cdecl]<string, string>, void>").WithLocation(6, 26)
+            );
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_UpperBoundInference_RefKindMismatch()
+        {
+            var verifier = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<delegate*<ref string, string>, void> ptr1 = null;
+    Test(ptr1);
+    Test<string, string>(ptr1);
+    delegate*<delegate*<string, ref string>, void> ptr2 = null;
+    Test(ptr2);
+    Test<string, string>(ptr2);
+
+    static void Test<T1, T2>(delegate*<delegate*<T1, T2>, void> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyDiagnostics(
+                // (5,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(5, 5),
+                // (6,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<ref string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                //     Test<string, string>(ptr1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr1").WithArguments("1", "delegate*<delegate*<ref string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(6, 26),
+                // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(8, 5),
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                //     Test<string, string>(ptr2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
+            );
+        }
+
         [Fact]
         public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
         {
