@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -74,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
-            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
+            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")

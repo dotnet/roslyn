@@ -7903,15 +7903,9 @@ public class AA
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCompleteParenthesisForTypeImportCompletionProviderUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function TestCompleteParenthesisForMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
-namespace CC
-{
-    public class Bar
-    {
-    }
-}
 public class AA
 {
     private static void CC()
@@ -7926,29 +7920,116 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                ' Make sure expander is selected
                 state.SetCompletionItemExpanderState(isSelected:=True)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
                 Dim expectedText = "
-using CC;
-
-namespace CC
-{
-    public class Bar
-    {
-    }
-}
 public class AA
 {
     private static void CC()
     {
-        var x = nameof(Bar);
+        var x = nameof(CC);
     }
 }"
-                state.SendTypeChars("Ba")
-                state.SendSelectCompletionItem("Bar")
+                state.SendTypeChars("CC")
+                state.SendSelectCompletionItem("CC")
+                state.SendTypeChars(";")
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForGenericMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+using System;
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof($$)
+    }
+
+    private static T GetSomething&lt;T&gt;() => (T)Activator.GetInstance(typeof(T));
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+using System;
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof(GetSomething);
+    }
+
+    private static T GetSomething<T>() => (T)Activator.GetInstance(typeof(T));
+}"
+                state.SendTypeChars("Get")
+                state.SendSelectCompletionItem("GetSomething<>")
+                state.SendTypeChars(";")
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForFullMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof($$)
+    }
+}
+namespace Bar1
+{
+    public class Bar2
+    {
+        public void Bar3() { }
+    }
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof(Bar1.Bar2.Bar3);
+    }
+}
+namespace Bar1
+{
+    public class Bar2
+    {
+        public void Bar3() { }
+    }
+}"
+                state.SendTypeChars("Bar1.Bar2.Ba")
+                state.SendSelectCompletionItem("Bar3")
                 state.SendTypeChars(";")
                 Assert.Equal(expectedText, state.GetDocumentText())
             End Using
