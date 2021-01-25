@@ -41,7 +41,7 @@ build_property.RootNamespace = Test.Root.Namespace
         End Function
 
         <Fact>
-        Public Async Function TestDiagnostic() As Task
+        Public Async Function TestSimpleDiagnostic() As Task
             Dim source = "Namespace [|A|]
     Public Class Class1
     End Class
@@ -60,6 +60,66 @@ End Namespace"
 End Namespace"
 
             Dim path = CreateFolderPath("A")
+
+            Await RunTestAsync(source, path)
+        End Function
+
+        <Fact>
+        Public Async Function TestGlobaliagnostic() As Task
+            Dim source = "Namespace [|Global.A|]
+    Public Class Class1
+    End Class
+End Namespace"
+
+            Dim path = CreateFolderPath("A", "B", "C")
+
+            Await RunTestAsync(source, path)
+        End Function
+
+        <Fact>
+        Public Async Function TestSpaces() As Task
+            Dim source = "Namespace [|A   .    B   . Not.Correct|]
+    Public Class Class1
+    End Class
+End Namespace"
+
+            Dim path = CreateFolderPath("A", "B", "C")
+
+            Await RunTestAsync(source, path)
+        End Function
+
+        <Fact>
+        Public Async Function TestInvalidFolderName() As Task
+            Dim source = "Namespace [|A|]
+    Public Class Class1
+    End Class
+End Namespace"
+
+            Dim path = CreateFolderPath("3A", ".B", "..C")
+
+            Await RunTestAsync(source, path)
+        End Function
+
+        <Fact>
+        Public Async Function TestDotFolderName() As Task
+            Dim source = "Namespace [|A|]
+    Public Class Class1
+    End Class
+End Namespace"
+
+            Dim path = CreateFolderPath(".A.", "..", "..B", "..C")
+
+            Await RunTestAsync(source, path)
+        End Function
+
+        <Fact>
+        Public Async Function TestCaseInsensitive() As Task
+            Dim source = "Namespace Test.Root.Namespace.a.b.c
+    Public Class Class1
+    End Class
+End Namespace"
+
+            Dim path = CreateFolderPath("A", "B", "C")
 
             Await RunTestAsync(source, path)
         End Function
