@@ -240,10 +240,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 supportedPlatformData);
 
             var symbol = symbols[0].symbol;
-            if (symbol.IsKind(SymbolKind.Method))
+            if (symbol.IsKind(SymbolKind.Method) && !context.IsNameOfContext)
             {
-                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-                if (!context.IsNameOfContext && !isInferredTypeDelegate)
+                var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(type => type.IsDelegateType() || type.IsFunctionPointerType());
+                if (!isInferredTypeDelegateOrFunctionPointer)
                 {
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
