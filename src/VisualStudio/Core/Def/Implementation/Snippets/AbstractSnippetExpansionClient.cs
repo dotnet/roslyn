@@ -83,11 +83,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this._allArgumentProviders = argumentProviders;
         }
 
-        internal IVsExpansionSession ExpansionSession => _state._expansionSession;
-        internal bool IsFullMethodCallSnippet => _state.IsFullMethodCallSnippet;
-        internal ImmutableDictionary<string, string> Arguments => _state._arguments;
+        /// <inheritdoc cref="State._expansionSession"/>
+        public IVsExpansionSession ExpansionSession => _state._expansionSession;
 
-        internal ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
+        /// <inheritdoc cref="State.IsFullMethodCallSnippet"/>
+        public bool IsFullMethodCallSnippet => _state.IsFullMethodCallSnippet;
+
+        /// <inheritdoc cref="State._arguments"/>
+        public ImmutableDictionary<string, string> Arguments => _state._arguments;
+
+        public ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
         {
             AssertIsForeground();
 
@@ -488,13 +493,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var symbols = ThreadingContext.JoinableTaskFactory.Run(() => GetSymbolsAsync(document, caretPosition: triggerSpan.End, cancellationToken));
+            var symbols = ThreadingContext.JoinableTaskFactory.Run(() => GetReferencedSymbolsToLeftOfCaretAsync(document, caretPosition: triggerSpan.End, cancellationToken));
 
             var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
             if (methodSymbols.Any())
             {
                 var methodName = dataBufferSpan.GetText();
-                var snippet = CreateSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, cancellationToken);
+                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, cancellationToken);
 
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -569,7 +574,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
         /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
         /// go.</param>
-        private static XDocument CreateSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, CancellationToken cancellationToken)
+        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, CancellationToken cancellationToken)
         {
             XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
 
@@ -678,7 +683,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             MoveToSpecificMethod(method, CancellationToken.None);
         }
 
-        private static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
+        private static async Task<ImmutableArray<ISymbol>> GetReferencedSymbolsToLeftOfCaretAsync(
             Document document,
             SnapshotPoint caretPosition,
             CancellationToken cancellationToken)
@@ -785,7 +790,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             adjustedTextSpan.iEndLine = textSpan[0].iEndLine;
             adjustedTextSpan.iEndIndex = textSpan[0].iEndIndex;
 
-            var snippet = CreateSnippet(method.Name, includeMethod: false, method.Parameters, cancellationToken);
+            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, cancellationToken);
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
@@ -1091,18 +1096,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// </summary>
             /// <remarks>
             /// <para>This collection might not contain <see cref="_method"/>, particularly in cases where
-            /// <see cref="GetSymbolsAsync"/> returns only a subset of the available overloads. One simple case can be
-            /// seen in Visual Basic code invoking <see cref="int.ToString()"/>:</para>
+            /// <see cref="GetReferencedSymbolsToLeftOfCaretAsync"/> returns only a subset of the available overloads.
+            /// One simple case can be seen in Visual Basic code invoking <see cref="int.ToString()"/>:</para>
             ///
             /// <code>
             /// Dim x = 0
             /// x.ToString$$
             /// </code>
             ///
-            /// <para>When <see cref="GetSymbolsAsync"/> is invoked at the caret location, <see cref="int.ToString()"/>
-            /// is returned, but other overloads like <see cref="int.ToString(string)"/> are not. This is due to the
-            /// fact that parentheses are optional for invocations that do not have any parameters, as opposed to the
-            /// equivalent C# case where <c>ToString</c> would refer to a method group.</para>
+            /// <para>When <see cref="GetReferencedSymbolsToLeftOfCaretAsync"/> is invoked at the caret location,
+            /// <see cref="int.ToString()"/> is returned, but other overloads like <see cref="int.ToString(string)"/>
+            /// are not. This is due to the fact that parentheses are optional for invocations that do not have any
+            /// parameters, as opposed to the equivalent C# case where <c>ToString</c> would refer to a method
+            /// group.</para>
             /// </remarks>
             public ImmutableArray<IMethodSymbol> _methods;
 
