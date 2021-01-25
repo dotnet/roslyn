@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxReceiverCreator? SyntaxReceiverCreator { get; }
 
-        internal SyntaxContextReceiverCreator? SyntaxReceiverWithContextCreator { get; }
+        internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; }
 
         internal bool Initialized { get; }
 
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         {
             EditCallback = editCallback;
             SyntaxReceiverCreator = receiverCreator;
-            SyntaxReceiverWithContextCreator = receiverWithContextCreator;
+            SyntaxContextReceiverCreator = receiverWithContextCreator;
             Initialized = true;
         }
 

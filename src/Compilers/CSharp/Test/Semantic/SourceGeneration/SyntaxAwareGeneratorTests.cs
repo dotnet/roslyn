@@ -87,7 +87,7 @@ class C { }
             ISyntaxContextReceiver? receiver = null;
 
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver()),
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver()),
                 onExecute: (e) => receiver = e.SyntaxContextReceiver
                 );
 

@@ -178,20 +178,27 @@ namespace Microsoft.CodeAnalysis
                                      : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
                 }
 
-                // create the syntax receiver if requested
-                if (generatorState.Info.SyntaxReceiverCreator is object)
+                // create the syntax receivers if needed
+                Debug.Assert(!(generatorState.Info.SyntaxReceiverCreator is object && generatorState.Info.SyntaxContextReceiverCreator is object));
+                object? receiver = null;
+                try
                 {
-                    try
+                    receiver = generatorState.Info.SyntaxContextReceiverCreator?.Invoke();
+                    if (receiver is null)
                     {
-                        var rx = generatorState.Info.SyntaxReceiverCreator();
-                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
-                        generatorState = generatorState.WithReceiver(rx);
-                        receiverCount++;
+                        receiver = generatorState.Info.SyntaxReceiverCreator?.Invoke();
                     }
-                    catch (Exception e)
-                    {
-                        generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
-                    }
+                }
+                catch (Exception e)
+                {
+                    generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                }
+
+                if (receiver is object)
+                {
+                    walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(receiver));
+                    generatorState = generatorState.WithReceiver(receiver);
+                    receiverCount++;
                 }
 
                 stateBuilder.Add(generatorState);
