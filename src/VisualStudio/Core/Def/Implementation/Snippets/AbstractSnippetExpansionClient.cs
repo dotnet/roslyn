@@ -467,7 +467,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
             {
-                // This expansion is not derived from a symbol
+                // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
+                // information
                 _state.ClearSymbolInformation();
                 return true;
             }
@@ -566,7 +567,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
         /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
         /// go.</param>
-        /// <returns></returns>
         private static XDocument CreateSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, CancellationToken cancellationToken)
         {
             XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
@@ -900,6 +900,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
+
+                // This expansion was chosen from the snippet picker, and not derived from a symbol. Make sure the state
+                // isn't tracking any symbol information.
                 _state.ClearSymbolInformation();
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
 

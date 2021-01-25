@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             if (context.PreviousValue is not null)
             {
+                // This argument provider does not attempt to replace arguments already in code.
                 return;
             }
 

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -50,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the previously-provided argument value for this parameter.
         /// </summary>
+        /// <value>
+        /// The existing text of the argument value, if the argument is already in code; otherwise,
+        /// <see langword="null"/> when requesting a new argument value.
+        /// </value>
         public string? PreviousValue { get; }
 
         /// <summary>

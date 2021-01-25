@@ -105,7 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 && snippetExpansionClient.IsFullMethodCallSnippet)
             {
                 // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
-                // chain will handle the remaining Complete Statement (';' insertion) operations.
+                // chain will handle the remaining Complete Statement (';' insertion) operations only if there is no
+                // active selection.
                 snippetExpansionClient.CommitSnippet(leaveCaret: true);
                 args.TextView.Selection.Clear();
             }
