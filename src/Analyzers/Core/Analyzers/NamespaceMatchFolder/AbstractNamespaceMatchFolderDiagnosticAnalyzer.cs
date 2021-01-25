@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         /// <summary>
         /// Returns true if the namespace declaration contains one or more partial types with multiple declarations.
         /// </summary>
-        /// <returns></returns>
         protected bool ContainsPartialTypeWithMultipleDeclarations(TNamespaceSyntax namespaceDeclaration, SemanticModel semanticModel)
         {
             var syntaxFacts = GetSyntaxFacts();
