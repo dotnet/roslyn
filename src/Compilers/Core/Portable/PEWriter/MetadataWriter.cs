@@ -1790,11 +1790,9 @@ namespace Microsoft.Cci
                 // Ensure document table lists files in command line order
                 // This is key for us to be able to accurately rebuild a binary from a PDB.
                 var documentsBuilder = Module.DebugDocumentsBuilder;
-                var documents = documentsBuilder.DebugDocuments;
                 foreach (var tree in Module.CommonCompilation.SyntaxTrees)
                 {
-                    string normalizedPath = documentsBuilder.NormalizeDebugDocumentPath(tree.FilePath, basePath: null);
-                    if (documents.TryGetValue(normalizedPath, out var doc) && !_documentIndex.ContainsKey(doc))
+                    if (documentsBuilder.TryGetDebugDocument(tree.FilePath, basePath: null) is { } doc && !_documentIndex.ContainsKey(doc))
                     {
                         AddDocument(doc, _documentIndex);
                     }
