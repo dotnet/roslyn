@@ -71,8 +71,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
+#pragma warning disable CS0618 // Type or member is obsolete
                 CodeFixIndex = 0,
                 CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+#pragma warning restore CS0618 // Type or member is obsolete
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -105,8 +107,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+#pragma warning disable CS0618 // Type or member is obsolete
                 CodeFixIndex = 2,
                 CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+#pragma warning restore CS0618 // Type or member is obsolete
             }.RunAsync();
         }
 
@@ -162,8 +166,10 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithVBAttribute } },
+#pragma warning disable CS0618 // Type or member is obsolete
                 CodeFixIndex = 1,
                 CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
+#pragma warning restore CS0618 // Type or member is obsolete
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -194,8 +200,10 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+#pragma warning disable CS0618 // Type or member is obsolete
                 CodeFixIndex = 2,
                 CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+#pragma warning restore CS0618 // Type or member is obsolete
             }.RunAsync();
         }
 
