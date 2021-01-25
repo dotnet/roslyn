@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
-            Interlocked.Exchange(ref _lazyDeclaredMembersAndInitializers, null);
+            _lazyDeclaredMembersAndInitializers = null;
 
             return membersAndInitializers!;
         }
@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
 
-            public static DeclaredMembersAndInitializers UninitializedSentinel = new DeclaredMembersAndInitializers();
+            public static readonly DeclaredMembersAndInitializers UninitializedSentinel = new DeclaredMembersAndInitializers();
 
             private DeclaredMembersAndInitializers()
             {
@@ -2727,8 +2727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclaredMembersAndInitializers? getDeclaredMembersAndInitializers()
             {
                 var declaredMembersAndInitializers = _lazyDeclaredMembersAndInitializers;
-                if (declaredMembersAndInitializers != DeclaredMembersAndInitializers.UninitializedSentinel &&
-                    declaredMembersAndInitializers != null)
+                if (declaredMembersAndInitializers != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
                     return declaredMembersAndInitializers;
                 }
