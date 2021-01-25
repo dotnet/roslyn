@@ -1650,9 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      target.Type is FunctionPointerTypeSymbol { Signature: { ParameterCount: int targetParameterCount } targetSignature } &&
                      sourceParameterCount == targetParameterCount)
             {
-                if (sourceSignature.RefKind != targetSignature.RefKind
-                    || sourceSignature.ParameterRefKinds != targetSignature.ParameterRefKinds
-                    || !callingConventionsEqual(sourceSignature, targetSignature))
+                if (!refKindsEqual(sourceSignature, targetSignature) || !callingConventionsEqual(sourceSignature, targetSignature))
                 {
                     return false;
                 }
@@ -1667,6 +1665,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+
+            static bool refKindsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
+            {
+                return sourceSignature.RefKind == targetSignature.RefKind
+                       && sourceSignature.ParameterRefKinds.IsDefault
+                          ? targetSignature.ParameterRefKinds.IsDefault
+                          : sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds);
+            }
 
             static bool callingConventionsEqual(FunctionPointerMethodSymbol sourceSignature, FunctionPointerMethodSymbol targetSignature)
             {

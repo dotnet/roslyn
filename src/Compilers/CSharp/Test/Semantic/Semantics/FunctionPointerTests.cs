@@ -2464,6 +2464,40 @@ unsafe
             );
         }
 
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    var ptr1 = new delegate*<ref string, string>[] { &Test };
+    Test1(ptr1);
+
+    static string Test(ref string s) => s = ""1"";
+    static void Test1<T1, T2>(delegate*<ref T1, T2>[] func) {
+        T1 t = default;
+        System.Console.Write(func[0](ref t));
+        System.Console.Write(t);
+    }
+}
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  4
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""delegate*<ref string, string>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldftn      ""string <Program>$.<<Main>$>g__Test|0_0(ref string)""
+  IL_000e:  stelem.i
+  IL_000f:  call       ""void <Program>$.<<Main>$>g__Test1|0_1<string, string>(delegate*<ref string, string>[])""
+  IL_0014:  ret
+}
+");
+        }
+
         [Fact]
         public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
         {
