@@ -30,12 +30,12 @@ namespace IdeCoreBenchmarks
         public FindReferencesBenchmarks()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Roslyn.sln");
+            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
 
             if (!File.Exists(_solutionPath))
-                throw new ArgumentException("Couldn't find Roslyn.sln");
+                throw new ArgumentException("Couldn't find Compilers.sln");
 
-            Console.Write("Found roslyn.sln: " + Process.GetCurrentProcess().Id);
+            Console.Write("Found Compilers.sln: " + Process.GetCurrentProcess().Id);
         }
 
         [GlobalSetup]
@@ -46,7 +46,8 @@ namespace IdeCoreBenchmarks
                 throw new ArgumentException("Couldn't create workspace");
 
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
+                .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
 
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
@@ -78,12 +79,12 @@ namespace IdeCoreBenchmarks
             // There might be multiple projects with this name.  That's ok.  FAR goes and finds all the linked-projects
             // anyways  to perform the search on all the equivalent symbols from them.  So the end perf cost is the
             // same.
-            var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis.CSharp");
+            var project = solution.Projects.First(p => p.AssemblyName == "Microsoft.CodeAnalysis");
 
             var start = DateTime.Now;
             var compilation = await project.GetCompilationAsync();
             Console.WriteLine("Time to get first compilation: " + (DateTime.Now - start));
-            var type = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser");
+            var type = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.SyntaxToken");
             if (type == null)
                 throw new Exception("Couldn't find type");
 

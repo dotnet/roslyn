@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             if (!DatabaseSupported(solutionKey, checkBranchId))
             {
+                if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                    throw new InvalidOperationException("Database was not supported");
+
                 return NoOpPersistentStorage.Instance;
             }
 
@@ -84,7 +87,12 @@ namespace Microsoft.CodeAnalysis.Storage
 
                 var workingFolder = TryGetWorkingFolder(workspace, solutionKey, bulkLoadSnapshot);
                 if (workingFolder == null)
+                {
+                    if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                        throw new InvalidOperationException("Could not find storage folder to place database in");
+
                     return NoOpPersistentStorage.Instance;
+                }
 
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)
@@ -101,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                var storage = CreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolder);
+                var storage = CreatePersistentStorage(workspace, solutionKey, bulkLoadSnapshot, workingFolder);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -145,18 +153,19 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private IChecksummedPersistentStorage CreatePersistentStorage(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
+        private IChecksummedPersistentStorage CreatePersistentStorage(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
-                   TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
+            return TryCreatePersistentStorage(workspace, solutionKey, bulkLoadSnapshot, workingFolderPath) ??
+                   TryCreatePersistentStorage(workspace, solutionKey, bulkLoadSnapshot, workingFolderPath) ??
                    NoOpPersistentStorage.Instance;
         }
 
         private IChecksummedPersistentStorage? TryCreatePersistentStorage(
+            Workspace workspace,
             SolutionKey solutionKey,
             Solution? bulkLoadSnapshot,
             string workingFolderPath)
@@ -177,6 +186,9 @@ namespace Microsoft.CodeAnalysis.Storage
                     FatalError.ReportAndCatch(ex);
                     IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
                 }
+
+                if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                    throw;
 
                 return null;
             }
