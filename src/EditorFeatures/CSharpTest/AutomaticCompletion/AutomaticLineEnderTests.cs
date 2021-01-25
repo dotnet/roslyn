@@ -90,10 +90,8 @@ $$", "class {$$}");
         {
             Test(@"class C
 {
-    private readonly int i
-    {
-        $$
-    }
+    private readonly int i;
+    $$
 }", @"class C
 {
     private readonly int i$$
@@ -1798,7 +1796,7 @@ public class Bar
 {
     public void Fo()
     {
-        usi$$ng (var d = n$$ew D())$$
+        usi$$ng (va$$r d = new D())$$
     }
 }
 public class D : IDisposable

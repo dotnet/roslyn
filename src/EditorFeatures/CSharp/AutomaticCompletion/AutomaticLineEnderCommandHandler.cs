@@ -525,13 +525,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         {
             // Remove the braces if the ObjectCreationExpression has an empty Initializer.
             if (node is ObjectCreationExpressionSyntax objectCreationNode
-                && objectCreationNode.Initializer != null)
+                && objectCreationNode.Initializer != null
+                && objectCreationNode.Initializer.Expressions.IsEmpty())
             {
-                var expressions = objectCreationNode.Initializer.Expressions;
-                if (expressions.IsEmpty())
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -657,7 +654,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 // Example:
                 // Before: if (a)
                 //         {
-                //         } el$$se if (b)
+                //         } else i$$f (b)
                 // After: if (a)
                 //        {
                 //        } else if (b)
