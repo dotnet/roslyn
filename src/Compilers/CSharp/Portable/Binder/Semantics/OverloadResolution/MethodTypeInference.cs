@@ -1687,8 +1687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sourceSignature.RefKind == targetSignature.RefKind
                    && (sourceSignature.ParameterRefKinds.IsDefault, targetSignature.ParameterRefKinds.IsDefault) switch
                    {
+                       (true, false) or (false, true) => false,
                        (true, true) => true,
-                       (true, _) or (_, true) => false,
                        _ => sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds)
                    };
         }
