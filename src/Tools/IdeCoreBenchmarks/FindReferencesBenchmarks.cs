@@ -47,7 +47,8 @@ namespace IdeCoreBenchmarks
 
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
-                .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
+                .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)
+                .WithChangedOption(StorageOptions.PrintDatabaseLocation, true)));
 
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 

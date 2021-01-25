@@ -94,6 +94,9 @@ namespace Microsoft.CodeAnalysis.Storage
                     return NoOpPersistentStorage.Instance;
                 }
 
+                if (workspace.Options.GetOption(StorageOptions.PrintDatabaseLocation))
+                    Console.WriteLine("Storage location: " + workingFolder);
+
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)
                 {

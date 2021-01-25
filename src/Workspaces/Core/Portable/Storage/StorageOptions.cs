@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Storage
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
         public static readonly Option<bool> DatabaseMustSucceed = new(
             OptionName, nameof(DatabaseMustSucceed), defaultValue: false);
+        public static readonly Option<bool> PrintDatabaseLocation = new(
+            OptionName, nameof(PrintDatabaseLocation), defaultValue: false);
     }
 
     [ExportOptionProvider, Shared]
