@@ -529,7 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 while (true)
                 {
-                    if (IsAtEnd())
+                    //in "stringLiteralHoles" new lines are generally allowed - they belong not to the string itself
+                    if (IsAtEnd(isHole))
                     {
                         // the caller will complain
                         return;
@@ -671,16 +672,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     continue;
                             }
                         case '{':
-                            // TODO: after the colon this has no special meaning.
-                            ScanInterpolatedStringLiteralHoleBracketed('{', '}');
+                            ScanInterpolatedStringLiteralHoleBracketed('{', '}', isHole);
                             continue;
                         case '(':
-                            // TODO: after the colon this has no special meaning.
-                            ScanInterpolatedStringLiteralHoleBracketed('(', ')');
+                            ScanInterpolatedStringLiteralHoleBracketed('(', ')', isHole);
                             continue;
                         case '[':
-                            // TODO: after the colon this has no special meaning.
-                            ScanInterpolatedStringLiteralHoleBracketed('[', ']');
+                            ScanInterpolatedStringLiteralHoleBracketed('[', ']', isHole);
                             continue;
                         default:
                             // part of code in the expression hole
@@ -731,12 +729,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 lexer.ScanVerbatimStringLiteral(ref discarded, allowNewlines: allowNewlines);
             }
 
-            private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)
+            private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end, bool isHole)
             {
                 Debug.Assert(start == lexer.TextWindow.PeekChar());
                 lexer.TextWindow.AdvanceChar();
                 int colon = 0;
-                ScanInterpolatedStringLiteralHoleBalancedText(end, false, ref colon);
+                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole, ref colon);
                 if (lexer.TextWindow.PeekChar() == end)
                 {
                     lexer.TextWindow.AdvanceChar();

@@ -168,6 +168,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedStringWithNewLinesInExpression()
+        {
+            var text = @"$""Text with {\nnew[] {\n 1, 2, 3 \n}[2]\n}parts and new line expressions!""";
+            text = text.Replace(@"\n", System.Environment.NewLine);
+
+            var expr = this.ParseExpression(text);
+
+            if (expr is InterpolatedStringExpressionSyntax intStr)
+            {
+                Assert.Equal(3, intStr.Contents.Count);
+
+                Assert.IsType(typeof(InterpolatedStringTextSyntax), intStr.Contents[0]);
+                Assert.IsType(typeof(InterpolationSyntax), intStr.Contents[1]);
+                Assert.IsType(typeof(InterpolatedStringTextSyntax), intStr.Contents[0]);
+
+                Assert.Equal("Text with ", intStr.Contents[0].ToString());
+                Assert.Equal("parts and new line expressions!", intStr.Contents[2].ToString());
+                 
+                Assert.IsType(typeof(ElementAccessExpressionSyntax), ((InterpolationSyntax)intStr.Contents[1]).Expression)
+            }
+            else
+            {
+                Assert.True(false, "Invalid expression type returned");
+            }
+        }
+
+        [Fact]
         public void TestName()
         {
             var text = "goo";
