@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     /// </summary>
     internal partial class ExtractInterfaceDialog : DialogWindow
     {
-        private readonly ExtractInterfaceDialogViewModel _viewModel;
+        public ExtractInterfaceDialogViewModel ViewModel { get; }
 
         // Expose localized strings for binding
         public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
@@ -35,10 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
             : base(helpTopic: "vs.csharp.refactoring.extractinterface")
         {
-            _viewModel = viewModel;
+            ViewModel = viewModel;
             SetCommandBindings();
 
-            DestinationControl = new NewTypeDestinationSelection(_viewModel.DestinationViewModel);
             Loaded += ExtractInterfaceDialog_Loaded;
 
             InitializeComponent();
@@ -69,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.TrySubmit())
+            if (ViewModel.TrySubmit())
             {
                 DialogResult = true;
             }
@@ -79,10 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             => DialogResult = false;
 
         private void Select_All_Click(object sender, RoutedEventArgs e)
-            => _viewModel.SelectAll();
+            => ViewModel.SelectAll();
 
         private void Deselect_All_Click(object sender, RoutedEventArgs e)
-            => _viewModel.DeselectAll();
+            => ViewModel.DeselectAll();
 
         private void OnListViewPreviewKeyDown(object sender, KeyEventArgs e)
         {
