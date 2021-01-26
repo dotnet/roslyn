@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, object? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
-            SyntaxReceiver = syntaxReceiver as ISyntaxReceiver;
-            SyntaxContextReceiver = syntaxReceiver as ISyntaxContextReceiver;
+            SyntaxReceiver = (syntaxReceiver as SyntaxContextReceiverAdaptor)?.Receiver;
+            SyntaxContextReceiver = (syntaxReceiver is SyntaxContextReceiverAdaptor) ? null : syntaxReceiver;
             CancellationToken = cancellationToken;
             _additionalSources = additionalSources;
             _diagnostics = new DiagnosticBag();
@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="receiverCreator">A <see cref="SyntaxReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
-            ValidateSyntaxReceiver(InfoBuilder);
-            InfoBuilder.SyntaxReceiverCreator = receiverCreator;
+            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            InfoBuilder.SyntaxContextReceiverCreator = () => new SyntaxContextReceiverAdaptor(receiverCreator());
         }
 
         /// <summary>
@@ -157,30 +157,21 @@ namespace Microsoft.CodeAnalysis
         /// created by accessing the <see cref="GeneratorExecutionContext.SyntaxContextReceiver"/> property. Any information that was collected by the receiver can be
         /// used to generate the final output.
         /// 
-        /// A new instance of <see cref="ISyntaxContextReceiver"/> is created per-generation, meaning there is no need to manage the lifetime of the 
-        /// receiver or its contents.
+        /// A new instance of <see cref="ISyntaxContextReceiver"/> is created prior to every call to <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/>, 
+        /// meaning there is no need to manage the lifetime of the receiver or its contents.
         /// </remarks>
         /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxContextReceiverCreator receiverCreator)
         {
-            ValidateSyntaxReceiver(InfoBuilder);
-            InfoBuilder.SyntaxReceiverWithContextCreator = receiverCreator;
+            CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
+            InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
         }
 
-        private static void CheckIsEmpty<T>(T x)
+        private static void CheckIsEmpty<T>(T x, string? typeName = null)
         {
             if (x is object)
             {
-                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeof(T).Name));
-            }
-        }
-
-        private static void ValidateSyntaxReceiver(GeneratorInfo.Builder builder)
-        {
-            if (builder.SyntaxReceiverCreator is object || builder.SyntaxReceiverWithContextCreator is object)
-            {
-                // only a single SyntaxReceiverCreator / SyntaxContextReceiverCreator can be registered per generator
-                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}"));
+                throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeName ?? typeof(T).Name));
             }
         }
     }

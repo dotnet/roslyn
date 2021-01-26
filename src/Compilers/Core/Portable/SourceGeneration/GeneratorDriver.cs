@@ -178,27 +178,25 @@ namespace Microsoft.CodeAnalysis
                                      : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, generator, ex, diagnosticsBag, isInit: true);
                 }
 
-                // create the syntax receivers if needed
-                Debug.Assert(!(generatorState.Info.SyntaxReceiverCreator is object && generatorState.Info.SyntaxContextReceiverCreator is object));
-                object? receiver = null;
-                try
+                // create the syntax receiver if requested
+                if (generatorState.Info.SyntaxContextReceiverCreator is object)
                 {
-                    receiver = generatorState.Info.SyntaxContextReceiverCreator?.Invoke();
-                    if (receiver is null)
+                    ISyntaxContextReceiver? rx = null;
+                    try
                     {
-                        receiver = generatorState.Info.SyntaxReceiverCreator?.Invoke();
+                        rx = generatorState.Info.SyntaxContextReceiverCreator();
                     }
-                }
-                catch (Exception e)
-                {
-                    generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
-                }
+                    catch (Exception e)
+                    {
+                        generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                    }
 
-                if (receiver is object)
-                {
-                    walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(receiver));
-                    generatorState = generatorState.WithReceiver(receiver);
-                    receiverCount++;
+                    if (rx is object)
+                    {
+                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
+                        generatorState = generatorState.WithReceiver(rx);
+                        receiverCount++;
+                    }
                 }
 
                 stateBuilder.Add(generatorState);

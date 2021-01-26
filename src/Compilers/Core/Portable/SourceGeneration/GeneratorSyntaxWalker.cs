@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class GeneratorSyntaxWalker : SyntaxWalker
     {
-        private readonly object _syntaxReceiver;
+        private readonly ISyntaxContextReceiver _syntaxReceiver;
 
         private SemanticModel? _semanticModel;
 
-        internal GeneratorSyntaxWalker(object syntaxReceiver)
+        internal GeneratorSyntaxWalker(ISyntaxContextReceiver syntaxReceiver)
         {
             _syntaxReceiver = syntaxReceiver;
         }
@@ -30,16 +30,8 @@ namespace Microsoft.CodeAnalysis
 
         public override void Visit(SyntaxNode node)
         {
-            switch (_syntaxReceiver)
-            {
-                case ISyntaxReceiver syntaxReceiver:
-                    syntaxReceiver.OnVisitSyntaxNode(node);
-                    break;
-                case ISyntaxContextReceiver syntaxReceiverWithContext:
-                    Debug.Assert(_semanticModel is object && _semanticModel.SyntaxTree == node.SyntaxTree);
-                    syntaxReceiverWithContext.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel));
-                    break;
-            }
+            Debug.Assert(_semanticModel is object && _semanticModel.SyntaxTree == node.SyntaxTree);
+            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(node, _semanticModel));
             base.Visit(node);
         }
     }
