@@ -888,7 +888,7 @@ breaks
         public void TestNormalizePreprocessorDirectives()
         {
             // directive as node
-            TestNormalize(SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("a"), false), "#define a\r\n");
+            TestNormalize(SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("a"), false), "#define a");
 
             // directive as trivia
             TestNormalizeTrivia("  #  define a", "#define a\r\n");
