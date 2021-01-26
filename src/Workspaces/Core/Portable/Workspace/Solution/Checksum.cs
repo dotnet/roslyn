@@ -147,10 +147,11 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
 
-        public void WriteTo(Span<byte> span)
+        public void WriteTo(byte[] bytes)
         {
+            Contract.ThrowIfFalse(bytes.Length == HashSize);
             var copy = _checksum;
-            MemoryMarshal.Write(span, ref copy);
+            MemoryMarshal.Write(bytes.AsSpan(), ref copy);
         }
 
         public static Checksum ReadFrom(ObjectReader reader)

@@ -156,6 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
         private class VisualStudioCloudCachePersistentStorage : AbstractPersistentStorage
         {
+            private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
             private static readonly CacheContainerKey s_solutionKey = new("Roslyn.Solution");
             //private static readonly CacheContainerKey s_projectKey = new("Roslyn.Project");
             //private static readonly CacheContainerKey s_documentKey = new("Roslyn.Document");
@@ -205,87 +206,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
                 => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey, bulkLoadSnapshot), cancellationToken);
 
-            private Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CacheContainerKey? containerKey, CancellationToken cancellationToken)
+            private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CacheContainerKey? containerKey, CancellationToken cancellationToken)
             {
                 if (containerKey == null)
-                    return SpecializedTasks.False;
+                    return false;
 
-                using var bytes = s_checksumPools.GetPooledObject();
+                using var bytes = s_byteArrayPool.GetPooledObject();
+                checksum.WriteTo(bytes.Object);
 
-                var span = bytes.Object.AsSpan();
-                checksum.WriteTo(span);
-
-                var key = new CacheItemKey(containerKey.Value, name)
-                {
-                    Version = bytes.Object.AsMemory()
-                };
-
-                return _cacheService.CheckExistsAsync(key, cancellationToken);
+                return await _cacheService.CheckExistsAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object.AsMemory() }, cancellationToken).ConfigureAwait(false);
             }
 
             public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
                 => ReadStreamAsync(name, checksum, s_solutionKey, cancellationToken);
 
             protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => ReadStreamAsync(name, checksum, GetContainerKey(projectKey, bulkLoadSnapshot), cancellationToken);
 
             protected override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => ReadStreamAsync(name, checksum, GetContainerKey(documentKey, bulkLoadSnapshot), cancellationToken);
 
-            private Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CacheContainerKey? containerKey, CancellationToken cancellationToken)
+            private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CacheContainerKey? containerKey, CancellationToken cancellationToken)
             {
                 if (containerKey == null)
-                    return SpecializedTasks.Null<Stream?>();
+                    return null;
 
                 if (checksum == null)
                 {
-                    return ReadStreamAsync(new CacheItemKey(containerKey.Value, name), cancellationToken);
+                    return await ReadStreamAsync(new CacheItemKey(containerKey.Value, name), cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    using var bytes = s_checksumPools.GetPooledObject();
+                    using var bytes = s_byteArrayPool.GetPooledObject();
+                    checksum.WriteTo(bytes.Object);
 
-                    var span = bytes.Object.AsSpan();
-                    checksum.WriteTo(span);
-
-                    var key = new CacheItemKey(containerKey.Value, name)
-                    {
-                        Version = bytes.Object.AsMemory()
-                    };
-
-                    return ReadStreamAsync(key, cancellationToken);
+                    return await ReadStreamAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object.AsMemory() }, cancellationToken).ConfigureAwait(false);
                 }
-
-                _cacheService.TryGetItemAsync()
             }
 
-            private Stream? ReadStreamAsync(string name, CacheContainerKey? containerKey, CancellationToken cancellationToken)
+            private async Task<Stream?> ReadStreamAsync(CacheItemKey key, CancellationToken cancellationToken)
             {
                 var pipe = new Pipe();
-                var result = await _cacheService.TryGetItemAsync(new CacheItemKey(containerKey.Value, name), pipe.Writer, cancellationToken).ConfigureAwait(false);
+                var result = await _cacheService.TryGetItemAsync(key, pipe.Writer, cancellationToken).ConfigureAwait(false);
                 if (!result)
                     return null;
 
-                try
-                {
-                    State? state = await DeserializeStateAsync(pipe.Reader, cancellationToken);
-                    pipe.Reader.CompleteAsync();
-                    return state;
-                }
-                catch (Exception ex)
-                {
-                    pipe.Reader.CompleteAsync(ex);
-                }
+                return pipe.Writer.AsStream();
             }
 
             public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => WriteStreamAsync(name, stream, checksum, s_solutionKey, cancellationToken);
 
             public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
@@ -295,6 +265,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
+            }
+
+            private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CacheContainerKey? containerKey, CancellationToken cancellationToken)
+            {
+                if (containerKey == null)
+                    return false;
+
+                if (checksum == null)
+                {
+                    return await WriteStreamAsync(new CacheItemKey(containerKey.Value, name), stream, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    using var bytes = s_byteArrayPool.GetPooledObject();
+                    checksum.WriteTo(bytes.Object);
+
+                    return await WriteStreamAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object.AsMemory() }, stream, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            private async Task<bool> WriteStreamAsync(CacheItemKey key, Stream stream, CancellationToken cancellationToken)
+            {
+                // From: https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/12664/VS-Cache-Service
+                var pipe = new Pipe();
+                var addItemTask = _cacheService.SetItemAsync(key, pipe.Reader, shareable: false, cancellationToken);
+                try
+                {
+                    await stream.CopyToAsync(pipe.Writer, cancellationToken).ConfigureAwait(false);
+                    await pipe.Writer.CompleteAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    await pipe.Writer.CompleteAsync(ex).ConfigureAwait(false);
+                    throw;
+                }
+
+                await addItemTask.ConfigureAwait(false);
+                return true;
             }
         }
     }
