@@ -626,7 +626,7 @@ class C
             TestSyntaxReceiver? receiver = null;
             var exception = new Exception("test exception");
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => 
+                onInit: (i) =>
                 {
                     i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver());
                     i.RegisterForPostInitialization((pic) => throw exception);
@@ -682,7 +682,7 @@ class D
             ISyntaxReceiver? receiver = null;
 
             var testGenerator = new CallbackGenerator(
-                onInit: (i) => 
+                onInit: (i) =>
                 {
                     i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
                     i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", source2));
@@ -749,7 +749,7 @@ class D
 
             var testGenerator2 = new CallbackGenerator2(
                 onInit: (i) => i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", source2)),
-                onExecute: (e) => { } 
+                onExecute: (e) => { }
             );
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
