@@ -61,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
+        // Writes to this state only occur on the main thread.
         private readonly State _state = new();
 
         public AbstractSnippetExpansionClient(
