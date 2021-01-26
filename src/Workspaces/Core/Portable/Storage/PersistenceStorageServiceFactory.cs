@@ -48,10 +48,19 @@ namespace Microsoft.CodeAnalysis.Storage
                         return new SQLite.v2.SQLitePersistentStorageService(_connectionPoolService, locationService);
 
                     break;
+
+                case StorageDatabase.CloudCache:
+                    var service = workspaceServices.GetService<ICloudCacheStorageService>();
+                    if (service == null && workspaceServices.Workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                        throw new InvalidOperationException("Could not obtain CloudCache storage service");
+
+                    break;
             }
 #endif
 
             return NoOpPersistentStorageService.Instance;
         }
     }
+
+
 }
