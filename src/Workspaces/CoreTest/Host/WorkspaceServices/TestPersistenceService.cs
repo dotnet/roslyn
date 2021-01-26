@@ -8,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
     [ExportWorkspaceService(typeof(IPersistentStorageService), "Test"), Shared]
-    public class TestPersistenceService : IPersistentStorageService2
+    public class TestPersistenceService : IPersistentStorageService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,12 +24,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
             => NoOpPersistentStorage.Instance;
 
         public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.Instance);
-
-        public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.Instance);
-
-        ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
             => new(NoOpPersistentStorage.Instance);
     }
 }

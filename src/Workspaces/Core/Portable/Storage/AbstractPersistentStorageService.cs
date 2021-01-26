@@ -42,26 +42,21 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
+        [Obsolete("Use GetStorageAsync instead")]
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).GetAwaiter().GetResult();
+            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
-        async ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+        async ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
             => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
 
-        async ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken).ConfigureAwait(false);
-
-        async ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
-            => await GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken).ConfigureAwait(false);
-
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken);
+            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken);
+            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
-            => this.GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken);
+            => GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(
             Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId, CancellationToken cancellationToken)

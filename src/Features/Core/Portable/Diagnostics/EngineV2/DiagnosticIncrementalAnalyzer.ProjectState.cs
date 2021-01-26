@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService2 persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService2 persistentService, TextDocument document, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all no location diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetProjectAnalysisDataAsync(IPersistentStorageService2 persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetProjectAnalysisDataAsync(IPersistentStorageService persistentService, Project project, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -187,13 +187,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            public Task SaveAsync(IPersistentStorageService2 persistentService, Project project, DiagnosticAnalysisResult result)
+            public Task SaveAsync(IPersistentStorageService persistentService, Project project, DiagnosticAnalysisResult result)
                 => SaveCoreAsync(project, result, persistentService);
 
             public Task SaveInMemoryCacheAsync(Project project, DiagnosticAnalysisResult result)
                 => SaveCoreAsync(project, result, persistentService: null);
 
-            private async Task SaveCoreAsync(Project project, DiagnosticAnalysisResult result, IPersistentStorageService2? persistentService)
+            private async Task SaveCoreAsync(Project project, DiagnosticAnalysisResult result, IPersistentStorageService? persistentService)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
                 Contract.ThrowIfNull(result.DocumentIds);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = _lastResult.Reset();
             }
 
-            public async Task MergeAsync(IPersistentStorageService2 persistentService, ActiveFileState state, TextDocument document)
+            public async Task MergeAsync(IPersistentStorageService persistentService, ActiveFileState state, TextDocument document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return !IsEmpty();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService2 persistentService, Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, Project project, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService2 persistentService, TextDocument document, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(IPersistentStorageService persistentService, TextDocument document, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var project = document.Project;
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(IPersistentStorageService2 persistentService, Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(IPersistentStorageService persistentService, Project project, CancellationToken cancellationToken)
             {
                 // loading data can be cancelled any time.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task SerializeAsync(IPersistentStorageService2? persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private async Task SerializeAsync(IPersistentStorageService? persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializer.Version, diagnostics));
             }
 
-            private async Task<bool> TryDeserializeDocumentDiagnosticsAsync(IPersistentStorageService2 persistentService, DiagnosticDataSerializer serializer, TextDocument document, Builder builder, CancellationToken cancellationToken)
+            private async Task<bool> TryDeserializeDocumentDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, TextDocument document, Builder builder, CancellationToken cancellationToken)
             {
                 var success = true;
                 var project = document.Project;
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return success;
             }
 
-            private async Task<bool> TryDeserializeProjectDiagnosticsAsync(IPersistentStorageService2 persistentService, DiagnosticDataSerializer serializer, Project project, Builder builder, CancellationToken cancellationToken)
+            private async Task<bool> TryDeserializeProjectDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, Builder builder, CancellationToken cancellationToken)
             {
                 var diagnostics = await DeserializeDiagnosticsAsync(persistentService, serializer, project, document: null, project.Id, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return false;
             }
 
-            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService2 persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, CancellationToken cancellationToken)
+            private ValueTask<ImmutableArray<DiagnosticData>> DeserializeDiagnosticsAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
