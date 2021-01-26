@@ -22,12 +22,6 @@ namespace Microsoft.CodeAnalysis.Host
         public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
             => new(NoOpPersistentStorage.Instance);
 
-        public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.Instance);
-
-        public ValueTask<IPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.Instance);
-
         ValueTask<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
             => new(NoOpPersistentStorage.Instance);
 
