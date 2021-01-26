@@ -319,7 +319,7 @@ using G=   H.I;
                     document.GetTextBuffer(),
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
+                    editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
@@ -342,7 +342,7 @@ using G=   H.I;
                     subjectBufferDocument.GetTextBuffer(),
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
+                    editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
@@ -384,7 +384,7 @@ using G=   H.I;
                     workspace.Documents.Single().GetTextBuffer(),
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
+                    editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 Dim updatedDocument = expansionClient.AddImports(

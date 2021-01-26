@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    /// <summary>
+    /// This <see cref="ArgumentProvider"/> attempts to locate a matching value in the context of a method invocation.
+    /// </summary>
     internal abstract class AbstractContextVariableArgumentProvider : ArgumentProvider
     {
         public override Task ProvideArgumentAsync(ArgumentContext context)

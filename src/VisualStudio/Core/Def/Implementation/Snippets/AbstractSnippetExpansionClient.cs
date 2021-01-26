@@ -47,6 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract class AbstractSnippetExpansionClient : ForegroundThreadAffinitizedObject, IVsExpansionClient
     {
+        /// <summary>
+        /// The name of a snippet field created for caret placement in Full Method Call snippet sessions when the
+        /// invocation has no parameters.
+        /// </summary>
+        private const string PlaceholderSnippetField = "placeholder";
+
         private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
         private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
@@ -97,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
+            // TODO: Move this to ArgumentProviderService: https://github.com/dotnet/roslyn/issues/50897
             if (_argumentProviders.IsDefault)
             {
                 _argumentProviders = workspace.Services
@@ -116,7 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AssertIsForeground();
 
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
-            // doing so will disrupt signature help.
+            // doing so will disrupt signature help. Check '_state._methods' instead of '_state.IsFullMethodCallSnippet'
+            // because '_state._expansionSession' is not initialized at this point.
             if (!_state._methods.IsDefault)
             {
                 return VSConstants.S_OK;
@@ -611,10 +619,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // If the invocation does not have any parameters, include an empty placeholder in the snippet template
                 // to ensure the caret starts inside the parentheses and can track changes to other overloads (which may
                 // have parameters).
-                template.Append("$placeholder$");
+                template.Append($"${PlaceholderSnippetField}$");
                 declarations.Add(new XElement(
                     snippetNamespace + "Literal",
-                    new XElement(snippetNamespace + "ID", new XText("placeholder")),
+                    new XElement(snippetNamespace + "ID", new XText(PlaceholderSnippetField)),
                     new XElement(snippetNamespace + "Default", new XText(""))));
             }
 
@@ -766,23 +774,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
             }
 
+            // We need to replace the portion of the existing Full Method Call snippet which appears inside parentheses.
+            // This span starts at the beginning of the first snippet field, and ends at the end of the last snippet
+            // field. Methods with no arguments still have an empty "placeholder" snippet field representing the initial
+            // caret position when the snippet is created.
             var textSpan = new VsTextSpan[1];
             if (ExpansionSession is null || ExpansionSession.GetSnippetSpan(textSpan) != VSConstants.S_OK)
             {
                 return;
             }
 
-            var adjustedTextSpan = textSpan[0];
-            var firstField = _state._method?.Parameters.FirstOrDefault()?.Name ?? "placeholder";
+            var firstField = _state._method?.Parameters.FirstOrDefault()?.Name ?? PlaceholderSnippetField;
             if (ExpansionSession.GetFieldSpan(firstField, textSpan) != VSConstants.S_OK)
             {
                 return;
             }
 
+            VsTextSpan adjustedTextSpan;
             adjustedTextSpan.iStartLine = textSpan[0].iStartLine;
             adjustedTextSpan.iStartIndex = textSpan[0].iStartIndex;
 
-            var lastField = _state._method?.Parameters.LastOrDefault()?.Name ?? "placeholder";
+            var lastField = _state._method?.Parameters.LastOrDefault()?.Name ?? PlaceholderSnippetField;
             if (ExpansionSession.GetFieldSpan(lastField, textSpan) != VSConstants.S_OK)
             {
                 return;
