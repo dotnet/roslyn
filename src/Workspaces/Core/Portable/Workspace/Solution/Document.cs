@@ -285,7 +285,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-                var syntaxTree = compilation.SyntaxTrees.Single(tree => tree.FilePath == this.FilePath);
+                var syntaxTree = compilation.SyntaxTrees.SingleOrDefault(tree => DocumentState.GetDocumentIdForTree(tree) == this.Id) ??
+                    compilation.SyntaxTrees.SingleOrDefault(tree => tree.FilePath == this.FilePath);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
