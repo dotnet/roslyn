@@ -807,6 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int newLineLength;
                 int end = IndexOfNewLine(text, start, out newLineLength);
                 int trimStart = GetIndexOfFirstNonWhitespaceChar(text, start, end) + substringStart;
+
+                // the following code is coming from the currently open PR https://github.com/dotnet/roslyn/pull/47360
+                // if it gets merged, this could cause a merge conflict
+                // this happens when text ends with new line followed by whitespace
+                if (trimStart > end)
+                {
+                    break;
+                }
+
                 WriteSubStringLine(text, trimStart, end - trimStart);
                 start = end + newLineLength;
             }

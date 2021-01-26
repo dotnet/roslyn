@@ -3269,6 +3269,48 @@ public class Program
                 );
         }
 
+        [WorkItem(47278, "https://github.com/dotnet/roslyn/issues/47278")]
+        [Fact]
+        public void NormalizeWhitespace()
+        {
+            var text = @"namespace Foo
+{
+    /// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+    class Bar
+    {
+    }
+}";
+
+            var tree = Parse(text);
+
+            Assert.Equal(@"/// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+", getDocumentationCommentString());
+
+            tree = tree.WithRootAndOptions(tree.GetRoot().NormalizeWhitespace(eol: Environment.NewLine), tree.Options);
+
+            // NormalizeWhitespace didn't change the full text, but it moved whitespace from the following whitespace trivia to the end of the documentation comment
+            Assert.Equal(text, tree.ToString());
+            Assert.Equal(@"/// <summary>
+    /// This is Foo.Bar
+    /// </summary>
+    ", getDocumentationCommentString());
+
+            var comp = CreateCompilation(tree);
+
+            var diags = new DiagnosticBag();
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(comp, null, null, diags, default);
+
+            diags.Verify();
+
+            string getDocumentationCommentString() =>
+                tree.GetRoot().DescendantTrivia().Single(n => n.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)).ToFullString();
+        }
+
         #region Xml Test helpers
 
         /// <summary>
