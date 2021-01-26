@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -19,19 +19,22 @@ namespace Microsoft.CodeAnalysis.Host
         public IPersistentStorage GetStorage(Solution solution)
             => NoOpPersistentStorage.Instance;
 
-        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        public Task<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+            => Task.FromResult<IPersistentStorage>(NoOpPersistentStorage.Instance);
 
-        public IPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        public Task<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
+            => Task.FromResult<IPersistentStorage>(NoOpPersistentStorage.Instance);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution)
-            => NoOpPersistentStorage.Instance;
+        public Task<IPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => Task.FromResult<IPersistentStorage>(NoOpPersistentStorage.Instance);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Solution solution, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        Task<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+            => Task.FromResult(NoOpPersistentStorage.Instance);
 
-        IChecksummedPersistentStorage IChecksummedPersistentStorageService.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        Task<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
+            => Task.FromResult(NoOpPersistentStorage.Instance);
+
+        Task<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => Task.FromResult(NoOpPersistentStorage.Instance);
     }
 }

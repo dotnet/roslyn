@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// This lock guards all mutable fields in this type.
         /// </summary>
-        private readonly object _lock = new();
+        private readonly SemaphoreSlim _lock = new(initialCount: 1);
         private ReferenceCountedDisposable<IChecksummedPersistentStorage>? _currentPersistentStorage;
         private SolutionId? _currentPersistentStorageSolutionId;
 
@@ -35,44 +35,49 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
 
         /// <summary>
-        /// Can throw.  If it does, the caller (<see cref="CreatePersistentStorage"/>) will attempt
+        /// Can throw.  If it does, the caller (<see cref="CreatePersistentStorageAsync"/>) will attempt
         /// to delete the database and retry opening one more time.  If that fails again, the <see
         /// cref="NoOpPersistentStorage"/> instance will be used.
         /// </summary>
-        protected abstract IChecksummedPersistentStorage? TryOpenDatabase(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath);
+        protected abstract Task<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true);
+            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).GetAwaiter().GetResult();
 
-        IPersistentStorage IPersistentStorageService2.GetStorage(Solution solution, bool checkBranchId)
-            => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId);
+        async Task<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+            => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
 
-        IPersistentStorage IPersistentStorageService2.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => this.GetStorage(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId);
+        async Task<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
+            => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken).ConfigureAwait(false);
 
-        public IChecksummedPersistentStorage GetStorage(Solution solution)
-            => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true);
+        async Task<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => await GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken).ConfigureAwait(false);
 
-        public IChecksummedPersistentStorage GetStorage(Solution solution, bool checkBranchId)
-            => this.GetStorage(solution.Workspace, (SolutionKey)solution, solution, checkBranchId);
+        public Task<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken);
 
-        public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => this.GetStorage(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId);
+        public Task<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
+            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken);
 
-        public IChecksummedPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId)
+        public Task<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => this.GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken);
+
+        public Task<IChecksummedPersistentStorage> GetStorageAsync(
+            Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId, CancellationToken cancellationToken)
         {
             if (!DatabaseSupported(solutionKey, checkBranchId))
             {
-                return NoOpPersistentStorage.Instance;
+                return Task.FromResult(NoOpPersistentStorage.Instance);
             }
 
-            return GetStorageWorker(workspace, solutionKey, bulkLoadSnapshot);
+            return GetStorageWorkerAsync(workspace, solutionKey, bulkLoadSnapshot, cancellationToken);
         }
 
-        internal IChecksummedPersistentStorage GetStorageWorker(Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot)
+        internal async Task<IChecksummedPersistentStorage> GetStorageWorkerAsync(
+            Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, CancellationToken cancellationToken)
         {
-            lock (_lock)
+            using (await _lock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Do we already have storage for this?
                 if (solutionKey.Id == _currentPersistentStorageSolutionId)
@@ -95,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Storage
                     // This will remove the single ref count we ourselves added when we cached the
                     // instance.  Then once all other existing clients who are holding onto this
                     // instance let go, it will finally get truly disposed.
-                    Task.Run(() => storageToDispose.Dispose());
+                    _ = Task.Run(() => storageToDispose.Dispose());
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                var storage = CreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolder);
+                var storage = await CreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolder).ConfigureAwait(false);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -145,18 +150,18 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private IChecksummedPersistentStorage CreatePersistentStorage(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
+        private async Task<IChecksummedPersistentStorage> CreatePersistentStorageAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
-                   TryCreatePersistentStorage(solutionKey, bulkLoadSnapshot, workingFolderPath) ??
+            return await TryCreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolderPath).ConfigureAwait(false) ??
+                   await TryCreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolderPath).ConfigureAwait(false) ??
                    NoOpPersistentStorage.Instance;
         }
 
-        private IChecksummedPersistentStorage? TryCreatePersistentStorage(
+        private async Task<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
             SolutionKey solutionKey,
             Solution? bulkLoadSnapshot,
             string workingFolderPath)
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return TryOpenDatabase(solutionKey, bulkLoadSnapshot, workingFolderPath, databaseFilePath);
+                return await TryOpenDatabaseAsync(solutionKey, bulkLoadSnapshot, workingFolderPath, databaseFilePath).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
