@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
+        [Obsolete("Use GetStorageAsync instead")]
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
             => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
