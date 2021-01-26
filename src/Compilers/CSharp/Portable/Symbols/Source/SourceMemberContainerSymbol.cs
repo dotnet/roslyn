@@ -2786,12 +2786,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.AddOrWrapTupleMembers(this);
                 }
 
-                // We already built the explicitly declared members and initializers on another thread, we might have detected that condition
-                // during member building on this thread and bailed, which results in incomplete data in the builder.
-                // In such case we have to avoid creating the instance of MemberAndInitializers since it checks the consistency
-                // of the data in the builder and would fail in an assertion if we tried to construct it from incomplete builder.
                 if (Volatile.Read(ref _lazyDeclaredMembersAndInitializers) != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
+                    // _lazyDeclaredMembersAndInitializers is already computed. no point to continue.
                     builder.Free();
                     return null;
                 }
