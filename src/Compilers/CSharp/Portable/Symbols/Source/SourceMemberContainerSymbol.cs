@@ -1042,9 +1042,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out FieldOrPropertyInitializer found, out int precedingLength)
             {
                 precedingLength = 0;
-                for (var groupIndex = 0; groupIndex < initializers.Length; groupIndex++)
+                foreach (var group in initializers)
                 {
-                    var group = initializers[groupIndex];
                     if (!group.IsEmpty &&
                         group[0].Syntax.SyntaxTree == tree &&
                         position < group.Last().Syntax.Span.End)
@@ -1095,10 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int length = 0;
                 foreach (var group in initializers)
                 {
-                    foreach (var initializer in group)
-                    {
-                        length += getInitializerLength(initializer);
-                    }
+                    length += getGroupLength(group);
                 }
 
                 return length;
@@ -2615,10 +2611,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount);
                     for (int i = 0; i < groupCount; i++)
                     {
+                        var declaredInitializers = declaredMembers.InstanceInitializers[i];
                         if (i == declaredMembers.InstanceInitializersIndexForRecordDeclarationWithParameters)
                         {
                             var insertedInitializers = InstanceInitializersForPositionalMembers;
-                            var declaredInitializers = declaredMembers.InstanceInitializers[i];
 #if DEBUG
                             if (declaredInitializers.Length > 0)
                             {
@@ -2633,7 +2629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            groupsBuilder.Add(declaredMembers.InstanceInitializers[i]);
+                            groupsBuilder.Add(declaredInitializers);
                         }
                     }
 
