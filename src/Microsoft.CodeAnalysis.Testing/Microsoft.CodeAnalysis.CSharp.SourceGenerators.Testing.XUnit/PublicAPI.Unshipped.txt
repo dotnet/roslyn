@@ -1,0 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Testing.XUnit.SourceGeneratorVerifier
+Microsoft.CodeAnalysis.CSharp.Testing.XUnit.SourceGeneratorVerifier<TSourceGenerator>
+Microsoft.CodeAnalysis.CSharp.Testing.XUnit.SourceGeneratorVerifier<TSourceGenerator>.SourceGeneratorVerifier() -> void
+static Microsoft.CodeAnalysis.CSharp.Testing.XUnit.SourceGeneratorVerifier.Create<TSourceGenerator>() -> Microsoft.CodeAnalysis.CSharp.Testing.XUnit.SourceGeneratorVerifier<TSourceGenerator>

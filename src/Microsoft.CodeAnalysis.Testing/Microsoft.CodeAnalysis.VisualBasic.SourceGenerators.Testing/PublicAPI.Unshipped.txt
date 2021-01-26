@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier)
+Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).New() -> Void
+Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorVerifier(Of TSourceGenerator, TVerifier)
+Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorVerifier(Of TSourceGenerator, TVerifier).New() -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).CreateGeneratorDriver(project As Microsoft.CodeAnalysis.Project, sourceGenerators As System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.ISourceGenerator)) -> Microsoft.CodeAnalysis.GeneratorDriver
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).DefaultFileExt() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).GetSourceGenerators() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.ISourceGenerator)
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicSourceGeneratorTest(Of TSourceGenerator, TVerifier).Language() -> String
