@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        protected override Task<Checksum?> ReadChecksumAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
-            => _documentAccessor.ReadChecksumAsync((documentKey, bulkLoadSnapshot, name), cancellationToken);
+        protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
+            => _documentAccessor.ChecksumMatchesAsync((documentKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
         protected override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _documentAccessor.ReadStreamAsync((documentKey, bulkLoadSnapshot, name), checksum, cancellationToken);
