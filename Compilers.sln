@@ -179,6 +179,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{2172506A-BA2
 		src\Caravela\doc\Building.md = src\Caravela\doc\Building.md
 		src\Caravela\doc\Caravela.Compiler.png = src\Caravela\doc\Caravela.Compiler.png
 		src\Caravela\doc\Component diagram.md = src\Caravela\doc\Component diagram.md
+		src\Caravela\doc\Modifications.md = src\Caravela\doc\Modifications.md
 		src\Caravela\doc\Properties.md = src\Caravela\doc\Properties.md
 	EndProjectSection
 EndProject

@@ -52,8 +52,8 @@ namespace Caravela.Compiler
 
         /// <summary>
         /// Can be used to inspect or modify (usually, add) resources of the assembly.
-        /// 
-        /// To inspect existing resources, use extension method from <see cref="ResourceDescriptionExtensions "/>.
+        ///
+        /// To inspect existing resources, use extension methods from <see cref="ResourceDescriptionExtensions "/>.
         /// </summary>
         public IList<ResourceDescription> ManifestResources { get; }
 

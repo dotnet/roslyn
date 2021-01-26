@@ -17,7 +17,7 @@ public interface ISourceTransformer
 }
 ```
 
-The interfece to be implemented by any source transformer. Its only method, `Execute`, is invoked by the compiler to execute the transformer, passing it all the information it needs (especially the input `Compilation`) in the `context` parameter. The returned `Compilation` should be the input compilation with the required changes applied to it.
+The interface to be implemented by any source transformer. Its only method, `Execute`, is invoked by the compiler to execute the transformer, passing it all the information it needs (especially the input `Compilation`) in the `context` parameter. The returned `Compilation` should be the input compilation with the required changes applied to it.
 
 Source transformers also have to marked with the `[Transformer]` attribute.
 

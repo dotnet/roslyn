@@ -10,3 +10,4 @@ The Caravela compiler is a fork of [Roslyn](https://github.com/dotnet/roslyn) (t
 * [Building](src/Caravela/doc/Building.md)
 * [Component diagram](src/Caravela/doc/Component%20diagram.md)
 * [Properties](src/Caravela/doc/Properties.md)
+* [Modifications and additions](src/Caravela/doc/Modifications.md)
