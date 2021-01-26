@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         /// <summary>
         /// The locations of the symbol being renamed.
         /// </summary>
-        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+        ImmutableArray<VSTypeScriptDocumentSpanWrapper> DefinitionLocations { get; }
 
         /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text

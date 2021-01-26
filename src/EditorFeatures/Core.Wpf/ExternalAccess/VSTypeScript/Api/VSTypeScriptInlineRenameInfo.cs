@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal sealed class VSTypeScriptInlineRenameInfo : IInlineRenameInfo
     {
         private readonly IVSTypeScriptInlineRenameInfo _info;
+        private readonly ImmutableArray<DocumentSpan> _definitionLocations;
 
         public VSTypeScriptInlineRenameInfo(IVSTypeScriptInlineRenameInfo info)
         {
             Contract.ThrowIfNull(info);
             _info = info;
+            _definitionLocations = info.DefinitionLocations.SelectAsArray(loc => loc.UnderlyingObject);
         }
 
         public bool CanRename => _info.CanRename;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         public Glyph Glyph => VSTypeScriptGlyphHelpers.ConvertTo(_info.Glyph);
 
-        public ImmutableArray<DocumentSpan> DefinitionLocations => _info.DefinitionLocations;
+        public ImmutableArray<DocumentSpan> DefinitionLocations => _definitionLocations;
 
         public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
