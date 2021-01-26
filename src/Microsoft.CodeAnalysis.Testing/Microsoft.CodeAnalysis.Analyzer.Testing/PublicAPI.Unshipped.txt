@@ -332,3 +332,5 @@ virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.NotEmpty<T>(string collec
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.True(bool assert, string message = null) -> void
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NuGetConfigFilePath.get -> string
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithNuGetConfigFilePath(string nugetConfigFilePath) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
