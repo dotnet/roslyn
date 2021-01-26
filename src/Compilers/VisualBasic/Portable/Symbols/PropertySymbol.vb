@@ -175,28 +175,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                Select Case receiverOpt.Kind
-                    Case BoundKind.WithLValueExpressionPlaceholder
-                        ' This can be a `Me` reference used as a target for a `With` statement
-                        Dim currentBinder As Binder = containingBinder
+                If receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse receiverOpt.Kind = BoundKind.WithRValueExpressionPlaceholder Then
+                    ' This can be a reference used as a target for a `With` statement
+                    Dim currentBinder As Binder = containingBinder
 
-                        While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
-                            Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
-                            If withBlockBinder IsNot Nothing Then
-                                Return withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt AndAlso
-                                       withBlockBinder.Info.OriginalExpression.Kind = BoundKind.MeReference
+                    While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
+                        Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
+                        If withBlockBinder IsNot Nothing Then
+                            If withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt Then
+                                receiverOpt = withBlockBinder.Info.OriginalExpression
                             End If
 
-                            currentBinder = currentBinder.ContainingBinder
-                        End While
+                            Exit While
+                        End If
 
-                        Return False
+                        currentBinder = currentBinder.ContainingBinder
+                    End While
+                End If
 
-                    Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
-                        Return True
-                    Case Else
-                        Return False
-                End Select
+                Do
+                    Select Case receiverOpt.Kind
+                        Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
+                            Return True
+                        Case BoundKind.DirectCast
+                            Dim conv = DirectCast(receiverOpt, BoundDirectCast)
+                            If Conversions.IsReferenceConversion(conv.ConversionKind) OrElse Conversions.IsIdentityConversion(conv.ConversionKind) Then
+                                receiverOpt = conv.Operand
+                            Else
+                                Return False
+                            End If
+                        Case BoundKind.Conversion
+                            Dim conv = DirectCast(receiverOpt, BoundConversion)
+                            If Conversions.IsReferenceConversion(conv.ConversionKind) OrElse Conversions.IsIdentityConversion(conv.ConversionKind) Then
+                                receiverOpt = conv.Operand
+                            Else
+                                Return False
+                            End If
+                        Case BoundKind.Parenthesized
+                            receiverOpt = DirectCast(receiverOpt, BoundParenthesized).Expression
+                        Case Else
+                            Return False
+                    End Select
+                Loop
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)

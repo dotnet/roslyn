@@ -1741,6 +1741,46 @@ BC37311: Init-only property 'Property5' can only be assigned by an object member
         End Sub
 
         <Fact>
+        Public Sub EvaluationInitOnlySetter_10()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P1 { init { System.Console.Write(value + "" 1 ""); } }
+    public int P2 { init { System.Console.Write(value + "" 2 ""); } }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new B()
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast((Me), B).P1 = 41
+
+        With (Me)
+            .P2 = 42
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41 1 42 2 ").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub Overriding_01()
 
             Dim csSource =
@@ -4106,6 +4146,427 @@ End Module
 
             Dim compilation3 = CreateCompilation(vbSource1, references:={compilation2.ToMetadataReference()}, options:=TestOptions.ReleaseDll)
             verify(compilation3)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_01()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+public interface I2 {}
+
+public class C : I1, I2
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(CObj(CType(DirectCast(Me, C), I2)), I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_02()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+public interface I2 {}
+
+public class C : I1, I2
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With CType(CObj(DirectCast(CType(Me, C), I2)), I1)
+            .P1 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_03()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        TryCast(Me, I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        TryCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_04()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With TryCast(Me, I1)
+            .P1 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P1 = 41
+            ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_05()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        CType(MyBase, I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC32027: 'MyBase' must be followed by '.' and an identifier.
+        CType(MyBase, I1).P1 = 41
+              ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_06()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(MyClass, I1).P1 = 41
+
+        With MyClass
+            .P0 = 1
+        End With
+
+        With MyBase
+            .P0 = 2
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC32028: 'MyClass' must be followed by '.' and an identifier.
+        DirectCast(MyClass, I1).P1 = 41
+                   ~~~~~~~
+BC32028: 'MyClass' must be followed by '.' and an identifier.
+        With MyClass
+             ~~~~~~~
+BC32027: 'MyBase' must be followed by '.' and an identifier.
+        With MyBase
+             ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_07()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Me.P0 = 41
+    End Sub
+End Class
+
+Class D
+    Public Shared Widening Operator CType(x As D) As B
+        Return Nothing
+    End Operator
+
+    Public Sub New()
+        CType(Me, B).P0 = 42
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(Me, B).P0 = 42
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_08()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(Me, B).P0 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_09()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With CType(Me, B)
+            .P0 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
         End Sub
 
     End Class
