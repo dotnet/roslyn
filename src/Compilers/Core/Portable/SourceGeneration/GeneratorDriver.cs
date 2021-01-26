@@ -135,11 +135,22 @@ namespace Microsoft.CodeAnalysis
                                 => new GeneratorRunResult(generator,
                                                           diagnostics: generatorState.Diagnostics,
                                                           exception: generatorState.Exception,
-                                                          generatedSources: generatorState.PostInitTrees
-                                                                              .Union(generatorState.GeneratedTrees)
-                                                                              .Select(t => new GeneratedSourceResult(t.Tree, t.Text, t.HintName))
-                                                                              .ToImmutableArray()));
+                                                          generatedSources: getGeneratorSources(generatorState)));
             return new GeneratorDriverRunResult(results);
+
+            static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
+            {
+                ArrayBuilder<GeneratedSourceResult> sources = ArrayBuilder<GeneratedSourceResult>.GetInstance(generatorState.PostInitTrees.Length + generatorState.GeneratedTrees.Length);
+                foreach (var tree in generatorState.PostInitTrees)
+                {
+                    sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
+                }
+                foreach (var tree in generatorState.GeneratedTrees)
+                {
+                    sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
+                }
+                return sources.ToImmutableAndFree();
+            }
         }
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)

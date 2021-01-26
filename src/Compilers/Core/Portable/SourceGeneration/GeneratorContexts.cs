@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         /// Adds source code in the form of a <see cref="string"/> to the compilation.
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to be add to the compilation</param>
+        /// <param name="source">The source code to add to the compilation</param>
         public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method allows a generator to opt-in to an extra phase in the generator lifecycle called PostInitialization. After being initialized
         /// any generators that have opted in will have their provided callback invoked with a <see cref="GeneratorPostInitializationContext"/> instance
-        /// that can be used to alter to the compilation that is provided to subsequent generator phases.
+        /// that can be used to alter the compilation that is provided to subsequent generator phases.
         /// 
         /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before execution and
         /// will be visited by a registered <see cref="ISyntaxReceiver"/> and available for semantic analysis as part of the <see cref="GeneratorExecutionContext.Compilation"/>
@@ -237,14 +237,14 @@ namespace Microsoft.CodeAnalysis
         public CancellationToken CancellationToken { get; }
 
         /// <summary>
-        /// Adds source code in the form of a <see cref="string"/> to the compilation that will be availble during subsequent phases
+        /// Adds source code in the form of a <see cref="string"/> to the compilation that will be available during subsequent phases
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to be add to the compilation</param>
+        /// <param name="source">The source code to add to the compilation</param>
         public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
-        /// Adds a <see cref="SourceText"/> to the compilation that will be availble during subsequent phases
+        /// Adds a <see cref="SourceText"/> to the compilation that will be available during subsequent phases
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
