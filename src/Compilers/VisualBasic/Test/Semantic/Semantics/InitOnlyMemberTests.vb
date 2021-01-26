@@ -4569,5 +4569,52 @@ End Class
             CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        Public Sub ReferenceConversion_10()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+    End Sub
+End Class
+
+Structure B
+    Implements I1
+
+    Public Sub New(x As Integer)
+        DirectCast(Me, I1).P1 = 41
+        CType(Me, I1).P1 = 42
+        DirectCast(CObj(Me), I1).P1 = 43
+    End Sub
+End Structure
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30149: Structure 'B' must implement 'Property P1 As Integer' for interface 'I1'.
+    Implements I1
+               ~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(Me, I1).P1 = 42
+        ~~~~~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(CObj(Me), I1).P1 = 43
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace
