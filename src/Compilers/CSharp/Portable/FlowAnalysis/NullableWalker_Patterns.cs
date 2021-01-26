@@ -339,11 +339,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(inputSlot > 0);
                                         var field = (FieldSymbol)AsMemberOfType(inputType, e.Field);
+                                        var type = field.TypeWithAnnotations;
+                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         int outputSlot = GetOrCreateSlot(field, inputSlot, forceSlotEvenIfEmpty: true);
+                                        if (outputSlot <= 0)
+                                        {
+                                            outputSlot = makeDagTempSlot(type, output);
+                                        }
                                         Debug.Assert(outputSlot > 0);
-                                        var type = field.Type;
-                                        var output = new BoundDagTemp(e.Syntax, type, e);
-                                        addToTempMap(output, outputSlot, type);
+                                        addToTempMap(output, outputSlot, type.Type);
                                         break;
                                     }
                                 case BoundDagPropertyEvaluation e:
@@ -355,7 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         int outputSlot = GetOrCreateSlot(property, inputSlot, forceSlotEvenIfEmpty: true);
                                         if (outputSlot <= 0)
                                         {
-                                            // This is needed due to https://github.com/dotnet/roslyn/issues/29619
                                             outputSlot = makeDagTempSlot(type, output);
                                         }
                                         Debug.Assert(outputSlot > 0);
