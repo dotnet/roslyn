@@ -1,3 +1,4 @@
+#nullable enable
 abstract Microsoft.CodeAnalysis.AdditionalText.GetText(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Text.SourceText
 abstract Microsoft.CodeAnalysis.AdditionalText.Path.get -> string
 abstract Microsoft.CodeAnalysis.AttributeData.CommonApplicationSyntaxReference.get -> Microsoft.CodeAnalysis.SyntaxReference
