@@ -6728,7 +6728,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact]
+        [Fact()]
         public void NoLogo_2()
         {
             string source = @"
@@ -6750,7 +6750,11 @@ class C
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
 PostSharp ""Caravela"" Compiler version A.B.C-d (HASH)
-Copyright (c) SharpCrafters s.r.o.All rights reserved.".Trim(),
+Copyright (c) SharpCrafters s.r.o. All rights reserved.
+
+Based on the Microsoft (R) Visual C# Compiler.
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.".Trim(),
                 patched);
 
             CleanupAllGeneratedFiles(file.Path);
@@ -8566,7 +8570,7 @@ class Program3
         /// We need to create the actual memory map. This works on Windows as well.
         /// </summary>
         [WorkItem(8896, "https://github.com/dotnet/roslyn/issues/8896")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321", AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
         public void FileShareDeleteCompatibility_Xplat()
         {
             var bytes = TestResources.MetadataTests.InterfaceAndClass.CSClasses01;
@@ -10916,7 +10920,7 @@ class Runner
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321", AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();

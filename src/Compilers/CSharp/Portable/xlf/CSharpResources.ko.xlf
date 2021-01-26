@@ -913,10 +913,10 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine3">
-        <source>Based on the Microsoft (R) Visual C# Compiler. 
+        <source>Based on the Microsoft (R) Visual C# Compiler.
 Copyright (C) Microsoft Corporation. All rights reserved.
 See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</source>
-        <target state="new">Based on the Microsoft (R) Visual C# Compiler. 
+        <target state="new">Based on the Microsoft (R) Visual C# Compiler.
 Copyright (C) Microsoft Corporation. All rights reserved.
 See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <note />

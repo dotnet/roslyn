@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(expectedOutput, cmd);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
         public void NoDiagnostics()
         {
             NoDiagnosticsImpl();
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
         public void SimpleCompilerDiagnostics()
         {
             SimpleCompilerDiagnosticsImpl();
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
         public void SimpleCompilerDiagnosticsSuppressed()
         {
             SimpleCompilerDiagnosticsSuppressedImpl();
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289", AlwaysSkip = "Caravela does not have consistent assembly versions for tests.")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();

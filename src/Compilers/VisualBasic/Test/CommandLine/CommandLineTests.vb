@@ -9147,7 +9147,7 @@ End Class
         End Sub
 
         <WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")>
-        <Fact()>
+        <Fact(Skip:="Caravela does not have consistent assembly versions for tests.")>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
 

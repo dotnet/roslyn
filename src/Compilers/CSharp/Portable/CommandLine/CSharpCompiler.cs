@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
+            consoleOutput.WriteLine();
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine3, Culture));
             consoleOutput.WriteLine();
         }
