@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal interface ILspMethodMetadata
@@ -19,11 +17,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// completed and mutations have been applied. See <see cref="RequestExecutionQueue"/>.
         /// </summary>
         public bool MutatesSolutionState { get; }
-
-        /// <summary>
-        /// If the <see cref="MethodName"/> is <see cref="Methods.WorkspaceExecuteCommandName"/>
-        /// then this is the name of the command to execute.
-        /// </summary>
-        public string? CommandName { get; }
     }
 }

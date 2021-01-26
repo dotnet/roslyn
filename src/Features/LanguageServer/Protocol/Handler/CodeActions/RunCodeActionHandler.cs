@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
-    [LspMethod(LSP.Methods.WorkspaceExecuteCommandName, mutatesSolutionState: true, CodeActionsHandler.RunCodeActionCommandName)]
+    [LspCommand(CodeActionsHandler.RunCodeActionCommandName, mutatesSolutionState: true)]
     internal class RunCodeActionHandler : IRequestHandler<LSP.ExecuteCommandParams, object>
     {
         private readonly CodeActionsCache _codeActionsCache;

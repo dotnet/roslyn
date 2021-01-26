@@ -28,21 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public bool MutatesSolutionState { get; }
 
-        /// <summary>
-        /// If the <see cref="MethodName"/> is <see cref="Methods.WorkspaceExecuteCommandName"/>
-        /// then this is the name of the command to execute.
-        /// </summary>
-        public string? CommandName { get; }
-
-        public LspMethodAttribute(string methodName, bool mutatesSolutionState, string? commandName = null)
+        public LspMethodAttribute(string methodName, bool mutatesSolutionState)
         {
             MethodName = methodName;
             MutatesSolutionState = mutatesSolutionState;
-            CommandName = commandName;
-            if (Methods.WorkspaceExecuteCommandName.Equals(methodName, StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(CommandName))
-            {
-                throw new ArgumentException($"Cannot export a ${Methods.WorkspaceExecuteCommandName} handler without a command name");
-            }
         }
 
         public static ILspMethodMetadata GetLspMethodMetadata(Type instance)

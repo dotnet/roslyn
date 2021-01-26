@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -35,11 +36,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Create the actual request handlers from the providers.
             var handlers = requestHandlerProviders.SelectMany(lazyProvider => lazyProvider.Value.CreateRequestHandlers());
 
-            // Store the request handlers in a dicitionary from method name (+ command name if workspace/executeCommand method) to handler instance.
+            // Store the request handlers in a dicitionary from request name to handler instance.
             foreach (var handler in handlers)
             {
-                var lspMethodNameWithCommandName = handler.Metadata.MethodName + handler.Metadata.CommandName;
-                requestHandlerDictionary.Add(lspMethodNameWithCommandName, handler);
+                var requestName = handler.Metadata.MethodName;
+                if (handler.Metadata is ILspCommandMetadata commandMetadata)
+                {
+                    requestName = LspCommandAttribute.GetRequestNameForCommand(commandMetadata.CommandName);
+                }
+
+                requestHandlerDictionary.Add(requestName, handler);
             }
 
             return requestHandlerDictionary.ToImmutable();
@@ -53,9 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             if (request is ExecuteCommandParams executeCommandRequest)
             {
-                // If we have a workspace/executeCommand request, concat the command name with the method name
-                // to look up the appropriate request handler for the workspace/executeCommand's command name.
-                methodName += executeCommandRequest.Command;
+                // If we have a workspace/executeCommand request, get the request name
+                // from the command name.
+                methodName = LspCommandAttribute.GetRequestNameForCommand(executeCommandRequest.Command);
             }
 
             var handlerEntry = _requestHandlers[methodName];
