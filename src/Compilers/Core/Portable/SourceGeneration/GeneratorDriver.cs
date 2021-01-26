@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                                 => new GeneratorRunResult(generator,
                                                           diagnostics: generatorState.Diagnostics,
                                                           exception: generatorState.Exception,
-                                                          generatedSources: generatorState.ConstantTrees
+                                                          generatedSources: generatorState.PostInitTrees
                                                                               .Union(generatorState.GeneratedTrees)
                                                                               .Select(t => new GeneratedSourceResult(t.Tree, t.Text, t.HintName))
                                                                               .ToImmutableArray()));
@@ -221,9 +221,9 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // record any constant sources
-                if (generatorState.Exception is null && generatorState.ConstantTrees.Length > 0)
+                if (generatorState.Exception is null && generatorState.PostInitTrees.Length > 0)
                 {
-                    constantSourcesBuilder.AddRange(generatorState.ConstantTrees.Select(t => t.Tree));
+                    constantSourcesBuilder.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
                 }
 
                 stateBuilder.Add(generatorState);
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
-                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.ConstantTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
+                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
                 diagnosticsBag?.AddRange(diagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
 
                     // update the state with the new edits
                     var additionalSources = previousSources.ToImmutableAndFree();
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.ConstantTrees, generatedTrees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatedTrees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
                 }
             }
             state = edit.Commit(state);
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
             foreach (var generatorState in state.GeneratorStates)
             {
-                trees.AddRange(generatorState.ConstantTrees.Select(t => t.Tree));
+                trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
                 trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
             }
             outputCompilation = compilation.AddSyntaxTrees(trees);

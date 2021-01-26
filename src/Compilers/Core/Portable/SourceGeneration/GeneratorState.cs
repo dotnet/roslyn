@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new generator state that contains information and constant trees
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> constantTrees)
-            : this(info, constantTrees, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, syntaxReceiver: null, exception: null)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees)
+            : this(info, postInitTrees, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, syntaxReceiver: null, exception: null)
         {
         }
 
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a generator state that contains results
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> constantTrees, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
-            : this(info, constantTrees, generatedTrees, diagnostics, syntaxReceiver: null, exception: null)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
+            : this(info, postInitTrees, generatedTrees, diagnostics, syntaxReceiver: null, exception: null)
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> constantTrees, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, ISyntaxContextReceiver? syntaxReceiver, Exception? exception)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, ISyntaxContextReceiver? syntaxReceiver, Exception? exception)
         {
-            this.ConstantTrees = constantTrees;
+            this.PostInitTrees = postInitTrees;
             this.GeneratedTrees = generatedTrees;
             this.Info = info;
             this.Diagnostics = diagnostics;
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             this.Exception = exception;
         }
 
-        internal ImmutableArray<GeneratedSyntaxTree> ConstantTrees { get; }
+        internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> GeneratedTrees { get; }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(this.Exception is null);
             return new GeneratorState(this.Info,
-                                      constantTrees: this.ConstantTrees,
+                                      postInitTrees: this.PostInitTrees,
                                       generatedTrees: this.GeneratedTrees,
                                       diagnostics: this.Diagnostics,
                                       syntaxReceiver: syntaxReceiver,
