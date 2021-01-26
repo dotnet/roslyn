@@ -18,10 +18,4 @@ namespace Microsoft.CodeAnalysis.Host
         IPersistentStorage GetStorage(Solution solution);
         ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken);
     }
-
-    internal interface IPersistentStorageService2 : IPersistentStorageService
-    {
-        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken);
-        ValueTask<IPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken);
-    }
 }

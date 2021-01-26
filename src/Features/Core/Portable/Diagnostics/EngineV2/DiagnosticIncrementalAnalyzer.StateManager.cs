@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly IPersistentStorageService2 _persistentStorageService;
+            private readonly IPersistentStorageService _persistentStorageService;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IPersistentStorageService2 persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _persistentStorageService = persistentStorageService;
                 _analyzerInfoCache = analyzerInfoCache;

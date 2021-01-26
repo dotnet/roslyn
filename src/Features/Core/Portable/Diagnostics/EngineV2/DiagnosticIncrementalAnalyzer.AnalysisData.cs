@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
                 => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
-            public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService2 persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
+            public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;
 

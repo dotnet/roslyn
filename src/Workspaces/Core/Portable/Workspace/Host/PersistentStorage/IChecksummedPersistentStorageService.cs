@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.PersistentStorage;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IChecksummedPersistentStorageService : IPersistentStorageService2
+    internal interface IChecksummedPersistentStorageService : IPersistentStorageService
     {
         new ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken);
-        new ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken);
-        new ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken);
+        ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken);
+        ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken);
     }
 }
