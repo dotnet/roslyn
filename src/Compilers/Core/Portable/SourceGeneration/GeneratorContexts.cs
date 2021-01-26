@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// This method allows generators to be 'syntax aware'. Before each generation the <paramref name="receiverCreator"/> will be invoked to create
-        /// an instance of <see cref="ISyntaxReceiver"/>. This receiver will have its <see cref="ISyntaxContextReceiver.OnVisitSyntaxNode(GeneratorSyntaxContext)"/> 
+        /// an instance of <see cref="ISyntaxContextReceiver"/>. This receiver will have its <see cref="ISyntaxContextReceiver.OnVisitSyntaxNode(GeneratorSyntaxContext)"/> 
         /// invoked for each syntax node in the compilation, allowing the receiver to build up information about the compilation before generation occurs.
         /// 
         /// During <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> the generator can obtain the <see cref="ISyntaxContextReceiver"/> instance that was
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
         /// A new instance of <see cref="ISyntaxContextReceiver"/> is created prior to every call to <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/>, 
         /// meaning there is no need to manage the lifetime of the receiver or its contents.
         /// </remarks>
-        /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxReceiver"/></param>
+        /// <param name="receiverCreator">A <see cref="SyntaxContextReceiverCreator"/> that can be invoked to create an instance of <see cref="ISyntaxContextReceiver"/></param>
         public void RegisterForSyntaxNotifications(SyntaxContextReceiverCreator receiverCreator)
         {
             CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
