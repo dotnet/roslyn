@@ -14,6 +14,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
+    public class CloudCachePersistentStorageTests : AbstractPersistentStorageTests
+    {
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector)
+        {
+            return new VisualStudio.
+        }
+    }
     /// <remarks>
     /// Tests are inherited from <see cref="AbstractPersistentStorageTests"/>.  That way we can
     /// write tests once and have them run against all <see cref="IPersistentStorageService"/>
