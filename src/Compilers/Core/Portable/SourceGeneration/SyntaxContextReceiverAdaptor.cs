@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
                 return new SyntaxContextReceiverAdaptor(rx);
             }
             // in the case that the creator function returns null, we'll also return a null adaptor
-            return null!;
+            return null;
         };
     }
 }

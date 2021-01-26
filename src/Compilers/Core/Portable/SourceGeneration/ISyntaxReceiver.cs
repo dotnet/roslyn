@@ -75,6 +75,6 @@ namespace Microsoft.CodeAnalysis
     /// Allows a generator to provide instances of an <see cref="ISyntaxContextReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxContextReceiver"/></returns>
-    public delegate ISyntaxContextReceiver SyntaxContextReceiverCreator();
+    public delegate ISyntaxContextReceiver? SyntaxContextReceiverCreator();
 
 }
