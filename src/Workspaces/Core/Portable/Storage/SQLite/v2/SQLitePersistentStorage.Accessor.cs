@@ -72,11 +72,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 using var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken);
                 using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
-                
-                if (reader != null)
-                    return checksum == Checksum.HashData.ReadFrom(reader);
 
-                return false;
+                return reader != null && checksum == Checksum.HashData.ReadFrom(reader);
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
