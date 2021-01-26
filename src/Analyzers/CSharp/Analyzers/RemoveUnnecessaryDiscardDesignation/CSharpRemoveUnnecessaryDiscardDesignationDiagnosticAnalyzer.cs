@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryDiscardDesignation
     {
         public CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryDiscardDesignationDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnnecessaryDiscardDesignation,
                    option: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnessary_discard), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Discard_can_be_removed), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

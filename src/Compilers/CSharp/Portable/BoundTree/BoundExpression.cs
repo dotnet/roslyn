@@ -286,6 +286,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundInterpolatedString
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get { return this.ConstantValueOpt; }
+        }
+    }
+
     internal partial class BoundUserDefinedConditionalLogicalOperator
     {
         public override Symbol ExpressionSymbol
@@ -430,7 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
-                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }

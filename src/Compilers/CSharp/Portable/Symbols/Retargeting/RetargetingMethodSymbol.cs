@@ -359,5 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

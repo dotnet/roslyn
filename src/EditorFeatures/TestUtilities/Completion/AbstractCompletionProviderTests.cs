@@ -157,18 +157,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
                 else
                 {
-                    Func<RoslynCompletion.CompletionItem, bool> predicate = c
-                        => CompareItems(c.DisplayText, expectedItemOrNull)
-                              && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
-                              && CompareItems(c.InlineDescription, inlineDescription ?? "")
-                              && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                              && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
-                              && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true)
-                              && (matchingFilters != null ? FiltersMatch(matchingFilters, c) : true)
-                              && (flags != null ? flags.Value == c.Flags : true);
-
-                    AssertEx.Any(items, predicate);
+                    AssertEx.Any(items, Predicate);
                 }
+            }
+
+            bool Predicate(RoslynCompletion.CompletionItem c)
+            {
+                if (!CompareItems(c.DisplayText, expectedItemOrNull))
+                    return false;
+                if (!CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? ""))
+                    return false;
+                if (!CompareItems(c.InlineDescription, inlineDescription ?? ""))
+                    return false;
+                if (expectedDescriptionOrNull != null && completionService.GetDescriptionAsync(document, c).Result.Text != expectedDescriptionOrNull)
+                    return false;
+                if (glyph.HasValue && !c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)))
+                    return false;
+                if (matchPriority.HasValue && c.Rules.MatchPriority != matchPriority.Value)
+                    return false;
+                if (matchingFilters != null && !FiltersMatch(matchingFilters, c))
+                    return false;
+                if (flags != null && flags.Value != c.Flags)
+                    return false;
+
+                return true;
             }
         }
 

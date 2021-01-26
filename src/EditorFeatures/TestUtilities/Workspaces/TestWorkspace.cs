@@ -463,13 +463,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // algorithm in MarkupTestFile
                 mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
 
-                foreach (var kvp in document.AnnotatedSpans)
+                foreach (var (key, spans) in document.AnnotatedSpans)
                 {
-                    mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
-                        ? mappedSpans[kvp.Key]
+                    mappedSpans[key] = mappedSpans.ContainsKey(key)
+                        ? mappedSpans[key]
                         : ImmutableArray<TextSpan>.Empty;
 
-                    foreach (var span in kvp.Value)
+                    foreach (var span in spans)
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
                         var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Cast<Span?>().SingleOrDefault();
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         }
 
                         // but if they do, it must be only 1
-                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.Value.ToTextSpan());
+                        mappedSpans[key] = mappedSpans[key].Add(mappedSpan.Value.ToTextSpan());
                     }
                 }
             }
@@ -489,6 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ExportProvider,
                 languageServiceProvider: null,
                 projectionBuffer.CurrentSnapshot.GetText(),
+                path,
                 path,
                 mappedCaretLocation,
                 mappedSpans,
@@ -706,12 +707,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => true;
 
-        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            // VisualStudioWorkspace switches to the main thread for this call, so do the same thing here to catch tests
+            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
             // that fail to account for this possibility.
             var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
             return true;
         }
 

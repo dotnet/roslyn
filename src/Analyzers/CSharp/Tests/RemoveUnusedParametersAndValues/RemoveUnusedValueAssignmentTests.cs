@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -17,12 +15,13 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues.CSharpRemoveUnusedValuesCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+        CSharpRemoveUnusedValuesCodeFixProvider>;
+
     public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
         public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
@@ -42,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()
@@ -119,6 +118,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
     {
         int x = 2;
         return x;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
+                },
+            }.RunAsync();
+        }
+
+        [WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(UnusedValuePreference.DiscardVariable)]
+        [InlineData(UnusedValuePreference.UnusedLocalVariable)]
+        public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
+        {
+            var source =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+        #endregion
+
+        int? {|IDE0059:x|} = null;
+        int y = value + value;
+        
+        x = y;
+        System.Console.WriteLine(x);
+    }
+}";
+            var fixedSource =
+@"class C {
+    void M()
+    {
+        #region
+        int value = 3;
+
+        #endregion
+        int y = value + value;
+
+        int? x = y;
+        System.Console.WriteLine(x);
     }
 }";
 
@@ -5993,7 +6039,7 @@ $@"class C
                       while(i++ < 10)",
                          "x = 2;")]
         public async Task Loops_Overwritten_InSomeControlFlowPaths(
-            string loopHeader, string loopBody, string loopFooter = null)
+            string loopHeader, string loopBody, string? loopFooter = null)
         {
             await TestMissingInRegularAndScriptWithAllOptionsAsync(
 $@"class C

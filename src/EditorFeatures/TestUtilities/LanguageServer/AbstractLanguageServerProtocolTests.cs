@@ -39,36 +39,33 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspSolutionProvider))
+            .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-        [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
-        internal class TestLspSolutionProvider : ILspSolutionProvider
+        [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]
+        internal class TestLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
         {
-            [DisallowNull]
-            private TestWorkspace? _workspace;
+            private Workspace? _workspace;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLspSolutionProvider()
+            public TestLspWorkspaceRegistrationService()
             {
             }
 
-            public void SetTestWorkspace(TestWorkspace workspace)
+            public ImmutableArray<Workspace> GetAllRegistrations()
             {
+                Contract.ThrowIfNull(_workspace, "No workspace has been registered");
+
+                return ImmutableArray.Create(_workspace);
+            }
+
+            public void Register(Workspace workspace)
+            {
+                Contract.ThrowIfTrue(_workspace != null);
+
                 _workspace = workspace;
-            }
-
-            public Solution GetCurrentSolutionForMainWorkspace()
-            {
-                Contract.ThrowIfNull(_workspace);
-                return _workspace.CurrentSolution;
-            }
-
-            public ImmutableArray<Document> GetDocuments(Uri documentUri)
-            {
-                return GetCurrentSolutionForMainWorkspace().GetDocuments(documentUri);
             }
         }
 
@@ -121,7 +118,7 @@ namespace Roslyn.Test.Utilities
         /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        protected static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T>(T expected, T actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -240,7 +237,8 @@ namespace Roslyn.Test.Utilities
             LSP.CompletionParams requestParameters,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
-            string? sortText = null)
+            string? sortText = null,
+            int resultId = 0)
         {
             var item = new LSP.VSCompletionItem()
             {
@@ -255,7 +253,8 @@ namespace Roslyn.Test.Utilities
                     DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context)
+                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
+                    ResultId = resultId,
                 }),
                 Preselect = preselect
             };
@@ -300,7 +299,7 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            SetSolutionProviderWorkspace(workspace);
+            RegisterWorkspaceForLsp(workspace);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -318,7 +317,7 @@ namespace Roslyn.Test.Utilities
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
-            SetSolutionProviderWorkspace(workspace);
+            RegisterWorkspaceForLsp(workspace);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
             return workspace;
         }
@@ -334,13 +333,13 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        private protected static void SetSolutionProviderWorkspace(TestWorkspace workspace)
+        private protected static void RegisterWorkspaceForLsp(TestWorkspace workspace)
         {
-            var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            provider.SetTestWorkspace(workspace);
+            var provider = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            provider.Register(workspace);
         }
 
-        private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
@@ -382,8 +381,8 @@ namespace Roslyn.Test.Utilities
         private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
         {
             var workspace = (TestWorkspace)solution.Workspace;
-            var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            return new RequestExecutionQueue(solutionProvider);
+            var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            return new RequestExecutionQueue(registrationService, "Tests");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

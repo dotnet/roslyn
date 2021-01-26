@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly string _serverName;
+
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -73,9 +75,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
+        public RequestExecutionQueue(ILspWorkspaceRegistrationService workspaceRegistrationService, string serverName)
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
+            _serverName = serverName;
+
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
             _documentChangeTracker = new DocumentChangeTracker();
@@ -105,6 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
         /// <param name="clientName">The client name.</param>
+        /// <param name="methodName">The name of the LSP method.</param>
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
@@ -114,6 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TRequestType request,
             ClientCapabilities clientCapabilities,
             string? clientName,
+            string methodName,
             CancellationToken requestCancellationToken) where TRequestType : class
         {
             // Create a task completion source that will represent the processing of this request to the caller
@@ -130,17 +136,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         completion.SetCanceled();
 
-                        // Tell the queue to ignore any mutations from this request, not that we've given it a chance
-                        // to make any
-                        return false;
+                        return;
                     }
 
                     try
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
-                        // Tell the queue that this was successful so that mutations (if any) can be applied
-                        return true;
                     }
                     catch (OperationCanceledException ex)
                     {
@@ -148,13 +150,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     catch (Exception exception)
                     {
-                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can observe but
-                        // don't let it escape from this callback, so it doesn't affect the queue processing.
+                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
-                    }
 
-                    // Tell the queue to ignore any mutations from this request
-                    return false;
+                        // Also allow the exception to flow back to the request queue to handle as appropriate
+                        throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
+                    }
                 }, requestCancellationToken);
 
             var didEnqueue = _queue.TryEnqueue(item);
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException("Server was requested to shut down."));
+                completion.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
             }
 
             return completion.Task;
@@ -185,18 +186,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(context.Solution.Workspace);
-
-                        if (!ranToCompletion)
-                        {
-                            // If the handling of the request failed, the exception will bubble back up to the caller, and we
-                            // request shutdown because we're in an invalid state
-                            OnRequestServerShutdown($"An error occurred processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
-                            break;
-                        }
                     }
                     else
                     {
@@ -214,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
-                OnRequestServerShutdown($"Error occurred processing queue: {e.Message}.");
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
         }
 
@@ -247,78 +240,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private RequestContext CreateRequestContext(QueueItem queueItem)
         {
-            // This method asks the solution provider for a solution, and then updates it based on the state of the world
-            // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
-            // then it can just provide the right solutions" and at first glance that is appealing, but there are two big
-            // benefits to this queue tracking documents separately:
-            //
-            // 1. Since this queue manages the execution of handlers, we can ensure that the document state tracker
-            //    is only used from mutating request handlers, or outside of any handlers, and therefore we know
-            //    that calls to it cannot overlap, and it doesn't have to worry about threading.
-            //
-            // 2. We specifically only want the updated solution at the start of a request. If the solution provider
-            //    handed out "the right" solution, then a request could ask it for something at the start of processing
-            //    and at the end of processing, and get different results each time.
-
-            // There are multiple possible solutions that we could be interested in, so we need to find the document
-            // first and then get the solution from there. If we're not given a document, this will return the default
-            // solution
-            var (documentId, workspaceSolution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
-
-            var lspSolution = GetLSPSolution(workspaceSolution);
-
-            // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
-            // document text. If document id is null here, this will just return null
-            var document = lspSolution.GetDocument(documentId);
-
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return new RequestContext(lspSolution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
-        }
-
-        /// <summary>
-        /// Gets the "LSP view of the world", either by forking the workspace solution and updating the documents we track
-        /// or by simply returning our cached solution if it is still valid.
-        /// </summary>
-        private Solution GetLSPSolution(Solution workspaceSolution)
-        {
-            var workspace = workspaceSolution.Workspace;
-
-            // If we have a cached solution we can use it, unless the workspace solution it was based on
-            // is not the current one. 
-            if (!_lspSolutionCache.TryGetValue(workspace, out var cacheInfo) ||
-                workspaceSolution != cacheInfo.workspaceSolution)
-            {
-                var lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution);
-                _lspSolutionCache[workspace] = (workspaceSolution, lspSolution);
-
-                return lspSolution;
-            }
-
-            return cacheInfo.lspSolution;
-        }
-
-        /// <summary>
-        /// Gets a solution that represents the workspace view of the world (as passed in via the solution parameter)
-        /// but with document text for any open documents updated to match the LSP view of the world. This makes
-        /// the LSP server the source of truth for all document text, but all other changes come from the workspace
-        /// </summary>
-        private Solution GetSolutionWithReplacedDocuments(Solution solution)
-        {
-            foreach (var (uri, text) in _documentChangeTracker.GetTrackedDocuments())
-            {
-                var documentIds = solution.GetDocumentIds(uri);
-
-                // We are tracking documents from multiple solutions, so this might not be one we care about
-                if (!documentIds.IsEmpty)
-                {
-                    solution = solution.WithDocumentText(documentIds, text);
-                }
-            }
-
-            return solution;
+            return RequestContext.Create(queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
         }
     }
 }

@@ -10939,6 +10939,34 @@ namespace Bar1
             await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonUnderNameofContext()
+        {
+            var markup = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(B$$)
+        }
+    }
+}";
+            var expected = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(Bar;)
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: ';');
+        }
+
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMemberAfterPatternMatch()
@@ -11100,6 +11128,105 @@ namespace Bar1
             await VerifyItemExistsAsync(markup, "BillyJoel");
             await VerifyItemExistsAsync(markup, "EveryoneElse");
             await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObsoleteOverloadsAreSkippedIfNonObsoleteOverloadIsAvailable()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstObsoleteOverloadIsUsedIfAllOverloadsAreObsolete()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    [System.Obsolete]
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"[{CSharpFeaturesResources.deprecated}] void C.M() (+ 1 {FeaturesResources.overload})");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task IgnoreCustomObsoleteAttribute()
+        {
+            var markup =
+@"
+public class ObsoleteAttribute: System.Attribute
+{
+}
+
+public class C
+{
+    [Obsolete]
+    public void M() { }
+
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
+        }
+
+        [InlineData("int", "")]
+        [InlineData("int[]", "int a")]
+        [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
+        {
+            // Check the description displayed is based on symbol matches targeted type
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
+            var markup =
+$@"public class C
+{{
+    bool Bar(int a, int b) => false;
+    int Bar() => 0;
+    int[] Bar(int a) => null;
+
+    bool N({targetType} x) => true;
+
+    void M(C c)
+    {{
+        N(c.$$);
+    }}
+}}";
+            await VerifyItemExistsAsync(
+                markup, "Bar",
+                expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
+                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
         }
     }
 }

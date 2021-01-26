@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsRecord(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -1117,6 +1120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     case ClassDeclarationSyntax @class:
                         AppendConstructors(@class.Members, constructors, cancellationToken);
                         break;
+                    case RecordDeclarationSyntax record:
+                        AppendConstructors(record.Members, constructors, cancellationToken);
+                        break;
                     case StructDeclarationSyntax @struct:
                         AppendConstructors(@struct.Members, constructors, cancellationToken);
                         break;
@@ -2150,5 +2156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+
+        public void GetPartsOfInterpolationExpression(SyntaxNode node,
+            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
+        {
+            var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
+            stringStartToken = interpolatedStringExpression.StringStartToken;
+            contents = interpolatedStringExpression.Contents;
+            stringEndToken = interpolatedStringExpression.StringEndToken;
+        }
+
+        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
+            => node is InterpolatedStringExpressionSyntax interpolatedString &&
+                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
     }
 }

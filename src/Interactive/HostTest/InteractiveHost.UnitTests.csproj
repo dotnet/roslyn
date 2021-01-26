@@ -40,7 +40,7 @@
     </CopyPublishedOutputProjectReference>
 
     <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
-      <SetTargetFramework>TargetFramework=net5.0-windows</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=net5.0-windows7.0</SetTargetFramework>
       <OutputItemType>InteractiveHostFiles_Core</OutputItemType>
     </CopyPublishedOutputProjectReference>
   </ItemGroup>

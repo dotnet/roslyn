@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             foreach (var typeArg in typeArguments)
             {
                 var type = typeArg.EnsureCSharpSymbolOrNull(nameof(typeArguments));
-                builder.Add(TypeWithAnnotations.Create(type, (typeArg?.NullableAnnotation.ToInternalAnnotation()).GetValueOrDefault()));
+                builder.Add(TypeWithAnnotations.Create(type, (typeArg?.NullableAnnotation.ToInternalAnnotation() ?? NullableAnnotation.NotAnnotated)));
             }
 
             return builder.ToImmutableAndFree();

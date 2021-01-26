@@ -38,6 +38,7 @@ param (
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
+  [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -61,6 +62,8 @@ param (
   [switch]$testCoreClr,
   [switch]$testIOperation,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -100,6 +103,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
+  Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -176,6 +180,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -216,8 +225,6 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { 'net5.0%3Bnetcoreapp3.1' } else { "" }
-  
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
@@ -233,6 +240,9 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -241,7 +251,6 @@ function BuildSolution() {
       /p:RepoRoot=$RepoRoot `
       /p:Restore=$restore `
       /p:Build=$build `
-      /p:Test=$testCoreClr `
       /p:Rebuild=$rebuild `
       /p:Pack=$pack `
       /p:Sign=$sign `
@@ -250,7 +259,6 @@ function BuildSolution() {
       /p:OfficialBuildId=$officialBuildId `
       /p:RunAnalyzersDuringBuild=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
@@ -260,6 +268,8 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
@@ -305,7 +315,7 @@ function GetIbcDropName() {
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
-    
+
     # Find the matching drop
     $branch = GetIbcSourceBranchName
     Write-Host "Optimization data branch name is '$branch'."
@@ -316,7 +326,7 @@ function GetIbcDropName() {
 }
 
 # Core function for running our unit / integration tests tests
-function TestUsingOptimizedRunner() {
+function TestUsingRunTests() {
 
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
@@ -335,9 +345,7 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
-  $binDir = Join-Path $ArtifactsDir "bin" 
-  $runTests = GetProjectOutputBinary "RunTests.exe"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red 
@@ -346,55 +354,34 @@ function TestUsingOptimizedRunner() {
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
-  $args += " --tfm net472"
+  $args += " --configuration $configuration"
 
-  if ($testDesktop -or $testIOperation) {
-    if ($test32) {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
-    } else {
-      $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
+  if ($testCoreClr) {
+    $args += " --tfm net5.0"
+    $args += " --tfm netcoreapp3.1"
+    $args += " --include '\.UnitTests'"
+    $args += " --timeout 90"
+  }
+  elseif ($testDesktop -or $testIOperation) {
+    $args += " --tfm net472"
+    $args += " --include '\.UnitTests'"
+    $args += " --timeout 90"
+
+    if (-not $test32) {
+      $args += " --exclude '\.InteractiveHost'"
     }
+
   } elseif ($testVsi) {
-    # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
-    # integration tests in CI.
-    if ($ci) {
-      $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
-      $args += " --retry"
-    }
-
-    $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    $args += " --testvsi"
-  } else {
-    $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
-    $args += " --trait:Feature=NetCore"
+    $args += " --timeout 110"
+    $args += " --tfm net472"
+    $args += " --retry"
+    $args += " --sequential"
+    $args += " --include '\.IntegrationTests'"
+    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
   }
 
-  # Exclude out the multi-targetted netcore app projects
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*net5.0.*") }
-
-  # Exclude out the ref assemblies
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
-  $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
-
-  if ($configuration -eq 'Debug') {
-    $excludedConfiguration = 'Release'
-  } else {
-    $excludedConfiguration = 'Debug'
-  }
-
-  $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
-
-  if ($ci) {
-    if ($testVsi) {
-      $args += " --timeout 110"
-    } else {
-      $args += " --timeout 90"
-    }
-  }
-  else {
+  if (-not $ci -and -not $testVsi) {
     $args += " --html"
   }
 
@@ -415,12 +402,17 @@ function TestUsingOptimizedRunner() {
     $args += " --sequential"
   }
 
-  foreach ($dll in $dlls) {
-    $args += " $dll"
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
   }
 
   try {
-    Exec-Console $runTests $args
+    Write-Host "$runTests $args"
+    Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
@@ -452,10 +444,10 @@ function EnablePreviewSdks() {
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
-function Deploy-VsixViaTool() { 
+function Deploy-VsixViaTool() {
   $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
   $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-  
+
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -616,7 +608,7 @@ try {
     Prepare-TempDir
     EnablePreviewSdks
     if ($testVsi) {
-      Setup-IntegrationTestRun 
+      Setup-IntegrationTestRun
     }
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
@@ -641,14 +633,14 @@ try {
     throw $_
   }
 
-  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
+  if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish) {
     BuildSolution
   }
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation) {
-      TestUsingOptimizedRunner
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+      TestUsingRunTests
     }
   }
   catch

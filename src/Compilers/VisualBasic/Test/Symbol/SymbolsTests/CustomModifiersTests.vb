@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -2630,6 +2629,696 @@ BC40001: 'Public Overrides Function M(x As (Object, Object)) As (a As Object, b 
             Assert.Equal("System.ValueTuple(Of System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong))",
                          classMethod3.Parameters(0).Type.TupleUnderlyingType.ToTestDisplayString())
 
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_01()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Function get_P() As Integer
+        Return Nothing
+    End Function
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30657: 'get_P' has a return type that is not supported or parameter types that are not supported.
+    Overrides Function get_P() As Integer
+                       ~~~~~
+</expected>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Readonly Property P As Integer
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30643: Property 'CL1.P' is of an unsupported type.
+    Overrides Readonly Property P As Integer
+                                ~
+</expected>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_03()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Readonly Property P As Integer
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_04()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides WriteOnly Property P As Integer
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_05()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Property P As Integer
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_06()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Property P As Integer
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub OverrideWithModreq_07()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Inherits CL1
+
+    Overrides Property P As Integer
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_01()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    Function get_P() As Integer Implements CL1.get_P
+        Return Nothing
+    End Function
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30657: 'get_P' has a return type that is not supported or parameter types that are not supported.
+    Function get_P() As Integer Implements CL1.get_P
+             ~~~~~
+</expected>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_02()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    ReadOnly Property P As Integer Implements CL1.P
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30643: Property 'CL1.P' is of an unsupported type.
+    ReadOnly Property P As Integer Implements CL1.P
+                      ~
+</expected>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_03()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    ReadOnly Property P As Integer Implements CL1.P
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_04()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    WriteOnly Property P As Integer Implements CL1.P
+        Set
+        End Set
+    End Property
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_05()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    Property P As Integer Implements CL1.P
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_06()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    Property P As Integer Implements CL1.P
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            'CompileAndVerify(compilation)
+        End Sub
+
+        <Fact()>
+        <WorkItem(50327, "https://github.com/dotnet/roslyn/issues/50327")>
+        Public Sub ImplementWithModreq_07()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+]]>.Value
+
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Test
+    Implements CL1
+
+    Property P As Integer Implements CL1.P
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseDll)
+
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+</expected>)
+            CompileAndVerify(compilation)
         End Sub
 
     End Class

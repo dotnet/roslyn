@@ -4109,7 +4109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundFieldAccess
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As ConstantFieldsInProgress, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
             Debug.Assert(fieldSymbol IsNot Nothing, "Field 'fieldSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -4156,8 +4156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _ConstantsInProgressOpt As SymbolsInProgress(Of FieldSymbol)
-        Public ReadOnly Property ConstantsInProgressOpt As SymbolsInProgress(Of FieldSymbol)
+        Private ReadOnly _ConstantsInProgressOpt As ConstantFieldsInProgress
+        Public ReadOnly Property ConstantsInProgressOpt As ConstantFieldsInProgress
             Get
                 Return _ConstantsInProgressOpt
             End Get
@@ -4168,7 +4168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitFieldAccess(Me)
         End Function
 
-        Public Function Update(receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol) As BoundFieldAccess
+        Public Function Update(receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As ConstantFieldsInProgress, type As TypeSymbol) As BoundFieldAccess
             If receiverOpt IsNot Me.ReceiverOpt OrElse fieldSymbol IsNot Me.FieldSymbol OrElse isLValue <> Me.IsLValue OrElse suppressVirtualCalls <> Me.SuppressVirtualCalls OrElse constantsInProgressOpt IsNot Me.ConstantsInProgressOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundFieldAccess(Me.Syntax, receiverOpt, fieldSymbol, isLValue, suppressVirtualCalls, constantsInProgressOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)

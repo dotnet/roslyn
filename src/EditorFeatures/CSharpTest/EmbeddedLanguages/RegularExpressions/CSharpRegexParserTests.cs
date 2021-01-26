@@ -57,8 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
-            var actual = TreeToText(sourceText, tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
+            const string DoubleQuoteEscaping = "\"\"";
+            var actual = TreeToText(sourceText, tree)
+                .Replace("\"", DoubleQuoteEscaping)
+                .Replace("&quot;", DoubleQuoteEscaping);
+            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
         }
 
         private void TryParseSubTrees(

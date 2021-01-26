@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph glyph,
             string genericTypeSuffix,
             CompletionItemFlags flags,
-            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
+            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
+            bool includedInTargetTypeCompletion = false)
         {
             ImmutableDictionary<string, string>? properties = null;
 
@@ -72,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
+
+            if (includedInTargetTypeCompletion)
+            {
+                item = item.AddTag(WellKnownTags.TargetTypeMatch);
+            }
 
             item.Flags = flags;
             return item;

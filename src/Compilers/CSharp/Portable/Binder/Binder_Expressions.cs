@@ -2643,6 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.ParenthesizedExpression: // this is never allowed in legacy compiler
                 case SyntaxKind.DeclarationExpression:
                     // A property/indexer is also invalid as it cannot be ref/out, but cannot be checked here. Assuming a bug in legacy compiler.
@@ -4067,7 +4068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParamsOpt,
                         defaultArguments: defaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: this,
                         type: constructorReturnType,
                         hasErrors: hasErrors)
                     { WasCompilerGenerated = initializerArgumentListOpt == null };
@@ -4121,6 +4121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
                 sourceType.IsRecord &&
+                constructor is not SynthesizedRecordConstructor &&
                 SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
@@ -4411,6 +4412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundInitializer = BindInitializerExpression(syntax: initializerOpt,
                                                                  type: type,
                                                                  typeSyntax: typeSyntax,
+                                                                 isForNewInstance: true,
                                                                  diagnostics: diagnostics);
                 children.Add(boundInitializer);
             }
@@ -4422,12 +4424,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax syntax,
             TypeSymbol type,
             SyntaxNode typeSyntax,
+            bool isForNewInstance,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert((object)type != null);
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, type) { WasCompilerGenerated = true };
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, isForNewInstance, type) { WasCompilerGenerated = true };
 
             switch (syntax.Kind())
             {
@@ -4462,7 +4465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ObjectInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
                     Debug.Assert(syntax.Parent.Parent.Kind() != SyntaxKind.WithInitializerExpression);
-                    return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, diagnostics);
+                    return BindInitializerExpression((InitializerExpressionSyntax)syntax, type, typeSyntax, isForNewInstance: false, diagnostics);
                 default:
                     return BindValue(syntax, diagnostics, BindValueKind.RValue);
             }
@@ -4740,7 +4743,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments,
                 resultKind,
                 implicitReceiver.Type,
-                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
@@ -5090,7 +5092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.DefaultArguments,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
-                    binderOpt: boundCall.BinderOpt,
                     boundCall.Type,
                     boundCall.HasAnyErrors)
                 { WasCompilerGenerated = true };
@@ -5295,7 +5296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt,
                     boundInitializerOpt,
                     wasTargetTyped,
-                    this,
                     type,
                     hasError);
 
@@ -5346,6 +5346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindInitializerExpression(syntax: initializerSyntaxOpt,
                                                      type: initializerTypeOpt ?? type,
                                                      typeSyntax: typeNode,
+                                                     isForNewInstance: true,
                                                      diagnostics: diagnostics);
                 }
                 return null;
@@ -5454,7 +5455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var creation = (BoundObjectCreationExpression)classCreation;
                         return creation.Update(creation.Constructor, creation.ConstructorsGroup, creation.Arguments, creation.ArgumentNamesOpt,
                                                creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.DefaultArguments, creation.ConstantValueOpt,
-                                               creation.InitializerExpressionOpt, creation.BinderOpt, interfaceType);
+                                               creation.InitializerExpressionOpt, interfaceType);
 
                     case BoundKind.BadExpression:
                         var bad = (BoundBadExpression)classCreation;
@@ -5486,10 +5487,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundInitializerOpt = initializerOpt == null ? null :
-                                                BindInitializerExpression(syntax: initializerOpt,
-                                                 type: interfaceType,
-                                                 typeSyntax: typeNode,
-                                                 diagnostics: diagnostics);
+                BindInitializerExpression(syntax: initializerOpt,
+                    type: interfaceType,
+                    typeSyntax: typeNode,
+                    isForNewInstance: true,
+                    diagnostics: diagnostics);
 
             var creation = new BoundNoPiaObjectCreationExpression(node, guidString, boundInitializerOpt, interfaceType);
 
@@ -5531,6 +5533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax: initializerOpt,
                         type: typeParameter,
                         typeSyntax: typeSyntax,
+                        isForNewInstance: true,
                         diagnostics: diagnostics);
                 return new BoundNewT(node, boundInitializerOpt, typeParameter);
             }
@@ -5971,6 +5974,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the RHS of a member access expression, given the bound LHS.
         /// It is assumed that CheckValue has not been called on the LHS.
         /// </summary>
+        /// <remarks>
+        /// If new checks are added to this method, they will also need to be added to <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, DiagnosticBag)"/>.
+        /// </remarks>
         private BoundExpression BindMemberAccessWithBoundLeft(
             ExpressionSyntax node,
             BoundExpression boundLeft,
@@ -7809,7 +7815,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isExpanded,
                     argsToParams,
                     defaultArguments: default,
-                    this,
                     property.Type,
                     gotError);
             }

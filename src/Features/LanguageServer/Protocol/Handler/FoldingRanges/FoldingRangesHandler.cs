@@ -6,16 +6,19 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false)]
-    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
+    internal sealed class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,27 +30,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
-
             var document = context.Document;
             if (document == null)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
             var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
             if (blockStructureService == null)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return GetFoldingRanges(blockStructure, text);
+        }
+
+        public static FoldingRange[] GetFoldingRanges(
+            SyntaxTree syntaxTree,
+            HostLanguageServices languageServices,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
+            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            if (blockStructure == null)
+            {
+                return Array.Empty<FoldingRange>();
+            }
+
+            var text = syntaxTree.GetText(cancellationToken);
+            return GetFoldingRanges(blockStructure, text);
+        }
+
+        private static FoldingRange[] GetFoldingRanges(BlockStructure blockStructure, SourceText text)
+        {
+            if (blockStructure.Spans.IsEmpty)
+            {
+                return Array.Empty<FoldingRange>();
+            }
+
+            using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);
 
             foreach (var span in blockStructure.Spans)
             {
@@ -84,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 });
             }
 
-            return foldingRanges.ToArrayAndFree();
+            return foldingRanges.ToArray();
         }
     }
 }

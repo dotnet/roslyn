@@ -192,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     }
                 }
             }
+
             return interactiveCommands.ToImmutableArray();
         }
     }
