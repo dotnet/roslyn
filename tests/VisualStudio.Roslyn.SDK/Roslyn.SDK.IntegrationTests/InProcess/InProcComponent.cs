@@ -40,9 +40,13 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8603 // Possible null reference return.
             var serviceProvider = (IAsyncServiceProvider2)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
             Assumes.Present(serviceProvider);
             return (TInterface)await serviceProvider.GetServiceAsync(typeof(TService));
+#pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
         }
 
         protected async Task<TService> GetComponentModelServiceAsync<TService>()

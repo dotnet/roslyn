@@ -15,9 +15,9 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             var kind = string.Empty;
 
-            if (nodeOrToken.IsNode)
+            if (nodeOrToken.IsNode && nodeOrToken.AsNode() is SyntaxNode node)
             {
-                kind = nodeOrToken.AsNode().GetKind();
+                kind = node.GetKind();
             }
             else
             {

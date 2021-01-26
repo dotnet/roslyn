@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Xml.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+
 using Roslyn.SyntaxVisualizer.DgmlHelper;
 
 namespace Roslyn.SyntaxVisualizer.Extension
@@ -26,11 +28,11 @@ namespace Roslyn.SyntaxVisualizer.Extension
     internal partial class SyntaxVisualizerContainer : UserControl, IVsRunningDocTableEvents, IVsSolutionEvents, IDisposable
     {
         private readonly SyntaxVisualizerToolWindow parent;
-        private IWpfTextView activeWpfTextView;
-        private IClassificationFormatMap activeClassificationFormatMap;
-        private IEditorFormatMap activeEditorFormatMap;
-        private SyntaxTree activeSyntaxTree;
-        private DispatcherTimer typingTimer;
+        private IWpfTextView? activeWpfTextView;
+        private IClassificationFormatMap? activeClassificationFormatMap;
+        private IEditorFormatMap? activeEditorFormatMap;
+        private SyntaxTree? activeSyntaxTree;
+        private DispatcherTimer? typingTimer;
 
         private const string CSharpContentType = "CSharp";
         private const string VisualBasicContentType = "Basic";
@@ -62,7 +64,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
             UpdateThemedColors();
 
-            syntaxVisualizer.SyntaxNodeNavigationToSourceRequested += node => NavigateToSource(node.Span);
+            syntaxVisualizer.SyntaxNodeNavigationToSourceRequested += node => NavigateToSource(node?.Span);
             syntaxVisualizer.SyntaxTokenNavigationToSourceRequested += token => NavigateToSource(token.Span);
             syntaxVisualizer.SyntaxTriviaNavigationToSourceRequested += trivia => NavigateToSource(trivia.Span);
         }
@@ -78,7 +80,10 @@ namespace Roslyn.SyntaxVisualizer.Extension
             if (activeClassificationFormatMap != null && activeEditorFormatMap != null)
             {
                 var classificationTypeRegistryService = GetMefService<IClassificationTypeRegistryService>();
-                syntaxVisualizer.SetTreeViewColors(classificationTypeRegistryService, activeClassificationFormatMap, activeEditorFormatMap);
+                if (classificationTypeRegistryService is not null)
+                {
+                    syntaxVisualizer.SetTreeViewColors(classificationTypeRegistryService, activeClassificationFormatMap, activeEditorFormatMap);
+                }
             }
         }
 
@@ -121,7 +126,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
         }
 
         #region Helpers - GetService
-        private static Microsoft.VisualStudio.OLE.Interop.IServiceProvider globalServiceProvider;
+        private static Microsoft.VisualStudio.OLE.Interop.IServiceProvider? globalServiceProvider;
         private static Microsoft.VisualStudio.OLE.Interop.IServiceProvider GlobalServiceProvider
         {
             get
@@ -138,11 +143,11 @@ namespace Roslyn.SyntaxVisualizer.Extension
             }
         }
 
-        private TServiceInterface GetService<TServiceInterface, TService>()
+        private TServiceInterface? GetService<TServiceInterface, TService>()
             where TServiceInterface : class
             where TService : class
         {
-            TServiceInterface service = null;
+            TServiceInterface? service = null;
 
             if (parent != null)
             {
@@ -152,12 +157,12 @@ namespace Roslyn.SyntaxVisualizer.Extension
             return service;
         }
 
-        private static object GetService(
+        private static object? GetService(
             Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider, Guid guidService, bool unique)
         {
             var guidInterface = VSConstants.IID_IUnknown;
             var ptr = IntPtr.Zero;
-            object service = null;
+            object? service = null;
 
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
             if (serviceProvider.QueryService(ref guidService, ref guidInterface, out ptr) == 0 &&
@@ -184,17 +189,17 @@ namespace Roslyn.SyntaxVisualizer.Extension
             return service;
         }
 
-        private static TServiceInterface GetService<TServiceInterface, TService>(
+        private static TServiceInterface? GetService<TServiceInterface, TService>(
             Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider)
             where TServiceInterface : class
             where TService : class
         {
-            return (TServiceInterface)GetService(serviceProvider, typeof(TService).GUID, false);
+            return (TServiceInterface?)GetService(serviceProvider, typeof(TService).GUID, false);
         }
 
-        private static TServiceInterface GetMefService<TServiceInterface>() where TServiceInterface : class
+        private static TServiceInterface? GetMefService<TServiceInterface>() where TServiceInterface : class
         {
-            TServiceInterface service = null;
+            TServiceInterface? service = null;
             var componentModel = GetService<IComponentModel, SComponentModel>(GlobalServiceProvider);
 
             if (componentModel != null)
@@ -209,8 +214,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
         #region Helpers - Initialize and Dispose IVsRunningDocumentTable
         private uint runningDocumentTableCookie;
 
-        private IVsRunningDocumentTable runningDocumentTable;
-        private IVsRunningDocumentTable RunningDocumentTable
+        private IVsRunningDocumentTable? runningDocumentTable;
+        private IVsRunningDocumentTable? RunningDocumentTable
         {
             get
             {
@@ -238,7 +243,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             if (runningDocumentTableCookie != 0)
             {
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                runningDocumentTable.UnadviseRunningDocTableEvents(runningDocumentTableCookie);
+                runningDocumentTable?.UnadviseRunningDocTableEvents(runningDocumentTableCookie);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 runningDocumentTableCookie = 0;
             }
@@ -268,7 +273,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
                         var activeSemanticModel = ThreadHelper.JoinableTaskFactory.Run(() => document.GetSemanticModelAsync());
 
                         // Display the SyntaxTree.
-                        if (contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType))
+                        if (( contentType.IsOfType(VisualBasicContentType) || contentType.IsOfType(CSharpContentType) ) && activeSyntaxTree is not null)
                         {
                             syntaxVisualizer.DisplaySyntaxTree(activeSyntaxTree, activeSemanticModel, workspace: document.Project.Solution.Workspace);
                         }
@@ -290,11 +295,11 @@ namespace Roslyn.SyntaxVisualizer.Extension
         }
 
         // When user clicks on a particular item in the treeview select the corresponding text in the editor.
-        private void NavigateToSource(TextSpan span)
+        private void NavigateToSource(TextSpan? span)
         {
-            if (IsVisible && activeWpfTextView != null)
+            if (IsVisible && activeWpfTextView != null && span is TextSpan nonNullableSpan)
             {
-                var snapShotSpan = span.ToSnapshotSpan(activeWpfTextView.TextBuffer.CurrentSnapshot);
+                var snapShotSpan = nonNullableSpan.ToSnapshotSpan(activeWpfTextView.TextBuffer.CurrentSnapshot);
 
                 // See SyntaxVisualizerToolWindow_GotFocus and SyntaxVisualizerToolWindow_LostFocus
                 // for some notes about selection opacity and why it needs to be manipulated.
@@ -337,7 +342,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
         private void HandleTypingTimerTimeout(object sender, EventArgs e)
         {
-            typingTimer.Stop();
+            typingTimer?.Stop();
             RefreshSyntaxVisualizer();
         }
 
@@ -361,10 +366,16 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
                         var classificationFormatMapService = GetMefService<IClassificationFormatMapService>();
                         var editorFormatMapService = GetMefService<IEditorFormatMapService>();
-                        activeClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap(activeWpfTextView);
-                        activeClassificationFormatMap.ClassificationFormatMappingChanged += HandleFormatMappingChanged;
-                        activeEditorFormatMap = editorFormatMapService.GetEditorFormatMap(activeWpfTextView);
-                        activeEditorFormatMap.FormatMappingChanged += HandleFormatMappingChanged;
+                        activeClassificationFormatMap = classificationFormatMapService?.GetClassificationFormatMap(activeWpfTextView);
+                        if (activeClassificationFormatMap is not null)
+                        {
+                            activeClassificationFormatMap.ClassificationFormatMappingChanged += HandleFormatMappingChanged;
+                        }
+                        activeEditorFormatMap = editorFormatMapService?.GetEditorFormatMap(activeWpfTextView);
+                        if (activeEditorFormatMap is not null)
+                        {
+                            activeEditorFormatMap.FormatMappingChanged += HandleFormatMappingChanged;
+                        }
 
                         UpdateThemedColors();
                         RefreshSyntaxVisualizer();
@@ -414,9 +425,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
         #endregion
 
         #region Event Handlers - Directed Syntax Graph / IVsSolutionEvents Events
-        private string dgmlFilePath;
-        private IVsFileChangeEx fileChangeService;
-        private IVsFileChangeEx FileChangeService
+        private string? dgmlFilePath;
+        private IVsFileChangeEx? fileChangeService;
+        private IVsFileChangeEx? FileChangeService
         {
             get
             {
@@ -429,8 +440,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
             }
         }
 
-        private IVsSolution solutionService;
-        private IVsSolution SolutionService
+        private IVsSolution? solutionService;
+        private IVsSolution? SolutionService
         {
             get
             {
@@ -443,7 +454,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             }
         }
 
-        private void DisplayDgml(XElement dgml)
+        private void DisplayDgml(XElement? dgml)
         {
             uint cookie;
             const int TRUE = -1;
@@ -466,8 +477,9 @@ namespace Roslyn.SyntaxVisualizer.Extension
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                 out var docUIHierarchy, out var docItemId, out var docWindowFrame) && docWindowFrame != null)
             {
+                if (RunningDocumentTable is not null &&
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                if (RunningDocumentTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, dgmlFilePath,
+                    RunningDocumentTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_NoLock, dgmlFilePath,
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                                                              out var docHierarchy, out docItemId,
                                                              out var docDataIUnknownPointer,
@@ -490,16 +502,16 @@ namespace Roslyn.SyntaxVisualizer.Extension
                                 // The below call ensures that there are no pop-ups from Visual Studio
                                 // prompting the user to reload the file each time it is changed.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                                FileChangeService.IgnoreFile(0, dgmlFilePath, TRUE);
+                                FileChangeService?.IgnoreFile(0, dgmlFilePath, TRUE);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
                                 // Update the file on disk with the new directed syntax graph.
-                                dgml.Save(dgmlFilePath);
+                                dgml?.Save(dgmlFilePath);
 
                                 // The below calls ensure that the file is refreshed inside Visual Studio
                                 // so that the latest contents are displayed to the user.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                                FileChangeService.SyncFile(dgmlFilePath);
+                                FileChangeService?.SyncFile(dgmlFilePath);
                                 persistDocDataService.ReloadDocData((uint)_VSRELOADDOCDATA.RDD_IgnoreNextFileChange);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
 
@@ -519,7 +531,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             else
             {
                 // Update the file on disk with the new directed syntax graph.
-                dgml.Save(dgmlFilePath);
+                dgml?.Save(dgmlFilePath);
 
                 // Open the new directed syntax graph in the 'design' view.
                 VsShellUtilities.OpenDocument(
@@ -532,18 +544,18 @@ namespace Roslyn.SyntaxVisualizer.Extension
                 // This ensures that the file won't be persisted in the .suo file and that it therefore won't get re-opened
                 // when the solution is re-opened.
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                SolutionService.AdviseSolutionEvents(this, out cookie);
+                SolutionService?.AdviseSolutionEvents(this, out cookie);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             }
         }
 
-        private void DisplaySyntaxNodeDgml(SyntaxNode node)
+        private void DisplaySyntaxNodeDgml(SyntaxNode? node)
         {
             if (activeWpfTextView != null)
             {
                 var snapshot = activeWpfTextView.TextBuffer.CurrentSnapshot;
                 var contentType = snapshot.ContentType;
-                XElement dgml = null;
+                XElement? dgml = null;
 
                 if (contentType.IsOfType(CSharpContentType) || contentType.IsOfType(VisualBasicContentType))
                 {
@@ -560,7 +572,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             {
                 var snapshot = activeWpfTextView.TextBuffer.CurrentSnapshot;
                 var contentType = snapshot.ContentType;
-                XElement dgml = null;
+                XElement? dgml = null;
 
                 if (contentType.IsOfType(CSharpContentType) || contentType.IsOfType(VisualBasicContentType))
                 {
@@ -577,7 +589,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             {
                 var snapshot = activeWpfTextView.TextBuffer.CurrentSnapshot;
                 var contentType = snapshot.ContentType;
-                XElement dgml = null;
+                XElement? dgml = null;
 
                 if (contentType.IsOfType(CSharpContentType) || contentType.IsOfType(VisualBasicContentType))
                 {
