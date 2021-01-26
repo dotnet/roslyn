@@ -22,7 +22,7 @@ efforts behind them.
 
 | Feature                                                                                            | Branch                                                                                                         | State                                                        | Developers                                                                   | Reviewer                                                                           | LDM Champ                               |
 |----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-----------------------------------------|
-| [Enable consumption of init-only properties](https://github.com/dotnet/roslyn/pull/50414) | master                                      | Merged (16.9p3)                                                  | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv)     
+| [Enable consumption of init-only properties](https://github.com/dotnet/roslyn/pull/50414) | master                                      | [Merged (16.9p3)](https://github.com/dotnet/roslyn/issues/50792)                                                  | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv)     
 
 # C# 9
 
