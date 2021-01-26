@@ -1,0 +1,10 @@
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.CSharpSourceGeneratorTest() -> void
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorVerifier<TSourceGenerator, TVerifier>
+Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorVerifier<TSourceGenerator, TVerifier>.CSharpSourceGeneratorVerifier() -> void
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.CreateGeneratorDriver(Microsoft.CodeAnalysis.Project project, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator> sourceGenerators) -> Microsoft.CodeAnalysis.GeneratorDriver
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.CreateParseOptions() -> Microsoft.CodeAnalysis.ParseOptions
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.DefaultFileExt.get -> string
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.GetSourceGenerators() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISourceGenerator>
+override Microsoft.CodeAnalysis.CSharp.Testing.CSharpSourceGeneratorTest<TSourceGenerator, TVerifier>.Language.get -> string

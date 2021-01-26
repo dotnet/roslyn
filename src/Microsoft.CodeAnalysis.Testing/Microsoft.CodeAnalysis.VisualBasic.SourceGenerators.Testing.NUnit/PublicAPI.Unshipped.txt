@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.VisualBasic.Testing.NUnit.SourceGeneratorVerifier(Of TSourceGenerator)
+Microsoft.CodeAnalysis.VisualBasic.Testing.NUnit.SourceGeneratorVerifier(Of TSourceGenerator).New() -> Void

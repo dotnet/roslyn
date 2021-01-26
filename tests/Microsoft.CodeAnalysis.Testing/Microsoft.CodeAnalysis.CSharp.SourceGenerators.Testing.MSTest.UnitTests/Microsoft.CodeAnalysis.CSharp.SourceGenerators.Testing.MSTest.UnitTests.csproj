@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(SourceGeneratorTestTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing\Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Testing.Utilities\Microsoft.CodeAnalysis.Testing.Utilities.csproj" />
+  </ItemGroup>
+</Project>

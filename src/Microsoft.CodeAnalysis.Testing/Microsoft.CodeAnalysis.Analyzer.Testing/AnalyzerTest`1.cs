@@ -966,7 +966,13 @@ namespace Microsoft.CodeAnalysis.Testing
         private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
             var solution = await GetSolutionAsync(primaryProject, additionalProjects, verifier, cancellationToken);
-            return await GetSortedDiagnosticsAsync(solution, analyzers, CompilerDiagnostics, cancellationToken);
+            var additionalDiagnostics = primaryProject.AdditionalDiagnostics;
+            foreach (var project in additionalProjects)
+            {
+                additionalDiagnostics = additionalDiagnostics.AddRange(project.AdditionalDiagnostics);
+            }
+
+            return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, cancellationToken);
         }
 
         /// <summary>
@@ -975,11 +981,12 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="solution">The <see cref="Solution"/> that the analyzer(s) will be run on.</param>
         /// <param name="analyzers">The analyzer to run on the documents.</param>
+        /// <param name="additionalDiagnostics">Additional diagnostics reported for the solution, which need to be verified.</param>
         /// <param name="compilerDiagnostics">The behavior of compiler diagnostics in validation scenarios.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<Diagnostic> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
         {
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
             foreach (var project in solution.Projects)
@@ -991,6 +998,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
             }
 
+            diagnostics.AddRange(additionalDiagnostics);
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
         }
