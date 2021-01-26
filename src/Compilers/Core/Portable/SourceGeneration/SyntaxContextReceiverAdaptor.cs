@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Wraps an <see cref="ISyntaxReceiver"/> in an <see cref="ISyntaxContextReceiver"/>
     /// </summary>
-    internal class SyntaxContextReceiverAdaptor : ISyntaxContextReceiver
+    internal sealed class SyntaxContextReceiverAdaptor : ISyntaxContextReceiver
     {
         public SyntaxContextReceiverAdaptor(ISyntaxReceiver? receiver)
         {

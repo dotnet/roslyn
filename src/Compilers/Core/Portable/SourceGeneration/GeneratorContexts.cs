@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
         }
 
-        private static void CheckIsEmpty<T>(T x, string? typeName = null)
+        private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class
         {
             if (x is object)
             {
