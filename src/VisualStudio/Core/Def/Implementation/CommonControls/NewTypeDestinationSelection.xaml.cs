@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public string SelectCurrentFileAsDestination => ServicesVSResources.Add_to_current_file;
         public string SelectNewFileAsDestination => ServicesVSResources.New_file_name_colon;
         public string NewTypeName => ServicesVSResources.New_Type_Name_colon;
+
         public NewTypeDestinationSelection()
         {
             ViewModel = NewTypeDestinationSelectionViewModel.Default;
