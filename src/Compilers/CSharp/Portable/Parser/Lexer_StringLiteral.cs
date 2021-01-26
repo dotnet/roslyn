@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (true)
                 {
                     //in "stringLiteralHoles" new lines are generally allowed - they belong not to the string itself
-                    if (IsAtEnd(isHole))
+                    if (IsAtEnd(isHole || (isVerbatim && allowNewlines)))
                     {
                         // the caller will complain
                         return;
