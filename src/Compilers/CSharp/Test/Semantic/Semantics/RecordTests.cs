@@ -27274,6 +27274,50 @@ public class Outer
         }
 
         [Fact]
+        [WorkItem(50040, "https://github.com/dotnet/roslyn/issues/50040")]
+        public void RaceConditionInAddMembers()
+        {
+            var src = @"
+#nullable enable
+using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+var collection = new Collection<Hamster>();
+Hamster h = null!;
+await collection.MethodAsync(entity => entity.Name! == ""bar"", h);
+
+public record Collection<T> where T : Document
+{
+    public Task MethodAsync<TDerived>(Expression<Func<TDerived, bool>> filter, TDerived td) where TDerived : T
+        => throw new NotImplementedException();
+
+    public Task MethodAsync<TDerived2>(Task<TDerived2> filterDefinition, TDerived2 td) where TDerived2 : T
+        => throw new NotImplementedException();
+}
+
+public sealed record HamsterCollection : Collection<Hamster>
+{
+}
+
+public abstract class Document
+{
+}
+
+public sealed class Hamster : Document
+{
+    public string? Name { get; private set; }
+}
+";
+
+            for (int i = 0; i < 100; i++)
+            {
+                var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc()
         {
