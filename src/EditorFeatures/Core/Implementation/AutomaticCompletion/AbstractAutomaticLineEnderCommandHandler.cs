@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// Add or remove the braces for <param name="selectedNode"/>.
         /// </summary>
-        protected abstract void ModifyBraces(AutomaticLineEnderCommandArgs args, Document document, SyntaxNode selectedNode, int caretPosition, CancellationToken cancellationToken);
+        protected abstract void ModifySelectedNode(AutomaticLineEnderCommandArgs args, Document document, SyntaxNode selectedNode, int caretPosition, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get the syntax node needs add/remove braces.
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 if (selectedNode != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    ModifyBraces(args, document, selectedNode, caretPosition, cancellationToken);
+                    ModifySelectedNode(args, document, selectedNode, caretPosition, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();
                     return;

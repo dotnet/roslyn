@@ -253,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = symbols[0];
             if (symbol.IsKind(SymbolKind.Method))
             {
+                // If this i
                 var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
                 if (!isInferredTypeDelegate)
                 {

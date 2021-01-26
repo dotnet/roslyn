@@ -689,8 +689,11 @@ $$
         {
             Test(@"class TestClass
 {
-    public int A { get; set }
-    $$
+    public int A { get; set
+        {
+            $$
+        }
+    }
 }", @"class TestClass
 {
     public int A { get; set$$ }
@@ -848,6 +851,23 @@ $$
 }");
         }
 
+        [WpfFact]
+        public void TestMulitpleNamespace()
+        {
+            Test($@"
+namespace Bar2
+{{
+    $$
+}}
+namespace Bar
+{{
+}}", $@"
+namespace B$$ar2$$
+namespace Bar
+{{
+}}");
+        }
+
         [WpfTheory]
         [InlineData("namespace")]
         [InlineData("class")]
@@ -866,7 +886,6 @@ pu$$blic {typeKeyword} $$Bar$$");
         }
 
         [WpfTheory]
-        [InlineData("namespace")]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("record")]
@@ -879,6 +898,7 @@ public {typeKeyword} Bar2
 {{
     $$
 }}
+
 public {typeKeyword} Bar
 {{
 }}", $@"
@@ -1226,7 +1246,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    public int P
+    public int this[int i]
     {
         get
         {
@@ -1267,7 +1287,7 @@ public class Bar
             Test(@"
 public class Bar
 {
-    public int P
+    public int this[int i]
     {
         get;
         set
@@ -1279,7 +1299,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    public int P
+    public int this[int i]
     {
         get;
         set
@@ -1303,7 +1323,8 @@ public class Bar
         {
             $$
         }
-        remove {}
+
+        remove { }
     }
 }", @"
 using System;
@@ -1312,7 +1333,7 @@ public class Bar
     public event EventHandler e
     {
         ad$$d
-        remove {}
+        remove { }
     }
 }");
         }
@@ -1331,7 +1352,7 @@ public class Bar
 
             $$
         }
-        remove {}
+        remove { }
     }
 }", @"
 using System;
@@ -1343,7 +1364,7 @@ public class Bar
         {
             $$
         }
-        remove {}
+        remove { }
     }
 }");
         }
@@ -1357,7 +1378,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add {}
+        add { }
         remove
         {
             $$
@@ -1369,7 +1390,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add {}
+        add { }
         remo$$ve
     }
 }");
@@ -1384,7 +1405,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add {}
+        add { }
         remove
         {
 
@@ -1397,7 +1418,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add {}
+        add { }
         remove
         {
             $$
@@ -1446,14 +1467,13 @@ public class Bar
 {
     public int iii;
     $$
-}
-", @"
+}", @"
 public class Bar
 {
     public int iii
-    {
+    {$$
         $$
-    }
+    $$}
 }");
         }
 
@@ -1485,8 +1505,7 @@ public class Bar
 {
     public event EventHandler cc;
     $$
-}
-", @"
+}", @"
 using System;
 public class Bar
 {
@@ -1508,7 +1527,7 @@ public class Bar
         var f = new Foo()
         {
             $$
-        };
+        }
     }
 }
 public class Foo
@@ -1538,10 +1557,10 @@ public class Bar
 {
     public void M()
     {
-        var f = new Foo
+        var f = new Foo()
         {
             $$
-        };
+        }
     }
 }
 public class Foo
@@ -1584,7 +1603,7 @@ public class Bar
 {
     public void M()
     {
-        var f = ne$$w Foo() { $$ }$$;
+        var f = ne$$w Fo$$o() { $$ };
     }
 }
 public class Foo
@@ -1606,6 +1625,7 @@ public class Bar
         {
             $$
         }
+
         var x = 1;
     }
 }", @"

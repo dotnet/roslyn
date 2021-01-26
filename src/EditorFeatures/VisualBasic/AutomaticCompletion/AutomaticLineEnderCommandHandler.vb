@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Return False
         End Function
 
-        Protected Overrides Sub ModifyBraces(args as AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, caretPosition As Integer, cancellationToken As CancellationToken)
+        Protected Overrides Sub ModifySelectedNode(args as AutomaticLineEnderCommandArgs, document As Document, selectedNode As SyntaxNode, caretPosition As Integer, cancellationToken As CancellationToken)
         End Sub
 
         Protected Overrides Function GetValidNodeToModifyBraces(document As Document, caretPosition As Integer, cancellationToken As CancellationToken) As SyntaxNode
