@@ -70,14 +70,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
-                using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken))
-                using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
-                {
-                    if (reader != null)
-                    {
-                        return checksum.GetHashData() == Checksum.HashData.ReadFrom(reader);
-                    }
-                }
+                using var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken);
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
+                
+                if (reader != null)
+                    return checksum == Checksum.HashData.ReadFrom(reader);
 
                 return false;
             }
