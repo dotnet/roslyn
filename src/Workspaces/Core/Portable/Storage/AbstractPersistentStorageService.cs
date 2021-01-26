@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Storage
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).GetAwaiter().GetResult();
+            => this.GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
-        async ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+        async ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
             => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
 
         async ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
