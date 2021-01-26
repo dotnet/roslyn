@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        private const int HashSize = 20;
+        public const int HashSize = 20;
 
         public static readonly Checksum Null = new(default);
 
@@ -146,6 +146,12 @@ namespace Microsoft.CodeAnalysis
 
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
+
+        public void WriteTo(Span<byte> span)
+        {
+            var copy = _checksum;
+            MemoryMarshal.Write(span, ref copy);
+        }
 
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
