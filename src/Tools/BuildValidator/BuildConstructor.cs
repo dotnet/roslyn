@@ -86,9 +86,16 @@ namespace BuildValidator
         {
             using var _ = _logger.BeginScope("Source Names");
             var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos();
+            var count = 0;
             foreach (var sourceFileInfo in sourceFileInfos)
             {
                 var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                count++;
+                if (count >= 10)
+                {
+                    _logger.LogInformation($"... {sourceFileInfos.Length - count} more");
+                    break;
+                }
                 _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithm} - {hash}");
             }
 

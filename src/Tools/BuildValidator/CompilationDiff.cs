@@ -47,10 +47,10 @@ namespace BuildValidator
             using var peStream = new MemoryStream();
 
             using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(
-                true,
+                versionResource: true,
                 noManifest: producedCompilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary,
-                null,
-                null);
+                manifestContents: null,
+                iconInIcoFormat: null);
             var emitResult = producedCompilation.Emit(
                 peStream: peStream,
                 win32Resources: win32ResourceStream,

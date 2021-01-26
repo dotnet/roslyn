@@ -2,5 +2,10 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Settings.props" />
-</Project>
 
+  <PropertyGroup>
+    <CscToolPath>$(RepoRoot)</CscToolPath>
+    <CscToolExe>csc.cmd</CscToolExe>
+    <UseSharedCompilation>false</UseSharedCompilation>
+  </PropertyGroup>
+</Project>

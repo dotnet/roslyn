@@ -110,11 +110,16 @@ namespace BuildValidator
             return (typeName, methodName);
         }
 
-        public IEnumerable<SourceFileInfo> GetSourceFileInfos()
+        public ImmutableArray<SourceFileInfo> GetSourceFileInfos()
         {
-            var map = new Dictionary<string, (string, byte[])>();
+            // TODO: can we give this utility an IVT to roslyn so it can just read these constants.
+            // Alternatively, since we consider the constants to be stable, can we make them public API?
+            var sourceFileCount = int.Parse(
+                GetMetadataCompilationOptions()
+                    .GetUniqueOption("source-file-count"));
 
-            foreach (var documentHandle in _metadataReader.Documents)
+            var builder = ImmutableArray.CreateBuilder<SourceFileInfo>(sourceFileCount);
+            foreach (var documentHandle in _metadataReader.Documents.Take(sourceFileCount))
             {
                 var document = _metadataReader.GetDocument(documentHandle);
                 var name = _metadataReader.GetString(document.Name);
@@ -133,18 +138,10 @@ namespace BuildValidator
                     hashAlgorithm = $"Unknown {hashAlgorithmGuid}";
                 }
                 var hash = _metadataReader.GetBlobBytes(document.Hash);
-                map[name] = (hashAlgorithm, hash);
+                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash));
             }
 
-            // PROTOTYPE: Cannot use Documents directly for return because it is not stored in compilation order.
-            var sourceFilePaths = GetMetadataCompilationOptions()
-                .GetUniqueOption("source-files")
-                .Split(';', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var sourceFilePath in sourceFilePaths)
-            {
-                var entry = map[sourceFilePath];
-                yield return new SourceFileInfo(sourceFilePath, entry.Item1, entry.Item2);
-            }
+            return builder.MoveToImmutable();
         }
 
         private static IEnumerable<MetadataReferenceInfo> ParseMetadataReferenceInfo(BlobReader blobReader)

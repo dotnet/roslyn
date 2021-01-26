@@ -148,26 +148,21 @@ namespace BuildValidator
 
         public static DirectoryInfo GetArtifactsDirectory()
         {
-            bool useSimpleProject = true;
-            if (useSimpleProject)
-            {
-                return new DirectoryInfo(TestData.ArtifactsDirectory);
-            }
+            // var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
+            // var binDir = Path.GetDirectoryName(assemblyLocation);
 
-            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            var binDir = Directory.GetParent(assemblyLocation);
+            // // todo: this is not portable to unix
+            // while (binDir != null && !binDir.EndsWith(@"artifacts\bin", FileNameEqualityComparer.StringComparison))
+            // {
+            //     binDir = Path.GetDirectoryName(binDir);
+            // }
 
-            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin", FileNameEqualityComparer.StringComparison))
-            {
-                binDir = binDir.Parent;
-            }
+            // if (binDir == null)
+            // {
+            //     throw new Exception(@"Tool was not launched from the artifacts\bin directory");
+            // }
 
-            if (binDir == null)
-            {
-                throw new Exception();
-            }
-
-            return binDir;
+            return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild");
         }
     }
 }
