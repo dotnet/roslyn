@@ -7,6 +7,8 @@
     <IsProductComponent>false</IsProductComponent>
     <UseWpf>true</UseWpf>
     <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <!-- Package References -->
