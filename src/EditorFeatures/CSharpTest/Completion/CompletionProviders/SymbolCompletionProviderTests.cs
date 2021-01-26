@@ -10938,7 +10938,7 @@ namespace Bar1
 }";
             await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionWithSemicolonUnderNameofContext()
         {

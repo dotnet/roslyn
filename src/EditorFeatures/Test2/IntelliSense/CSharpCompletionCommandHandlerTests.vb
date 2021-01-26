@@ -8079,7 +8079,6 @@ public unsafe class AA
             End Using
         End Function
 
-
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInPreprocessorIf(showCompletionInArgumentLists As Boolean) As Task
