@@ -294,6 +294,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
                     => _instance;
 
+                ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+                    => new(_instance);
+
                 internal class Storage : IPersistentStorage
                 {
                     private readonly Dictionary<object, Stream> _map = new Dictionary<object, Stream>();

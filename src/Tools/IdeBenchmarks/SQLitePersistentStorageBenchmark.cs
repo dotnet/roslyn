@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
@@ -69,7 +70,7 @@ namespace IdeBenchmarks
             _storageService = new SQLitePersistentStorageService(connectionPoolService, new LocationService());
 
             var solution = _workspace.CurrentSolution;
-            _storage = _storageService.GetStorageWorker(_workspace, (SolutionKey)solution, solution);
+            _storage = _storageService.GetStorageWorkerAsync(_workspace, (SolutionKey)solution, solution, CancellationToken.None).GetAwaiter().GetResult();
             if (_storage == NoOpPersistentStorage.Instance)
             {
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");

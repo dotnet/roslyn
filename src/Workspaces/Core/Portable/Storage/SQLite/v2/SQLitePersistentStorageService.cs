@@ -40,16 +40,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
         }
 
-        protected override Task<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
+        protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
             SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                return Task.FromResult<IChecksummedPersistentStorage?>(null);
+                return new((IChecksummedPersistentStorage?)null);
             }
 
-            return Task.FromResult<IChecksummedPersistentStorage?>(SQLitePersistentStorage.TryCreate(
+            return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
                 bulkLoadSnapshot,
                 workingFolderPath,

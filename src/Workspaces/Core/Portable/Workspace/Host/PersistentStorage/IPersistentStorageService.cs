@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Host
     {
         [Obsolete("Use GetStorageAsync instead", error: false)]
         IPersistentStorage GetStorage(Solution solution);
-        Task<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken);
+        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken);
     }
 
     internal interface IPersistentStorageService2 : IPersistentStorageService
     {
-        Task<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken);
-        Task<IPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken);
+        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken);
+        ValueTask<IPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken);
     }
 }
