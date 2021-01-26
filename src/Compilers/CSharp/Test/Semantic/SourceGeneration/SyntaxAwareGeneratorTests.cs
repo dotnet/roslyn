@@ -697,13 +697,9 @@ class D
             Assert.IsType<TestSyntaxReceiver>(receiver);
 
             TestSyntaxReceiver testReceiver = (TestSyntaxReceiver)receiver!;
-            Assert.Equal(42, testReceiver.VisitedNodes.Count);
-            Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
-            Assert.IsType<ClassDeclarationSyntax>(testReceiver.VisitedNodes[1]);
-            Assert.Equal("C", ((ClassDeclarationSyntax)testReceiver.VisitedNodes[1]).Identifier.Text);
-            Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[21]);
-            Assert.IsType<ClassDeclarationSyntax>(testReceiver.VisitedNodes[22]);
-            Assert.Equal("D", ((ClassDeclarationSyntax)testReceiver.VisitedNodes[22]).Identifier.Text);
+
+            var classDeclarations = testReceiver.VisitedNodes.OfType<ClassDeclarationSyntax>().Select(c => c.Identifier.Text);
+            Assert.Equal(new[] { "C", "D" }, classDeclarations);
         }
 
         [Fact]
@@ -759,13 +755,8 @@ class D
             Assert.IsType<TestSyntaxReceiver>(receiver);
 
             TestSyntaxReceiver testReceiver = (TestSyntaxReceiver)receiver!;
-            Assert.Equal(42, testReceiver.VisitedNodes.Count);
-            Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[0]);
-            Assert.IsType<ClassDeclarationSyntax>(testReceiver.VisitedNodes[1]);
-            Assert.Equal("C", ((ClassDeclarationSyntax)testReceiver.VisitedNodes[1]).Identifier.Text);
-            Assert.IsType<CompilationUnitSyntax>(testReceiver.VisitedNodes[21]);
-            Assert.IsType<ClassDeclarationSyntax>(testReceiver.VisitedNodes[22]);
-            Assert.Equal("D", ((ClassDeclarationSyntax)testReceiver.VisitedNodes[22]).Identifier.Text);
+            var classDeclarations = testReceiver.VisitedNodes.OfType<ClassDeclarationSyntax>().Select(c => c.Identifier.Text);
+            Assert.Equal(new[] { "C", "D" }, classDeclarations);
         }
 
         [Fact]
