@@ -42,10 +42,10 @@ class C
             var nonNullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[0]).Symbol;
             var nullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
 
-            Assert.Equal(nonNullPlus.ImplementationAttributes, MethodImplAttributes.IL);
-            Assert.Equal(nonNullPlus.ImplementationAttributes, MethodImplAttributes.Managed);
-            Assert.Equal(nullPlus.ImplementationAttributes, MethodImplAttributes.IL);
-            Assert.Equal(nullPlus.ImplementationAttributes, MethodImplAttributes.Managed);
+            Assert.Equal(MethodImplAttributes.IL, nonNullPlus.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.Managed, nonNullPlus.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.IL, nullPlus.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.Managed, nullPlus.ImplementationAttributes);
 
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus.GetSymbol());
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus.GetSymbol());
@@ -93,10 +93,10 @@ class C
             var nullStringExt = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
             Assert.NotNull(nullStringExt);
 
-            Assert.Equal(nonNullStringExt.ImplementationAttributes, MethodImplAttributes.IL);
-            Assert.Equal(nonNullStringExt.ImplementationAttributes, MethodImplAttributes.Managed);
-            Assert.Equal(nullStringExt.ImplementationAttributes, MethodImplAttributes.IL);
-            Assert.Equal(nullStringExt.ImplementationAttributes, MethodImplAttributes.Managed);
+            Assert.Equal(MethodImplAttributes.IL, nonNullStringExt.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.Managed, nonNullStringExt.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.IL, nullStringExt.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.Managed, nullStringExt.ImplementationAttributes);
 
             Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt.GetSymbol());
             Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt.GetSymbol());
@@ -920,6 +920,164 @@ public class A<T>
             VerifyEquality(event1ContainingType, event2ContainingType,
                 expectedIncludeNullability: false
                 );
+        }
+
+        [Fact]
+        public void TestImplementationAttributes_Inlining()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void M_Aggressive()
+    {
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public void M_NoInlining()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var aggressiveInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_Aggressive", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.AggressiveInlining, aggressiveInliningMethod.ImplementationAttributes);
+
+            var noInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_NoInlining", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.ImplementationAttributes);
+        }
+
+
+        [Fact]
+        public void TestImplementationAttributes_Optimization()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [MethodImpl((MethodImplOptions)512)] // Aggressive optimization
+    public void M_Aggressive()
+    {
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    public void M_NoOptimization()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var aggressiveOptimizationMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_Aggressive", SymbolFilter.Member).Single();
+#if !NET472 // MethodImplAttributes.AggressiveOptimization was introduced in .NET Core 3
+            Assert.Equal(MethodImplAttributes.AggressiveOptimization, aggressiveOptimizationMethod.ImplementationAttributes);
+#else
+            Assert.Equal((MethodImplAttributes)512, aggressiveOptimizationMethod.ImplementationAttributes);
+#endif
+
+            var noOptimizationMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_NoOptimization", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.NoOptimization, noOptimizationMethod.ImplementationAttributes);
+        }
+
+        [Fact]
+        public void TestImplementationAttributes_OptimizationWithInlining()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [MethodImpl((MethodImplOptions)512 | MethodImplOptions.NoInlining)] // aggressive optimization and no inlining
+    public void M_AggressiveOpt_NoInlining()
+    {
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+    public void M_NoOpt_NoInlining()
+    {
+    }
+
+    [MethodImpl((MethodImplOptions)512 | MethodImplOptions.AggressiveInlining)] // aggressive optimization and aggressive inlining
+    public void M_AggressiveOpt_AggressiveInlining()
+    {
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.AggressiveInlining)]
+    public void M_NoOpt_AggressiveInlining()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var aggressiveOptNoInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_AggressiveOpt_NoInlining", SymbolFilter.Member).Single();
+#if !NET472 // MethodImplAttributes.AggressiveOptimization was introduced in .NET Core 3
+            Assert.Equal(MethodImplAttributes.AggressiveOptimization | MethodImplAttributes.NoInlining, aggressiveOptNoInliningMethod.ImplementationAttributes);
+#else
+            Assert.Equal((MethodImplAttributes)512 | MethodImplAttributes.NoInlining, aggressiveOptNoInliningMethod.ImplementationAttributes);
+#endif
+
+            var noOptNoInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_NoOpt_NoInlining", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.NoOptimization | MethodImplAttributes.NoInlining, noOptNoInliningMethod.ImplementationAttributes);
+
+            var aggressiveOptAggressiveInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_AggressiveOpt_AggressiveInlining", SymbolFilter.Member).Single();
+#if !NET472
+            Assert.Equal(MethodImplAttributes.AggressiveOptimization | MethodImplAttributes.AggressiveInlining, aggressiveOptAggressiveInliningMethod.ImplementationAttributes);
+#else
+            Assert.Equal((MethodImplAttributes)512 | MethodImplAttributes.AggressiveInlining, aggressiveOptAggressiveInliningMethod.ImplementationAttributes);
+#endif
+
+            var noOptAggressiveInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_NoOpt_AggressiveInlining", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.NoOptimization | MethodImplAttributes.AggressiveInlining, noOptAggressiveInliningMethod.ImplementationAttributes);
+        }
+
+        [Fact]
+        public void TestImplementationAttributes_PreserveSigAndRuntime()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [MethodImpl(MethodImplOptions.PreserveSig, MethodCodeType = MethodCodeType.Runtime)]
+    public void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("M", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.PreserveSig | MethodImplAttributes.Runtime, method.ImplementationAttributes);
+        }
+
+        [Fact]
+        public void TestImplementationAttributes_Native()
+        {
+            var src = @"
+using System.Runtime.CompilerServices;
+
+public class C
+{
+    [MethodImpl(MethodCodeType = MethodCodeType.Native)]
+    public void M()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            var method = (IMethodSymbol)comp.GetSymbolsWithName("M", SymbolFilter.Member).Single();
+            Assert.Equal(MethodImplAttributes.Native, method.ImplementationAttributes);
         }
 
         private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedIncludeNullability)
