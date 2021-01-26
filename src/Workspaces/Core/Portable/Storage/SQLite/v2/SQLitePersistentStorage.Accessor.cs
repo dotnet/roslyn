@@ -63,23 +63,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Checksum?> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
+            public Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    static t => t.self.ReadChecksum(t.key, t.cancellationToken),
-                    (self: this, key, cancellationToken), cancellationToken);
+                    static t => t.self.ChecksumMatches(t.key, t.checksum, t.cancellationToken),
+                    (self: this, key, checksum, cancellationToken), cancellationToken);
 
-            private Checksum? ReadChecksum(TKey key, CancellationToken cancellationToken)
+            private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken))
                 {
                     if (reader != null)
                     {
-                        return Checksum.ReadFrom(reader);
+                        return checksum.GetHashData() == Checksum.HashData.ReadFrom(reader);
                     }
                 }
 
-                return null;
+                return false;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
