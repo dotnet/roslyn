@@ -168,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 else if (location.IsInSource)
                 {
                     var solution = document.Project.Solution;
-                    var sourceDocument = solution.GetDocument(location.SourceTree);
-                    if (sourceDocument == null)
+                    var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
+
+                    if (sourceDocument is SourceGeneratedDocument)
                     {
-                        // The file is generated so we can't go editing it (for now). See https://github.com/dotnet/roslyn/issues/42823
-                        // for tracking places that may need to be updated.
+                        // The file is generated so we can't go editing it (for now)
                         return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                     }
 
