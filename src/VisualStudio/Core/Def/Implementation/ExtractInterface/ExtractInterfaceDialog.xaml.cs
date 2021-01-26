@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         public string DeselectAll { get { return ServicesVSResources.Deselect_All; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
-        public NewTypeDestinationSelection DestinationControl { get; }
 
         // Use C# Extract Interface helpTopic for C# and VB.
         internal ExtractInterfaceDialog(ExtractInterfaceDialogViewModel viewModel)
@@ -38,15 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             ViewModel = viewModel;
             SetCommandBindings();
 
-            Loaded += ExtractInterfaceDialog_Loaded;
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
             DataContext = viewModel;
-        }
-
-        private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
-        {
-            DestinationControl.Focus();
         }
 
         private void SetCommandBindings()

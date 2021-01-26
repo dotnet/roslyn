@@ -40,7 +40,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <controls:NewTypeDestinationSelection Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
+        <controls:NewTypeDestinationSelection x:Name="DestinationControl"  Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
 
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"
