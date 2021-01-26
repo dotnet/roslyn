@@ -54,13 +54,13 @@ namespace IdeCoreBenchmarks
             _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
-            var storageService = _workspace.Services.GetService<IPersistentStorageService>();
+            var storageService = (IPersistentStorageService2)_workspace.Services.GetService<IPersistentStorageService>();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            using var storage = storageService.GetStorage(_workspace.CurrentSolution);
+            using var storage = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         [GlobalCleanup]

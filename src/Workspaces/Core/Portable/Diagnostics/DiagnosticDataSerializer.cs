@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             Version = version;
         }
 
-        public async Task<bool> SerializeAsync(IPersistentStorageService persistentService, Project project, TextDocument? textDocument, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        public async Task<bool> SerializeAsync(IPersistentStorageService2 persistentService, Project project, TextDocument? textDocument, string key, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 WriteDiagnosticData(writer, items, cancellationToken);
             }
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            using var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
 
             stream.Position = 0;
 
@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         private static string GetSerializationKeyForNonSourceDocument(TextDocument document, string key)
             => document.Id + ";" + key;
 
-        public async ValueTask<ImmutableArray<DiagnosticData>> DeserializeAsync(IPersistentStorageService persistentService, Project project, TextDocument? textDocument, string key, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<DiagnosticData>> DeserializeAsync(IPersistentStorageService2 persistentService, Project project, TextDocument? textDocument, string key, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            using var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
 
             var readTask = (textDocument != null) ?
                 textDocument is Document document ?

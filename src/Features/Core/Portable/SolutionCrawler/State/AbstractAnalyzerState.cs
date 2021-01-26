@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // we have persisted data
             var solution = GetSolution(value);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             try
             {
-                using var storage = persistService.GetStorage(solution);
+                using var storage = await persistService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false);
 
                 if (stream != null)
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             WriteTo(stream, data, cancellationToken);
 
             var solution = GetSolution(value);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            using var storage = persistService.GetStorage(solution);
+            using var storage = await persistService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
             stream.Position = 0;
             return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
         }

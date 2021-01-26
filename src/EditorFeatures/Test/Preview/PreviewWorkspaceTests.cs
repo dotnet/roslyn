@@ -119,15 +119,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
-        public void TestPreviewServices()
+        public async Task TestPreviewServices()
         {
             using var previewWorkspace = new PreviewWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices());
             var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             Assert.IsType<PreviewSolutionCrawlerRegistrationServiceFactory.Service>(service);
 
-            var persistentService = previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentService = (IPersistentStorageService2)previewWorkspace.Services.GetRequiredService<IPersistentStorageService>();
 
-            using var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
+            using var storage = await persistentService.GetStorageAsync(previewWorkspace.CurrentSolution, CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -24,10 +24,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
         public IPersistentStorage GetStorage(Solution solution)
             => NoOpPersistentStorage.Instance;
 
-        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+            => new(NoOpPersistentStorage.Instance);
 
-        IPersistentStorage IPersistentStorageService2.GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId)
-            => NoOpPersistentStorage.Instance;
+        public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
+            => new(NoOpPersistentStorage.Instance);
+
+        ValueTask<IPersistentStorage> IPersistentStorageService2.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => new(NoOpPersistentStorage.Instance);
     }
 }
