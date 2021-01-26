@@ -240,6 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 supportedPlatformData);
 
             var symbol = symbols[0].symbol;
+            // If it is a method symbol, also consider appending parenthesis when later, it is committed by using special characters.
+            // 2 cases are excluded.
+            // 1. If it is invoked under Nameof Context.
+            // For example: var a = nameof(Bar$$)
+            // In this case, if later committed by semicolon, we should have
+            // var a = nameof(Bar);
+            // 2. If the inferred type is delegate or function pointer.
+            // e.g. Action c = Bar$$
+            // In this case, if later committed by semicolon, we should have
+            // e.g. Action c = = Bar;
             if (symbol.IsKind(SymbolKind.Method) && !context.IsNameOfContext)
             {
                 var isInferredTypeDelegateOrFunctionPointer = context.InferredTypes.Any(type => type.IsDelegateType() || type.IsFunctionPointerType());
@@ -250,6 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
             else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
             {
+                // If this is a type symbol/alias symbol, also consider appending parenthesis when later, it is committed by using special characters,
+                // and the type is used as constructor
                 if (context.IsObjectCreationTypeContext)
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
             }
