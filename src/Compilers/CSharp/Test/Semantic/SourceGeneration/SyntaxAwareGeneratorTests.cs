@@ -135,17 +135,19 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            ISyntaxContextReceiver? receiver = null;
+            ISyntaxReceiver? syntaxReceiver = null;
+            ISyntaxContextReceiver? contextReceiver = null;
 
             var testGenerator = new CallbackGenerator(
                 onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver()),
-                onExecute: (e) => receiver = e.SyntaxContextReceiver
+                onExecute: (e) => { syntaxReceiver = e.SyntaxReceiver; contextReceiver = e.SyntaxContextReceiver; }
                 );
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
-            Assert.Null(receiver);
+            Assert.Null(contextReceiver);
+            Assert.NotNull(syntaxReceiver);
         }
 
         [Fact]
@@ -160,17 +162,19 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            ISyntaxReceiver? receiver = null;
+            ISyntaxReceiver? syntaxReceiver = null;
+            ISyntaxContextReceiver? contextReceiver = null;
 
             var testGenerator = new CallbackGenerator(
                 onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver()),
-                onExecute: (e) => receiver = e.SyntaxReceiver
+                onExecute: (e) => { syntaxReceiver = e.SyntaxReceiver; contextReceiver = e.SyntaxContextReceiver; }
                 );
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
-            Assert.Null(receiver);
+            Assert.Null(syntaxReceiver);
+            Assert.NotNull(contextReceiver);
         }
 
         [Fact]

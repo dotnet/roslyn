@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         public void RegisterForSyntaxNotifications(SyntaxReceiverCreator receiverCreator)
         {
             CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
-            InfoBuilder.SyntaxContextReceiverCreator = () => new SyntaxContextReceiverAdaptor(receiverCreator());
+            InfoBuilder.SyntaxContextReceiverCreator = SyntaxContextReceiverAdaptor.Create(receiverCreator);
         }
 
         /// <summary>
