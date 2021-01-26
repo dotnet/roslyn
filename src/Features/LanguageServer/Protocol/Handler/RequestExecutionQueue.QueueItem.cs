@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly Func<RequestContext, CancellationToken, Task> CallbackAsync;
 
-            /// <inheritdoc cref="ExportLspRequestHandlerProviderAttribute.MutatesSolutionState" />
+            /// <inheritdoc cref="LspMethodAttribute.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
 
             /// <inheritdoc cref="RequestContext.ClientName" />
