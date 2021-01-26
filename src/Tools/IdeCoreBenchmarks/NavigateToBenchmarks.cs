@@ -54,7 +54,7 @@ namespace IdeCoreBenchmarks
             _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
-            var storageService = _workspace.Services.GetService<IPersistentStorageService>();
+            var storageService = (IPersistentStorageService2)_workspace.Services.GetService<IPersistentStorageService>();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 

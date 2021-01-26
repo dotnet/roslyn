@@ -56,7 +56,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetService<IPersistentStorageService>();
+            var storageService = (IPersistentStorageService2)_workspace.Services.GetService<IPersistentStorageService>();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 

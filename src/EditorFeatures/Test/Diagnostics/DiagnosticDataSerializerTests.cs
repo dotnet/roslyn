@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var key = "document";
 
-            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentService = (IPersistentStorageService2)workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
             Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var version = VersionStamp.Create(utcTime.AddDays(1));
 
             var key = "project";
-            var persistentService = workspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentService = (IPersistentStorageService2)workspace.Services.GetRequiredService<IPersistentStorageService>();
             var serializer = new CodeAnalysis.Workspaces.Diagnostics.DiagnosticDataSerializer(analyzerVersion, version);
 
             Assert.True(await serializer.SerializeAsync(persistentService, document.Project, document, key, diagnostics, CancellationToken.None).ConfigureAwait(false));
@@ -289,17 +289,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public class Service : IPersistentStorageService
             {
-                private readonly Storage _instance = new Storage();
+                private readonly Storage _instance = new();
 
                 IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
                     => _instance;
 
-                ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-                    => new(_instance);
-
                 internal class Storage : IPersistentStorage
                 {
-                    private readonly Dictionary<object, Stream> _map = new Dictionary<object, Stream>();
+                    private readonly Dictionary<object, Stream> _map = new();
 
                     public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                     {
