@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -72,10 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
-        protected override async Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
-        {
-            return await tree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(false) &&
-                   tree.IsPreProcessorKeywordContext(position, cancellationToken);
-        }
+        protected override bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            => tree.IsBeforeFirstToken(position, cancellationToken) &&
+               tree.IsPreProcessorKeywordContext(position, cancellationToken);
     }
 }

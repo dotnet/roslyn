@@ -80,6 +80,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // local functions
             static bool ShouldInclude(INavigableItem item, bool typeOnly)
             {
+                if (item.Glyph is Glyph.Namespace)
+                {
+                    // Never return namespace symbols as part of the go to definition result.
+                    return false;
+                }
+
                 if (!typeOnly)
                 {
                     return true;

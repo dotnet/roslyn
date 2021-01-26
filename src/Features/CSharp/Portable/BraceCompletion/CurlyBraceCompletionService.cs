@@ -93,10 +93,20 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return null;
             }
 
+            var openingPointLine = originalDocumentText.Lines.GetLineFromPosition(openingPoint).LineNumber;
+            var closingPointLine = originalDocumentText.Lines.GetLineFromPosition(closingPoint).LineNumber;
+
+            // If there are already multiple empty lines between the braces, don't do anything.
+            // We need to allow a single empty line between the braces to account for razor scenarios where they insert a line.
+            if (closingPointLine - openingPointLine > 2)
+            {
+                return null;
+            }
+
             // If there is not already an empty line inserted between the braces, insert one.
             TextChange? newLineEdit = null;
             var textToFormat = originalDocumentText;
-            if (ShouldAddEmptyLineBetweenBraces(openingPoint, closingPoint, originalDocumentText))
+            if (closingPointLine - openingPointLine == 1)
             {
                 var newLineString = documentOptions.GetOption(FormattingOptions2.NewLine);
                 newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
@@ -131,16 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
             var overallChanges = newLineEdit != null ? GetMergedChanges(newLineEdit.Value, formattingChanges, formattedText) : formattingChanges;
             return new BraceCompletionResult(overallChanges, caretPosition);
-
-            static bool ShouldAddEmptyLineBetweenBraces(int openingPoint, int closingPoint, SourceText sourceText)
-            {
-                var openingPointLine = sourceText.Lines.GetLineFromPosition(openingPoint).LineNumber;
-                var closingPointLine = sourceText.Lines.GetLineFromPosition(closingPoint).LineNumber;
-
-                // Only insert an empty new line between the braces if the closing brace is
-                // on the line immediately below the opening point.
-                return closingPointLine - 1 == openingPointLine;
-            }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
