@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// the folder structure. If a document is located in { "Bat" , "Bar", "Baz" } then the namespace could be 
         /// "Bat.Bar.Baz". If a rootNamespace is provided, it is prepended to the generated namespace.
         /// 
-        /// Returns null if the folders contain parts that are invalid identifiers for a namespace AND the rootNamespace is null.
+        /// Returns null if the folders contain parts that are invalid identifiers for a namespace.
         /// </summary>
         public static string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts, string? rootNamespace = null)
         {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             if (constructedNamespace is null)
             {
-                return rootNamespace;
+                return null;
             }
 
             if (string.IsNullOrEmpty(rootNamespace))

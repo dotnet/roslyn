@@ -16,15 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceMatchFolder
     public class CSharpNamespaceMatchFolderTests
     {
         private static readonly string Directory = Path.Combine("Test", "Directory");
+
+        // DefaultNamespace gets exposed as RootNamespace in the build properties
+        private const string DefaultNamespace = "Test.Root.Namespace";
+
         private static readonly string EditorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
+build_property.RootNamespace = {DefaultNamespace}
 ";
 
         private static string CreateFolderPath(params string[] folders)
             => Path.Combine(Directory, Path.Combine(folders));
 
-        private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorconfig = null, string? fixedCode = null)
+        private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorConfig = null, string? fixedCode = null)
         {
             var filePath = Path.Combine(directory ?? Directory, fileName);
             fixedCode ??= fileContents;
@@ -32,7 +37,7 @@ build_property.ProjectDir = {Directory}
             return RunTestAsync(
                 new[] { (filePath, fileContents) },
                 new[] { (filePath, fixedCode) },
-                editorconfig);
+                editorConfig);
         }
 
         private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null)
@@ -122,13 +127,13 @@ namespace A.B
         {
             var folder = CreateFolderPath(new[] { "A", "B" });
             var code =
-@"
-namespace a.b
-{    
+@$"
+namespace {DefaultNamespace}.a.b
+{{    
     class Class1
-    {
-    }
-}";
+    {{
+    }}
+}}";
 
             return RunTestAsync(
                 "File1.cs",
@@ -149,12 +154,12 @@ namespace a.b
 }";
 
             var fixedCode =
-@"namespace B.C
-{
+@$"namespace {DefaultNamespace}.B.C
+{{
     class Class1
-    {
-    }
-}";
+    {{
+    }}
+}}";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
@@ -163,11 +168,16 @@ namespace a.b
         }
 
         [Fact]
-        public async Task NamespaceWithSpaces_NoDiagnostic()
+        public async Task SingleDocumentNoReference_NoDefaultNamespace()
         {
+            var editorConfig = @$"
+is_global=true
+build_property.ProjectDir = {Directory}
+";
+
             var folder = CreateFolderPath("B", "C");
             var code =
-@"namespace [|A    .     B|]
+@"namespace [|A.B|]
 {
     class Class1
     {
@@ -175,17 +185,36 @@ namespace a.b
 }";
 
             var fixedCode =
-@"namespace B.C
-{
+@$"namespace B.C
+{{
     class Class1
-    {
-    }
-}";
+    {{
+    }}
+}}";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
                 directory: folder,
-                fixedCode: fixedCode);
+                fixedCode: fixedCode,
+                editorConfig: editorConfig);
+        }
+
+        [Fact]
+        public async Task NamespaceWithSpaces_NoDiagnostic()
+        {
+            var folder = CreateFolderPath("A", "B");
+            var code =
+@$"namespace {DefaultNamespace}.A    .     B
+{{
+    class Class1
+    {{
+    }}
+}}";
+
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder);
         }
 
         [Fact]
@@ -298,22 +327,22 @@ namespace [|{@namespace}|]
 }}";
 
             var expected =
-@"namespace A.B.C
-{
+@$"namespace {DefaultNamespace}.A.B.C
+{{
     delegate void D1();
 
     interface Class1
-    {
+    {{
         void M1();
-    }
+    }}
 
     class Class2 : Class1
-    {
+    {{
         D1 d;
 
-        void Class1.M1() { }
-    }
-}";
+        void Class1.M1() {{ }}
+    }}
+}}";
 
             await RunTestAsync(
                 "Class1.cs",
@@ -358,31 +387,31 @@ $@"namespace NS1
 }}";
 
             var fixed1 =
-@"namespace A.B.C
-{
+@$"namespace {DefaultNamespace}.A.B.C
+{{
     class Class1
-    {
-    }
-}";
+    {{
+    }}
+}}";
 
             var fixed2 =
-@"namespace NS1
-{
-    using A.B.C;
+@$"namespace NS1
+{{
+    using {DefaultNamespace}.A.B.C;
 
     class Class2
-    {
+    {{
         Class1 c2;
-    }
+    }}
 
     namespace NS2
-    {
+    {{
         class Class2
-        {
+        {{
             Class1 c1;
-        }
-    }
-}";
+        }}
+    }}
+}}";
 
             var originalSources = new[]
             {
@@ -402,7 +431,7 @@ $@"namespace NS1
         [Fact]
         public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
         {
-            var declaredNamespace = "Bar.Baz";
+            var declaredNamespace = $"Bar.Baz";
 
             var folder = CreateFolderPath("A", "B", "C");
             var code1 =
@@ -427,25 +456,25 @@ namespace Foo
 }}";
 
             var fixed1 =
-@"namespace A.B.C
-{
+@$"namespace {DefaultNamespace}.A.B.C
+{{
     class Class1
-    {
-    }
-}";
+    {{
+    }}
+}}";
 
             var fixed2 =
-@"
+@$"
 using System;
-using Class1Alias = A.B.C.Class1;
+using Class1Alias = {DefaultNamespace}.A.B.C.Class1;
 
 namespace Foo
-{
+{{
     class RefClass
-    {
+    {{
         private Class1Alias c1;
-    }
-}";
+    }}
+}}";
 
             var originalSources = new[]
             {
@@ -468,13 +497,13 @@ namespace Foo
             var declaredNamespace = "Bar.Baz";
 
             var folder1 = CreateFolderPath("A", "B", "C");
-            var fixedNamespace1 = "A.B.C";
+            var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
 
             var folder2 = CreateFolderPath("Second", "Folder", "Path");
-            var fixedNamespace2 = "Second.Folder.Path";
+            var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
 
             var folder3 = CreateFolderPath("Third", "Folder", "Path");
-            var fixedNamespace3 = "Third.Folder.Path";
+            var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
 
             var code1 =
 $@"namespace [|{declaredNamespace}|]

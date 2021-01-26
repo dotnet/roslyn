@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         public const string ProjectDirOption = "build_property.ProjectDir";
         public const string TargetNamespace = "TargetNamespace";
 
-        private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableTitle = new(
           nameof(AnalyzersResources.Namespace_does_not_match_folder_structure), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableInsideMessage = new(
             nameof(AnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractNamespaceMatchFolderDiagnosticAnalyzer()
@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
     internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceMatchFolderDiagnosticAnalyzer
         where TNamespaceSyntax : SyntaxNode
     {
+        private static readonly SymbolDisplayFormat s_namespaceDisplayFormat = SymbolDisplayFormat
+            .FullyQualifiedFormat
+            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
+
         /// <summary>
         /// Gets the language specific syntax facts
         /// </summary>
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             if (context.Node is TNamespaceSyntax namespaceDecl)
             {
-                var currentNamespace = GetNamespaceName(namespaceDecl, rootNamespace);
+                var currentNamespace = GetNamespaceName(context.SemanticModel, namespaceDecl);
 
                 if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
@@ -85,11 +89,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 }
             }
 
-            string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string? rootNamespace)
+            static string GetNamespaceName(SemanticModel semanticModel, SyntaxNode namespaceSyntax)
             {
-                var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
-                var syntaxFacts = GetSyntaxFacts();
-                return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None, rootNamespace);
+                var symbol = semanticModel.GetDeclaredSymbol(namespaceSyntax);
+                RoslynDebug.AssertNotNull(symbol);
+
+                return symbol.ToDisplayString(s_namespaceDisplayFormat);
             }
         }
 
