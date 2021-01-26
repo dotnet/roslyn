@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Defines a metadata attribute for <see cref="IRequestHandler{RequestType, ResponseType}"/>
     /// to use to specify the kind of LSP request the handler accepts.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class)]
     internal class LspMethodAttribute : Attribute, ILspMethodMetadata
     {
         /// <summary>
