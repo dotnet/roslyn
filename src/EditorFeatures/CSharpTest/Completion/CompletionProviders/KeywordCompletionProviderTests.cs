@@ -514,5 +514,18 @@ class C
             await VerifyItemExistsAsync(markup, "set");
             await VerifyItemIsAbsentAsync(markup, "void");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestReadonlyMethodInStruct()
+        {
+
+            var markup =
+@"struct C {
+    public $$ void M() {}
+}
+";
+            await VerifyItemExistsAsync(markup, "readonly");
+        }
     }
 }
