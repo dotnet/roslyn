@@ -23,8 +23,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             string projectAssetsFilePath,
             string targetFrameworkMoniker)
         {
+            if (!File.Exists(projectAssetsFilePath))
+            {
+                return ImmutableArray<ReferenceInfo>.Empty;
+            }
+
             var projectAssetsFileContents = File.ReadAllText(projectAssetsFilePath);
-            var projectAssets = JsonConvert.DeserializeObject<ProjectAssetsFile>(projectAssetsFileContents);
+            ProjectAssetsFile projectAssets;
+
+            try
+            {
+                projectAssets = JsonConvert.DeserializeObject<ProjectAssetsFile>(projectAssetsFileContents);
+            }
+            catch
+            {
+                return ImmutableArray<ReferenceInfo>.Empty;
+            }
 
             if (projectAssets is null ||
                 projectAssets.Version != 3)
@@ -55,19 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private static ReferenceInfo? BuildReference(
             ProjectAssetsFile projectAssets,
             Dictionary<string, ProjectAssetsTargetLibrary> target,
-            ReferenceInfo projectReference,
+            ReferenceInfo referenceInfo,
             ImmutableHashSet<string> autoReferences)
         {
-            var referenceName = projectReference.ReferenceType == ReferenceType.Project
-                ? Path.GetFileNameWithoutExtension(projectReference.ItemSpecification)
-                : projectReference.ItemSpecification;
+            var referenceName = referenceInfo.ReferenceType == ReferenceType.Project
+                ? Path.GetFileNameWithoutExtension(referenceInfo.ItemSpecification)
+                : referenceInfo.ItemSpecification;
 
             if (autoReferences.Contains(referenceName))
             {
                 return null;
             }
 
-            return BuildReference(projectAssets, target, referenceName, projectReference.TreatAsUsed);
+            return BuildReference(projectAssets, target, referenceName, referenceInfo.TreatAsUsed);
         }
 
         private static ReferenceInfo? BuildReference(
