@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     {
         internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector)
         {
-            return new VisualStudio.
+            throw new NotImplementedException();
         }
     }
     /// <remarks>
