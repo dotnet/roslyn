@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IClassificationTypeRegistryService classificationTypeRegistryService)
         {
             _renameService = renameService;
-            _classificationType = classificationTypeRegistryService.GetClassificationType(RenameClassificationTypeNames.InlineRenameField);
+            _classificationType = classificationTypeRegistryService.GetClassificationType(ClassificationTypeDefinitions.InlineRenameField);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag

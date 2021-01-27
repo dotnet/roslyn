@@ -4,12 +4,15 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+
+#if !COCOA
+using System.Linq;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
         }
 
+#if !COCOA
         protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
             => GetDashboard(textView) is { } dashboard && dashboard.ShouldReceiveKeyboardNavigation;
 
@@ -81,5 +85,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
         }
+#else
+        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
+            => false;
+
+        protected override void TextViewFocus(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void DashboardFocus(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void DashboardFocusNextElement(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void DashboardFocusPreviousElement(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+#endif
     }
 }
