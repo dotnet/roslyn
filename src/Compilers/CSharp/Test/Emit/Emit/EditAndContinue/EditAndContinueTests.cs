@@ -10502,5 +10502,55 @@ public class Program
     }
 ");
         }
+
+        [Fact]
+        public void Records_AddAndRemoveWellKnownMembers()
+        {
+            var source0 =
+@"
+namespace N
+{
+    record R(int X)
+    {
+        public override string ToString()
+        {
+            return ""R"";
+        }
+    }
+}
+";
+            var source1 =
+@"
+namespace N
+{
+    record R(int X, int Y)
+    {
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(new[] { source1, IsExternalInitTypeDefinition });
+
+            var toString0 = compilation0.GetMember<MethodSymbol>("N.R.ToString");
+            var toString1 = compilation1.GetMember<MethodSymbol>("N.R.ToString");
+
+            var v0 = CompileAndVerify(compilation0);
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, toString0, toString1)));
+
+            diff1.VerifySynthesizedMembers(
+                "<global namespace>: {Microsoft}",
+                "Microsoft: {CodeAnalysis}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+        }
     }
 }
