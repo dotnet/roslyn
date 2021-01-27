@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Storage
 {
     internal class ProjectCacheContainerKey
     {
+        private static readonly ImmutableSortedDictionary<string, string?> EmptyDimensions = ImmutableSortedDictionary.Create<string, string?>(StringComparer.Ordinal);
+
         /// <summary>
         /// Container key explicitly for the project itself.
         /// </summary>
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (relativePath == projectFilePath)
                 return mustSucceed ? throw new InvalidOperationException($"'{projectFilePath}' wasn't relative to '{relativePathBase}'") : null;
 
-            var dimensions = ImmutableSortedDictionary<string, string?>.Empty
+            var dimensions = EmptyDimensions
                 .Add(nameof(projectName), projectName)
                 .Add(nameof(projectFilePath), relativePath);
 
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (relativePath == documentFilePath)
                 return mustSucceed ? throw new InvalidOperationException($"'{documentFilePath}' wasn't relative to '{relativePathBase}'") : null;
 
-            var dimensions = projectKey.Value.Dimensions
+            var dimensions = EmptyDimensions
                 .Add(nameof(documentFilePath), relativePath)
                 .Add(nameof(documentName), documentName);
 
