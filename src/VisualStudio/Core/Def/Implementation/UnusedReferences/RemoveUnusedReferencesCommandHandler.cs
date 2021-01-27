@@ -101,10 +101,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             {
                 Project? project = null;
                 ImmutableArray<ReferenceUpdate> referenceUpdates = default;
-                _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Analyzing_project_references, allowCancellation: true, showProgress: true, (operationContext) =>
+                var status = _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Analyzing_project_references, allowCancellation: true, showProgress: true, (operationContext) =>
                 {
                     (project, referenceUpdates) = GetUnusedReferencesForProjectHierarchy(hierarchy, operationContext.UserCancellationToken);
                 });
+
+                if (status == UIThreadOperationStatus.Canceled)
+                {
+                    return;
+                }
 
                 if (project is null ||
                     referenceUpdates.IsEmpty)
