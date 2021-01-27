@@ -675,9 +675,8 @@ unsafe class C
         delegate* unmanaged[Thiscall, Stdcall]<void> ptr2 = param1;
         delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> ptr3 = param1;
     }
-}");
+}", targetFramework: TargetFramework.NetCoreApp);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
             CompileAndVerify(comp);
 
             var tree = comp.SyntaxTrees[0];
@@ -1039,9 +1038,7 @@ unsafe class C
         delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
         delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
     }
-}");
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+}", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
