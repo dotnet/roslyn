@@ -1380,7 +1380,7 @@ Block[B4] - Exit
 
         //THEORY: we won't ever call a params in normal form, because we ignore the default value in metadata.
         //        So: it's either a valid params parameter, in which case we call it in the extended way.
-        //        Or its an invalid params paramter, in which case we can't use it, and we error out.
+        //        Or its an invalid params parameter, in which case we can't use it, and we error out.
         //        Interestingly we check params before we check default, so a params int = 3 will be callable with an 
         //        argument, but not without. 
 

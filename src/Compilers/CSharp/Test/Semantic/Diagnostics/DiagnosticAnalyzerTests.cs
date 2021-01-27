@@ -3468,7 +3468,7 @@ class C
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
-            // Verify analyzer diagnostics and callbacks for a single file when supressed globally and un-suppressed for a single file
+            // Verify analyzer diagnostics and callbacks for a single file when suppressed globally and un-suppressed for a single file
             options = TestOptions.DebugDll.WithSyntaxTreeOptionsProvider(
             new TestSyntaxTreeOptionsProvider((NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress), (tree1, new[] { (NamedTypeAnalyzer.RuleId, ReportDiagnostic.Default) })));
             compilation = CreateCompilation(new[] { tree1, tree2 }, options: options);
