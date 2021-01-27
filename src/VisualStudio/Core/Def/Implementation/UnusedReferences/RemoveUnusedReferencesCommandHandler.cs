@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -57,9 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public void Initialize(IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            Contract.ThrowIfNull(serviceProvider);
 
-            Contract.ThrowIfNull(_serviceProvider);
+            _serviceProvider = serviceProvider;
 
             // Hook up the "Remove Unused References" menu command for CPS based managed projects.
             var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
@@ -169,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             }
 
             var project = _workspace.CurrentSolution.GetRequiredProject(projectId);
-            var unusedReferences = GetUnusedReferencesForProject(project, projectAssetsFile!, targetFrameworkMoniker, cancellationToken);
+            var unusedReferences = GetUnusedReferencesForProject(project, projectAssetsFile, targetFrameworkMoniker, cancellationToken);
 
             return (project, unusedReferences);
         }
@@ -219,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 () => UnusedReferencesService.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
         }
 
-        private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string? propertyValue)
+        private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, [NotNullWhen(returnValue: true)] out string? propertyValue)
         {
             if (hierarchy is not IVsBuildPropertyStorage storage)
             {
