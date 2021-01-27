@@ -41,10 +41,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <RestrictedInternalsVisibleTo Include="TypeScriptAddin" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" Partner="VSTypeScript" />
-  </ItemGroup>
-  <ItemGroup>
     <!-- VS Mac has its own ExternalAccess.FSharp -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
