@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
             => GetDashboard(textView) is { } dashboard && dashboard.ShouldReceiveKeyboardNavigation;
 
-        protected override void TextViewFocus(ITextView textView)
+        protected override void SetFocusToTextView(ITextView textView)
         {
             (textView as IWpfTextView)?.VisualElement.Focus();
         }
 
-        protected override void DashboardFocus(ITextView textView)
+        protected override void SetFocusToDashboard(ITextView textView)
         {
             if (GetDashboard(textView) is { } dashboard)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void DashboardFocusNextElement(ITextView textView)
+        protected override void SetDashboardFocusToNextElement(ITextView textView)
         {
             if (GetDashboard(textView) is { } dashboard)
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void DashboardFocusPreviousElement(ITextView textView)
+        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
         {
             if (GetDashboard(textView) is { } dashboard)
             {
@@ -89,22 +89,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
             => false;
 
-        protected override void TextViewFocus(ITextView textView)
+        protected override void SetFocusToTextView(ITextView textView)
         {
             // No action taken for Cocoa
         }
 
-        protected override void DashboardFocus(ITextView textView)
+        protected override void SetFocusToDashboard(ITextView textView)
         {
             // No action taken for Cocoa
         }
 
-        protected override void DashboardFocusNextElement(ITextView textView)
+        protected override void SetDashboardFocusToNextElement(ITextView textView)
         {
             // No action taken for Cocoa
         }
 
-        protected override void DashboardFocusPreviousElement(ITextView textView)
+        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
         {
             // No action taken for Cocoa
         }

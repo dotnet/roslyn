@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // If the Dashboard is focused, just navigate through its UI.
             if (DashboardShouldReceiveKeyboardNavigation(args.TextView))
             {
-                DashboardFocusNextElement(args.TextView);
+                SetDashboardFocusToNextElement(args.TextView);
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // If the Dashboard is focused, just navigate through its UI.
             if (DashboardShouldReceiveKeyboardNavigation(args.TextView))
             {
-                DashboardFocusPreviousElement(args.TextView);
+                SetDashboardFocusToPreviousElement(args.TextView);
                 return;
             }
             else

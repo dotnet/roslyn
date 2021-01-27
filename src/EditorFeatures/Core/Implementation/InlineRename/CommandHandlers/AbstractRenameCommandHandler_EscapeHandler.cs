@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_renameService.ActiveSession != null)
             {
                 _renameService.ActiveSession.Cancel();
-                TextViewFocus(args.TextView);
+                SetFocusToTextView(args.TextView);
                 return true;
             }
 

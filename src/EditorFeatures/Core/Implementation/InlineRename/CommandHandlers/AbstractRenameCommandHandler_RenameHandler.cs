@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // If so, focus the dashboard
                 if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
-                    DashboardFocus(args.TextView);
+                    SetFocusToDashboard(args.TextView);
                     return;
                 }
                 else

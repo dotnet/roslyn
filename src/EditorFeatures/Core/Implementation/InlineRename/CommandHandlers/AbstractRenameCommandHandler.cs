@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         protected abstract bool DashboardShouldReceiveKeyboardNavigation(ITextView textView);
 
-        protected abstract void TextViewFocus(ITextView textView);
+        protected abstract void SetFocusToTextView(ITextView textView);
 
-        protected abstract void DashboardFocus(ITextView textView);
+        protected abstract void SetFocusToDashboard(ITextView textView);
 
-        protected abstract void DashboardFocusPreviousElement(ITextView textView);
+        protected abstract void SetDashboardFocusToPreviousElement(ITextView textView);
 
-        protected abstract void DashboardFocusNextElement(ITextView textView);
+        protected abstract void SetDashboardFocusToNextElement(ITextView textView);
 
         private CommandState GetCommandState(Func<CommandState> nextHandler)
         {
