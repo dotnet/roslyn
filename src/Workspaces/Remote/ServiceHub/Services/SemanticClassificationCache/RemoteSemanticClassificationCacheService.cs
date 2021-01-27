@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Don't need to do anything if the information we've persisted matches the checksum of this doc.
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-            var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
-            if (checksum == persistedChecksum)
+            var matches = await storage.ChecksumMatchesAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
+            if (matches)
                 return;
 
             var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
