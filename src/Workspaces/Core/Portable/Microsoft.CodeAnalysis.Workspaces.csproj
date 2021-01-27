@@ -26,7 +26,6 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
