@@ -6511,12 +6511,16 @@ $@"class Program
     {
         F<ushort>(sbyte.MaxValue);
         F<ushort>(short.MaxValue);
+        F<ushort>(int.MaxValue);
+        F<ushort>(long.MaxValue);
         F<uint>(sbyte.MaxValue);
         F<uint>(short.MaxValue);
         F<uint>(int.MaxValue);
+        F<uint>(long.MaxValue);
         F<nuint>(sbyte.MaxValue);
         F<nuint>(short.MaxValue);
         F<nuint>(int.MaxValue);
+        F<nuint>(long.MaxValue);
         F<ulong>(sbyte.MaxValue);
         F<ulong>(short.MaxValue);
         F<ulong>(int.MaxValue);
@@ -6534,24 +6538,36 @@ $@"class Program
                 // (6,19): error CS1503: Argument 1: cannot convert from 'short' to 'ushort'
                 //         F<ushort>(short.MaxValue);
                 Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ushort").WithLocation(6, 19),
-                // (7,17): error CS1503: Argument 1: cannot convert from 'sbyte' to 'uint'
+                // (7,19): error CS1503: Argument 1: cannot convert from 'int' to 'ushort'
+                //         F<ushort>(int.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "int.MaxValue").WithArguments("1", "int", "ushort").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from 'long' to 'ushort'
+                //         F<ushort>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "ushort").WithLocation(8, 19),
+                // (9,17): error CS1503: Argument 1: cannot convert from 'sbyte' to 'uint'
                 //         F<uint>(sbyte.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "uint").WithLocation(7, 17),
-                // (8,17): error CS1503: Argument 1: cannot convert from 'short' to 'uint'
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "uint").WithLocation(9, 17),
+                // (10,17): error CS1503: Argument 1: cannot convert from 'short' to 'uint'
                 //         F<uint>(short.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "uint").WithLocation(8, 17),
-                // (10,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'nuint'
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "uint").WithLocation(10, 17),
+                // (12,17): error CS1503: Argument 1: cannot convert from 'long' to 'uint'
+                //         F<uint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "uint").WithLocation(12, 17),
+                // (13,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'nuint'
                 //         F<nuint>(sbyte.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "nuint").WithLocation(10, 18),
-                // (11,18): error CS1503: Argument 1: cannot convert from 'short' to 'nuint'
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "nuint").WithLocation(13, 18),
+                // (14,18): error CS1503: Argument 1: cannot convert from 'short' to 'nuint'
                 //         F<nuint>(short.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "nuint").WithLocation(11, 18),
-                // (13,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ulong'
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "nuint").WithLocation(14, 18),
+                // (16,18): error CS1503: Argument 1: cannot convert from 'long' to 'nuint'
+                //         F<nuint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "nuint").WithLocation(16, 18),
+                // (17,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ulong'
                 //         F<ulong>(sbyte.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ulong").WithLocation(13, 18),
-                // (14,18): error CS1503: Argument 1: cannot convert from 'short' to 'ulong'
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ulong").WithLocation(17, 18),
+                // (18,18): error CS1503: Argument 1: cannot convert from 'short' to 'ulong'
                 //         F<ulong>(short.MaxValue);
-                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ulong").WithLocation(14, 18));
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ulong").WithLocation(18, 18));
         }
 
         [Fact]
