@@ -387,7 +387,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             match.BorderBrush = Brushes.Black;
             match.BorderThickness = s_defaultBorderThickness;
 
-            return match is not null;
+            return true;
         }
 
         // Select the SyntaxNode / SyntaxToken / SyntaxTrivia whose span best matches the supplied span.
