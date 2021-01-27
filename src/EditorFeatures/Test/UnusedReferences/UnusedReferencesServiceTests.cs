@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             var unusedReferences = GetUnusedReferences(usedAssemblies, unusedReference);
 
             Assert.Contains(unusedReference, unusedReferences);
-            Assert.Equal(1, unusedReferences.Length);
+            Assert.Single(unusedReferences);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             var unusedReferences = GetUnusedReferences(usedAssemblies, transitivelyUsedReference, unneededReference);
 
             Assert.Contains(unneededReference, unusedReferences);
-            Assert.Equal(1, unusedReferences.Length);
+            Assert.Single(unusedReferences);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             var appliedUpdates = await ApplyReferenceUpdatesAsync(changeUpdate);
 
             Assert.Contains(changeUpdate, appliedUpdates);
-            Assert.Equal(1, appliedUpdates.Length);
+            Assert.Single(appliedUpdates);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
             var appliedUpdates = await ApplyReferenceUpdatesAsync(noChangeUpdate, changeUpdate);
 
             Assert.Contains(changeUpdate, appliedUpdates);
-            Assert.Equal(1, appliedUpdates.Length);
+            Assert.Single(appliedUpdates);
         }
 
         private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, params ReferenceInfo[] references)
