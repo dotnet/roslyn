@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

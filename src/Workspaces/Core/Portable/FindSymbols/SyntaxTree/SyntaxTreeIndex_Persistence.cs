@@ -28,13 +28,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             try
             {
                 // attempt to load from persisted state
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
+                using var storage = await persistentStorageService.GetStorageAsync(solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 using var stream = await storage.ReadStreamAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
                 using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
                 if (reader != null)
-                {
                     return ReadFrom(GetStringTable(document.Project), reader, checksum);
-                }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             try
             {
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
+                using var storage = await persistentStorageService.GetStorageAsync(solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 using var stream = SerializableBytes.CreateWritableStream();
 
                 using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
@@ -101,13 +99,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // check whether we already have info for this document
             try
             {
-                using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
+                using var storage = await persistentStorageService.GetStorageAsync(solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 // Check if we've already stored a checksum and it matches the checksum we 
                 // expect.  If so, we're already precalculated and don't have to recompute
                 // this index.  Otherwise if we don't have a checksum, or the checksums don't
                 // match, go ahead and recompute it.
-                var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
-                return persistedChecksum == checksum;
+                return await storage.ChecksumMatchesAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {

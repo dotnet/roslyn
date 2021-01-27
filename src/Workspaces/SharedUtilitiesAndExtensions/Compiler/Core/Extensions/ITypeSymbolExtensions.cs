@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Delegate;
 
+        public static bool IsFunctionPointerType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+            => symbol?.TypeKind == TypeKind.FunctionPointer;
+
         public static bool IsStructType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Struct;
 
