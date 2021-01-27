@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     /// When user types <c>;</c> in a statement, semicolon is added and caret is placed after the semicolon
     /// </summary>
     [Export(typeof(ICommandHandler))]
+    [Export]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]

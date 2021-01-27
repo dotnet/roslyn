@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // expect.  If so, we're already precalculated and don't have to recompute
                 // this index.  Otherwise if we don't have a checksum, or the checksums don't
                 // match, go ahead and recompute it.
-                var persistedChecksum = await storage.ReadChecksumAsync(document, PersistenceName, cancellationToken).ConfigureAwait(false);
-                return persistedChecksum == checksum;
+                return await storage.ChecksumMatchesAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {
