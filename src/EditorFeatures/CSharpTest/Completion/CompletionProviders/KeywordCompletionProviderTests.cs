@@ -408,5 +408,50 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "event");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestReadonlyAccessorInStruct()
+        {
+
+            var markup =
+@"struct C {
+    int X {
+        $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "readonly");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task DontSuggestReadonlyAccessorInClass()
+        {
+
+            var markup =
+@"class C {
+    int X {
+        $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "readonly");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task DontSuggestReadonlyAccessorInInterface()
+        {
+
+            var markup =
+@"interface C {
+    int X {
+        $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "readonly");
+        }
     }
 }
