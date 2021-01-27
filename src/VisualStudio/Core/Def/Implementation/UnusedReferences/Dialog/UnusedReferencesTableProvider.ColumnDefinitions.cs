@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -319,14 +319,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
                 content = combobox;
                 return true;
-            }
-
-            public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string content)
-            {
-                content = entry.TryGetValue(UnusedReferencesTableKeyNames.UpdateAction, out UpdateAction action)
-                    ? action.ToString()
-                    : string.Empty;
-                return !string.IsNullOrEmpty(content);
             }
         }
 
