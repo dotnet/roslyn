@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             {
                 // Otherwise, it's a large stream.  Just take the hit of allocating.
                 var bytes = new byte[length];
-                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, length, offset: 0));
+                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes.AsSpan(), offset: 0));
                 return new MemoryStream(bytes);
             }
         }
@@ -283,7 +283,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             var bytes = SQLitePersistentStorage.GetPooledBytes();
             try
             {
-                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, length, offset: 0));
+
+                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, new Span<byte>(bytes, start: 0, length), offset: 0));
 
                 // Copy those bytes into a pooled stream
                 return SerializableBytes.CreateReadableStream(bytes, length);

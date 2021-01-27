@@ -135,7 +135,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
                         InsertOrReplaceBlobIntoWriteCache(
-                            connection, dataId, checksumBytes, checksumLength, dataBytes, dataLength);
+                            connection, dataId,
+                            new ReadOnlySpan<byte>(checksumBytes, 0, checksumLength),
+                            new ReadOnlySpan<byte>(dataBytes, 0, dataLength));
 
                         if (dataPooled)
                         {
@@ -264,8 +266,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private void InsertOrReplaceBlobIntoWriteCache(
                 SqlConnection connection, TDatabaseId dataId,
-                byte[] checksumBytes, int checksumLength,
-                byte[] dataBytes, int dataLength)
+                ReadOnlySpan<byte> checksumBytes,
+                ReadOnlySpan<byte> dataBytes)
             {
                 // We're writing.  This better always be under the exclusive scheduler.
                 Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
@@ -276,8 +278,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                     // Binding indices are 1 based.
                     BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
-                    statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
+                    statement.BindBlobParameter(parameterIndex: 2, checksumBytes);
+                    statement.BindBlobParameter(parameterIndex: 3, dataBytes);
 
                     statement.Step();
                 }
