@@ -35,22 +35,22 @@ namespace Microsoft.CodeAnalysis.Host
 
         public abstract void Dispose();
 
-        public abstract Task<Checksum?> ReadChecksumAsync(string name, CancellationToken cancellationToken);
+        public abstract Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken);
 
-        protected abstract Task<Checksum?> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken);
-        protected abstract Task<Checksum?> ReadChecksumAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, CancellationToken cancellationToken);
+        protected abstract Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken);
+        protected abstract Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken);
 
-        public Task<Checksum?> ReadChecksumAsync(ProjectKey projectKey, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync(projectKey, bulkLoadSnapshot: null, name, cancellationToken);
+        public Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(projectKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
-        public Task<Checksum?> ReadChecksumAsync(DocumentKey documentKey, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync(documentKey, bulkLoadSnapshot: null, name, cancellationToken);
+        public Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(documentKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
-        public Task<Checksum?> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync((ProjectKey)project, project, name, cancellationToken);
+        public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync((ProjectKey)project, project, name, checksum, cancellationToken);
 
-        public Task<Checksum?> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
-            => ReadChecksumAsync((DocumentKey)document, document, name, cancellationToken);
+        public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync((DocumentKey)document, document, name, checksum, cancellationToken);
 
         public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
 
