@@ -75,10 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var command = (OleMenuCommand)sender;
 
             // Only show the "Remove Unused Reference" menu commands for CPS based managed projects.
-            var visible = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
+            var visible = _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences) &&
+                VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&
-                hierarchy.IsCapabilityMatch(".NET") &&
-                _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences);
+                hierarchy.IsCapabilityMatch(".NET");
             var enabled = false;
 
             if (visible)
@@ -90,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             {
                 command.Visible = visible;
             }
+
             if (command.Enabled != enabled)
             {
                 command.Enabled = enabled;
@@ -164,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var projectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
             var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(projectHierarchy, VSConstants.VSITEMID_ROOT);
 
-            if (!projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out var projectId))
+            if (!projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker, out var projectId))
             {
                 return (null, ImmutableArray<ReferenceUpdate>.Empty);
             }
