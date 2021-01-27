@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseConditionalExpressionForAssignment = /*IDE0045*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseConditionalExpressionForReturn = /*IDE0046*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild RemoveUnnecessaryParentheses = /*IDE0047*/ EnforceOnBuild.Recommended;
-        public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseExpressionBodyForLambdaExpressions = /*IDE0053*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseCompoundAssignment = /*IDE0054*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild UseIndexOperator = /*IDE0056*/ EnforceOnBuild.Recommended;
@@ -87,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveQualification = /*IDE0003*/ EnforceOnBuild.Never;
         public const EnforceOnBuild AddQualification = /*IDE0009*/ EnforceOnBuild.Never;
         public const EnforceOnBuild PreferBuiltInOrFrameworkType = /*IDE0049*/ EnforceOnBuild.Never;
+        public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Never;
         public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
     }

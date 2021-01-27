@@ -288,7 +288,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                        .AsTask()
+                        .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
                                         .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
@@ -456,8 +458,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate)
-                    => TryNavigateToItem(index, previewTab, activate);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 

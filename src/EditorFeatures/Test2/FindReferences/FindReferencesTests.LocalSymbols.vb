@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
@@ -570,6 +569,52 @@ End Module
                 i = 0;
             }
         }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C(int goo) { }
+
+    C M()
+    {
+        var {|Definition:$$goo|} = 1;
+        return new(goo: 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(50589, "https://github.com/dotnet/roslyn/issues/50589")>
+        Public Async Function TestLocal_NoMatchWithImplicitObjectNamedParameter_2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C(int {|Definition:$$goo|}) { }
+
+    C M()
+    {
+        var goo = 1;
+        return new([|goo|]: 2);
+    }
+}
         </Document>
     </Project>
 </Workspace>

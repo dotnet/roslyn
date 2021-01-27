@@ -107,6 +107,126 @@ End Class"
             Assert.Equal(expectedImplementingMember, implementingMember.ToTestDisplayString())
         End Sub
 
+        <Fact()>
+        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        Public Sub Issue50713_1()
+            Dim vbSource1 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Interface I1
+    Sub M()
+End Interface
+
+Interface I2
+    Inherits I1
+    Overloads Sub M()
+End Interface
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation1 = CreateCompilation(vbSource1, options:=TestOptions.ReleaseDll)
+            compilation1.AssertNoDiagnostics()
+
+            Dim i1M = compilation1.GetMember("I1.M")
+            Dim i2 = compilation1.GetMember(Of NamedTypeSymbol)("I2")
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M))
+        End Sub
+
+        <Fact()>
+        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        Public Sub Issue50713_2()
+            Dim vbSource0 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Interface I1
+    Sub M()
+End Interface
+
+Interface I2
+    Inherits I1
+    Overloads Sub M()
+End Interface
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation0 = CreateCompilation(vbSource0, options:=TestOptions.ReleaseDll)
+
+            Dim vbSource1 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation1 = CreateCompilation(vbSource1, options:=TestOptions.ReleaseDll, references:={compilation0.EmitToImageReference()})
+
+            Dim i1M = compilation1.GetMember("I1.M")
+            Dim i2 = compilation1.GetMember(Of NamedTypeSymbol)("I2")
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M))
+        End Sub
+
+        <Fact()>
+        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        Public Sub Issue50713_3()
+            Dim vbSource1 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Interface I1
+    Sub M()
+End Interface
+
+Interface I2
+    Inherits I1
+    Shadows Sub M()
+End Interface
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation1 = CreateCompilation(vbSource1, options:=TestOptions.ReleaseDll)
+            compilation1.AssertNoDiagnostics()
+
+            Dim i1M = compilation1.GetMember("I1.M")
+            Dim i2 = compilation1.GetMember(Of NamedTypeSymbol)("I2")
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M))
+        End Sub
+
+        <Fact()>
+        <WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")>
+        Public Sub Issue50713_4()
+            Dim vbSource0 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Interface I1
+    Sub M()
+End Interface
+
+Interface I2
+    Inherits I1
+    Shadows Sub M()
+End Interface
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation0 = CreateCompilation(vbSource0, options:=TestOptions.ReleaseDll)
+
+            Dim vbSource1 =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation1 = CreateCompilation(vbSource1, options:=TestOptions.ReleaseDll, references:={compilation0.EmitToImageReference()})
+
+            Dim i1M = compilation1.GetMember("I1.M")
+            Dim i2 = compilation1.GetMember(Of NamedTypeSymbol)("I2")
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M))
+        End Sub
+
     End Class
 
 End Namespace

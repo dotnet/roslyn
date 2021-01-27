@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TwoMethodsOnlyOneWithMapping()
             Dim source =
 <compilation>
@@ -47,30 +48,26 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def.vb" language="VB"/>
-        <file id="2" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="70-82-DD-9A-57-B3-BE-57-7E-E8-B4-AE-B8-1E-1B-75-38-9D-13-C9"/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="70-82-DD-9A-57-B3-BE-57-7E-E8-B4-AE-B8-1E-1B-75-38-9D-13-C9"/>
+        <file id="2" name="C:\abc\def.vb" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="1"/>
-                <entry offset="0x17" hidden="true" document="1"/>
-                <entry offset="0x22" hidden="true" document="1"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
+                <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="2"/>
+                <entry offset="0x17" hidden="true" document="2"/>
+                <entry offset="0x22" hidden="true" document="2"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x23">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TwoMethodsOnlyOneWithMultipleMappingsAndRewriting()
             Dim source =
 <compilation>
@@ -121,9 +118,9 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def.vb" language="VB"/>
-        <file id="2" name="C:\abc\def2.vb" language="VB"/>
-        <file id="3" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-A9-94-EF-BC-DF-10-C9-60-0F-C0-C4-9F-E4-77-F9-37-CF-E1-CE"/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="DB-A9-94-EF-BC-DF-10-C9-60-0F-C0-C4-9F-E4-77-F9-37-CF-E1-CE"/>
+        <file id="2" name="C:\abc\def.vb" language="VB"/>
+        <file id="3" name="C:\abc\def2.vb" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -140,36 +137,33 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="1"/>
-                <entry offset="0x17" startLine="24" startColumn="9" endLine="24" endColumn="41" document="1"/>
-                <entry offset="0x22" startLine="44" startColumn="9" endLine="44" endColumn="46" document="2"/>
-                <entry offset="0x36" hidden="true" document="2"/>
-                <entry offset="0x41" startLine="45" startColumn="13" endLine="45" endColumn="33" document="2"/>
-                <entry offset="0x4d" startLine="46" startColumn="9" endLine="46" endColumn="15" document="2"/>
-                <entry offset="0x4e" hidden="true" document="2"/>
-                <entry offset="0x52" hidden="true" document="2"/>
-                <entry offset="0x59" hidden="true" document="2"/>
-                <entry offset="0x5c" hidden="true" document="2"/>
-                <entry offset="0x67" hidden="true" document="2"/>
-                <entry offset="0x7d" hidden="true" document="2"/>
-                <entry offset="0x8a" hidden="true" document="2"/>
-                <entry offset="0x96" hidden="true" document="2"/>
-                <entry offset="0x97" hidden="true" document="2"/>
-                <entry offset="0x9d" hidden="true" document="2"/>
-                <entry offset="0xa7" hidden="true" document="2"/>
-                <entry offset="0xab" hidden="true" document="2"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" hidden="true" document="2"/>
+                <entry offset="0xc" startLine="23" startColumn="9" endLine="23" endColumn="41" document="2"/>
+                <entry offset="0x17" startLine="24" startColumn="9" endLine="24" endColumn="41" document="2"/>
+                <entry offset="0x22" startLine="44" startColumn="9" endLine="44" endColumn="46" document="3"/>
+                <entry offset="0x36" hidden="true" document="3"/>
+                <entry offset="0x41" startLine="45" startColumn="13" endLine="45" endColumn="33" document="3"/>
+                <entry offset="0x4d" startLine="46" startColumn="9" endLine="46" endColumn="15" document="3"/>
+                <entry offset="0x4e" hidden="true" document="3"/>
+                <entry offset="0x52" hidden="true" document="3"/>
+                <entry offset="0x59" hidden="true" document="3"/>
+                <entry offset="0x5c" hidden="true" document="3"/>
+                <entry offset="0x67" hidden="true" document="3"/>
+                <entry offset="0x7d" hidden="true" document="3"/>
+                <entry offset="0x8a" hidden="true" document="3"/>
+                <entry offset="0x96" hidden="true" document="3"/>
+                <entry offset="0x97" hidden="true" document="3"/>
+                <entry offset="0x9d" hidden="true" document="3"/>
+                <entry offset="0xa7" hidden="true" document="3"/>
+                <entry offset="0xab" hidden="true" document="3"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xac">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <currentnamespace name=""/>
                 <local name="i" il_index="0" il_start="0x0" il_end="0xac" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -444,6 +438,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         Public Sub TestPartialClassFieldInitializersWithExternalSource()
             Dim source =
 <compilation>
@@ -511,35 +506,28 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def1.vb" language="VB"/>
-        <file id="2" name="C:\abc\def2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
-        <file id="3" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="7F-D8-35-3F-B4-08-17-37-3E-37-30-26-2A-3F-0C-20-6F-48-2A-7A"/>
-        <file id="4" name="BOGUS.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
-        <file id="5" name="C:\Abc\ACTUAL.vb" language="VB" checksumAlgorithm="SHA1" checksum="27-52-E9-85-5A-AC-31-05-A5-6F-70-40-55-3A-9C-43-D2-07-0D-4B"/>
+        <file id="1" name="C:\Abc\ACTUAL.vb" language="VB" checksumAlgorithm="SHA1" checksum="27-52-E9-85-5A-AC-31-05-A5-6F-70-40-55-3A-9C-43-D2-07-0D-4B"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="7F-D8-35-3F-B4-08-17-37-3E-37-30-26-2A-3F-0C-20-6F-48-2A-7A"/>
+        <file id="3" name="C:\abc\def1.vb" language="VB"/>
+        <file id="4" name="C:\abc\def2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
+        <file id="5" name="BOGUS.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="C1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x7" startLine="46" startColumn="12" endLine="46" endColumn="30" document="1"/>
-                <entry offset="0xf" startLine="27" startColumn="36" endLine="27" endColumn="54" document="2"/>
+                <entry offset="0x0" hidden="true" document="3"/>
+                <entry offset="0x7" startLine="46" startColumn="12" endLine="46" endColumn="30" document="3"/>
+                <entry offset="0xf" startLine="27" startColumn="36" endLine="27" endColumn="54" document="4"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x18">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
         </method>
         <method containingType="C1" name="DumpFields">
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="28" document="1"/>
-                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="30" document="1"/>
-                <entry offset="0xd" startLine="12" startColumn="9" endLine="12" endColumn="30" document="1"/>
-                <entry offset="0x19" startLine="13" startColumn="5" endLine="13" endColumn="12" document="1"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="28" document="3"/>
+                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="30" document="3"/>
+                <entry offset="0xd" startLine="12" startColumn="9" endLine="12" endColumn="30" document="3"/>
+                <entry offset="0x19" startLine="13" startColumn="5" endLine="13" endColumn="12" document="3"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x1a">
-                <importsforward declaringType="C1" methodName=".ctor"/>
-            </scope>
         </method>
         <method containingType="C1" name="Main" parameterNames="args">
             <customDebugInfo>
@@ -548,18 +536,17 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="1" startColumn="5" endLine="1" endColumn="45" document="1"/>
-                <entry offset="0x1" startLine="2" startColumn="13" endLine="2" endColumn="24" document="1"/>
-                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="23" document="1"/>
-                <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x0" startLine="1" startColumn="5" endLine="1" endColumn="45" document="3"/>
+                <entry offset="0x1" startLine="2" startColumn="13" endLine="2" endColumn="24" document="3"/>
+                <entry offset="0x7" startLine="3" startColumn="9" endLine="3" endColumn="23" document="3"/>
+                <entry offset="0xe" startLine="4" startColumn="5" endLine="4" endColumn="12" document="3"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xf">
-                <importsforward declaringType="C1" methodName=".ctor"/>
                 <local name="c" il_index="0" il_start="0x0" il_end="0xf" attributes="0"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -745,6 +732,7 @@ End Module
         End Sub
 
         <WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")>
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RelativePathForExternalSource()
             Dim source =
@@ -770,22 +758,19 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\Folder1\Test2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="DB-78-88-82-72-1B-2B-27-C9-05-79-D5-FE-2A-04-18"/>
-        <file id="2" name="C:\Folder1\Folder2\Test1.vb" language="VB" checksumAlgorithm="SHA1" checksum="B9-49-3D-62-89-9B-B2-2F-B6-72-90-A1-2D-01-11-89-B4-C2-83-B4"/>
+        <file id="1" name="C:\Folder1\Folder2\Test1.vb" language="VB" checksumAlgorithm="SHA1" checksum="B9-49-3D-62-89-9B-B2-2F-B6-72-90-A1-2D-01-11-89-B4-C2-83-B4"/>
+        <file id="2" name="C:\Folder1\Test2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="DB-78-88-82-72-1B-2B-27-C9-05-79-D5-FE-2A-04-18"/>
     </files>
     <methods>
         <method containingType="Test1" name="Main">
             <sequencePoints>
-                <entry offset="0x0" hidden="true" document="1"/>
-                <entry offset="0x1" startLine="4" startColumn="2" endLine="4" endColumn="8" document="1"/>
-                <entry offset="0x8" hidden="true" document="1"/>
+                <entry offset="0x0" hidden="true" document="2"/>
+                <entry offset="0x1" startLine="4" startColumn="2" endLine="4" endColumn="8" document="2"/>
+                <entry offset="0x8" hidden="true" document="2"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x9">
-                <currentnamespace name=""/>
-            </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, format:=DebugInformationFormat.PortablePdb)
         End Sub
 
     End Class

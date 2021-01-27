@@ -66,6 +66,8 @@ configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
+helix=false
+helix_queue_name=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
@@ -129,6 +131,14 @@ while [[ $# > 0 ]]; do
       ;;
     --ci)
       ci=true
+      ;;
+    --helix)
+      helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
       ;;
     --bootstrap)
       bootstrap=true
@@ -323,10 +333,17 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mon
 fi
 
 if [[ "$test_core_clr" == true ]]; then
-  if [[ "$ci" == true ]]; then
-    runtests_args=""
-  else
-    runtests_args="--html"
+  runtests_args=""
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ "$helix" == true ]]; then
+    runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$ci" != true ]]; then
+    runtests_args="$runtests_args --html"
   fi
   dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/netcoreapp3.1/RunTests.dll" --tfm netcoreapp3.1 --tfm net5.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
