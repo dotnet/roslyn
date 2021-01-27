@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract HashSet<string> GetAliasSymbolsName(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
 
+        protected abstract IEnumerable<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node);
+
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
