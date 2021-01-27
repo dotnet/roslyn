@@ -8,18 +8,17 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
@@ -36,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
             AddExcludedPartTypes(
@@ -77,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
+            Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
