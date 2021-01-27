@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,8 +14,10 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -41,12 +44,29 @@ namespace IdeCoreBenchmarks
         [GlobalSetup]
         public void Setup()
         {
+            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+            // installations on .NET Core. We use the one with the most recent version.
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+
+            MSBuildLocator.RegisterInstance(msBuildInstance);
+
+            var assemblies = MSBuildMefHostServices.DefaultAssemblies
+                .Add(typeof(AnalyzerRunnerHelper).Assembly)
+                .Add(typeof(FindReferencesBenchmarks).Assembly);
+            var services = MefHostServices.Create(assemblies);
+
+            _workspace = MSBuildWorkspace.Create(new Dictionary<string, string>
+            {
+                // Use the latest language version to force the full set of available analyzers to run on the project.
+                { "LangVersion", "9.0" },
+            }, services);
+
             _workspace = AnalyzerRunnerHelper.CreateWorkspace();
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.CloudCache)
                 .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)
                 .WithChangedOption(StorageOptions.PrintDatabaseLocation, true)));
 
