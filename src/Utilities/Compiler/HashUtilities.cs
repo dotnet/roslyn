@@ -9,7 +9,7 @@ namespace Analyzer.Utilities
 {
     internal static class HashUtilities
     {
-        internal static int GetHashCodeOrDefault(this object? objectOpt) => objectOpt?.GetHashCode() ?? 0;
+        internal static int GetHashCodeOrDefault(this object? obj) => obj?.GetHashCode() ?? 0;
 
         internal static int Combine(int newKey, int currentKey)
         {

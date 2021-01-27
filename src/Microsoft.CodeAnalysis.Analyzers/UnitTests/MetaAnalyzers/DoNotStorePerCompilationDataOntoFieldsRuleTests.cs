@@ -1,21 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class DoNotStorePerCompilationDataOntoFieldsRuleTests : DiagnosticAnalyzerTestBase
+    public class DoNotStorePerCompilationDataOntoFieldsRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -27,7 +31,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-abstract class MyCompilation : Compilation
+abstract class {|CS1729:MyCompilation|} : Compilation
 {
     // Compile error: no public constructor exists on Compilation.
 }
@@ -62,11 +66,11 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnostic()
         {
             var source = @"
 Imports System
@@ -78,7 +82,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-MustInherit Class MyCompilation
+MustInherit Class {|BC31399:MyCompilation|}
     Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
@@ -111,11 +115,11 @@ End Class
                 GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName)
             };
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -126,7 +130,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-abstract class MyCompilation : Compilation
+abstract class {|CS1729:MyCompilation|} : Compilation
 {
     // Compile error: no public constructor exists on Compilation.
 }
@@ -160,6 +164,16 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
         }
     }
+
+    private struct NestedStructCompilationAnalyzer
+    {
+        // Ok to store per-compilation data here.
+        private readonly Dictionary<MyCompilation, MyNamedType> y;
+
+        internal void StartCompilation(CompilationStartAnalysisContext context)
+        {
+        }
+    }
 }
 
 class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
@@ -181,11 +195,11 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -196,7 +210,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-MustInherit Class MyCompilation
+MustInherit Class {|BC31399:MyCompilation|}
     Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
@@ -225,6 +239,14 @@ Class MyAnalyzer
         Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
         End Sub
     End Class
+
+    Structure NestedStructCompilationAnalyzer
+        ' Ok to store per-compilation data here.
+        Private ReadOnly y As Dictionary(Of MyCompilation, MyNamedType)
+
+        Friend Sub StartCompilation(context As CompilationStartAnalysisContext)
+        End Sub
+    End Structure
 End Class
 
 Class MyAnalyzerWithoutAttribute
@@ -245,36 +267,85 @@ Class MyAnalyzerWithoutAttribute
 End Class
 ";
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
+        [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
+        public async Task CSharp_NestedStruct_NoDiagnostic()
         {
-            return new CSharpDiagnosticAnalyzerFieldsAnalyzer();
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+
+namespace MyNamespace
+{
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public class AnyInstanceInjectionAnalyzer : DiagnosticAnalyzer
+    {
+        public struct DependencyAccess
+        {
+            public IMethodSymbol method;
+            public string expectedName;
         }
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+
+        public override void Initialize(AnalysisContext context)
         {
-            return new BasicDiagnosticAnalyzerFieldsAnalyzer();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName)
+        public void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, violatingTypeName);
+            var accessors = new ConcurrentBag<DependencyAccess>();
+
+            context.RegisterSymbolAction(
+                symbolContext => AnalyzeSymbol(symbolContext, accessors),
+                SymbolKind.Property,
+                SymbolKind.Field
+            );
+
+            context.RegisterSemanticModelAction(
+                semanticModelContext => AnalyzeSemanticModel(semanticModelContext, accessors)
+            );
         }
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName)
+        public void AnalyzeSymbol(SymbolAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, violatingTypeName);
+            // collect symbols for analysis
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string violatingTypeName)
+        public void AnalyzeSemanticModel(SemanticModelAnalysisContext context, ConcurrentBag<DependencyAccess> accessors)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId, DiagnosticSeverity.Warning)
-                .WithLocation(fileName, line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage)
+            foreach (var access in accessors)
+            {
+                // analyze
+            }
+        }
+    }
+}");
+        }
+
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyCS.Diagnostic()
+                .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(violatingTypeName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
+            VerifyVB.Diagnostic()
+                .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
+                .WithArguments(violatingTypeName);
     }
 }
