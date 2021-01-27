@@ -4468,10 +4468,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (conv And ConversionKind.Identity) = ConversionKind.Identity
         End Function
 
-        Public Shared Function IsReferenceConversion(conv As ConversionKind) As Boolean
-            Return (conv And ConversionKind.Reference) <> 0
-        End Function
-
         Public Shared Function FailedDueToNumericOverflow(conv As ConversionKind) As Boolean
             Return (conv And (ConversionKind.Narrowing Or ConversionKind.Widening Or ConversionKind.FailedDueToNumericOverflow)) = ConversionKind.FailedDueToNumericOverflow
         End Function

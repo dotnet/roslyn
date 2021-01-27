@@ -197,20 +197,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Select Case receiverOpt.Kind
                         Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
                             Return True
-                        Case BoundKind.DirectCast
-                            Dim conv = DirectCast(receiverOpt, BoundDirectCast)
-                            If Conversions.IsReferenceConversion(conv.ConversionKind) OrElse Conversions.IsIdentityConversion(conv.ConversionKind) Then
-                                receiverOpt = conv.Operand
-                            Else
-                                Return False
-                            End If
-                        Case BoundKind.Conversion
-                            Dim conv = DirectCast(receiverOpt, BoundConversion)
-                            If Conversions.IsReferenceConversion(conv.ConversionKind) OrElse Conversions.IsIdentityConversion(conv.ConversionKind) Then
-                                receiverOpt = conv.Operand
-                            Else
-                                Return False
-                            End If
                         Case BoundKind.Parenthesized
                             receiverOpt = DirectCast(receiverOpt, BoundParenthesized).Expression
                         Case Else

@@ -1747,7 +1747,6 @@ BC37311: Init-only property 'Property5' can only be assigned by an object member
 "
 public class C
 {
-    public int P1 { init { System.Console.Write(value + "" 1 ""); } }
     public int P2 { init { System.Console.Write(value + "" 2 ""); } }
 }
 "
@@ -1766,8 +1765,6 @@ Class B
     Inherits C
 
     Public Sub New()
-        DirectCast((Me), B).P1 = 41
-
         With (Me)
             .P2 = 42
         End With
@@ -1777,7 +1774,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:="41 1 42 2 ").VerifyDiagnostics()
+            CompileAndVerify(comp1, expectedOutput:="42 2 ").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -4182,14 +4179,19 @@ Class B
     Inherits C
 
     Public Sub New()
-        DirectCast(CObj(CType(DirectCast(Me, C), I2)), I1).P1 = 41
+        DirectCast(Me, I1).P1 = 41
     End Sub
 End Class
 ]]></file>
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -4226,7 +4228,7 @@ Class B
     Inherits C
 
     Public Sub New()
-        With CType(CObj(DirectCast(CType(Me, C), I2)), I1)
+        With CType(Me, I1)
             .P1 = 41
         End With
     End Sub
@@ -4235,7 +4237,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P1 = 41
+            ~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -4378,6 +4385,9 @@ End Class
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(MyBase, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC32027: 'MyBase' must be followed by '.' and an identifier.
         CType(MyBase, I1).P1 = 41
               ~~~~~~
@@ -4434,6 +4444,9 @@ End Class
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(MyClass, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC32028: 'MyClass' must be followed by '.' and an identifier.
         DirectCast(MyClass, I1).P1 = 41
                    ~~~~~~~
@@ -4528,7 +4541,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, B).P0 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -4566,7 +4584,12 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:="41").VerifyDiagnostics()
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P0 = 41
+            ~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
