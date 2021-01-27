@@ -11,9 +11,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -1449,6 +1446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return $"t{tempIdentifier(a)}={a.Kind}({tempName(a.Input)} as {a.Type})";
                         case BoundDagFieldEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Field.Name})";
+                        case BoundDagPropertyEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Property.Name})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:

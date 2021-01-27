@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             => ((long)v1 << 32) | (long)v2;
 
         private static (byte[] bytes, int length, bool fromPool) GetBytes(
-            Checksum checksumOpt, CancellationToken cancellationToken)
+            Checksum? checksum, CancellationToken cancellationToken)
         {
             // If we weren't passed a checksum, just pass the singleton empty byte array.
             // Note: we don't add this to/from our pool.  But it likely wouldn't be a problem
             // for us to do that as this instance can't actually be mutated since it's just
             // an empty array.
-            if (checksumOpt == null)
+            if (checksum == null)
             {
                 return (Array.Empty<byte>(), length: 0, fromPool: false);
             }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                checksumOpt.WriteTo(writer);
+                checksum.WriteTo(writer);
             }
 
             stream.Position = 0;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </summary>
         private const int MaxPooledByteArrays = 1024;
 
-        private static readonly Stack<byte[]> s_byteArrayPool = new Stack<byte[]>();
+        private static readonly Stack<byte[]> s_byteArrayPool = new();
 
         internal static byte[] GetPooledBytes()
         {

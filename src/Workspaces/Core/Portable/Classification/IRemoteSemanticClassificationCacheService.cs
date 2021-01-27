@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Classification
     internal interface IRemoteSemanticClassificationCacheService
     {
         ValueTask CacheSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool isFullyLoaded, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref

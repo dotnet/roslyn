@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -587,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
-                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0], null);
+                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 properties = default;
                 return statement;

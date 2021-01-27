@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +36,7 @@ public struct EventDescriptor
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
                 var assembly = module.ContainingAssembly;
-                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
+                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter();
 
                 if (isFromSource)
                 {

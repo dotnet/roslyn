@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBody = syntax.Body is object;
             bool hasExpressionBody = syntax.ExpressionBody is object;
+            bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
             return new SourcePropertyAccessorSymbol(
                 containingType,
@@ -73,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
                 isAutoPropertyAccessor,
                 isExplicitInterfaceImplementation,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
 
@@ -99,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations:
                 out explicitInterfaceImplementations);
 
+            bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 name,
@@ -108,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Expression.GetLocation(),
                 syntax,
                 isExplicitInterfaceImplementation,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
 
@@ -150,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 usesInit,
                 isAutoPropertyAccessor: true,
                 isExplicitInterfaceImplementation: false,
+                isNullableAnalysisEnabled: false,
                 diagnostics);
         }
 
@@ -182,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
-#nullable restore
+#nullable disable
 
         internal sealed override bool IsExpressionBodied
             => _isExpressionBodied;
@@ -237,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: false)
         {
@@ -252,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
+            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
@@ -296,11 +304,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool usesInit,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
                    location,
-                   isIterator: isIterator)
+                   isIterator)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -327,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);
@@ -361,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
         }
-#nullable restore
+#nullable disable
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
             propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
@@ -450,8 +459,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public sealed override RefKind RefKind
         {

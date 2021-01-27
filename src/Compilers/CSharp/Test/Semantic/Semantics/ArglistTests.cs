@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1632,7 +1634,7 @@ class Program
         Console.WriteLine(a);
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
 
@@ -1655,7 +1657,7 @@ class Program
         Test(__arglist(a));
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
     }

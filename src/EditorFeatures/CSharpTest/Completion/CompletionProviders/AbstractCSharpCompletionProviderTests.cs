@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,19 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public abstract class AbstractCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<CSharpTestWorkspaceFixture>
     {
-        protected AbstractCSharpCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
     }
 
     public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> : AbstractCompletionProviderTests<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected AbstractCSharpCompletionProviderTests(TWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
+        protected const string NonBreakingSpaceString = "\x00A0";
 
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);

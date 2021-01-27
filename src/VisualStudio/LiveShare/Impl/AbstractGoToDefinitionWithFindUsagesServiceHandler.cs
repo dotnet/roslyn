@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,9 +15,11 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSPHandler = Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
@@ -31,17 +31,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal abstract class AbstractGoToDefinitionWithFindUsagesServiceHandler : ILspRequestHandler<LSP.TextDocumentPositionParams, object, Solution>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
-        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService, ILspSolutionProvider solutionProvider)
+        public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService, ILspWorkspaceRegistrationService workspaceRegistrationService)
         {
             _metadataAsSourceService = metadataAsSourceService;
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var document = _solutionProvider.GetDocument(request.TextDocument);
+            // LiveShare doesn't go through Roslyn LSP infrastructure, but creating one of our request contexts here is a convenient way to handle
+            // text document lookup
+            var lspContext = LSPHandler.RequestContext.Create(request.TextDocument, null, requestContext.GetClientCapabilities(), _workspaceRegistrationService, null, null);
+            var document = lspContext.Document;
             if (document == null)
             {
                 return Array.Empty<LSP.Location>();

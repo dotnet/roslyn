@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -65,12 +67,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-
             item = item
                 .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                 .AddProperty("SymbolName", symbol.Name);
 
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+        }
+
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString());
+
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -317,14 +331,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+            CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            if (symbols.Length != 0)
+            if (symbols.Count != 0)
             {
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }

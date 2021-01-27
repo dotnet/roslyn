@@ -1532,6 +1532,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:16.9", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2055,11 +2059,9 @@ End Module").Path
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
-            ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
-            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2080,7 +2082,8 @@ End Module").Path
                 "15.0",
                 "15.3",
                 "15.5",
-                "16"
+                "16",
+                "16.9"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2100,8 +2103,9 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2124,6 +2128,7 @@ End Module").Path
             InlineData("15.5", True, LanguageVersion.VisualBasic15_5),
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
+            InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -3515,6 +3520,12 @@ print Goodbye, World"
             parsedArgs.Errors.Verify()
             Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
             Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", "a\b.cs", "a\b\c.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -4613,6 +4624,18 @@ End Class
             parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=42", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=1.0.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=1.0.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2.1.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=2.1.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
             Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
@@ -10090,6 +10113,59 @@ End Class")
             End If
         End Sub
 
+        <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
+        <Theory>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  defaultSeverity As DiagnosticSeverity,
+                                                                  severityInConfigFile As DiagnosticSeverity?,
+                                                                  expectedEffectiveSeverity As DiagnosticSeverity)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=False)
+            Dim diagnosticId = analyzer.Descriptor.Id
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim additionalFlags = {"/warnaserror+"}
+
+            If severityInConfigFile.HasValue Then
+                Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+[*.vb]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
+
+            If warnAsErrorMinus Then
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray()
+            End If
+
+            Dim expectedWarningCount As Integer = 0, expectedErrorCount As Integer = 0
+            Select Case expectedEffectiveSeverity
+                Case DiagnosticSeverity.Warning
+                    expectedWarningCount = 1
+                Case DiagnosticSeverity.[Error]
+                    expectedErrorCount = 1
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity)
+            End Select
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False,
+                         expectedWarningCount:=expectedWarningCount,
+                         expectedErrorCount:=expectedErrorCount,
+                         additionalFlags:=additionalFlags,
+                         analyzers:=ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+        End Sub
+
         <Fact>
         <WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")>
         Public Sub GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
@@ -10120,7 +10196,40 @@ dotnet_diagnostic.BC42024.severity = warning;
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:42024", globalOption})
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={globalOption, specificOption})
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=1, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, expectedWarningCount:=0, additionalFlags:={"/nowarn:BC42024", globalOption, specificOption})
+        End Sub
+
+        <Theory, CombinatorialData>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub WarnAsErrorIsRespectedForForWarningsConfiguredInRulesetOrGlobalConfig(useGlobalConfig As Boolean)
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+    Private Sub M()
+        Dim a As String
+    End Sub
+End Class")
+            Dim additionalFlags = {"/warnaserror+"}
+
+            If useGlobalConfig Then
+                Dim globalConfig = dir.CreateFile(".globalconfig").WriteAllText($"
+is_global = true
+dotnet_diagnostic.BC42024.severity = warning;
+")
+                additionalFlags = additionalFlags.Append("/analyzerconfig:" & globalConfig.Path).ToArray()
+            Else
+                Dim ruleSetSource As String = "<?xml version=""1.0"" encoding=""utf-8""?>
+<RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""15.0"">
+  <Rules AnalyzerId=""Compiler"" RuleNamespace=""Compiler"">
+    <Rule Id=""BC42024"" Action=""Warning"" />
+  </Rules>
+</RuleSet>
+"
+                dir.CreateFile("Rules.ruleset").WriteAllText(ruleSetSource)
+                additionalFlags = additionalFlags.Append("/ruleset:Rules.ruleset").ToArray()
+            End If
+
+            VerifyOutput(dir, src, additionalFlags:=additionalFlags, expectedErrorCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False)
         End Sub
 
         <Fact>
@@ -10166,6 +10275,157 @@ End Class"
             Assert.Contains("b.txt(1) : warning ID0001", output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(srcDirectory.Path)
         End Sub
+
+        <Theory>
+        <InlineData("warning", "/warnaserror", True, False)>
+        <InlineData("error", "/warnaserror", True, False)>
+        <InlineData(Nothing, "/warnaserror", True, False)>
+        <InlineData("warning", "/warnaserror:BC40008", True, False)>
+        <InlineData("error", "/warnaserror:BC40008", True, False)>
+        <InlineData(Nothing, "/warnaserror:BC40008", True, False)>
+        <InlineData("warning", "/nowarn:BC40008", False, False)>
+        <InlineData("error", "/nowarn:BC40008", False, False)>
+        <InlineData(Nothing, "/nowarn:BC40008", False, False)>
+        <InlineData("warning", Nothing, False, True)>
+        <InlineData("error", Nothing, True, False)>
+        <InlineData(Nothing, Nothing, False, True)>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub TestCompilationOptionsOverrideAnalyzerConfig_CompilerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
+            ' warning BC40008 : 'C' is obsolete
+            Dim src = "
+Imports System
+
+<Obsolete>
+Class C
+End Class
+
+Class D
+    Inherits C
+End Class"
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, diagnosticId:="BC40008", analyzerConfigSeverity, additionalArg, expectError, expectWarning)
+        End Sub
+
+        <Theory>
+        <InlineData("warning", "/warnaserror", True, False)>
+        <InlineData("error", "/warnaserror", True, False)>
+        <InlineData(Nothing, "/warnaserror", True, False)>
+        <InlineData("warning", "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData("error", "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData(Nothing, "/warnaserror:" & CompilationAnalyzerWithSeverity.DiagnosticId, True, False)>
+        <InlineData("warning", "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData("error", "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData(Nothing, "/nowarn:" & CompilationAnalyzerWithSeverity.DiagnosticId, False, False)>
+        <InlineData("warning", Nothing, False, True)>
+        <InlineData("error", Nothing, True, False)>
+        <InlineData(Nothing, Nothing, False, True)>
+        <WorkItem(43051, "https://github.com/dotnet/roslyn/issues/43051")>
+        Public Sub TestCompilationOptionsOverrideAnalyzerConfig_AnalyzerWarning(analyzerConfigSeverity As String, additionalArg As String, expectError As Boolean, expectWarning As Boolean)
+            Dim analyzer = New CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable:=True)
+            Dim src = "
+Class C
+End Class"
+            TestCompilationOptionsOverrideAnalyzerConfigCore(src, CompilationAnalyzerWithSeverity.DiagnosticId, analyzerConfigSeverity, additionalArg, expectError, expectWarning, analyzer)
+        End Sub
+
+        Private Sub TestCompilationOptionsOverrideAnalyzerConfigCore(
+            source As String,
+            diagnosticId As String,
+            analyzerConfigSeverity As String,
+            additionalArg As String,
+            expectError As Boolean,
+            expectWarning As Boolean,
+            ParamArray analyzers As DiagnosticAnalyzer())
+
+            Assert.True(Not expectError OrElse Not expectWarning)
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText(source)
+
+            Dim additionalArgs = Array.Empty(Of String)()
+            If analyzerConfigSeverity IsNot Nothing Then
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+[*.vb]
+dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}")
+                additionalArgs = additionalArgs.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
+
+            If Not String.IsNullOrEmpty(additionalArg) Then
+                additionalArgs = additionalArgs.Append(additionalArg)
+            End If
+
+            Dim output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalArgs,
+                                      expectedErrorCount:=If(expectError, 1, 0),
+                                      expectedWarningCount:=If(expectWarning, 1, 0),
+                                      analyzers:=analyzers.ToImmutableArrayOrEmpty())
+
+            If expectError Then
+                Assert.Contains($"error {diagnosticId}", output)
+            ElseIf expectWarning Then
+                Assert.Contains($"warning {diagnosticId}", output)
+            Else
+                Assert.DoesNotContain(diagnosticId, output)
+            End If
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly), Reason:="Can't load a coreclr targeting generator on net framework / mono")>
+        Public Sub TestGeneratorsCantTargetNetFramework()
+            Dim directory = Temp.CreateDirectory()
+            Dim src = directory.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+
+            'Core
+            Dim coreGenerator = EmitGenerator(".NETCoreApp,Version=v5.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & coreGenerator})
+
+            'NetStandard
+            Dim nsGenerator = EmitGenerator(".NETStandard,Version=v2.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & nsGenerator})
+
+            'NoTarget
+            Dim ntGenerator = EmitGenerator(targetFramework:=Nothing)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & ntGenerator})
+
+            'Framework
+            Dim frameworkGenerator = EmitGenerator(".NETFramework,Version=v4.7.2")
+            Dim output = VerifyOutput(directory, src, expectedWarningCount:=2, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8850", output)
+            Assert.Contains("CS8033", output)
+
+            'Framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850", "/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8033", output)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850,CS8033", "/analyzer:" & frameworkGenerator})
+        End Sub
+
+        Private Function EmitGenerator(ByVal targetFramework As String) As String
+            Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
+            Dim generatorSource As String = $"
+Imports Microsoft.CodeAnalysis
+
+{targetFrameworkAttributeText}
+
+<Generator>
+Public Class Generator
+    Inherits ISourceGenerator
+
+    Public Sub Execute(ByVal context As GeneratorExecutionContext)
+    End Sub
+
+    Public Sub Initialize(ByVal context As GeneratorInitializationContext)
+    End Sub
+End Class
+"
+            Dim directory = Temp.CreateDirectory()
+            Dim generatorPath = Path.Combine(directory.Path, "generator.dll")
+            Dim compilation = VisualBasicCompilation.Create($"generator_{targetFramework}",
+                                                            {VisualBasicSyntaxTree.ParseText(generatorSource)},
+                                                            TargetFrameworkUtil.GetReferences(Roslyn.Test.Utilities.TargetFramework.Standard, {MetadataReference.CreateFromAssemblyInternal(GetType(ISourceGenerator).Assembly)}),
+                                                            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            compilation.VerifyDiagnostics()
+            Dim result = compilation.Emit(generatorPath)
+            Assert.[True](result.Success)
+            Return generatorPath
+        End Function
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

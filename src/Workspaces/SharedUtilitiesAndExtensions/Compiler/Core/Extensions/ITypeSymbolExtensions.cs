@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        private const string DefaultParameterName = "p";
+        public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
@@ -78,6 +76,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Delegate;
+
+        public static bool IsFunctionPointerType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+            => symbol?.TypeKind == TypeKind.FunctionPointer;
 
         public static bool IsStructType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Struct;
@@ -233,9 +234,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsFormattableString([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
+        public static bool IsFormattableStringOrIFormattable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            return symbol?.MetadataName == "FormattableString"
+            return symbol?.MetadataName is nameof(FormattableString) or nameof(IFormattable)
                 && symbol.ContainingType == null
                 && symbol.ContainingNamespace?.Name == "System"
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
@@ -616,10 +617,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsEnumType(this ITypeSymbol type)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type)
             => IsEnumType(type, out _);
 
-        public static bool IsEnumType(this ITypeSymbol type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
         {
             if (type != null && type.IsValueType && type.TypeKind == TypeKind.Enum)
             {

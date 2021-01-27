@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -57,9 +60,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or if the compilation has semantic errors.
         /// </summary>
         /// <remarks>
-        /// Sorted by <see cref="LineChange.OldLine"/>
+        /// Sorted by <see cref="SourceLineUpdate.OldLine"/>
         /// </remarks>
-        public ImmutableArray<LineChange> LineEdits { get; }
+        public ImmutableArray<SourceLineUpdate> LineEdits { get; }
 
         /// <summary>
         /// The compilation has compilation errors (syntactic or semantic), 
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
-            ImmutableArray<LineChange> lineEditsOpt,
+            ImmutableArray<SourceLineUpdate> lineEditsOpt,
             bool? hasSemanticErrors)
         {
             Debug.Assert(!rudeEdits.IsDefault);
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public static DocumentAnalysisResults SyntaxErrors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
-            => new DocumentAnalysisResults(rudeEdits);
+            => new(rudeEdits);
 
         public static DocumentAnalysisResults Unchanged(
             ImmutableArray<ActiveStatement> activeStatements,
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ImmutableArray<RudeEditDiagnostic>.Empty,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
-                ImmutableArray<LineChange>.Empty,
+                ImmutableArray<SourceLineUpdate>.Empty,
                 hasSemanticErrors: null);
         }
 
@@ -177,6 +180,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 hasSemanticErrors);
         }
 
-        internal static readonly TraceLog Log = new TraceLog(256, "EnC");
+        internal static readonly TraceLog Log = new(256, "EnC");
     }
 }

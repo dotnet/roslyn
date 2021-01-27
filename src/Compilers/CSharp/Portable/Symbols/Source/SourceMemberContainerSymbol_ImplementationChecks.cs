@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -331,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
-#nullable restore
+#nullable disable
         {
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
@@ -942,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (overridingMethod.IsGenericMethod)
                         {
-                            overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArgumentsWithAnnotations);
+                            overriddenMethod = overriddenMethod.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(overridingMethod.TypeParameters));
                         }
 
                         // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
@@ -1174,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
-        internal static bool CheckValidNullableMethodOverride<TArg>(
+        internal static void CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
@@ -1186,16 +1188,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
             {
-                return false;
+                return;
             }
-
-            bool hasErrors = false;
 
             if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
                 (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
                 diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                hasErrors = true;
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
@@ -1214,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseMethod.ReturnTypeWithAnnotations.Type))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, false, extraArgument);
-                    return true;
+                    return;
                 }
 
                 // check top-level nullability including flow analysis annotations
@@ -1226,43 +1225,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overrideMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
                     reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, true, extraArgument);
-                    return true;
+                    return;
                 }
             }
 
-            if (reportMismatchInParameterType != null)
+            if (reportMismatchInParameterType == null)
             {
-                for (int i = 0; i < baseParameters.Length; i++)
-                {
-                    var baseParameter = baseParameters[i];
-                    var baseParameterType = baseParameter.TypeWithAnnotations;
-                    var overrideParameter = overrideParameters[i + overrideParameterOffset];
-                    var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
-                    // check nested nullability
-                    if (!isValidNullableConversion(
-                            conversions,
-                            overrideParameter.RefKind,
-                            baseParameterType.Type,
-                            overrideParameterType.Type))
-                    {
-                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
-                        hasErrors = true;
-                    }
-                    // check top-level nullability including flow analysis annotations
-                    else if (!NullableWalker.AreParameterAnnotationsCompatible(
-                            overrideParameter.RefKind,
-                            baseParameterType,
-                            baseParameter.FlowAnalysisAnnotations,
-                            overrideParameterType,
-                            overrideParameter.FlowAnalysisAnnotations))
-                    {
-                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
-                        hasErrors = true;
-                    }
-                }
+                return;
             }
 
-            return hasErrors;
+            for (int i = 0; i < baseParameters.Length; i++)
+            {
+                var baseParameter = baseParameters[i];
+                var baseParameterType = baseParameter.TypeWithAnnotations;
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
+                // check nested nullability
+                if (!isValidNullableConversion(
+                        conversions,
+                        overrideParameter.RefKind,
+                        baseParameterType.Type,
+                        overrideParameterType.Type))
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
+                }
+                // check top-level nullability including flow analysis annotations
+                else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overrideParameter.RefKind,
+                        baseParameterType,
+                        baseParameter.FlowAnalysisAnnotations,
+                        overrideParameterType,
+                        overrideParameter.FlowAnalysisAnnotations))
+                {
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
+                }
+            }
 
             TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
             {
@@ -1550,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that

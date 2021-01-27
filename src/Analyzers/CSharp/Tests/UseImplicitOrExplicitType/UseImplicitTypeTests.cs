@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,11 +16,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType
 {
     public partial class UseImplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseImplicitTypeTests(ITestOutputHelper logger = null)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
@@ -2795,7 +2803,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarForTargetTypedNew()
+        public async Task DoNotSuggestVarForImplicitObjectCreation()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -2809,5 +2817,239 @@ class Program
 
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [Fact]
+        public Task SuggestForNullable1()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string?|] a = NullableString();
+        return a;
+    }
+
+    string? NullableString() => null;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NullableString();
+        return a;
+    }
+
+    string? NullableString() => null;
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullable2()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string?|] a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullable3()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        [|string|] a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        var a = NonNullString();
+        return a;
+    }
+
+    string NonNullString() => string.Empty;
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullableOut1()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNullString(out [|string?|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNullString(out string? s)
+    {
+        s = null;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNullString(out string? s)
+    {
+        s = null;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullableOut2()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out [|string?|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
+
+        [Fact]
+        public Task SuggestForNullableOut3()
+            => TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out [|string|] a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+@"
+#nullable enable
+
+class C
+{
+    string? M()
+    {
+        if (GetNonNullString(out var a))
+        {
+            return a;
+        }
+
+        return null;
+    }
+
+    bool GetNonNullString(out string s)
+    {
+        s = string.Empty;
+        return true;
+    }
+}",
+options: ImplicitTypeEverywhere());
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -39,11 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethod,
             bool isPartial,
             bool hasBody,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
                  location,
-                 isIterator)
+                 isIterator: isIterator)
         {
             _name = name;
 
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation; //explicit impls must be marked metadata virtual
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 

@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (callingConvention == SignatureCallingConvention.Unmanaged)
                 {
-                    visitor.WriteSymbolKeyArray(symbol.Signature.CallingConventionTypes);
+                    visitor.WriteSymbolKeyArray(symbol.Signature.UnmanagedCallingConventionTypes);
                 }
 
                 visitor.WriteRefKind(symbol.Signature.RefKind);

@@ -102,9 +102,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Take a warning And return the final disposition of the given warning,
         ''' based on both command line options And pragmas. The diagnostic options
         ''' have precedence in the following order:
-        '''     1. Global warning options
-        '''     2. Syntax tree options
-        '''     3. Compilation options
+        '''     1. Warning level
+        '''     2. Command line options (/nowarn, /warnaserror)
+        '''     3. Editor config options (syntax tree level)
+        '''     4. Global analyzer config options (compilation level)
+        '''     5. Global warning level
         '''
         ''' Global overrides are complicated. Global options never override suppression.
         ''' Even if you have generalDiagnosticOption = ReportDiagnostic.Error, a
@@ -133,19 +135,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim report As ReportDiagnostic
             Dim tree = location?.SourceTree
             Dim isSpecified As Boolean = False
+            Dim specifiedWarnAsErrorMinus As Boolean = False
 
             ' Global options depend on other options, so calculate those first
-            If tree IsNot Nothing AndAlso syntaxTreeOptions IsNot Nothing AndAlso
-               syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, report) Then
-                ' 2. Syntax tree level
+            If caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
+                ' 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = True
-            ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
-                ' 3. Compilation level
-                isSpecified = True
-            ElseIf syntaxTreeOptions IsNot Nothing AndAlso syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, report) Then
-                ' 4. Global analyzer config level
-                isSpecified = True
-            Else
+
+                ' 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                If report = ReportDiagnostic.Default Then
+                    specifiedWarnAsErrorMinus = True
+                End If
+            End If
+
+            ' Apply syntax tree options, if applicable.
+            If syntaxTreeOptions IsNot Nothing AndAlso
+               (Not isSpecified OrElse specifiedWarnAsErrorMinus) Then
+
+                ' 3. Editor config options (syntax tree level)
+                ' 4. Global analyzer config options (compilation level)
+                ' Do not apply config options if it is bumping a warning to an error and "/warnaserror-:DiagnosticId" was specified on the command line.
+                Dim reportFromSyntaxTreeOptions As ReportDiagnostic
+                If ((tree IsNot Nothing AndAlso syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, reportFromSyntaxTreeOptions)) OrElse
+                     syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, reportFromSyntaxTreeOptions)) AndAlso
+                    Not (specifiedWarnAsErrorMinus AndAlso severity = DiagnosticSeverity.Warning AndAlso reportFromSyntaxTreeOptions = ReportDiagnostic.Error) Then
+                    isSpecified = True
+                    report = reportFromSyntaxTreeOptions
+
+                    ' '/warnaserror' should promote warnings configured in analyzer config to error.
+                    If Not specifiedWarnAsErrorMinus AndAlso report = ReportDiagnostic.Warn AndAlso generalDiagnosticOption = ReportDiagnostic.Error Then
+                        report = ReportDiagnostic.Error
+                    End If
+                End If
+            End If
+
+            If Not isSpecified Then
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
             End If
 

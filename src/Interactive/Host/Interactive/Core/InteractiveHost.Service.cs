@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias Scripting;
 
 using System;
@@ -141,15 +139,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 _lastTask = Task.FromResult(initialState);
 
-                try
-                {
-                    Console.OutputEncoding = Encoding.UTF8;
-                }
-                catch (IOException ex) when (FatalError.ReportWithoutCrash(ex))
-                {
-                    // Ignore this exception
-                    // https://github.com/dotnet/roslyn/issues/47571
-                }
+                Console.OutputEncoding = OutputEncoding;
 
                 // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
                 // there's nothing we can do if the process is forcefully quit or goes down in a completely

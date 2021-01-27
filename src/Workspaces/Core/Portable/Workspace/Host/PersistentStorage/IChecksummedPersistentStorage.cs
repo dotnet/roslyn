@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Threading;
@@ -13,25 +15,25 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IChecksummedPersistentStorage : IPersistentStorage
     {
         /// <summary>
-        /// Reads the existing checksum we have for the solution with the given <paramref name="name"/>,
-        /// or <see langword="null"/> if we do not have a checksum persisted.
+        /// <see langword="true"/> if the data we have for the solution with the given <paramref name="name"/> has the
+        /// provided <paramref name="checksum"/>.
         /// </summary>
-        Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken = default);
+        Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the existing checksum we have for the given <paramref name="project"/> with the given <paramref name="name"/>,
-        /// or <see langword="null"/> if we do not have a checksum persisted.
+        /// <see langword="true"/> if the data we have for the given <paramref name="project"/> with the given <paramref
+        /// name="name"/> has the provided <paramref name="checksum"/>.
         /// </summary>
-        Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken = default);
+        Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Reads the existing checksum we have for the given <paramref name="document"/> with the given <paramref name="name"/>,
-        /// or <see langword="null"/> if we do not have a checksum persisted.
+        /// <see langword="true"/> if the data we have for the given <paramref name="document"/> with the given <paramref
+        /// name="name"/> has the provided <paramref name="checksum"/>.
         /// </summary>
-        Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken = default);
+        Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken = default);
 
-        Task<Checksum> ReadChecksumAsync(ProjectKey project, string name, CancellationToken cancellationToken = default);
-        Task<Checksum> ReadChecksumAsync(DocumentKey document, string name, CancellationToken cancellationToken = default);
+        Task<bool> ChecksumMatchesAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken = default);
+        Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Reads the stream for the solution with the given <paramref name="name"/>.  If <paramref name="checksum"/>

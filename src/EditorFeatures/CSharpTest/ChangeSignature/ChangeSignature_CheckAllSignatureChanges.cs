@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 1, 3, 2, 1 }, MemberType = typeof(AbstractChangeSignatureTests))]
         public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
         {
@@ -68,7 +70,7 @@ static class Ext
                 verifyNoDiagnostics: true);
         }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 0, 3, 0, 0 }, MemberType = typeof(AbstractChangeSignatureTests))]
         public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
         {

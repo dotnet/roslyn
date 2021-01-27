@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -952,7 +954,7 @@ public class Outer<T, U>
 @"{
   // Code size        2 (0x2)
   .maxstack  1
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -988,7 +990,7 @@ class C
 {
   // Code size       77 (0x4d)
   .maxstack  9
-  .locals init (dynamic V_0) //d
+  .locals init (object V_0) //d
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0037
   IL_0007:  ldc.i4.0

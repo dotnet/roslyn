@@ -12,10 +12,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class CrefCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(CrefCompletionProvider)
         End Function

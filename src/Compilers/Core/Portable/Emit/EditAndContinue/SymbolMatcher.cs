@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +19,10 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
 
         public ISymbolInternal MapDefinitionOrNamespace(ISymbolInternal symbol)
-            => (symbol is Cci.IDefinition definition) ? (ISymbolInternal)MapDefinition(definition) : (ISymbolInternal)MapNamespace((Cci.INamespace)symbol);
+        {
+            var adapter = symbol.GetCciAdapter();
+            return (adapter is Cci.IDefinition definition) ? MapDefinition(definition)?.GetInternalSymbol() : MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
+        }
 
         public EmitBaseline MapBaselineToCompilation(
             EmitBaseline baseline,
@@ -58,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private IReadOnlyDictionary<K, V> MapDefinitions<K, V>(IReadOnlyDictionary<K, V> items)
-            where K : Cci.IDefinition
+            where K : class, Cci.IDefinition
         {
-            var result = new Dictionary<K, V>();
+            var result = new Dictionary<K, V>(Cci.SymbolEquivalentEqualityComparer.Instance);
             foreach (var pair in items)
             {
                 var key = (K)MapDefinition(pair.Key);

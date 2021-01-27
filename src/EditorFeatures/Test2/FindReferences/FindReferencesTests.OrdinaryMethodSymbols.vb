@@ -2576,6 +2576,44 @@ partial class Class1
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WorkItem(544439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544439")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodExtendedPartial1_CSharp(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+partial class Class1
+{
+    public partial void {|Definition:$$goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
+    public partial void {|Definition:goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
+    {
+    }
+}]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(544439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544439")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodExtendedPartial2_CSharp(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+partial class Class1
+{
+    public partial void {|Definition:$$goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
+    public partial void {|Definition:goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
+    {
+    }
+}]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WorkItem(544437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544437")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodPartial1_VB(kind As TestKind, host As TestHost) As Task
@@ -3338,5 +3376,37 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodUsedInSourceGenerator(kind As TestKind) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        partial class C
+        {
+            private void {|Definition:Goo|}() { }
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+
+        partial class C
+        {
+            void Bar()
+            {
+                [|Go$$o|]();
+                [|Goo|]();
+                B.Goo();
+                new C().[|Goo|]();
+                new C().goo();
+            }
+        }
+
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+        End Function
+
     End Class
 End Namespace

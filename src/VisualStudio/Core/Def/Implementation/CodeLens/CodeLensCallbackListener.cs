@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,14 +60,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
         public async Task<ImmutableDictionary<Guid, string>> GetProjectVersionsAsync(ImmutableArray<Guid> projectGuids, CancellationToken cancellationToken)
         {
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
+
             var builder = ImmutableDictionary.CreateBuilder<Guid, string>();
-            foreach (var project in _workspace.CurrentSolution.Projects)
+            var solution = _workspace.CurrentSolution;
+            foreach (var project in solution.Projects)
             {
                 var projectGuid = _workspace.GetProjectGuid(project.Id);
                 if (!projectGuids.Contains(projectGuid))
                     continue;
 
-                var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+                var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, project.Id, cancellationToken).ConfigureAwait(false);
                 builder[projectGuid] = projectVersion.ToString();
             }
 
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         }
 
         public async Task<ReferenceCount?> GetReferenceCountAsync(
-            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, ReferenceCount? previousCount, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             var (documentId, node) = await GetDocumentIdAndNodeAsync(
@@ -85,15 +86,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             if (documentId == null)
             {
                 return null;
+            }
+
+            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
+            if (previousCount is not null)
+            {
+                // Avoid calculating results if we already have a result for the current project version
+                var currentProjectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
+                if (previousCount.Value.Version == currentProjectVersion.ToString())
+                {
+                    return previousCount;
+                }
             }
 
             var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
-
-            var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
             return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
+        public async Task<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
@@ -105,10 +115,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             var service = _workspace.Services.GetRequiredService<ICodeLensReferencesService>();
-            return await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+            var references = await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+            if (!references.HasValue)
+            {
+                return null;
+            }
+
+            var projectVersion = await service.GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
+            return (projectVersion.ToString(), references.Value);
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
+        public async Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;

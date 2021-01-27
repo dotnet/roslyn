@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -345,6 +348,208 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
+        public void ArrayInitializationAnonymousTypes()
+        {
+            const int nTypes = 250;
+            const int nItemsPerType = 1000;
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < nTypes; i++)
+            {
+                builder.AppendLine($"class C{i}");
+                builder.AppendLine("{");
+                builder.AppendLine("    static object[] F = new[]");
+                builder.AppendLine("    {");
+                for (int j = 0; j < nItemsPerType; j++)
+                {
+                    builder.AppendLine($"        new {{ Id = {j} }},");
+                }
+                builder.AppendLine("    };");
+                builder.AppendLine("}");
+            }
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly()
+        {
+            const int nMethods = 10000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("static class Program");
+            builder.AppendLine("{");
+            for (int i = 0; i < nMethods; i++)
+            {
+                builder.AppendLine(i % 2 == 0 ? "#nullable enable" : "#nullable disable");
+                builder.AppendLine($"    static object F{i}(object arg{i}) => arg{i};");
+            }
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            int analyzed = comp.NullableAnalysisData.Where(pair => pair.Value.RequiredAnalysis).Count();
+            Assert.Equal(nMethods / 2, analyzed);
+        }
+
+        [Fact]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableStateLambdas()
+        {
+            const int nFunctions = 10000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F1(System.Func<object, object> f) { }");
+            builder.AppendLine("    static void F2(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        F1(arg{i} => arg{i});");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember("Program.F2");
+            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+        }
+
+        [Fact]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableStateLocalFunctions()
+        {
+            const int nFunctions = 2000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        _ = F{i}(arg);");
+                builder.AppendLine($"        static object F{i}(object arg{i}) => arg{i};");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember("Program.F");
+            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void NullableStateTooManyLocals_01()
+        {
+            const int nLocals = 65536;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#pragma warning disable 168");
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 1; i < nLocals; i++)
+            {
+                builder.AppendLine($"        object i{i};");
+            }
+            builder.AppendLine("        object i0 = arg;");
+            builder.AppendLine("        if (i0 == null) i0.ToString();");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            // No warning for 'i0.ToString()' because the local is not tracked
+            // by the NullableWalker.Variables instance (too many locals).
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        public void NullableStateTooManyLocals_02()
+        {
+            const int nLocals = 65536;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static object F()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        object i0 = null;");
+            for (int i = 1; i < nLocals; i++)
+            {
+                builder.AppendLine($"        var i{i} = i{i - 1};");
+            }
+            builder.AppendLine($"        return i{nLocals - 1};");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            // https://github.com/dotnet/roslyn/issues/50588: Improve performance of assignments to many variables.
+            comp.VerifyDiagnostics(
+                // (6,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object i0 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 21),
+                // (65542,16): warning CS8603: Possible null reference return.
+                //         return i65535;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "i65535").WithLocation(65542, 16));
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        public void NullableStateManyNestedFunctions()
+        {
+            const int nFunctions = 32768;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F0(System.Action a) { }");
+            builder.AppendLine("    static U F1<T, U>(T arg, System.Func<T, U> f) => f(arg);");
+            builder.AppendLine("    static object F2(object arg)");
+            builder.AppendLine("    {");
+            builder.AppendLine("        if (arg == null) { }");
+            builder.AppendLine("        var value = arg;");
+            builder.AppendLine("        F0(() => { });");
+            for (int i = 0; i < nFunctions / 2; i++)
+            {
+                builder.AppendLine($"        F0(() => {{ value = F1(value, arg{i} => arg{i}?.ToString()); }});");
+            }
+            builder.AppendLine("        return value;");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16395,16): warning CS8603: Possible null reference return.
+                //         return value;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "value").WithLocation(16395, 16));
         }
     }
 }

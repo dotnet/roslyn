@@ -12,11 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     internal class ResettableDelay
     {
-        public static readonly ResettableDelay CompletedDelay = new ResettableDelay();
+        public static readonly ResettableDelay CompletedDelay = new();
 
         private readonly int _delayInMilliseconds;
-        private readonly IExpeditableDelaySource _expeditableDelaySource;
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
+        private readonly TaskCompletionSource<object?> _taskCompletionSource;
 
         private int _lastSetTime;
 
@@ -26,31 +25,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// delay can be reset multiple times.
         /// </summary>
         /// <param name="delayInMilliseconds">The time to delay before completing the task</param>
-        /// <param name="foregroundTaskScheduler">Optional.  If used, the delay won't start until the supplied TaskScheduler schedules the delay to begin.</param>
-        public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, TaskScheduler foregroundTaskScheduler = null)
+        public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
             _delayInMilliseconds = delayInMilliseconds;
-            _expeditableDelaySource = expeditableDelaySource;
 
-            _taskCompletionSource = new TaskCompletionSource<object>();
+            _taskCompletionSource = new TaskCompletionSource<object?>();
             Reset();
 
-            if (foregroundTaskScheduler != null)
-            {
-                Task.Factory.SafeStartNew(() => StartTimerAsync(continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
-            }
-            else
-            {
-                _ = StartTimerAsync(continueOnCapturedContext: false);
-            }
+            _ = StartTimerAsync(expeditableDelaySource, cancellationToken);
         }
 
         private ResettableDelay()
         {
             // create resettableDelay with completed state
             _delayInMilliseconds = 0;
-            _taskCompletionSource = new TaskCompletionSource<object>();
+            _taskCompletionSource = new TaskCompletionSource<object?>();
             _taskCompletionSource.SetResult(null);
 
             Reset();
@@ -65,20 +55,28 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _lastSetTime = Environment.TickCount;
         }
 
-        private async Task StartTimerAsync(bool continueOnCapturedContext)
+        private async Task StartTimerAsync(IExpeditableDelaySource expeditableDelaySource, CancellationToken cancellationToken)
         {
-            do
+            try
             {
-                // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
-                if (!await _expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext))
+                do
                 {
-                    // The operation is being expedited.
-                    break;
+                    // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
+                    if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), cancellationToken).ConfigureAwait(false))
+                    {
+                        // The operation is being expedited.
+                        break;
+                    }
                 }
-            }
-            while (Environment.TickCount - _lastSetTime < _delayInMilliseconds);
+                while (Environment.TickCount - _lastSetTime < _delayInMilliseconds);
 
-            _taskCompletionSource.SetResult(null);
+                _taskCompletionSource.SetResult(null);
+            }
+            catch (OperationCanceledException)
+            {
+                // Calling the "Try" variant because that's the only one that accepts the token to associate with the task
+                _taskCompletionSource.TrySetCanceled(cancellationToken);
+            }
         }
     }
 }

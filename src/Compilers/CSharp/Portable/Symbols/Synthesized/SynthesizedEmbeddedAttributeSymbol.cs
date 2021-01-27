@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.Cci;
 using Roslyn.Utilities;
 using System;
@@ -197,6 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor

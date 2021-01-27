@@ -107,10 +107,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Private Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document, cursorPosition, threadingContext, presenter)
-                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(threadingContext, lazyPresenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(threadingContext, lazyPresenter))
+                        DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(threadingContext, presenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -371,6 +370,38 @@ end class
                 }
 
                 partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGotoDefinitionExtendedPartialMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial void M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    t.M$$();
+                }
+
+                public partial void [|M|]()
                 {
                     throw new NotImplementedException();
                 }

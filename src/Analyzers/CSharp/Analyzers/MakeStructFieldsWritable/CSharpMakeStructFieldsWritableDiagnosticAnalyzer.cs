@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
     {
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptor(
             IDEDiagnosticIds.MakeStructFieldsWritable,
+            EnforceOnBuildValues.MakeStructFieldsWritable,
             new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
             new LocalizableResourceString(nameof(CSharpAnalyzersResources.Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
             isUnnecessary: false);

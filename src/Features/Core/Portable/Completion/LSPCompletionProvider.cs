@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Defines the set of possible non-identifier trigger characters for this completion provider.
         /// Used by the LSP server to determine the trigger character set for completion.
         /// </summary>
-        internal abstract ImmutableHashSet<char> TriggerCharacters { get; }
+        public abstract ImmutableHashSet<char> TriggerCharacters { get; }
     }
 }

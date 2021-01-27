@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Symbols;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue.UnitTests
@@ -26,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue.UnitTests
         public void Span(int startLine, int startColumn, int endLine, int endColumn,
                          int expectedStartLine, int expectedStartColumn, int expectedEndLine, int expectedEndColumn)
         {
-            var actual = ModuleUtilities.ToLinePositionSpan(new DkmTextSpan(StartLine: startLine, EndLine: endLine, StartColumn: startColumn, EndColumn: endColumn));
-            var expected = new LinePositionSpan(new LinePosition(expectedStartLine, expectedStartColumn), new LinePosition(expectedEndLine, expectedEndColumn));
+            var actual = ModuleUtilities.ToSourceSpan(new DkmTextSpan(StartLine: startLine, EndLine: endLine, StartColumn: startColumn, EndColumn: endColumn));
+            var expected = new SourceSpan(expectedStartLine, expectedStartColumn, expectedEndLine, expectedEndColumn);
 
             Assert.Equal(expected, actual);
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(type, method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
-                    return BoundCall.Synthesized(syntax, null, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredOperand);
                 }
             }
             else if (kind.Operator() == UnaryOperatorKind.UnaryPlus)
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
                 if (!_inExpressionLambda)
                 {
-                    return BoundCall.Synthesized(syntax, null, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredOperand);
                 }
             }
 
@@ -357,7 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                     syntax,
                     ctor,
-                    null,
                     unliftedOp);
             return consequence;
         }
@@ -617,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isLifted)
             {
-                return BoundCall.Synthesized(syntax, null, node.MethodOpt, rewrittenArgument);
+                return BoundCall.Synthesized(syntax, receiverOpt: null, node.MethodOpt, rewrittenArgument);
             }
 
             // S? temp = operand;
@@ -642,10 +639,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
 
             // op_Increment(temp.GetValueOrDefault())
-            BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, null, node.MethodOpt, call_GetValueOrDefault);
+            BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: null, node.MethodOpt, call_GetValueOrDefault);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
 
             // default(S?)
             BoundExpression alternative = new BoundDefaultExpression(syntax, type);
@@ -712,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 binaryOperandType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(binaryOperandType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
-                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, null, boundOne);
+                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
             }
 
             // Now we construct the other operand to the binary addition. We start with just plain "x".
@@ -793,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand.Type is { SpecialType: SpecialType.System_Decimal });
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            return BoundCall.Synthesized(syntax, null, method, operand);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand);
         }
 
         private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
@@ -810,9 +807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // x.GetValueOrDefault()
             BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, getValueOrDefault);
             // op_Inc(x.GetValueOrDefault())
-            BoundExpression methodCall = BoundCall.Synthesized(syntax, null, method, getValueCall);
+            BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
             // default(decimal?)
             BoundExpression alternative = new BoundDefaultExpression(syntax, operand.Type);
 

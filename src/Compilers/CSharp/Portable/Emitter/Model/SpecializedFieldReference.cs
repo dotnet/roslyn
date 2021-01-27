@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
-                return _underlyingField.OriginalDefinition;
+                return _underlyingField.OriginalDefinition.GetCciAdapter();
             }
         }
 

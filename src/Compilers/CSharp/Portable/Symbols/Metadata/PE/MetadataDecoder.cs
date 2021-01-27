@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
             }
-            catch (Exception e) when (FatalError.Report(e)) // Trying to get more useful Watson dumps.
+            catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -404,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // Let's use a trick. To make sure the kind is the same, make sure
                         // base type is the same.
-                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault();
-                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType).GetValueOrDefault())
+                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType ?? SpecialType.None);
+                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType ?? SpecialType.None))
                         {
                             continue;
                         }

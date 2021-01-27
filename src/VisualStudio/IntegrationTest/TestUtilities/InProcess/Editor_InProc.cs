@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -276,7 +278,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 
         private string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+                => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
@@ -297,7 +299,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                   .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
                   .Where(t => filter(t.Tag))
                   .Cast<IMappingTagSpan<ITag>>();
-                return tags.Select(tag => $"{tag.Tag.ToString()}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
+                return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
             });
         }
 

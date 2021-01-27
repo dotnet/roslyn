@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' türü seri hale getirilemiyor.</target>
+        <target state="translated">'{0}' türü seri hale getirilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
+        <target state="translated">'{0}' türünün seri durumdan çıkarma okuyucusu, yanlış sayıda değer okudu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
         <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">{0}' türü, serileştirme bağlayıcısı tarafından anlaşılamıyor.</target>
+        <target state="translated">'{0}' türü, serileştirme bağlayıcısı tarafından anlaşılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

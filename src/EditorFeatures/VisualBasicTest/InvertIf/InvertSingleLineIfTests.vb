@@ -530,7 +530,7 @@ End Module")
 
         <WorkItem(529756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529756")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
-        Public Async Function TestOnCoditionOfSingleLineIf() As Task
+        Public Async Function TestOnConditionOfSingleLineIf() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
@@ -615,6 +615,32 @@ End Module
 "
         If Not a Then bMethod() Else aMethod()
 ")
+        End Function
+
+        <WorkItem(45177, "https://github.com/dotnet/roslyn/issues/45177")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        Public Async Function TestWithMissingTrueStatementWithinUsing() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub M(Disposable As IDisposable)
+        Dim x = True
+        Using Disposable
+            [||]If Not x Then End
+        End Using
+
+        Dim y = 0
+    End Sub
+End Module",
+"Module Program
+    Sub M(Disposable As IDisposable)
+        Dim x = True
+        Using Disposable
+            If x Then Else End
+        End Using
+
+        Dim y = 0
+    End Sub
+End Module")
         End Function
     End Class
 End Namespace

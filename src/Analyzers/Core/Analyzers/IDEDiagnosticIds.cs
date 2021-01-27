@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -111,9 +113,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
 
-        public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
-        public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
-        public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
+        // IDE0067-IDE0069 deprecated in favor of CA2000 and CA2213
+        // public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
+        // public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
+        // public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
         public const string UseSystemHashCode = "IDE0070";
 
@@ -144,6 +147,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+
+        public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
+
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
+
+        public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
+
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

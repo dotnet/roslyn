@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using System;
 using System.Text;
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();

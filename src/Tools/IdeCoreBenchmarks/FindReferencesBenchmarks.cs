@@ -2,23 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Engines;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.SQLite.v1;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
@@ -63,7 +60,7 @@ namespace IdeCoreBenchmarks
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            using var storage = storageService.GetStorage(_workspace.CurrentSolution);
+            using var storage = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
         }
 
         [GlobalCleanup]

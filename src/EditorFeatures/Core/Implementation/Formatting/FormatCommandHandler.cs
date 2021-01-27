@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -188,6 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-            => new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
+            => new(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
     }
 }

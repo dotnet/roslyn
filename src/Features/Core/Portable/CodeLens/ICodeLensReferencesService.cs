@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
 {
     internal interface ICodeLensReferencesService : IWorkspaceService
     {
+        ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken);
+
         /// <summary>
         /// Given a document and syntax node, returns the number of locations where the located node is referenced.
         /// <para>
@@ -18,23 +20,21 @@ namespace Microsoft.CodeAnalysis.CodeLens
         ///     if <paramref name="maxSearchResults"/> is greater than 0.
         /// </para>
         /// </summary>
-        Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
+        Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations where the located node is referenced.
         /// </summary>
-        Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken);
+        Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
         /// </summary>
-        Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution,
-            DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken);
+        Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns the fully qualified name of the located node's declaration.
         /// </summary>
-        Task<string> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
-            CancellationToken cancellationToken);
+        Task<string?> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, CancellationToken cancellationToken);
     }
 }

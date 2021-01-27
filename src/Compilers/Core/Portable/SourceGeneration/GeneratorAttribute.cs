@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -13,6 +11,43 @@ namespace Microsoft.CodeAnalysis
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GeneratorAttribute : Attribute
     {
-        // https://github.com/dotnet/roslyn/issues/: we don't know if we'll keep this, but for now it lets us re-use the analyzer discovery mechanism
+        /// <summary>
+        /// The source languages to which this generator applies. See <see cref="LanguageNames"/>.
+        /// </summary>
+        public string[] Languages { get; }
+
+        /// <summary>
+        /// Attribute constructor used to specify the attached class is a source generator that provides CSharp sources.
+        /// </summary>
+        public GeneratorAttribute()
+            : this(LanguageNames.CSharp) { }
+
+        /// <summary>
+        /// Attribute constructor used to specify the attached class is a source generator and indicate which language(s) it supports.
+        /// </summary>
+        /// <param name="firstLanguage">One language to which the generator applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the generator applies. See <see cref="LanguageNames"/>.</param>
+        public GeneratorAttribute(string firstLanguage, params string[] additionalLanguages)
+        {
+            if (firstLanguage == null)
+            {
+                throw new ArgumentNullException(nameof(firstLanguage));
+            }
+
+            if (additionalLanguages == null)
+            {
+                throw new ArgumentNullException(nameof(additionalLanguages));
+            }
+
+            var languages = new string[additionalLanguages.Length + 1];
+            languages[0] = firstLanguage;
+            for (int index = 0; index < additionalLanguages.Length; index++)
+            {
+                languages[index + 1] = additionalLanguages[index];
+            }
+
+            this.Languages = languages;
+        }
+
     }
 }

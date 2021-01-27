@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -653,9 +655,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -670,9 +674,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -699,9 +705,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    serializer.Serialize(originalOptions, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -748,10 +756,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
+            using var context = SolutionReplicationContext.Create();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, context, CancellationToken.None);
             }
 
             stream.Position = 0;

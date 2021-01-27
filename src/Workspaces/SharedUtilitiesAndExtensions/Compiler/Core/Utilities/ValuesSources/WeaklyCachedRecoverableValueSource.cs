@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = Task.CompletedTask;
-        private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
+        private static readonly NonReentrantLock s_taskGuard = new();
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 

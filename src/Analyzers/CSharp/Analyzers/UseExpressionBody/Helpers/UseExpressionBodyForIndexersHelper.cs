@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,10 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForIndexersHelper :
         UseExpressionBodyHelper<IndexerDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForIndexersHelper Instance = new UseExpressionBodyForIndexersHelper();
+        public static readonly UseExpressionBodyForIndexersHelper Instance = new();
 
         private UseExpressionBodyForIndexersHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForIndexers,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,

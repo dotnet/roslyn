@@ -21,6 +21,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                                 enum E { }
                                 interface I { }
                                 struct S { }
+                                record R1 { }
+                                record R2;
                          </Document>
                         </Project>
                     </Workspace>)
@@ -36,12 +38,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@3 Type=E)" Category="CodeSchema_Enum" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="E" Icon="Microsoft.VisualStudio.Enum.Internal" Label="E"/>
                             <Node Id="(@3 Type=I)" Category="CodeSchema_Interface" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsInternal="True" CommonLabel="I" Icon="Microsoft.VisualStudio.Interface.Internal" Label="I"/>
+                            <Node Id="(@3 Type=R1)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="R1" Icon="Microsoft.VisualStudio.Class.Internal" Label="R1"/>
+                            <Node Id="(@3 Type=R2)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="R2" Icon="Microsoft.VisualStudio.Class.Internal" Label="R2"/>
                             <Node Id="(@3 Type=S)" Category="CodeSchema_Struct" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsInternal="True" CommonLabel="S" Icon="Microsoft.VisualStudio.Struct.Internal" Label="S"/>
                         </Nodes>
                         <Links>
                             <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=E)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=I)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R1)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@3 Type=R2)" Category="Contains"/>
                             <Link Source="(@1 @2)" Target="(@3 Type=S)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>

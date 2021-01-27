@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -521,7 +520,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-                var lineEdits = new List<LineChange>();
+                var lineEdits = new List<SourceLineUpdate>();
 
                 AnalyzeTrivia(
                     oldText,
@@ -591,7 +590,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lineEdits.AsImmutable(),
                     hasSemanticErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
@@ -854,7 +853,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             public LambdaInfo WithMatch(Match<SyntaxNode> match, SyntaxNode newLambdaBody)
-                => new LambdaInfo(ActiveNodeIndices, match, newLambdaBody);
+                => new(ActiveNodeIndices, match, newLambdaBody);
         }
 
         internal readonly struct UpdatedMemberInfo
@@ -1164,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // Set the new spans of active statements overlapping the method body to match the old spans.
                 // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.
@@ -1971,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Match<SyntaxNode> topMatch,
             Dictionary<SyntaxNode, EditKind> editMap,
             [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out] List<LineChange> lineEdits,
+            [Out] List<SourceLineUpdate> lineEdits,
             [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
@@ -2022,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var requiresUpdate = false;
                 var isFirstToken = true;
                 var firstTokenLineDelta = 0;
-                LineChange firstTokenLineChange = default;
+                SourceLineUpdate firstTokenLineChange = default;
                 bool oldHasToken;
                 bool newHasToken;
                 while (true)
@@ -2055,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         isFirstToken = false;
                         firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default;
+                        firstTokenLineChange = (lineDelta != 0) ? new SourceLineUpdate(oldPosition.Line, newPosition.Line) : default;
                     }
                     else if (firstTokenLineDelta != lineDelta)
                     {
@@ -2084,10 +2083,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            lineEdits.Sort(CompareLineChanges);
+            lineEdits.Sort(CompareLineUpdates);
         }
 
-        private static int CompareLineChanges(LineChange x, LineChange y)
+        private static int CompareLineUpdates(SourceLineUpdate x, SourceLineUpdate y)
             => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
@@ -2116,7 +2115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => obj?.Identity.GetHashCode() ?? 0;
         }
 
-        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
+        protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new(
             AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: false);
 
         protected static bool SignaturesEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -3875,7 +3874,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Testing
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -3935,7 +3934,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Match<SyntaxNode> topMatch,
                 Dictionary<SyntaxNode, EditKind> editMap,
                 [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-                [Out] List<LineChange> lineEdits,
+                [Out] List<SourceLineUpdate> lineEdits,
                 [Out] List<RudeEditDiagnostic> diagnostics,
                 CancellationToken cancellationToken)
             {

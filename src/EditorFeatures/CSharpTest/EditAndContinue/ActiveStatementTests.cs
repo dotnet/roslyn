@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9844,7 +9847,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             _ = GetActiveStatements(src1, src2);
 
-            edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp30 });
+            edits.VerifySemanticDiagnostics(targetFrameworks: new[] { TargetFramework.NetCoreApp });
         }
 
         [Fact]

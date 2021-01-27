@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -17,7 +19,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Lock for all data in this type.
         /// </summary>
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
 
         /// <summary>
         /// Last created snapshot of our data.  We hand this out instead of exposing our raw
@@ -32,9 +34,9 @@ namespace Roslyn.Utilities
         /// the stream, and <see cref="ObjectReader"/> will use that index to get the reader used
         /// for deserialization.
         /// </summary>
-        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
-        private static readonly List<Type> s_types = new List<Type>();
-        private static readonly List<Func<ObjectReader, IObjectWritable>> s_typeReaders = new List<Func<ObjectReader, IObjectWritable>>();
+        private static readonly Dictionary<Type, int> s_typeToIndex = new();
+        private static readonly List<Type> s_types = new();
+        private static readonly List<Func<ObjectReader, IObjectWritable>> s_typeReaders = new();
 
         /// <summary>
         /// Gets an immutable copy of the state of this binder.  This copy does not need to be

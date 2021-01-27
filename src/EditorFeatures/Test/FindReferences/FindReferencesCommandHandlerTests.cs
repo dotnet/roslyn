@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
 
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return default;
             }
         }
 

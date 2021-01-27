@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -18,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                  EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
                   language: language,
                   title: title)
@@ -48,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return;
             }
+
             var location = parent.GetLocation();
             var options = context.Compilation.Options;
             context.ReportDiagnostic(
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return false;
             }
+
             return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
     }

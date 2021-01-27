@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
-             = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>>();
+             = new();
 
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap
-            = new ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>();
+            = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
-            = new ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback(r => new ProjectCodeRefactoringProvider(r));
+            = new(r => new ProjectCodeRefactoringProvider(r));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

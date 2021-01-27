@@ -191,7 +191,7 @@ public partial class {userClass.Identifier}
     {{
         // generated code
     }}
-}", Encoding.UTF8);
+}}", Encoding.UTF8);
         context.AddSource("UserClass.Generated.cs", sourceText);
     }
 
@@ -620,6 +620,110 @@ public class MyGenerator : ISourceGenerator
 }
 ```
 
+### Unit Testing of Generators
+
+**User scenario**: As a generator author, I want to be able to unit test my generators to make development easier and ensure correctness.
+
+**Solution**: A user can host the `GeneratorDriver` directly within a unit test, making the generator portion of the code relatively simple to unit test. A user will need to provide a compilation for the generator to operate on, and can then probe either the resulting compilation, or the `GeneratorDriverRunResult` of the driver to see the individual items added by the generator.
+
+Starting with a basic generator that adds a single source file:
+
+```csharp
+[Generator]
+public class CustomGenerator : ISourceGenerator
+{
+    public void Initialize(GeneratorInitializationContext context) {}
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
+namespace GeneratedNamespace
+{
+    public class GeneratedClass
+    {
+        public static void GeneratedMethod()
+        {
+            // generated code
+        }
+    }
+}", Encoding.UTF8));
+    }
+}
+```
+
+As a user, we can host it in a unit test like so:
+
+```csharp
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+
+namespace GeneratorTests.Tests
+{
+    [TestClass]
+    public class GeneratorTests
+    {
+        [TestMethod]
+        public void SimpleGeneratorTest()
+        {
+            // Create the 'input' compilation that the generator will act on
+            Compilation inputCompilation = CreateCompilation(@"
+namespace MyCode
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+        }
+    }
+}
+");
+
+            // directly create an instance of the generator
+            // (Note: in the compiler this is loaded from an assembly, and created via reflection at runtime)
+            CustomGenerator generator = new CustomGenerator();
+
+            // Create the driver that will control the generation, passing in our generator
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+
+            // Run the generation pass
+            // (Note: the generator driver itself is immutable, and all calls return an updated version of the driver that you should use for subsequent calls)
+            driver = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out var outputCompilation, out var diagnostics);
+
+            // We can now assert things about the resulting compilation:
+            Debug.Assert(diagnostics.IsEmpty); // there were no diagnostics created by the generators
+            Debug.Assert(outputCompilation.SyntaxTrees.Count() == 2); // we have two syntax trees, the original 'user' provided one, and the one added by the generator
+            Debug.Assert(outputCompilation.GetDiagnostics().IsEmpty); // verify the compilation with the added source has no diagnostics
+
+            // Or we can look at the results directly:
+            GeneratorDriverRunResult runResult = driver.GetRunResult();
+
+            // The runResult contains the combined results of all generators passed to the driver
+            Debug.Assert(runResult.GeneratedTrees.Length == 1);
+            Debug.Assert(runResult.Diagnostics.IsEmpty);
+
+            // Or you can access the individual results on a by-generator basis
+            GeneratorRunResult generatorResult = runResult.Results[0];
+            Debug.Assert(generatorResult.Generator == generator);
+            Debug.Assert(generatorResult.Diagnostics.IsEmpty);
+            Debug.Assert(generatorResult.GeneratedSources.Length == 1);
+            Debug.Assert(generatorResult.Exception is null);
+        }
+
+        private static Compilation CreateCompilation(string source)
+            => CSharpCompilation.Create("compilation",
+                new[] { CSharpSyntaxTree.ParseText(source) },
+                new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
+                new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+    }
+}
+```
+
+Note: the above example uses MSTest, but the contents of the test are easily adapted to other frameworks, such as XUnit.
+
 ### Participate in the IDE experience
 
 **Implementation Status**: Not Implemented.
@@ -651,6 +755,10 @@ public class InteractiveGenerator : ISourceGenerator
     }
 }
 ```
+
+*Note*: Until these interfaces are made available, generator authors should not try and emulate 'incrementality' with caching to disk and custom up-to-date checks.
+The compiler currently provides no reliable way for a generator to detect if it is suitable to use a previous run, and any attempt to do so will
+likely lead to hard to diagnose bugs for consumers. Generator authors should always assume this is a 'full' generation, happening for the first time.
 
 ### Serialization
 
@@ -859,6 +967,8 @@ TODO:
 
 ## Breaking Changes:
 
+**Implementation status:** Implemented in Visual Studio 16.8 preview3 / roslyn version 3.8.0-3.final onwards
+
 Between preview and release the following breaking changes were introduced:
 
 **Rename `SourceGeneratorContext` to `GeneratorExecutionContext`**  
@@ -872,6 +982,12 @@ public interface ISourceGenerator
     void Initialize(GeneratorInitializationContext context);
     void Execute(GeneratorExecutionContext context);
 }
+```
+
+Users attempting to use a generator targeting the preview APIs against a later version of Roslyn will see an exception similar to:
+
+```csharp
+CSC : warning CS8032: An instance of analyzer Generator.HelloWorldGenerator cannot be created from Generator.dll : Method 'Initialize' in type 'Generator.HelloWorldGenerator' from assembly 'Generator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation. [Consumer.csproj]
 ```
 
 The required action from the user is to rename the parameter types of the `Initialize` and `Execute` methods to match.

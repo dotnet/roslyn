@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -40,7 +42,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.ReleaseExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -124,7 +126,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.DebugExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program

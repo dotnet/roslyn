@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -17,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConversionOperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
         {
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : WellKnownMemberNames.ExplicitConversionName;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, diagnostics);
+                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
         {
             CheckForBlockAndExpressionBody(

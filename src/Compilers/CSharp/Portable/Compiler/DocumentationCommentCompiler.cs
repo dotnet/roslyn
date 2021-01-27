@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
 #nullable enable
         public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
-#nullable restore
+#nullable disable
         {
             StreamWriter writer = null;
             if (xmlDocStream != null && xmlDocStream.CanWrite)
@@ -375,7 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ShouldSkip(Symbol symbol)
         {
-            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol;
+            return symbol.IsImplicitlyDeclared ||
+                symbol.IsAccessor() ||
+                symbol is SynthesizedSimpleProgramEntryPointSymbol ||
+                symbol is SimpleProgramNamedTypeSymbol ||
+                symbol is SynthesizedRecordPropertySymbol;
         }
 
         /// <summary>

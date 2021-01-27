@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.SourceCodeKind,
                 textLoader,
                 documentInfo.FilePath,
-                documentInfo.IsGenerated);
+                documentInfo.IsGenerated,
+                documentInfo.DesignTimeOnly,
+                documentServiceProvider: null);
         }
 
         private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums, CancellationToken cancellationToken)

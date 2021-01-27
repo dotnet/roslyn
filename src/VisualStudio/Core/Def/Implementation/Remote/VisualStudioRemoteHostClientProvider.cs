@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -27,36 +29,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             private readonly IAsyncServiceProvider _vsServiceProvider;
+            private readonly AsynchronousOperationListenerProvider _listenerProvider;
+            private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(SVsServiceProvider vsServiceProvider)
+            public Factory(
+                SVsServiceProvider vsServiceProvider,
+                AsynchronousOperationListenerProvider listenerProvider,
+                [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
             {
                 _vsServiceProvider = (IAsyncServiceProvider)vsServiceProvider;
+                _listenerProvider = listenerProvider;
+                _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             {
-                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices)
-                    || workspaceServices.Workspace is not VisualStudioWorkspace)
+                // We don't want to bring up the OOP process in a VS cloud environment client instance
+                // Avoids proffering brokered services on the client instance.
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices) ||
+                    workspaceServices.Workspace is not VisualStudioWorkspace ||
+                    workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
                     // Run code in the current process
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices, _vsServiceProvider, _listenerProvider, _callbackDispatchers);
             }
         }
 
         private readonly HostWorkspaceServices _services;
         private readonly AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
+        private readonly AsynchronousOperationListenerProvider _listenerProvider;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
-        private VisualStudioRemoteHostClientProvider(HostWorkspaceServices services, IAsyncServiceProvider vsServiceProvider)
+        private VisualStudioRemoteHostClientProvider(
+            HostWorkspaceServices services,
+            IAsyncServiceProvider vsServiceProvider,
+            AsynchronousOperationListenerProvider listenerProvider,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
             _vsServiceProvider = vsServiceProvider;
+            _listenerProvider = listenerProvider;
+            _callbackDispatchers = callbackDispatchers;
             _lazyClient = new AsyncLazy<RemoteHostClient?>(CreateHostClientAsync, cacheResult: true);
         }
 
@@ -67,14 +87,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, serviceBroker, cancellationToken).ConfigureAwait(false);
+                var client = await ServiceHubRemoteHostClient.CreateAsync(_services, _listenerProvider, serviceBroker, _callbackDispatchers, cancellationToken).ConfigureAwait(false);
 
                 // proffer in-proc brokered services:
-                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => new ValueTask<object?>(new SolutionAssetProvider(_services)));
+                _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(_services)));
 
                 return client;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }

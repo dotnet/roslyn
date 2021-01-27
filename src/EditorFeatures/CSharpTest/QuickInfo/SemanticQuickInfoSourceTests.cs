@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Security;
@@ -6039,8 +6041,8 @@ namespace Nested
         {
             var xmlString = @"
 <Workspace>
-    <Project Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
-        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""702"" CommonReferences=""true"">
+    <Project Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
             <Document FilePath=""ReferencedDocument"">
 public ref struct TestRef
 {

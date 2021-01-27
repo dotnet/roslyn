@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
     internal static partial class TaskExtensions
     {
 #if DEBUG
-        private static readonly Lazy<Func<Thread, bool>> s_isThreadPoolThread = new Lazy<Func<Thread, bool>>(
+        private static readonly Lazy<Func<Thread, bool>?> s_isThreadPoolThread = new(
             () =>
             {
                 var property = typeof(Thread).GetTypeInfo().GetDeclaredProperty("IsThreadPoolThread");
@@ -87,8 +87,9 @@ namespace Roslyn.Utilities
             }
             catch (AggregateException ex)
             {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
             }
+
             return task.Result;
         }
 
@@ -203,7 +204,7 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -369,7 +370,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(ReportFatalError, continuationFunction,
+            nextTask.ContinueWith(ReportNonFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -412,7 +413,7 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-            ReportFatalError(nextTask, continuationFunction);
+            ReportNonFatalError(nextTask, continuationFunction);
             return nextTask;
         }
 
@@ -451,7 +452,7 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-            ReportFatalError(nextTask, continuationFunction);
+            ReportNonFatalError(nextTask, continuationFunction);
             return nextTask;
         }
 
@@ -536,20 +537,20 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
-        internal static void ReportFatalError(Task task, object continuationFunction)
+        internal static void ReportNonFatalError(Task task, object? continuationFunction)
         {
-            task.ContinueWith(ReportFatalErrorWorker, continuationFunction,
+            task.ContinueWith(ReportNonFatalErrorWorker, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-        private static void ReportFatalErrorWorker(Task task, object continuationFunction)
+        private static void ReportNonFatalErrorWorker(Task task, object? continuationFunction)
         {
-            var exception = task.Exception;
-            var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();
-            exception.Data["ContinuationFunction"] = methodInfo.DeclaringType.FullName + "::" + methodInfo.Name;
+            var exception = task.Exception!;
+            var methodInfo = ((Delegate)continuationFunction!).GetMethodInfo();
+            exception.Data["ContinuationFunction"] = (methodInfo?.DeclaringType?.FullName ?? "?") + "::" + (methodInfo?.Name ?? "?");
 
             // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
             // > !threads // find thread with System.ExecutionEngineException
@@ -558,12 +559,12 @@ namespace Roslyn.Utilities
             //   ...
             // > ~67s     // switch to thread 67
             // > !dso     // dump stack objects
-            FatalError.Report(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         public static Task ReportNonFatalErrorAsync(this Task task)
         {
-            task.ContinueWith(p => FatalError.ReportWithoutCrashUnlessCanceled(p.Exception),
+            task.ContinueWith(p => FatalError.ReportAndCatchUnlessCanceled(p.Exception!),
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                 TaskScheduler.Default);

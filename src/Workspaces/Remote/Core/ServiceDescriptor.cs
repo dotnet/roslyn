@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using StreamJsonRpc;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
-        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new()
         {
             // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
             NotifyClientOfEvents = false,
@@ -26,39 +26,34 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
-        // Enables remote APIs to pass Stream as parameter.
-        private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
-        {
-            ProtocolMajorVersion = 3
-        }.GetFrozenCopy();
+        private readonly Func<string, string> _featureDisplayNameProvider;
+        private readonly RemoteSerializationOptions _serializationOptions;
 
-        private ServiceDescriptor(ServiceMoniker serviceMoniker, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, Formatters.UTF8, MessageDelimiters.HttpLikeHeaders, s_multiplexingStreamOptions)
+        private ServiceDescriptor(ServiceMoniker serviceMoniker, RemoteSerializationOptions serializationOptions, Func<string, string> displayNameProvider, Type? clientInterface)
+            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, serializationOptions.MultiplexingStreamOptions)
         {
+            _featureDisplayNameProvider = displayNameProvider;
+            _serializationOptions = serializationOptions;
         }
 
         private ServiceDescriptor(ServiceDescriptor copyFrom)
           : base(copyFrom)
         {
+            _featureDisplayNameProvider = copyFrom._featureDisplayNameProvider;
+            _serializationOptions = copyFrom._serializationOptions;
         }
 
-        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, Type? clientInterface)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface);
+        public static ServiceDescriptor CreateRemoteServiceDescriptor(string serviceName, RemoteSerializationOptions options, Func<string, string> featureDisplayNameProvider, Type? clientInterface)
+            => new(new ServiceMoniker(serviceName), options, featureDisplayNameProvider, clientInterface);
 
-        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName)
-            => new ServiceDescriptor(new ServiceMoniker(serviceName), clientInterface: null);
+        public static ServiceDescriptor CreateInProcServiceDescriptor(string serviceName, Func<string, string> featureDisplayNameProvider)
+            => new(new ServiceMoniker(serviceName), RemoteSerializationOptions.Default, featureDisplayNameProvider, clientInterface: null);
 
         protected override ServiceRpcDescriptor Clone()
             => new ServiceDescriptor(this);
 
         protected override IJsonRpcMessageFormatter CreateFormatter()
-            => ConfigureFormatter((JsonMessageFormatter)base.CreateFormatter());
-
-        internal static JsonMessageFormatter ConfigureFormatter(JsonMessageFormatter formatter)
-        {
-            formatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-            return formatter;
-        }
+            => _serializationOptions.ConfigureFormatter(base.CreateFormatter());
 
         protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
         {
@@ -67,5 +62,8 @@ namespace Microsoft.CodeAnalysis.Remote
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
             return connection;
         }
+
+        internal string GetFeatureDisplayName()
+            => _featureDisplayNameProvider(Moniker.Name);
     }
 }

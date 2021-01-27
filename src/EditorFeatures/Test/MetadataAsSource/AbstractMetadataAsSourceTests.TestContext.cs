@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project? project = null, bool allowDecompilation = false)
             {
                 project ??= this.DefaultProject;
+                Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
                 return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
@@ -85,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var diagnostics = compilation.GetDiagnostics().ToArray();
                 Assert.Equal(0, diagnostics.Length);
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
+                Contract.ThrowIfNull(symbol);
 
                 // Generate and hold onto the result so it can be disposed of with this context
                 var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);

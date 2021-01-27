@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             }
 
             public PragmaWarningCodeAction CloneForFixMultipleContext()
-                => new PragmaWarningCodeAction(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
+                => new(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 

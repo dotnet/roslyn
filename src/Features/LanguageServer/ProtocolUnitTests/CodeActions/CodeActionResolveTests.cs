@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,27 +36,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                priority: PriorityLevel.Low,
+                groupName: "Roslyn1",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
-            var expectedMarkup =
-@"class A
-{
-    void M()
-    {
-        var i = 1;
-    }
-}";
-            var expected = CodeActionsTests.CreateCodeAction(
+            // Expected text after edit:
+            //     class A
+            //     {
+            //         void M()
+            //         {
+            //             var i = 1;
+            //         }
+            //     }
+            var expectedTextEdits = new LSP.TextEdit[]
+            {
+                GenerateTextEdit("var", new LSP.Range { Start = new Position(4, 8), End = new Position(4, 11) })
+            };
+
+            var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single()),
+                priority: PriorityLevel.Low,
+                groupName: "Roslyn1",
                 diagnostics: null,
-                edit: GenerateWorkspaceEdit(
-                    locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
+                edit: GenerateWorkspaceEdit(locations, expectedTextEdits));
 
-            var result = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
-            AssertJsonEquals(expected, result);
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
+            AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
         [WpfFact]
@@ -77,32 +89,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
+                priority: PriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
-            var expectedMarkup =
-@"class A
-{
-    private const int V = 1;
+            // Expected text after edits:
+            //     class A
+            //     {
+            //         private const int V = 1;
+            //
+            //         void M()
+            //         {
+            //             int i = V;
+            //         }
+            //     }
+            var expectedTextEdits = new LSP.TextEdit[]
+            {
+                GenerateTextEdit(@"private const int V = 1;
 
-    void M()
-    {
-        int i = V;
-    }
-}";
+", new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
+                GenerateTextEdit("V", new LSP.Range { Start = new Position(4, 16), End = new Position(4, 17) })
+            };
 
-            var expected = CodeActionsTests.CreateCodeAction(
+            var expectedResolvedAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
                 data: CreateCodeActionResolveData(
                     FeaturesResources.Introduce_constant + "|" + string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
                     locations["caret"].Single()),
+                priority: PriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null,
                 edit: GenerateWorkspaceEdit(
-                    locations, expectedMarkup, new LSP.Range { Start = new Position(0, 0), End = new Position(6, 1) }));
+                    locations, expectedTextEdits));
 
-            var result = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
-            AssertJsonEquals(expected, result);
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
+            AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
         private static async Task<LSP.VSCodeAction> RunGetCodeActionResolveAsync(
@@ -110,16 +135,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             VSCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(
+            var queue = CreateRequestQueue(solution);
+            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(queue,
                 LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction,
                 clientCapabilities, null, CancellationToken.None);
             return result;
         }
 
+        private static LSP.TextEdit GenerateTextEdit(string newText, LSP.Range range)
+            => new LSP.TextEdit
+            {
+                NewText = newText,
+                Range = range
+            };
+
         private static WorkspaceEdit GenerateWorkspaceEdit(
             Dictionary<string, IList<LSP.Location>> locations,
-            string expectedMarkup,
-            LSP.Range range)
+            TextEdit[] edits)
             => new LSP.WorkspaceEdit
             {
                 DocumentChanges = new TextDocumentEdit[]
@@ -130,14 +162,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                         {
                             Uri = locations["caret"].Single().Uri
                         },
-                        Edits = new TextEdit[]
-                        {
-                            new TextEdit
-                            {
-                                NewText = expectedMarkup,
-                                Range = range
-                            }
-                        }
+                        Edits = edits,
                     }
                 }
             };

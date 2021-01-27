@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -21,18 +23,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ChangeSignatureDialogViewModel _viewModel;
 
         // Expose localized strings for binding
-        public string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
-        public string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
-        public string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
-        public string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
-        public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
-        public string Remove { get { return ServicesVSResources.Re_move; } }
-        public string Restore { get { return ServicesVSResources.Restore; } }
-        public string Add { get { return ServicesVSResources.Add; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
-        public string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
-        public string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
+        public static string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
+        public static string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
+        public static string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
+        public static string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
+        public static string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
+        public static string Remove { get { return ServicesVSResources.Re_move; } }
+        public static string Restore { get { return ServicesVSResources.Restore; } }
+        public static string Add { get { return ServicesVSResources.Add; } }
+        public static string OK { get { return ServicesVSResources.OK; } }
+        public static string Cancel { get { return ServicesVSResources.Cancel; } }
+        public static string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
+        public static string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 
         public Brush ParameterText { get; }
         public Brush RemovedParameterText { get; }
@@ -179,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             SetFocusToSelectedRow(false);
         }
 
-        private CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
+        private static CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
         {
             if (addParameterViewModel.IsCallsiteInferred)
                 return CallSiteKind.Inferred;
@@ -201,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (Members.SelectedIndex >= 0)
             {
-                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is DataGridRow row))
+                if (Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is not DataGridRow row)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
@@ -209,12 +211,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
                 if (row != null && focusRow)
                 {
+                    // This line is required primarily for accessibility purposes to ensure the screenreader always
+                    // focuses on individual rows rather than the parent DataGrid.
+                    Members.UpdateLayout();
+
                     FocusRow(row);
                 }
             }
         }
 
-        private void FocusRow(DataGridRow row)
+        private static void FocusRow(DataGridRow row)
         {
             var cell = row.FindDescendant<DataGridCell>();
             if (cell != null)
@@ -251,7 +257,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void Members_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
-            Members.SelectedIndex = Members.Items.IndexOf(Members.CurrentItem);
+            if (Members.CurrentItem != null)
+            {
+                // When it has a valid value, CurrentItem is generally more up-to-date than SelectedIndex.
+                // For example, if the user clicks on an out of view item in the parameter list (i.e. the
+                // parameter list is long and the user scrolls to click another parameter farther down/up
+                // in the list), CurrentItem will update immediately while SelectedIndex will not.
+                Members.SelectedIndex = Members.Items.IndexOf(Members.CurrentItem);
+            }
+
             if (Members.SelectedIndex == -1)
             {
                 Members.SelectedIndex = _viewModel.GetStartingSelectionIndex();
@@ -276,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

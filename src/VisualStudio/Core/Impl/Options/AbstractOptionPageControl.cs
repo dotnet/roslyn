@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -74,6 +77,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        private protected void BindToOption(CheckBox checkbox, Option2<bool?> nullableOptionKey, Func<bool> onNullValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<bool?>(OptionStore, nullableOptionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new NullableBoolOptionConverter(onNullValue)
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
         {
             var binding = new Binding()
@@ -81,6 +98,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 Source = new PerLanguageOptionBinding<bool>(OptionStore, optionKey, languageName),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Default
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<bool?>(OptionStore, nullableOptionKey, languageName),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new NullableBoolOptionConverter(onNullValue)
             };
 
             var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);

@@ -47,7 +47,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -77,7 +76,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" WorkItem="https://github.com/dotnet/roslyn/issues/35085" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
@@ -197,18 +195,15 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="ManagedEditAndContinueService.vsdconfigxml" />
-    <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
-  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
   <Target Name="GeneratePkgDefServiceRegistrations"
           BeforeTargets="GeneratePkgDef">
     <ItemGroup>
-      <!-- Add registrations for both 32-bit and 64-bit -->
+      <!-- Add registrations for 32-bit, 64-bit, and 64-bit Server GC -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
 
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>

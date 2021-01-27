@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -39,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     {
         protected AbstractUseNullPropagationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNullPropagationDiagnosticId,
+                   EnforceOnBuildValues.UseNullPropagation,
                    CodeStyleOptions2.PreferNullPropagation,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_null_propagation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -99,6 +98,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
+            whenTrueNode = syntaxFacts.WalkDownParentheses(whenTrueNode);
+            whenFalseNode = syntaxFacts.WalkDownParentheses(whenFalseNode);
 
             var conditionIsNegated = false;
             if (syntaxFacts.IsLogicalNotExpression(conditionNode))
@@ -345,6 +346,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private static SyntaxNode? Unwrap(ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
+            node = syntaxFacts.WalkDownParentheses(node);
+
             if (node is TInvocationExpression invocation)
             {
                 return syntaxFacts.GetExpressionOfInvocationExpression(invocation);

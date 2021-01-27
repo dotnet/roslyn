@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -121,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// based on both command line options and pragmas. The diagnostic options
         /// have precedence in the following order:
         ///     1. Warning level
-        ///     2. Syntax tree level
-        ///     3. Compilation level
-        ///     4. Global analyzer config
+        ///     2. Command line options (/nowarn, /warnaserror)
+        ///     3. Editor config options (syntax tree level)
+        ///     4. Global analyzer config options (compilation level)
         ///     5. Global warning level
         ///
         /// Pragmas are considered separately. If a diagnostic would not otherwise
@@ -180,24 +178,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnostic report;
             bool isSpecified = false;
+            bool specifiedWarnAsErrorMinus = false;
 
-            if (tree != null && syntaxTreeOptions != null &&
-                syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, out report))
+            if (specificDiagnosticOptions.TryGetValue(id, out report))
             {
-                // 2. Syntax tree level
+                // 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = true;
+
+                // 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                if (report == ReportDiagnostic.Default)
+                {
+                    specifiedWarnAsErrorMinus = true;
+                }
             }
-            else if (specificDiagnosticOptions.TryGetValue(id, out report))
+
+            // Apply syntax tree options, if applicable.
+            if (syntaxTreeOptions != null &&
+                (!isSpecified || specifiedWarnAsErrorMinus))
             {
-                // 3. Compilation level
-                isSpecified = true;
+                // 3. Editor config options (syntax tree level)
+                // 4. Global analyzer config options (compilation level)
+                // Do not apply config options if it is bumping a warning to an error and "/warnaserror-:DiagnosticId" was specified on the command line.
+                if ((tree != null && syntaxTreeOptions.TryGetDiagnosticValue(tree, id, cancellationToken, out var reportFromSyntaxTreeOptions) ||
+                    syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, out reportFromSyntaxTreeOptions)) &&
+                    !(specifiedWarnAsErrorMinus && severity == DiagnosticSeverity.Warning && reportFromSyntaxTreeOptions == ReportDiagnostic.Error))
+                {
+                    isSpecified = true;
+                    report = reportFromSyntaxTreeOptions;
+
+                    // '/warnaserror' should promote warnings configured in analyzer config to error.
+                    if (!specifiedWarnAsErrorMinus && report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
+                    {
+                        report = ReportDiagnostic.Error;
+                    }
+                }
             }
-            else if (syntaxTreeOptions is object && syntaxTreeOptions.TryGetGlobalDiagnosticValue(id, cancellationToken, out report))
-            {
-                // 4. Global analyzer config level
-                isSpecified = true;
-            }
-            else
+
+            if (!isSpecified)
             {
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }

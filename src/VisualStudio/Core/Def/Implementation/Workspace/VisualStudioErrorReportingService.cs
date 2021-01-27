@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
@@ -21,11 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioErrorReportingService(IInfoBarService infoBarService)
             => _infoBarService = infoBarService;
 
-        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBarInActiveView(message, items);
+        public string HostDisplayName => "Visual Studio";
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBarInGlobalView(message, items);
+            => _infoBarService.ShowInfoBar(message, items);
 
         public void ShowDetailedErrorInfo(Exception exception)
         {
@@ -33,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             new DetailedErrorInfoDialog(exception.Message, errorInfo).ShowModal();
         }
 
+        // obsolete - will remove once we remove JsonRpcConnection
+        // https://github.com/dotnet/roslyn/issues/45859
         public void ShowRemoteHostCrashedErrorInfo(Exception? exception)
         {
             if (s_infoBarReported)
@@ -63,6 +62,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ShowGlobalErrorInfo(
                 ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
                 infoBarUIs.ToArray());
+        }
+
+        public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
+        {
+            var infoBarUIs = new List<InfoBarUI>();
+
+            if (exception != null)
+            {
+                infoBarUIs.Add(new InfoBarUI(
+                    WorkspacesResources.Show_Stack_Trace,
+                    InfoBarUI.UIKind.HyperLink,
+                    () => ShowDetailedErrorInfo(exception),
+                    closeAfterAction: true));
+            }
+
+            ShowGlobalErrorInfo(message, infoBarUIs.ToArray());
         }
     }
 }

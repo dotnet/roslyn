@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,11 +19,13 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (text.Storage is not null)
             {
+                context.AddResource(text.Storage);
+
                 writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
                 writer.WriteEncoding(text.Storage.Encoding);
 
@@ -148,10 +148,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
         }
 
-        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteTo(reference, writer, cancellationToken);
+            WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)

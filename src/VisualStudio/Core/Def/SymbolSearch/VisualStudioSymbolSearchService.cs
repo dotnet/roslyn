@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
         // but we want to keep it alive until the VS is closed, so we don't dispose it.
@@ -44,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IPackageInstallerService _installerService;
         private readonly string _localSettingsDirectory;
         private readonly LogService _logService;
-
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
-            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource));
+            Task.Run(() => UpdateSourceInBackgroundAsync(SymbolSearchUpdateEngine.NugetOrgSource, ThreadingContext.DisposalToken));
         }
 
         private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -91,13 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        private async Task UpdateSourceInBackgroundAsync(string sourceName)
+        private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
-            var engine = await GetEngineAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory).ConfigureAwait(false);
+            var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return FilterAndOrderPackages(allPackagesWithType);
         }
 
-        public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public async ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return result.ToImmutableAndFree();
         }
 
-        public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);

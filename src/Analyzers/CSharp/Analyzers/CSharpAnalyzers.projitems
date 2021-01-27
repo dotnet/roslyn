@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\CSharpRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyzer.cs" />
@@ -46,6 +48,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\CSharpSimplifyConditionalDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
@@ -74,6 +77,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool expectedSuccess = true,
             int[] updatedSignature = null,
             string expectedUpdatedInvocationDocumentCode = null,
-            string expectedErrorText = null,
+            ChangeSignatureFailureKind? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             => await TestChangeSignatureViaCommandAsync(languageName, markup,
                 updatedSignature?.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
                 expectedSuccess, expectedUpdatedInvocationDocumentCode,
-                expectedErrorText,
+                expectedFailureReason,
                 totalParameters,
                 verifyNoDiagnostics,
                 parseOptions,
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedSuccess = true,
             string expectedUpdatedInvocationDocumentCode = null,
-            string expectedErrorText = null,
+            ChangeSignatureFailureKind? expectedFailureReason = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
@@ -104,21 +106,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions, options))
             {
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-                var result = testState.ChangeSignature();
+                var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
 
                 if (expectedSuccess)
                 {
                     Assert.True(result.Succeeded);
-                    Assert.Null(testState.ErrorMessage);
+                    Assert.Null(result.ChangeSignatureFailureKind);
                 }
                 else
                 {
                     Assert.False(result.Succeeded);
 
-                    if (expectedErrorText != null)
+                    if (expectedFailureReason != null)
                     {
-                        Assert.Equal(expectedErrorText, testState.ErrorMessage);
-                        Assert.Equal(NotificationSeverity.Error, testState.ErrorSeverity);
+                        Assert.Equal(expectedFailureReason, result.ChangeSignatureFailureKind);
                     }
                 }
 

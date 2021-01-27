@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
@@ -14,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         private const string Range = nameof(Range);
         private const string Count = nameof(Count);
 
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly LogAggregator s_logAggregator = new();
 
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 1000);
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 50, maxBucketValue: 1000);
 
         internal enum ActionInfo
         {
@@ -35,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionCreateItemsTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
+            ExtensionMethodCompletionTimeoutCount,
+            CommitUsingSemicolonToAddParenthesis,
+            CommitUsingDotToAddParenthesis
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -78,6 +83,28 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
+
+        internal static void LogExtensionMethodCompletionTimeoutCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
+
+        internal static void LogCommitUsingSemicolonToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
+
+        internal static void LogCommitUsingDotToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingDotToAddParenthesis);
+
+        internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
+        {
+            switch (commitChar)
+            {
+                case '.':
+                    LogCommitUsingDotToAddParenthesis();
+                    break;
+                case ';':
+                    LogCommitUsingSemicolonToAddParenthesis();
+                    break;
+            }
+        }
 
         internal static void ReportTelemetry()
         {

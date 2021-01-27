@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractAnalyzerState<TKey, TValue, TData>
     {
-        protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: 10);
+        protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new(concurrencyLevel: 2, capacity: 10);
 
         protected abstract TKey GetCacheKey(TValue value);
         protected abstract Solution GetSolution(TValue value);
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             try
             {
-                using var storage = persistService.GetStorage(solution);
+                using var storage = await persistService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
                 using var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false);
 
                 if (stream != null)
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             var solution = GetSolution(value);
             var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-            using var storage = persistService.GetStorage(solution);
+            using var storage = await persistService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
             stream.Position = 0;
             return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
         }

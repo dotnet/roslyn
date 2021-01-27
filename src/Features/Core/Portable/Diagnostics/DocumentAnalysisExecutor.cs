@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -306,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!AnalyzerHelper.AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
-                    FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
+                    FatalError.ReportAndCatch(new Exception("Bug in GetDiagnostics"));
 
                     // make sure we hold onto these for debugging.
                     GC.KeepAlive(rangeDeclaractionDiagnostics);

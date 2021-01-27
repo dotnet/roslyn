@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -53,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
@@ -129,30 +125,50 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         }
 
         [Fact]
-        public async Task TestGetCodeFixWithExceptionInRegisterMethod()
+        public async Task TestGetCodeFixWithExceptionInRegisterMethod_Diagnostic()
         {
-            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethod());
+            await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
+        }
+
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInRegisterMethod_Fixes()
+        {
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethod());
         }
 
         [Fact]
-        public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync()
+        public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Diagnostic()
         {
-            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
+            await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
+        }
+
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInRegisterMethodAsync_Fixes()
+        {
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInRegisterMethodAsync());
         }
 
         [Fact]
-        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds()
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic()
         {
-            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
+            await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
+        }
+
+        [Fact]
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes()
+        {
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
-        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Diagnostic2()
         {
-            await GetFirstDiagnosticWithFixAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+            await GetFirstDiagnosticWithFixWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
+        public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds_Fixes2()
+        {
             await GetAddedFixesWithExceptionValidationAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
         }
 
@@ -176,6 +192,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             using var workspace = tuple.workspace;
 
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.analyzerService;
             var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
@@ -190,17 +211,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
 
+            Assert.Equal(exception || throwExceptionInFixerCreation, errorReported);
+
             return fixes;
         }
 
-        private static async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
+        private static async Task GetFirstDiagnosticWithFixWithExceptionValidationAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
             using var workspace = tuple.workspace;
+
+            var errorReportingService = (TestErrorReportingService)workspace.Services.GetRequiredService<IErrorReportingService>();
+
+            var errorReported = false;
+            errorReportingService.OnError = message => errorReported = true;
+
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
             var unused = await tuple.codeFixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codefix));
             Assert.False(extensionManager.IsIgnored(codefix));
+            Assert.True(errorReported);
         }
 
         private static (TestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
@@ -229,7 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 : SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>();
 
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService,
                 logger,
                 fixers,
@@ -539,7 +568,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;

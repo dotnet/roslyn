@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static StatementSyntax WithoutLeadingBlankLinesInTrivia(this StatementSyntax statement)
             => statement.WithLeadingTrivia(statement.GetLeadingTrivia().WithoutLeadingBlankLines());
 
-        public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
+        public static StatementSyntax? GetPreviousStatement(this StatementSyntax? statement)
         {
             if (statement != null)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        public static StatementSyntax GetNextStatement(this StatementSyntax statement)
+        public static StatementSyntax? GetNextStatement(this StatementSyntax? statement)
         {
             if (statement != null)
             {

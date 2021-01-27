@@ -332,12 +332,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Operator
 
         Public Overloads Shared Function Equals(left As TypeSymbol, right As TypeSymbol, comparison As TypeCompareKind) As Boolean
-            ' VB doesn't support any nullable annotations, but it is desirable at the top level to allow them to be provided
-            ' as a comparison option so that a user doesn't need to distinguish between VB and C# symbols.
-            ' We explicitly strip out the nullable ignore options here so that later assertions and code don't have to consider them 
-            comparison = comparison And Not TypeCompareKind.AllNullableIgnoreOptions
-            Return left.IsSameType(right, comparison)
+            Return If(left?.Equals(right, comparison), right Is Nothing)
         End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, TypeSymbol), TypeCompareKind.ConsiderEverything)
+        End Function
+
+        Public NotOverridable Overrides Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, TypeSymbol), compareKind)
+        End Function
+
+        Public MustOverride Overrides Function GetHashCode() As Integer
+
+        Public MustOverride Overloads Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
 
         ''' <summary>
         ''' Lookup an immediately nested type referenced from metadata, names should be
@@ -592,6 +600,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsRecord As Boolean Implements ITypeSymbol.IsRecord
+            Get
+                ' VB does not have records
+                Return False
+            End Get
+        End Property
+
         Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
             Return ToDisplayString(format)
         End Function
@@ -628,7 +643,8 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
                Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics:=Nothing) Then
                 Return Nothing
             End If

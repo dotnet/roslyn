@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias Scripting;
 
 using System;
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     return new InitializedRemoteService(remoteService, result);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -146,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
-                        StandardErrorEncoding = Encoding.UTF8,
-                        StandardOutputEncoding = Encoding.UTF8
+                        StandardErrorEncoding = OutputEncoding,
+                        StandardOutputEncoding = OutputEncoding
                     },
 
                     // enables Process.Exited event to be raised:
@@ -228,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcess.Exited -= ProcessExitedBeforeEstablishingConnection;
                 }
 
-                return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo);
+                return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo, Options);
             }
 
             private bool CheckAlive(Process process, string hostPath)

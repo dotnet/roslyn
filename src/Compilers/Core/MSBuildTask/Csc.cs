@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -84,6 +82,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ErrorReport)] = value; }
             get { return (string?)_store[nameof(ErrorReport)]; }
+        }
+
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
         }
 
         public bool GenerateFullPaths
@@ -205,6 +209,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);

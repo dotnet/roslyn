@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -19,15 +19,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Active statements by instruction id.
         /// </summary>
-        public readonly IReadOnlyDictionary<ActiveInstructionId, ActiveStatement> InstructionMap;
+        public readonly IReadOnlyDictionary<ManagedInstructionId, ActiveStatement> InstructionMap;
 
         public ActiveStatementsMap(
             IReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>> documentMap,
-            IReadOnlyDictionary<ActiveInstructionId, ActiveStatement> instructionMap)
+            IReadOnlyDictionary<ManagedInstructionId, ActiveStatement> instructionMap)
         {
-            Debug.Assert(documentMap != null);
-            Debug.Assert(instructionMap != null);
-
             DocumentMap = documentMap;
             InstructionMap = instructionMap;
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.Cci;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public SymbolChange GetChange(IDefinition def)
         {
-            var synthesizedDef = def as ISynthesizedMethodBodyImplementationSymbol;
+            ISymbolInternal symbol = def.GetInternalSymbol();
+            var synthesizedDef = symbol as ISynthesizedMethodBodyImplementationSymbol;
             if (synthesizedDef != null)
             {
                 Debug.Assert(synthesizedDef.Method != null);
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var generator = synthesizedDef.Method;
                 ISymbolInternal synthesizedSymbol = synthesizedDef;
 
-                var change = GetChange((IDefinition)generator);
+                var change = GetChange((IDefinition)generator.GetCciAdapter());
                 switch (change)
                 {
                     case SymbolChange.Updated:
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         // The container of the synthesized symbol doesn't exist, we need to add the symbol.
                         // This may happen e.g. for members of a state machine type when a non-iterator method is changed to an iterator.
-                        if (!_definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType))
+                        if (!_definitionMap.DefinitionExists((IDefinition)synthesizedSymbol.ContainingType.GetCciAdapter()))
                         {
                             return SymbolChange.Added;
                         }
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            if (def is ISymbolInternal symbol)
+            if (symbol is object)
             {
                 return GetChange(symbol.GetISymbol());
             }
@@ -182,15 +185,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
-                    ISymbolInternal symbolInternal = GetISymbolInternalOrNull(symbol);
+                    var adapter = GetISymbolInternalOrNull(symbol)?.GetCciAdapter();
 
-                    if (symbolInternal is IDefinition definition)
+                    if (adapter is IDefinition definition)
                     {
                         // If the definition did not exist in the previous generation, it was added.
                         return _definitionMap.DefinitionExists(definition) ? SymbolChange.None : SymbolChange.Added;
                     }
 
-                    if (symbolInternal is INamespace @namespace)
+                    if (adapter is INamespace @namespace)
                     {
                         // If the namespace did not exist in the previous generation, it was added.
                         // Otherwise the namespace may contain changes.
@@ -210,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var symbol in _changes.Keys)
             {
-                var namespaceTypeDef = (GetISymbolInternalOrNull(symbol) as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                var namespaceTypeDef = (GetISymbolInternalOrNull(symbol)?.GetCciAdapter() as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
                 if (namespaceTypeDef != null)
                 {
                     yield return namespaceTypeDef;

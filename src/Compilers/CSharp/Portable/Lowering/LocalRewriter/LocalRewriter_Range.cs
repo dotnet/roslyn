@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BadExpression(node.Syntax, node.Type, node);
                     }
 
-                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeCreation);
+                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeCreation);
                 }
 
                 return rangeCreation;
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeExpr);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
@@ -37,13 +39,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
-            foreach (var kvp in _values)
+            foreach (var (key, value) in _values)
             {
-                var currentValue = optionSet.GetOption(kvp.Key);
-                if (!object.Equals(currentValue, kvp.Value))
-                {
-                    yield return kvp.Key;
-                }
+                var currentValue = optionSet.GetOption(key);
+                if (!object.Equals(currentValue, value))
+                    yield return key;
             }
         }
     }

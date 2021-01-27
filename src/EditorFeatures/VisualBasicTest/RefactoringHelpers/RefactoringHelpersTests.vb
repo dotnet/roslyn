@@ -2,17 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RefactoringHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RefactoringHelpers
     Partial Public Class RefactoringHelpersTests
         Inherits RefactoringHelpersTestBase(Of VisualBasicTestWorkspaceFixture)
-
-        Public Sub New(ByVal workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         <Fact>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>

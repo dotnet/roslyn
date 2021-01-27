@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructorInfo
     {
-        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo> s_constructorToInfoMap =
-            new ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo>();
+        private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationConstructorInfo> s_constructorToInfoMap = new();
 
+        private readonly bool _isPrimaryConstructor;
         private readonly bool _isUnsafe;
         private readonly string _typeName;
         private readonly ImmutableArray<SyntaxNode> _baseConstructorArguments;
@@ -19,12 +19,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ImmutableArray<SyntaxNode> _statements;
 
         private CodeGenerationConstructorInfo(
+            bool isPrimaryConstructor,
             bool isUnsafe,
             string typeName,
             ImmutableArray<SyntaxNode> statements,
             ImmutableArray<SyntaxNode> baseConstructorArguments,
             ImmutableArray<SyntaxNode> thisConstructorArguments)
         {
+            _isPrimaryConstructor = isPrimaryConstructor;
             _isUnsafe = isUnsafe;
             _typeName = typeName;
             _statements = statements;
@@ -34,17 +36,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static void Attach(
             IMethodSymbol constructor,
+            bool isPrimaryConstructor,
             bool isUnsafe,
             string typeName,
             ImmutableArray<SyntaxNode> statements,
             ImmutableArray<SyntaxNode> baseConstructorArguments,
             ImmutableArray<SyntaxNode> thisConstructorArguments)
         {
-            var info = new CodeGenerationConstructorInfo(isUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
+            var info = new CodeGenerationConstructorInfo(isPrimaryConstructor, isUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
             s_constructorToInfoMap.Add(constructor, info);
         }
 
-        private static CodeGenerationConstructorInfo GetInfo(IMethodSymbol method)
+        private static CodeGenerationConstructorInfo? GetInfo(IMethodSymbol method)
         {
             s_constructorToInfoMap.TryGetValue(method, out var info);
             return info;
@@ -65,19 +68,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static bool GetIsUnsafe(IMethodSymbol constructor)
             => GetIsUnsafe(GetInfo(constructor));
 
-        private static ImmutableArray<SyntaxNode> GetThisConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
+        public static bool GetIsPrimaryConstructor(IMethodSymbol constructor)
+            => GetIsPrimaryConstructor(GetInfo(constructor));
+
+        private static ImmutableArray<SyntaxNode> GetThisConstructorArgumentsOpt(CodeGenerationConstructorInfo? info)
             => info?._thisConstructorArguments ?? default;
 
-        private static ImmutableArray<SyntaxNode> GetBaseConstructorArgumentsOpt(CodeGenerationConstructorInfo info)
+        private static ImmutableArray<SyntaxNode> GetBaseConstructorArgumentsOpt(CodeGenerationConstructorInfo? info)
             => info?._baseConstructorArguments ?? default;
 
-        private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationConstructorInfo info)
+        private static ImmutableArray<SyntaxNode> GetStatements(CodeGenerationConstructorInfo? info)
             => info?._statements ?? default;
 
-        private static string GetTypeName(CodeGenerationConstructorInfo info, IMethodSymbol constructor)
+        private static string GetTypeName(CodeGenerationConstructorInfo? info, IMethodSymbol constructor)
             => info == null ? constructor.ContainingType.Name : info._typeName;
 
-        private static bool GetIsUnsafe(CodeGenerationConstructorInfo info)
+        private static bool GetIsUnsafe(CodeGenerationConstructorInfo? info)
             => info?._isUnsafe ?? false;
+
+        private static bool GetIsPrimaryConstructor(CodeGenerationConstructorInfo? info)
+            => info?._isPrimaryConstructor ?? false;
     }
 }

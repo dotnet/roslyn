@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,13 +40,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
-            // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return service.GetFixAllOperationsAsync(
-                new FixAllContext(FixAllState, progressTracker, cancellationToken),
-                _showPreviewChangesDialog);
+            var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
+            if (progressTracker != null)
+                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+
+            return service.GetFixAllOperationsAsync(fixAllContext, _showPreviewChangesDialog);
         }
 
-        internal override async Task<Solution> GetChangedSolutionAsync(
+        internal sealed override Task<Solution> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -52,9 +55,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
-            // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllChangedSolutionAsync(
-                new FixAllContext(FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+            var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
+            if (progressTracker != null)
+                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+
+            return service.GetFixAllChangedSolutionAsync(fixAllContext);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
