@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     {
         private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
 
-        private readonly IReferenceCleanupService _referenceCleanupService;
-        private readonly IUnusedReferencesService _unusedReferencesService;
+        private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
@@ -53,8 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
 
-            _referenceCleanupService = workspace.Services.GetRequiredService<IReferenceCleanupService>();
-            _unusedReferencesService = workspace.Services.GetRequiredService<IUnusedReferencesService>();
+            _lazyReferenceCleanupService = new(() => workspace.Services.GetRequiredService<IReferenceCleanupService>());
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -175,10 +173,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             ImmutableArray<ReferenceInfo> unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                var projectReferences = await _referenceCleanupService.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
+                var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
                 var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile, targetFrameworkMoniker);
 
-                return await _unusedReferencesService.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
+                return await UnusedReferencesService.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
@@ -213,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private void ApplyUnusedReferenceUpdates(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
             ThreadHelper.JoinableTaskFactory.Run(
-                () => _unusedReferencesService.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
+                () => UnusedReferencesService.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
         }
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string? propertyValue)
