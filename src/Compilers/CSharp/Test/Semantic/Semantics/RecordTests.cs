@@ -228,6 +228,33 @@ class E
             comp.VerifyDiagnostics();
         }
 
+        
+        [Fact, WorkItem(49263, "https://github.com/dotnet/roslyn/issues/49263")]
+        public void DeriveFromSelf()
+        {
+            var src = @"
+record R : R;
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS0146: Circular base type dependency involving 'R' and 'R'
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R", "R").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.ToString()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.ToString()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.EqualityContract': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.EqualityContract").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.Equals(object?)': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8)
+                );
+        }
+
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor()
         {
