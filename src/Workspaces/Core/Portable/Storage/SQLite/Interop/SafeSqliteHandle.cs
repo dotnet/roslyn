@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         public void Dispose()
         {
-            raw.sqlite3_close(_wrapper);
+            if (_wrapper != null)
+                raw.sqlite3_close(_wrapper);
         }
     }
 }

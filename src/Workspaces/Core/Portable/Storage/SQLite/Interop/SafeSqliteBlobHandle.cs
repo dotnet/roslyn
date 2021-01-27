@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             try
             {
-                raw.sqlite3_blob_close(_wrapper);
+                if (_wrapper != null)
+                    raw.sqlite3_blob_close(_wrapper);
             }
             finally
             {
