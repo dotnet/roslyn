@@ -90,63 +90,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return token;
             }
 
-            try
+            int lineBreaksBefore;
+            bool needsSeparatorBefore;
+
+            // If this starts with skipped tokens, we'll calculate the required seperator/line breaks between the previous token and the skipped tokens instead
+            bool startsWithSkippedTokens = token.LeadingTrivia is { Count: > 0 } leading && leading[0].IsKind(SyntaxKind.SkippedTokensTrivia);
+            if (IsRelevant(token)
+                && _previousToken.Kind() != SyntaxKind.None
+                && !startsWithSkippedTokens)
             {
-                int lineBreaksBefore;
-                bool needsSeparatorBefore;
-                if (IsRelevant(token) && _previousToken.Kind() != SyntaxKind.None)
+                lineBreaksBefore = LineBreaksBetween(_previousToken, token);
+                needsSeparatorBefore = NeedsSeparator(_previousToken, token);
+
+                if (_afterDirective)
                 {
-                    lineBreaksBefore = LineBreaksBetween(_previousToken, token);
-                    needsSeparatorBefore = NeedsSeparator(_previousToken, token);
-
-                    if (_afterDirective)
-                    {
-                        lineBreaksBefore = Math.Max(1, lineBreaksBefore);
-                        // Extra line break for directive accounted for, so don't add it when visiting tokens in trivia
-                        _afterDirective = false;
-                    }
-                }
-                else
-                {
-                    lineBreaksBefore = 0;
-                    needsSeparatorBefore = false;
-                }
-
-                var tk = token;
-
-                var depth = GetDeclarationDepth(token);
-
-                tk = tk.WithLeadingTrivia(RewriteTrivia(
-                    token.LeadingTrivia,
-                    depth,
-                    isTrailing: false,
-                    indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
-                    mustHaveSeparator: needsSeparatorBefore,
-                    lineBreaksBefore: lineBreaksBefore));
-
-                _afterLineBreak = IsLineBreak(token);
-                _afterIndentation = false;
-
-                tk = tk.WithTrailingTrivia(RewriteTrivia(
-                    token.TrailingTrivia,
-                    depth,
-                    isTrailing: true,
-                    indentAfterLineBreak: false,
-                    mustHaveSeparator: false,
-                    lineBreaksBefore: 0));
-
-                return tk;
-            }
-            finally
-            {
-                if (IsRelevant(token))
-                {
-                    _afterDirective = token.Kind() == SyntaxKind.EndOfDirectiveToken;
-                    // to help debugging set this in finally rather than in try
-                    _previousToken = token;
-                    _previousIsInStructuredTrivia = _isInStructuredTrivia;
+                    lineBreaksBefore = Math.Max(1, lineBreaksBefore);
+                    // Extra line break for directive accounted for, so don't add it when visiting tokens in trivia
+                    _afterDirective = false;
                 }
             }
+            else
+            {
+                lineBreaksBefore = 0;
+                needsSeparatorBefore = false;
+            }
+
+            var tk = token;
+
+            var depth = GetDeclarationDepth(token);
+
+            tk = tk.WithLeadingTrivia(RewriteTrivia(
+                token.LeadingTrivia,
+                depth,
+                isTrailing: false,
+                indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
+                mustHaveSeparator: needsSeparatorBefore,
+                lineBreaksBefore: lineBreaksBefore));
+
+            _afterLineBreak = IsLineBreak(token);
+            _afterIndentation = false;
+
+            if (IsRelevant(token))
+            {
+                _afterDirective = token.Kind() == SyntaxKind.EndOfDirectiveToken;
+                _previousToken = token;
+                _previousIsInStructuredTrivia = _isInStructuredTrivia;
+            }
+
+            tk = tk.WithTrailingTrivia(RewriteTrivia(
+                token.TrailingTrivia,
+                depth,
+                isTrailing: true,
+                indentAfterLineBreak: false,
+                mustHaveSeparator: false,
+                lineBreaksBefore: 0));
+
+            return tk;
         }
 
         private static bool IsRelevant(SyntaxToken token) => SyntaxToken.NonZeroWidth(token) || token.Kind() == SyntaxKind.EndOfDirectiveToken;
