@@ -32,6 +32,12 @@ namespace IdeCoreBenchmarks
         {
             try
             {
+                // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+                // installations on .NET Core. We use the one with the most recent version.
+                var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+
+                MSBuildLocator.RegisterInstance(msBuildInstance);
+
                 var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
                 var solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
 
