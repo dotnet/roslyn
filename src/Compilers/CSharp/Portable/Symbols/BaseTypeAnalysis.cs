@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -109,14 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///     enums are not managed;
         ///     non-enum, non-struct named types are managed;
         ///     type parameters are managed unless an 'unmanaged' constraint is present;
-        ///     all special types have spec'd values (basically, (non-string) primitives) are not managed;
+        ///     all special types have spec'd values (basically, (non-string) primitives are not managed);
         /// 
         /// Only structs are complicated, because the definition is recursive.  A struct type is managed
         /// if one of its instance fields is managed.  Unfortunately, this can result in infinite recursion.
         /// If the closure is finite, and we don't find anything definitely managed, then we return true.
         /// If the closure is infinite, we disregard all but a representative of any expanding cycle.
         /// 
-        /// Intuitively, this will only return true if there's a specific type we can point to that is would
+        /// Intuitively, this will only return true if there's a specific type we can point to that would
         /// be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
         /// is because we can point to object.
         /// </summary>
@@ -133,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasGenerics = hasGenerics || result.hasGenerics;
                 hs.Free();
             }
-
 
             if (definitelyManaged)
             {

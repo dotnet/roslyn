@@ -2185,6 +2185,353 @@ string";
             Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
         }
 
+        [Theory]
+        [InlineData("object value = Create<object>();", true)]
+        [InlineData("System.Enum value = Create<System.Enum>();", true)]
+        [InlineData("System.Delegate value = Create<System.Delegate>();", true)]
+        [InlineData("System.ValueType value = Create<System.ValueType>();", true)]
+        [InlineData("bool value = false;", false)]
+        [InlineData("char value = '0';", false)]
+        [InlineData("sbyte value = 0;", false)]
+        [InlineData("byte value = 0;", false)]
+        [InlineData("short value = 0;", false)]
+        [InlineData("ushort value = 0;", false)]
+        [InlineData("int value = 0;", false)]
+        [InlineData("uint value = 0;", false)]
+        [InlineData("long value = 0;", false)]
+        [InlineData("ulong value = 0;", false)]
+        [InlineData("nint value = 0;", false)]
+        [InlineData("nuint value = 0;", false)]
+        [InlineData("decimal value = 0;", false)]
+        [InlineData("float value = 0;", false)]
+        [InlineData("double value = 0;", false)]
+        [InlineData("string value = Create<string>();", true)]
+        [InlineData("System.IntPtr value = Create<System.IntPtr>();", false)]
+        [InlineData("System.UIntPtr value = Create<System.UIntPtr>();", false)]
+        [InlineData("System.Array value = Create<System.Array>();", true)]
+        [InlineData("object[] value = Create<object[]>();", true)]
+        [InlineData("System.Collections.Generic.IEnumerable<int> value = Create<System.Collections.Generic.IEnumerable<int>>();", true)]
+        [InlineData("int? value = null;", true)]
+        [InlineData("System.DateTime value = Create<System.DateTime>();", false)]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_01(string localDeclaration, bool shouldTrack)
+        {
+            var source =
+$@"#pragma warning disable 219
+#nullable enable
+class Program
+{{
+    static T Create<T>() => throw null!;
+    static void Main()
+    {{
+        {localDeclaration}
+    }}
+}}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+            VerifyTrackedEntries(comp, "Program.Main", shouldTrack ? 1 : 0);
+        }
+
+        [Theory]
+        [InlineData("object", true)]
+        [InlineData("int", false)]
+        [InlineData("int?", true)]
+        [InlineData("int[]", true)]
+        [InlineData("int?[]", true)]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_02(string fieldType, bool shouldTrack)
+        {
+            var source =
+$@"#pragma warning disable 649
+#nullable enable
+struct S
+{{
+    internal {fieldType} F;
+}}
+class Program
+{{
+    static S Create() => default;
+    static void Main()
+    {{
+        S s = Create();
+    }}
+}}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+            VerifyTrackedEntries(comp, "Program.Main", shouldTrack ? 1 : 0);
+        }
+
+        [Theory]
+        [InlineData("S<object> s = S<object>.Create();", true)]
+        [InlineData("S<int> s = S<int>.Create();", false)]
+        [InlineData("S<int?> s = S<int?>.Create();", true)]
+        [InlineData("S<S<int>> s = S<S<int>>.Create();", false)]
+        [InlineData("S<S<int>?> s = S<S<int>?>.Create();", true)]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_03(string localDeclaration, bool shouldTrack)
+        {
+            var sourceA =
+@"#pragma warning disable 649
+struct S<T>
+{
+    internal static S<T> Create()
+    {
+        return default;
+    }
+    internal T F;
+}";
+            var sourceB =
+$@"#pragma warning disable 219
+#nullable enable
+class Program
+{{
+    static void Main()
+    {{
+        {localDeclaration}
+    }}
+}}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+            VerifyTrackedEntries(comp, "Program.Main", shouldTrack ? 2 : 0);
+        }
+
+        [Fact]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_04()
+        {
+            var source =
+@"#pragma warning disable 219
+#pragma warning disable 649
+#nullable enable
+struct S<T>
+{
+    internal static S<T> Create()
+    {
+        return default;
+    }
+    internal T F;
+}
+interface I
+{
+}
+class Program
+{
+    static void F1<T>()
+    {
+        S<T> s = S<T>.Create();
+    }
+    static void F2<T>() where T : class
+    {
+        S<T> s = S<T>.Create();
+    }
+    static void F3<T>() where T : struct
+    {
+        S<T> s = S<T>.Create();
+    }
+    static void F4<T>() where T : struct
+    {
+        S<T?> s = S<T?>.Create();
+    }
+    static void F5<T>() where T : notnull
+    {
+        S<T> s = S<T>.Create();
+    }
+    static void F6<T>() where T : I
+    {
+        S<T> s = S<T>.Create();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            VerifyTrackedEntries(comp, "Program.F1", 2);
+            VerifyTrackedEntries(comp, "Program.F2", 2);
+            VerifyTrackedEntries(comp, "Program.F3", 0);
+            VerifyTrackedEntries(comp, "Program.F4", 2);
+            VerifyTrackedEntries(comp, "Program.F5", 2);
+            VerifyTrackedEntries(comp, "Program.F6", 2);
+
+            Assert.False(true); // PROTOTYPE: Test where T : unmanaged
+        }
+
+        [Fact]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_05()
+        {
+            Assert.False(true); // PROTOTYPE: Test struct from _03 with private fields, from source and metadata.
+        }
+
+        [Fact]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_06()
+        {
+            var source =
+@"#pragma warning disable 219
+#pragma warning disable 649
+#nullable enable
+struct S<T, U> where T : struct
+{
+    internal static S<T, U> Create()
+    {
+        return default;
+    }
+    internal T? F;
+    internal U G;
+}
+class Program
+{
+    static S<T, U> F0<T, U>()
+        where T : struct
+    {
+        return default!;
+    }
+    static void F1<T, U>()
+        where T : struct
+    {
+        S<T, U> b = F0<T, U>();
+    }
+    static void F2<T, U>()
+        where T : struct
+        where U : class
+    {
+        S<T, U> b = F0<T, U>();
+    }
+    static void F3<T, U>()
+        where T : struct
+        where U : struct
+    {
+        S<T, U> b = F0<T, U>();
+    }
+    static void F4<T, U>()
+        where T : struct
+        where U : struct
+    {
+        S<T, U?> b = F0<T, U?>();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            VerifyTrackedEntries(comp, "Program.F1", 3);
+            VerifyTrackedEntries(comp, "Program.F2", 3);
+            VerifyTrackedEntries(comp, "Program.F3", 0);
+            VerifyTrackedEntries(comp, "Program.F4", 3);
+        }
+
+        [Fact]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_07()
+        {
+            var source =
+@"#pragma warning disable 219
+#pragma warning disable 649
+#nullable enable
+class A<T>
+{
+    internal struct B<U>
+    {
+        internal T F;
+        internal U G;
+    }
+}
+class Program
+{
+    static A<T>.B<U> F0<T, U>()
+    {
+        return default!;
+    }
+    static void F1<T, U>()
+        where T : struct
+    {
+        A<T>.B<U> b = F0<T, U>();
+    }
+    static void F2<T, U>()
+        where T : struct
+        where U : class
+    {
+        A<T>.B<U> b = F0<T, U>();
+    }
+    static void F3<T, U>()
+        where T : struct
+        where U : struct
+    {
+        A<T>.B<U> b = F0<T, U>();
+    }
+    static void F4<T, U>()
+        where T : struct
+        where U : struct
+    {
+        A<T?>.B<U?> b = F0<T?, U?>();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            VerifyTrackedEntries(comp, "Program.F1", 3);
+            VerifyTrackedEntries(comp, "Program.F2", 3);
+            VerifyTrackedEntries(comp, "Program.F3", 0);
+            VerifyTrackedEntries(comp, "Program.F4", 3);
+        }
+
+        [Fact]
+        [WorkItem(50473, "https://github.com/dotnet/roslyn/issues/50473")]
+        public void IgnoreEmptyTypes_08()
+        {
+            var source =
+@"#pragma warning disable 219
+#nullable enable
+class Program
+{
+    static (T, U) F0<T, U>()
+    {
+        return default!;
+    }
+    static void F1<T, U>()
+        where T : struct
+    {
+        (T, U) t = F0<T, U>();
+    }
+    static void F2<T, U>()
+        where T : struct
+        where U : class
+    {
+        (T, U) t = F0<T, U>();
+    }
+    static void F3<T, U>()
+        where T : struct
+        where U : struct
+    {
+        (T, U) t = F0<T, U>();
+    }
+    static void F4<T, U>()
+        where T : struct
+        where U : struct
+    {
+        (T?, U?)? t = null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            VerifyTrackedEntries(comp, "Program.F1", 3);
+            VerifyTrackedEntries(comp, "Program.F2", 3);
+            VerifyTrackedEntries(comp, "Program.F3", 0);
+            VerifyTrackedEntries(comp, "Program.F4", 3);
+        }
+
+        private static void VerifyTrackedEntries(CSharpCompilation comp, string methodName, int expectedEntries)
+        {
+            var method = comp.GetMember(methodName);
+            Assert.Equal(expectedEntries, comp.NullableAnalysisData[method].TrackedEntries);
+        }
+
         private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, NullableWalker.Data> nullableData, bool requiredAnalysis = false) =>
             nullableData.
                 Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
