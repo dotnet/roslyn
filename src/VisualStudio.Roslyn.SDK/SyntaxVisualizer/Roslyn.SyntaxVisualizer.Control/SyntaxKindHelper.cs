@@ -12,67 +12,23 @@ namespace Roslyn.SyntaxVisualizer.Control
         // SyntaxNode / SyntaxToken / SyntaxTrivia.
 
         public static string GetKind(this SyntaxNodeOrToken nodeOrToken)
-        {
-            var kind = string.Empty;
-
-            if (nodeOrToken.IsNode && nodeOrToken.AsNode() is SyntaxNode node)
-            {
-                kind = node.GetKind();
-            }
-            else
-            {
-                kind = nodeOrToken.AsToken().GetKind();
-            }
-
-            return kind;
-        }
+            => nodeOrToken.AsNode() is SyntaxNode node
+                ? node.GetKind()
+                : nodeOrToken.AsToken().GetKind();
 
         public static string GetKind(this SyntaxNode node)
-        {
-            var kind = string.Empty;
-
-            if (node.Language == LanguageNames.CSharp)
-            {
-                kind = CSharpExtensions.Kind(node).ToString();
-            }
-            else
-            {
-                kind = VisualBasicExtensions.Kind(node).ToString();
-            }
-
-            return kind;
-        }
+            => node.Language == LanguageNames.CSharp
+                ? CSharpExtensions.Kind(node).ToString()
+                : VisualBasicExtensions.Kind(node).ToString();
 
         public static string GetKind(this SyntaxToken token)
-        {
-            var kind = string.Empty;
-
-            if (token.Language == LanguageNames.CSharp)
-            {
-                kind = CSharpExtensions.Kind(token).ToString();
-            }
-            else
-            {
-                kind = VisualBasicExtensions.Kind(token).ToString();
-            }
-
-            return kind;
-        }
+            => token.Language == LanguageNames.CSharp
+                ? CSharpExtensions.Kind(token).ToString()
+                : VisualBasicExtensions.Kind(token).ToString();
 
         public static string GetKind(this SyntaxTrivia trivia)
-        {
-            var kind = string.Empty;
-
-            if (trivia.Language == LanguageNames.CSharp)
-            {
-                kind = CSharpExtensions.Kind(trivia).ToString();
-            }
-            else
-            {
-                kind = VisualBasicExtensions.Kind(trivia).ToString();
-            }
-
-            return kind;
-        }
+            => trivia.Language == LanguageNames.CSharp
+                ? CSharpExtensions.Kind(trivia).ToString()
+                : VisualBasicExtensions.Kind(trivia).ToString();
     }
 }

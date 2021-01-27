@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -220,7 +218,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var color = ( (SolidColorBrush)colorPickerButton.Background ).Color;
+            var color = ((SolidColorBrush)colorPickerButton.Background).Color;
             var popup = new ColorPickerWindow(color);
 
             if (popup.ShowDialog() == true)
@@ -382,12 +380,12 @@ namespace Roslyn.SyntaxVisualizer.Control
                 _isNavigatingFromSourceToTree = false;
             }
 
-            if (highlightMatch && match is not null)
-            {
-                match.Background = Brushes.Yellow;
-                match.BorderBrush = Brushes.Black;
-                match.BorderThickness = s_defaultBorderThickness;
-            }
+            if (!highlightMatch || match is null)
+                return false;
+
+            match.Background = Brushes.Yellow;
+            match.BorderBrush = Brushes.Black;
+            match.BorderThickness = s_defaultBorderThickness;
 
             return match is not null;
         }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -10,7 +9,6 @@ using System.Windows.Threading;
 using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -46,7 +44,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
             InitializeRunningDocumentTable();
 
-            var shellService = GetService<IVsShell, SVsShell>(GlobalServiceProvider);
+            var shellService = GetRequiredMefService<IVsShell, SVsShell>(GlobalServiceProvider);
             if (shellService != null)
             {
 
@@ -71,7 +69,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
         internal void UpdateThemedColors()
         {
-            var uiShellService = GetService<IVsUIShell5, SVsUIShell>(GlobalServiceProvider);
+            var uiShellService = GetRequiredMefService<IVsUIShell5, SVsUIShell>(GlobalServiceProvider);
             if (uiShellService != null)
             {
                 syntaxVisualizer.SetPropertyGridColors(uiShellService);
@@ -189,18 +187,21 @@ namespace Roslyn.SyntaxVisualizer.Extension
             return service;
         }
 
-        private static TServiceInterface? GetService<TServiceInterface, TService>(
+        private static TServiceInterface GetRequiredMefService<TServiceInterface, TService>(
             Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider)
             where TServiceInterface : class
             where TService : class
         {
-            return (TServiceInterface?)GetService(serviceProvider, typeof(TService).GUID, false);
+            var service = (TServiceInterface?)GetService(serviceProvider, typeof(TService).GUID, false);
+            return service is null
+                ? throw new InvalidOperationException($"Unable to get service '{typeof(TServiceInterface).FullName}'")
+                : service;
         }
 
         private static TServiceInterface? GetMefService<TServiceInterface>() where TServiceInterface : class
         {
             TServiceInterface? service = null;
-            var componentModel = GetService<IComponentModel, SComponentModel>(GlobalServiceProvider);
+            var componentModel = GetRequiredMefService<IComponentModel, SComponentModel>(GlobalServiceProvider);
 
             if (componentModel != null)
             {
@@ -221,7 +222,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
             {
                 if (runningDocumentTable == null)
                 {
-                    runningDocumentTable = GetService<IVsRunningDocumentTable, SVsRunningDocumentTable>(GlobalServiceProvider);
+                    runningDocumentTable = GetRequiredMefService<IVsRunningDocumentTable, SVsRunningDocumentTable>(GlobalServiceProvider);
                 }
 
                 return runningDocumentTable;

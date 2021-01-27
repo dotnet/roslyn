@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
@@ -30,29 +32,30 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             dte.ExecuteCommand(commandName, args);
         }
 
-        protected async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
+        protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>()
             where TService : class
             where TInterface : class
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-#pragma warning disable CS8603 // Possible null reference return.
-            var serviceProvider = (IAsyncServiceProvider2)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
-            Assumes.Present(serviceProvider);
-            return (TInterface)await serviceProvider.GetServiceAsync(typeof(TService));
-#pragma warning restore CS8603 // Possible null reference return.
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+            var serviceProvider = (IAsyncServiceProvider2?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
+            if (serviceProvider is null)
+            {
+                throw new InvalidOperationException($"Unable to get service {typeof(IAsyncServiceProvider2).FullName}");
+            }
+
+            var @interface = (TInterface?)await serviceProvider.GetServiceAsync(typeof(TService));
+            return @interface ?? throw new InvalidOperationException($"Unable to get service {typeof(TInterface).FullName}");
         }
 
         protected async Task<TService> GetComponentModelServiceAsync<TService>()
             where TService : class
         {
-            var componentModel = await GetGlobalServiceAsync<SComponentModel, IComponentModel>();
+            var componentModel = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>();
             return componentModel.GetService<TService>();
         }
 

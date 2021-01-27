@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>();
             ErrorHandler.ThrowOnFailure(solution.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out var isOpen));
             return (bool)isOpen;
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>();
             if (!await IsSolutionOpenAsync())
             {
                 return;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
             Directory.CreateDirectory(solutionPath);
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>();
             ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
             ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
         }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
                 throw new InvalidOperationException("Cannot save solution when no solution is open.");
             }
 
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution>();
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>();
 
             // Make sure the directory exists so the Save dialog doesn't appear
             ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out var solutionDirectory, out _, out _));
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var solution = (EnvDTE80.Solution2)dte.Solution;
             var solutionFullName = solution.FullName;
             var solutionFileFullPath = string.IsNullOrEmpty(solutionFullName)
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var localeID = dte.LocaleID;
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var localeID = dte.LocaleID;
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
 
             var projectPath = Path.Combine(await GetDirectoryNameAsync(), projectName);
             var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName));
-            var solution = await GetGlobalServiceAsync<SVsSolution, IVsSolution6>();
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>();
             ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var solution = (EnvDTE80.Solution2)dte.Solution;
 
             if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var solution = (EnvDTE80.Solution2)dte.Solution;
             foreach (var project in solution.Projects.OfType<EnvDTE.Project>())
             {
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var operationProgressStatus = await GetGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>();
+            var operationProgressStatus = await GetRequiredGlobalServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>();
             var stageStatus = operationProgressStatus.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
             await stageStatus.WaitForCompletionAsync();
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var outputWindow = await GetGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>();
+            var outputWindow = await GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>();
             ErrorHandler.ThrowOnFailure(outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane));
             return pane;
         }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var buildManager = await GetGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
+            var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>();
             using var semaphore = new SemaphoreSlim(1);
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             var solution = (EnvDTE80.Solution2)dte.Solution;
             return solution.Projects.OfType<EnvDTE.Project>().First(
                 project =>
