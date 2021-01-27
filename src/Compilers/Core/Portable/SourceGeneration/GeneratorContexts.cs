@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             CheckIsEmpty(InfoBuilder.SyntaxContextReceiverCreator, $"{nameof(SyntaxReceiverCreator)} / {nameof(SyntaxContextReceiverCreator)}");
             InfoBuilder.SyntaxContextReceiverCreator = receiverCreator;
         }
-        
+
         /// <summary>
         /// Register a callback that is invoked after initialization.
         /// </summary>
