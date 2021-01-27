@@ -16,31 +16,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         private readonly ICacheService _cacheService;
 
         public VisualStudioCloudCacheService(ICacheService cacheService)
-        {
-            _cacheService = cacheService;
-        }
+            => _cacheService = cacheService;
+
+        private static CacheItemKey Convert(CloudCacheItemKey key)
+            => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
+
+        private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
+            => new(containerKey.Component, containerKey.Dimensions);
 
         public void Dispose()
             => (_cacheService as IDisposable)?.Dispose();
 
-        public Task<bool> CheckExistsAsync(CacheItemKey key, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
+            => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
 
         public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+            => _cacheService.GetRelativePathBaseAsync(cancellationToken);
 
-        public Task SetItemAsync(CacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
+            => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
 
-        public Task<bool> TryGetItemAsync(CacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
+            => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
     }
 }
