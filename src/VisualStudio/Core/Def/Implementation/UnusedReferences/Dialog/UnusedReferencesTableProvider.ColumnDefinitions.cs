@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     ReferenceType.Package => ReferenceImageMonikers.Package,
                     ReferenceType.Project => ReferenceImageMonikers.Project,
                     ReferenceType.Assembly => ReferenceImageMonikers.Assembly,
-                    _ => default
+                    _ => throw ExceptionUtilities.UnexpectedValue(referenceType)
                 };
             }
 
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     ReferenceType.Package => ServicesVSResources.Packages,
                     ReferenceType.Project => ServicesVSResources.Projects,
                     ReferenceType.Assembly => ServicesVSResources.Assemblies,
-                    _ => string.Empty
+                    _ => throw ExceptionUtilities.UnexpectedValue(referenceType)
                 };
             }
         }
@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                         ReferenceType.Package => KnownMonikers.PackageReference,
                         ReferenceType.Project => KnownMonikers.Library,
                         ReferenceType.Assembly => KnownMonikers.Reference,
-                        _ => default
+                        _ => throw ExceptionUtilities.UnexpectedValue(referenceType)
                     }
                     : default;
             }
