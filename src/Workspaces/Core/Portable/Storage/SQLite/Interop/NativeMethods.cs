@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
@@ -81,12 +82,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static string sqlite3_errmsg(SafeSqliteHandle db)
         {
             using var _ = db.Lease();
-            return raw.sqlite3_errmsg(db.DangerousGetWrapper());
+            return raw.sqlite3_errmsg(db.DangerousGetWrapper()).utf8_to_string();
         }
 
         public static string sqlite3_errstr(int rc)
         {
-            return raw.sqlite3_errstr(rc);
+            return raw.sqlite3_errstr(rc).utf8_to_string();
         }
 
         public static int sqlite3_extended_errcode(SafeSqliteHandle db)
@@ -113,10 +114,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return raw.sqlite3_blob_bytes(blob.DangerousGetWrapper());
         }
 
-        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, byte[] b, int n, int offset)
+        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, Span<byte> bytes, int offset)
         {
             using var _ = blob.Lease();
-            return (Result)raw.sqlite3_blob_read(blob.DangerousGetWrapper(), b, n, offset);
+            return (Result)raw.sqlite3_blob_read(blob.DangerousGetWrapper(), bytes, offset);
         }
 
         public static Result sqlite3_reset(SafeSqliteStatementHandle stmt)
@@ -143,12 +144,6 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return (Result)raw.sqlite3_bind_int64(stmt.DangerousGetWrapper(), index, val);
         }
 
-        public static byte[] sqlite3_column_blob(SafeSqliteStatementHandle stmt, int index)
-        {
-            using var _ = stmt.Lease();
-            return raw.sqlite3_column_blob(stmt.DangerousGetWrapper(), index);
-        }
-
         public static int sqlite3_column_int(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
@@ -164,7 +159,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static string sqlite3_column_text(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index);
+            return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index).utf8_to_string();
         }
     }
 }

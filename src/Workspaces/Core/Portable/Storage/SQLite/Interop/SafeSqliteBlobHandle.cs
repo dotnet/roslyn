@@ -3,37 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteBlobHandle : SafeHandle
+    internal sealed class SafeSqliteBlobHandle : IDisposable
     {
         private readonly sqlite3_blob? _wrapper;
         private readonly SafeHandleLease _lease;
 
         public SafeSqliteBlobHandle(SafeSqliteHandle sqliteHandle, sqlite3_blob? wrapper)
-            : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
             _wrapper = wrapper;
-            SetHandle(wrapper?.ptr ?? IntPtr.Zero);
             _lease = sqliteHandle.Lease();
         }
-
-        public override bool IsInvalid => handle == IntPtr.Zero;
 
         public sqlite3_blob DangerousGetWrapper()
             => _wrapper!;
 
-        protected override bool ReleaseHandle()
+        public SafeHandleLease Lease()
+            => _wrapper == null ? default : _wrapper.Lease();
+
+        public void Dispose()
         {
             try
             {
-                var result = (Result)raw.sqlite3_blob_close(_wrapper);
-                SetHandle(IntPtr.Zero);
-                return result == Result.OK;
+                raw.sqlite3_blob_close(_wrapper);
             }
             finally
             {

@@ -78,9 +78,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         [DllImport("e_sqlite3.dll", ExactSpelling = true, CallingConvention = CallingConvention.Cdecl)]
         public static extern int sqlite3_bind_blob(SafeSqliteStatementHandle stmt, int index, byte[] val, int nSize, IntPtr nTransient);
 
-        internal byte[] GetBlobAt(int columnIndex)
-            => NativeMethods.sqlite3_column_blob(_rawStatement, columnIndex);
-
         internal int GetInt32At(int columnIndex)
             => NativeMethods.sqlite3_column_int(_rawStatement, columnIndex);
 

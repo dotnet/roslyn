@@ -4,31 +4,29 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteHandle : SafeHandle
+    internal sealed class SafeSqliteHandle : IDisposable
     {
         private readonly sqlite3? _wrapper;
 
         public SafeSqliteHandle(sqlite3? wrapper)
-            : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
             _wrapper = wrapper;
-            SetHandle(wrapper?.ptr ?? IntPtr.Zero);
         }
 
-        public override bool IsInvalid => handle == IntPtr.Zero;
+        public SafeHandleLease Lease()
+            => _wrapper == null ? default : _wrapper.Lease();
 
         public sqlite3 DangerousGetWrapper()
             => _wrapper!;
 
-        protected override bool ReleaseHandle()
+        public void Dispose()
         {
-            var result = (Result)raw.sqlite3_close(_wrapper);
-            SetHandle(IntPtr.Zero);
-            return result == Result.OK;
+            raw.sqlite3_close(_wrapper);
         }
     }
 }
