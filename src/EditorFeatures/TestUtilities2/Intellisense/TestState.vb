@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
-        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
 
         Public Shared ReadOnly CompositionWithoutCompletionTestParts As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
             AddExcludedPartTypes(
