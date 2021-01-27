@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -564,6 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _conflictResolutionTask.Task.CompletesAsyncOperation(asyncToken);
         }
 
+        [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "False positive in methods using JTF: https://github.com/dotnet/roslyn-analyzers/issues/4283")]
         private void QueueApplyReplacements()
         {
             // If the replacement text is empty, we do not update the results of the conflict
@@ -577,14 +579,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(QueueApplyReplacements));
             var replacementOperation = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var replacementInfo = await _conflictResolutionTask;
+                var replacementInfo = await _conflictResolutionTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
                 if (replacementInfo == null || cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+
+                // Switch to a background thread for expensive work
+                await TaskScheduler.Default;
                 var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 ApplyReplacements(computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken);
             });
