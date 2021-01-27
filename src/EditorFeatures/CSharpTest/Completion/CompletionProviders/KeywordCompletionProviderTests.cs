@@ -409,94 +409,104 @@ class C
             await VerifyItemExistsAsync(markup, "event");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task SuggestReadonlyAccessorInStruct()
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyPropertyAccessor(string declarationType, bool present)
         {
 
             var markup =
-@"struct C {
-    int X {
+$@"{declarationType} C {{
+    int X {{
         $$
-    }
-}
+    }}
+}}
 ";
-            await VerifyItemExistsAsync(markup, "readonly");
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task DontSuggestReadonlyAccessorInClass()
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyBeforePropertyAccessor(string declarationType, bool present)
         {
 
             var markup =
-@"class C {
-    int X {
+$@"{declarationType} C {{
+    int X {{
+        $$ get;
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyIndexerAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int this[int i] {{
         $$
-    }
-}
+    }}
+}}
 ";
-            await VerifyItemIsAbsentAsync(markup, "readonly");
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task DontSuggestReadonlyAccessorInInterface()
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyEventAccessor(string declarationType, bool present)
         {
 
             var markup =
-@"interface C {
-    int X {
+$@"{declarationType} C {{
+    event System.Action E {{
         $$
-    }
-}
+    }}
+}}
 ";
-            await VerifyItemIsAbsentAsync(markup, "readonly");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task SuggestReadonlyAccessorInStruct2()
-        {
-
-            var markup =
-@"struct C {
-    int X {
-        $$ get;
-    }
-}
-";
-            await VerifyItemExistsAsync(markup, "readonly");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task DontSuggestReadonlyAccessorInClass2()
-        {
-
-            var markup =
-@"class C {
-    int X {
-        $$ get;
-    }
-}
-";
-            await VerifyItemIsAbsentAsync(markup, "readonly");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
-        public async Task DontSuggestReadonlyAccessorInInterface2()
-        {
-
-            var markup =
-@"interface C {
-    int X {
-        $$ get;
-    }
-}
-";
-            await VerifyItemIsAbsentAsync(markup, "readonly");
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
