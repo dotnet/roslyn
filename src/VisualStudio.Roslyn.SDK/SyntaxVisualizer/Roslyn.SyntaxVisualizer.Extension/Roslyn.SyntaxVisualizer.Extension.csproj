@@ -7,8 +7,6 @@
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
     <IsProductComponent>false</IsProductComponent>
     <UseWpf>true</UseWpf>
-    <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

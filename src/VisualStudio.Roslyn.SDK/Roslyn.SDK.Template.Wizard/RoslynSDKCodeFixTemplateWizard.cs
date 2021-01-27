@@ -6,7 +6,7 @@ using VSLangProj;
 
 public class RoslynSDKCodeFixTemplateWizard : RoslynSDKChildTemplateWizard
 {
-    public static Project Project { get; private set; }
+    public static Project? Project { get; private set; }
 
     public override void OnProjectFinishedGenerating(Project project)
     {
