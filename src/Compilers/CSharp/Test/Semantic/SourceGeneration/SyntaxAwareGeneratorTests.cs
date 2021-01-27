@@ -760,6 +760,57 @@ class D
         }
 
         [Fact]
+        public void Syntax_Receiver_Can_Access_Types_Added_In_PostInit()
+        {
+            var source = @"
+class C : D
+{
+}
+";
+
+            var postInitSource = @"
+class D 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Assert.Single(compilation.SyntaxTrees);
+
+            compilation.VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                // class C : D
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(2, 11)
+                );
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) =>
+                {
+                    i.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver(callback: (ctx) =>
+                    {
+                        if (ctx.Node is ClassDeclarationSyntax cds
+                            && cds.Identifier.Value?.ToString() == "C")
+                        {
+                            // ensure we can query the semantic model for D
+                            var dType = ctx.SemanticModel.Compilation.GetTypeByMetadataName("D");
+                            Assert.NotNull(dType);
+                            Assert.False(dType.IsErrorType());
+
+                            // and the code referencing it now works
+                            var typeInfo = ctx.SemanticModel.GetTypeInfo(cds.BaseList!.Types[0].Type);
+                            Assert.Same(dType, typeInfo.Type);
+                        }
+                    }));
+                    i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", postInitSource));
+                },
+                onExecute: (e) => { }
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+        }
+
+        [Fact]
         public void SyntaxContext_Receiver_Return_Null_During_Creation()
         {
             var source = @"
