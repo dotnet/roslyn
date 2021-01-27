@@ -1,2 +1,0 @@
-[*.cs]
-dotnet_diagnostic.RS0041.severity = none
