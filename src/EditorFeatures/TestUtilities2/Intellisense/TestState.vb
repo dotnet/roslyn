@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
         Private ReadOnly SignatureHelpBeforeCompletionCommandHandler As SignatureHelpBeforeCompletionCommandHandler
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
+        Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
         Protected ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
 
@@ -73,6 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpBeforeCompletionCommandHandler = GetExportedValue(Of SignatureHelpBeforeCompletionCommandHandler)()
 
             Me.SignatureHelpAfterCompletionCommandHandler = GetExportedValue(Of SignatureHelpAfterCompletionCommandHandler)()
+            Me.CompleteStatementCommandHandler = GetExportedValue(Of CompleteStatementCommandHandler)()
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
             Me.CompleteStatementCommandHandler = Workspace.ExportProvider.GetCommandHandler(Of CompleteStatementCommandHandler)(NameOf(CompleteStatementCommandHandler))
@@ -346,9 +348,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionItemsContain(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
+        End Function
+
+        Public Async Function AssertCompletionItemsContain(predicate As Func(Of CompletionItem, Boolean)) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
-            Assert.True(items.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix))
+            Assert.True(items.Any(predicate))
         End Function
 
         Public Sub AssertItemsInOrder(expectedOrder As String())
