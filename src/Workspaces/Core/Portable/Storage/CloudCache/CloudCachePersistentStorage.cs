@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private static readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey> s_projectToContainerKey = new();
 
         private readonly ICloudCacheService _cacheService;
+        private readonly bool _mustSucceed;
 
         private readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey>.CreateValueCallback _projectToContainerKeyCallback;
 
@@ -29,11 +30,13 @@ namespace Microsoft.CodeAnalysis.Storage
             ICloudCacheService cacheService,
             string workingFolderPath,
             string relativePathBase,
-            string databaseFilePath)
+            string databaseFilePath,
+            bool mustSucceed)
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
             _cacheService = cacheService;
-            _projectToContainerKeyCallback = ps => new(relativePathBase, ps.FilePath, ps.Name, ps.GetParseOptionsChecksum(CancellationToken.None));
+            _mustSucceed = mustSucceed;
+            _projectToContainerKeyCallback = ps => new(mustSucceed, relativePathBase, ps.FilePath, ps.Name, ps.GetParseOptionsChecksum(CancellationToken.None));
         }
 
         public override void Dispose()
@@ -43,14 +46,14 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             return bulkLoadSnapshot != null
                 ? s_projectToContainerKey.GetValue(bulkLoadSnapshot.State, _projectToContainerKeyCallback).ContainerKey
-                : ProjectCacheContainerKey.CreateProjectContainerKey(this.SolutionFilePath, projectKey.FilePath, projectKey.Name, parseOptionsChecksum: null);
+                : ProjectCacheContainerKey.CreateProjectContainerKey(_mustSucceed, this.SolutionFilePath, projectKey.FilePath, projectKey.Name, parseOptionsChecksum: null);
         }
 
         private CloudCacheContainerKey? GetContainerKey(DocumentKey documentKey, Document? bulkLoadSnapshot)
         {
             return bulkLoadSnapshot != null
                 ? s_projectToContainerKey.GetValue(bulkLoadSnapshot.Project.State, _projectToContainerKeyCallback).GetValue(bulkLoadSnapshot.State)
-                : ProjectCacheContainerKey.CreateDocumentContainerKey(this.SolutionFilePath, documentKey.Project.FilePath, documentKey.Project.Name, parseOptionsChecksum: null, documentKey.FilePath, documentKey.Name);
+                : ProjectCacheContainerKey.CreateDocumentContainerKey(_mustSucceed, this.SolutionFilePath, documentKey.Project.FilePath, documentKey.Project.Name, parseOptionsChecksum: null, documentKey.FilePath, documentKey.Name);
         }
 
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
             if (containerKey == null)
-                return null;
+                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : null;
 
             if (checksum == null)
             {

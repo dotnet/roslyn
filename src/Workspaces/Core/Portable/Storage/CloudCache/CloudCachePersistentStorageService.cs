@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 return null;
             }
 
-            return new CloudCachePersistentStorage(cacheService, workingFolderPath, relativePathBase, databaseFilePath);
+            return new CloudCachePersistentStorage(cacheService, workingFolderPath, relativePathBase, databaseFilePath, _mustSucceed);
         }
     }
 }
