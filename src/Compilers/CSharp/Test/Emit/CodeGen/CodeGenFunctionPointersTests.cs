@@ -6133,6 +6133,7 @@ unsafe class Derived2 : Base
         public void Override_ConventionOrderingDoesNotMatter()
         {
             var source1 = @"
+using System;
 public unsafe class Base
 {
     public virtual void M1(delegate* unmanaged[Thiscall, Stdcall]<void> param) => Console.WriteLine(""Base Thiscall, Stdcall param"");
@@ -6143,6 +6144,7 @@ public unsafe class Base
 ";
 
             var source2 = @"
+using System;
 unsafe class Derived1 : Base
 {
     public override void M1(delegate* unmanaged[Stdcall, Thiscall]<void> param) => Console.WriteLine(""Derived1 Stdcall, Thiscall param"");
@@ -6159,11 +6161,8 @@ unsafe class Derived2 : Base
 }
 ";
 
-            var @using = @"
-using System;
-";
-
             var executableCode = @"
+using System;
 unsafe
 {
     delegate* unmanaged[Stdcall, Thiscall]<void> ptr1 = null;
@@ -6204,14 +6203,14 @@ Derived2 Stdcall, Stdcall, Thiscall ref param
 Derived2 Stdcall, Stdcall, Thiscall ref return
 ";
 
-            var allSourceComp = CreateCompilationWithFunctionPointers(@using + executableCode + source1 + source2, options: TestOptions.UnsafeReleaseExe);
+            var allSourceComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source1, source2 }, options: TestOptions.UnsafeReleaseExe);
 
             CompileAndVerify(allSourceComp, expectedOutput: expectedOutput, symbolValidator: getSymbolValidator(separateAssembly: false));
 
-            var baseComp = CreateCompilationWithFunctionPointers(@using + source1);
+            var baseComp = CreateCompilationWithFunctionPointers(source1);
             var metadataRef = baseComp.EmitToImageReference();
 
-            var derivedComp = CreateCompilationWithFunctionPointers(@using + executableCode + source2, references: new[] { metadataRef }, options: TestOptions.UnsafeReleaseExe);
+            var derivedComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source2 }, references: new[] { metadataRef }, options: TestOptions.UnsafeReleaseExe);
             CompileAndVerify(derivedComp, expectedOutput: expectedOutput, symbolValidator: getSymbolValidator(separateAssembly: true));
 
             static Action<ModuleSymbol> getSymbolValidator(bool separateAssembly)
