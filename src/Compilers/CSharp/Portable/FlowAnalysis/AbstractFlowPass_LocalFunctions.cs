@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool Visited = false;
         }
 
-        protected abstract TLocalFunctionState CreateLocalFunctionState();
+        protected abstract TLocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol);
 
         private SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>? _localFuncVarUsages = null;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState? usages))
             {
-                usages = CreateLocalFunctionState();
+                usages = CreateLocalFunctionState(localFunc);
                 _localFuncVarUsages[localFunc] = usages;
             }
             return usages;
