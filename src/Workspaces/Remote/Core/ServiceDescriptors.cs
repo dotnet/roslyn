@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
+            (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         });
 
         internal readonly RemoteSerializationOptions Options;

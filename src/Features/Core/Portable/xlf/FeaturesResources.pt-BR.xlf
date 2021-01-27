@@ -245,6 +245,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Converter para LINQ (formulário de chamada)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="new">Convert to record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Converter para struct</target>
@@ -597,8 +602,8 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">A modificação do corpo de '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
-        <note />
+        <target state="needs-review-translation">A modificação do corpo de '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
@@ -627,8 +632,8 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">A modificação do arquivo de origem '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
-        <note />
+        <target state="needs-review-translation">A modificação do arquivo de origem '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>

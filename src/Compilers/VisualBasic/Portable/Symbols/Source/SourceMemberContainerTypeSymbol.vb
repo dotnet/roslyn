@@ -3559,6 +3559,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         nextMember,
                                         SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
 
+                                    Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
                                     ' only report diagnostics if the signature is considered equal following VB rules.
                                     If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
                                         ReportOverloadsErrors(comparisonResults, member, nextMember, member.Locations(0), diagnostics)
@@ -3738,6 +3740,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          SymbolComparisonResults.CustomModifierMismatch Or
                          SymbolComparisonResults.NameMismatch))
 
+                Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
                 ' only report diagnostics if the signature is considered equal following VB rules.
                 If (comparisonResults And significantDiff) = 0 Then
                     ReportOverloadsErrors(comparisonResults, method, nextMethod, method.Locations(0), diagnostics)
@@ -3820,6 +3824,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ReportOverloadsErrors(comparisonResults As SymbolComparisonResults, firstMember As Symbol, secondMember As Symbol, location As Location, diagnostics As DiagnosticBag)
+            Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
             If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then

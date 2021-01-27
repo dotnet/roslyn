@@ -237,20 +237,20 @@ namespace Microsoft.CodeAnalysis.Storage
             public void Dispose()
                 => _storage.Dispose();
 
-            public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken)
-                => _storage.Target.ReadChecksumAsync(name, cancellationToken);
+            public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-                => _storage.Target.ReadChecksumAsync(project, name, cancellationToken);
+            public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ChecksumMatchesAsync(project, name, checksum, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
-                => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
+            public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ChecksumMatchesAsync(document, name, checksum, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(ProjectKey project, string name, CancellationToken cancellationToken)
-                => _storage.Target.ReadChecksumAsync(project, name, cancellationToken);
+            public Task<bool> ChecksumMatchesAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ChecksumMatchesAsync(project, name, checksum, cancellationToken);
 
-            public Task<Checksum> ReadChecksumAsync(DocumentKey document, string name, CancellationToken cancellationToken)
-                => _storage.Target.ReadChecksumAsync(document, name, cancellationToken);
+            public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.ChecksumMatchesAsync(document, name, checksum, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);

@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             char? commitKey,
             CancellationToken cancellationToken)
         {
-            if (commitKey == ';')
+            if (commitKey is ';' or '.')
             {
                 // Only consider add '()' if the type is used under object creation context
                 var position = item.Span.Start;

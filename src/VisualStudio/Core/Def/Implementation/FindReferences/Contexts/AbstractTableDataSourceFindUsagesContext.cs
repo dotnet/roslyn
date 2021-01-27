@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
@@ -116,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
 
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // VS actually responds to each SetProgess call by queuing a UI task to do the
@@ -323,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
@@ -342,8 +340,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                    this,
+                    definitionBucket,
+                    spanKind,
+                    projectName,
+                    guid,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -451,7 +457,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

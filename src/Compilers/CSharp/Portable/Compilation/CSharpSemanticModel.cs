@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public SymbolInfo GetCollectionInitializerSymbolInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -626,9 +626,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
 
-                if (initializer.Parent != null && initializer.Parent.Kind() == SyntaxKind.ObjectCreationExpression &&
-                    ((ObjectCreationExpressionSyntax)initializer.Parent).Initializer == initializer &&
-                    CanGetSemanticInfo(initializer.Parent, allowNamedArgumentName: false))
+                if (initializer.Parent is BaseObjectCreationExpressionSyntax objectCreation &&
+                    objectCreation.Initializer == initializer &&
+                    CanGetSemanticInfo(objectCreation, allowNamedArgumentName: false))
                 {
                     return GetCollectionInitializerSymbolInfoWorker((InitializerExpressionSyntax)expression.Parent, expression, cancellationToken);
                 }
@@ -3288,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expr = (BoundBadExpression)boundNode;
                         resultKind = expr.ResultKind;
 
-                        if (expr.Syntax.Kind() == SyntaxKind.ObjectCreationExpression)
+                        if (expr.Syntax.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
                         {
                             if (resultKind == LookupResultKind.NotCreatable)
                             {

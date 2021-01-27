@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -96,6 +97,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static MetadataReference EmitToImageReference(
+            this Compilation comp,
+            EmitOptions options = null,
+            bool embedInteropTypes = false,
+            ImmutableArray<string> aliases = default,
+            DiagnosticDescription[] expectedWarnings = null) => EmitToPortableExecutableReference(comp, options, embedInteropTypes, aliases, expectedWarnings);
+
+        public static PortableExecutableReference EmitToPortableExecutableReference(
             this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
@@ -360,6 +368,65 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// The reference assembly System.Runtime.InteropServices.WindowsRuntime was removed in net5.0. This builds
+        /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
+        /// reference by the compiler.
+        /// </summary>
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        {
+            var source = @"
+namespace System.Runtime.InteropServices.WindowsRuntime
+{
+    public struct EventRegistrationToken { }
+
+    public sealed class EventRegistrationTokenTable<T> where T : class
+    {
+        public T InvocationList { get; set; }
+
+        public static EventRegistrationTokenTable<T> GetOrCreateEventRegistrationTokenTable(ref EventRegistrationTokenTable<T> refEventTable)
+        {
+            throw null;
+        }
+
+        public void RemoveEventHandler(EventRegistrationToken token)
+        {
+        }
+
+        public void RemoveEventHandler(T handler)
+        {
+        }
+    }
+
+    public static class WindowsRuntimeMarshal
+    {
+        public static void AddEventHandler<T>(Func<T, EventRegistrationToken> addMethod, Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+
+        public static void RemoveAllEventHandlers(Action<EventRegistrationToken> removeMethod)
+        {
+        }
+
+        public static void RemoveEventHandler<T>(Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+    }
+}
+";
+
+            // The actual System.Runtime.InteropServices.WindowsRuntime DLL has a public key of
+            // b03f5f7f11d50a3a and version 4.0.4.0. The compiler just looks at these via 
+            // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
+            var compilation = CSharpCompilation.Create(
+                "System.Runtime.InteropServices.WindowsRuntime",
+                new[] { CSharpSyntaxTree.ParseText(source) },
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            compilation.VerifyEmitDiagnostics();
+            return compilation.EmitToPortableExecutableReference();
         }
     }
 }

@@ -267,6 +267,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyNoResult("\n", markup);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines()
+        {
+            // The test starts with the closing brace already on a new line.
+            // In LSP, hitting enter will first trigger a didChange event for the new line character
+            // (bringing the server text to the form below) and then trigger OnAutoInsert
+            // for the new line character.
+            var markup =
+@"class A
+{
+    void M()
+    {
+        
+        {|type:|}
+    }
+}";
+            await VerifyNoResult("\n", markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces()
+        {
+            // The test starts with the closing brace already on a new line.
+            // In LSP, hitting enter will first trigger a didChange event for the new line character
+            // (bringing the server text to the form below) and then trigger OnAutoInsert
+            // for the new line character.
+            var markup =
+@"class A
+{
+    void M()
+    {{|type:|}
+
+
+    }
+}";
+            await VerifyNoResult("\n", markup);
+        }
+
         private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool useTabs = false)
         {
             using var workspace = CreateTestWorkspace(markup, out var locations);

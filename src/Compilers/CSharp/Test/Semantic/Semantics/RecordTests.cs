@@ -50,7 +50,7 @@ record Point { }
             var src3 = @"
 record Point(int x, int y);
 ";
-            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
@@ -82,7 +82,7 @@ record Point(int x, int y);
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
@@ -94,7 +94,7 @@ record Point(int x, int y);
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
             );
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
@@ -112,7 +112,7 @@ record Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
             );
 
-            comp = CreateCompilation(src1);
+            comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
@@ -1477,6 +1477,59 @@ class Program
 ");
         }
 
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor()
+        {
+            var src = @"
+record R(int x)
+{
+    static void Main() { }
+
+    static R()
+    {
+        System.Console.Write(""static ctor"");
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            // [ : R::set_x] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "static ctor", verify: Verification.Skipped);
+        }
+
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor_ParameterlessPrimaryCtor()
+        {
+            var src = @"
+record R()
+{
+    static R() { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor_CopyCtor()
+        {
+            var src = @"
+record R()
+{
+    static R(R r) { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0132: 'R.R(R)': a static constructor must be parameterless
+                //     static R(R r) { }
+                Diagnostic(ErrorCode.ERR_StaticConstParam, "R").WithArguments("R.R(R)").WithLocation(4, 12)
+                );
+        }
+
         [Fact(Skip = "record struct")]
         public void StructRecord1()
         {
@@ -1700,7 +1753,7 @@ record C(int X)
         Console.WriteLine(c2.X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"1
+            CompileAndVerify(src, expectedOutput: @"1
 11").VerifyDiagnostics();
         }
 
@@ -24827,9 +24880,6 @@ record C<T>([property: NotNull] T? P1, T? P2) where T : class
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (9,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T x = P1;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P1").WithLocation(9, 15),
                 // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = P2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P2").WithLocation(10, 15)
@@ -27221,6 +27271,50 @@ public class Outer
 
             CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
             compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(50040, "https://github.com/dotnet/roslyn/issues/50040")]
+        public void RaceConditionInAddMembers()
+        {
+            var src = @"
+#nullable enable
+using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+var collection = new Collection<Hamster>();
+Hamster h = null!;
+await collection.MethodAsync(entity => entity.Name! == ""bar"", h);
+
+public record Collection<T> where T : Document
+{
+    public Task MethodAsync<TDerived>(Expression<Func<TDerived, bool>> filter, TDerived td) where TDerived : T
+        => throw new NotImplementedException();
+
+    public Task MethodAsync<TDerived2>(Task<TDerived2> filterDefinition, TDerived2 td) where TDerived2 : T
+        => throw new NotImplementedException();
+}
+
+public sealed record HamsterCollection : Collection<Hamster>
+{
+}
+
+public abstract class Document
+{
+}
+
+public sealed class Hamster : Document
+{
+    public string? Name { get; private set; }
+}
+";
+
+            for (int i = 0; i < 100; i++)
+            {
+                var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+            }
         }
 
         [Fact]

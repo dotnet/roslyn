@@ -63,6 +63,8 @@ param (
   [switch]$testCoreClr,
   [switch]$testIOperation,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -176,6 +178,11 @@ function Process-Arguments() {
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
+    exit 1
+  }
+
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
     exit 1
   }
 
@@ -401,6 +408,14 @@ function TestUsingRunTests() {
 
   if ($sequential) {
     $args += " --sequential"
+  }
+
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
   }
 
   try {
