@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._successfulCount);
             }
 
+            public void LogCancel(string methodName)
+            {
+                Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._cancelledCount);
+            }
+
             public void LogFailure(string methodName)
             {
                 Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._failedCount);
@@ -55,6 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         m["method"] = kvp.Key;
                         m["successful"] = kvp.Value._successfulCount;
                         m["failed"] = kvp.Value._failedCount;
+                        m["cancelled"] = kvp.Value._cancelledCount;
                     }));
                 }
 
@@ -66,6 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 public int _successfulCount;
                 public int _failedCount;
+                public int _cancelledCount;
             }
         }
     }

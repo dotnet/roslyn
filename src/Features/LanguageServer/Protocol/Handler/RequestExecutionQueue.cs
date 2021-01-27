@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     catch (OperationCanceledException ex)
                     {
                         completion.TrySetCanceled(ex.CancellationToken);
+                        _requestTelemetryLogger.LogCancel(methodName);
                     }
                     catch (Exception exception)
                     {
