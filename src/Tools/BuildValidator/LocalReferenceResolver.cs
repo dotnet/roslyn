@@ -30,12 +30,12 @@ namespace BuildValidator
         public LocalReferenceResolver(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            _indexDirectories.Add(GetArtifactsDirectory());
-            _indexDirectories.Add(GetNugetCacheDirectory());
             foreach (var directoryInfo in GetRefAssembliesDirectories())
             {
                 _indexDirectories.Add(directoryInfo);
             }
+            _indexDirectories.Add(GetArtifactsDirectory());
+            _indexDirectories.Add(GetNugetCacheDirectory());
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -148,21 +148,21 @@ namespace BuildValidator
 
         public static DirectoryInfo GetArtifactsDirectory()
         {
-            // var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            // var binDir = Path.GetDirectoryName(assemblyLocation);
+            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
+            var binDir = Path.GetDirectoryName(assemblyLocation);
 
-            // // todo: this is not portable to unix
-            // while (binDir != null && !binDir.EndsWith(@"artifacts\bin", FileNameEqualityComparer.StringComparison))
-            // {
-            //     binDir = Path.GetDirectoryName(binDir);
-            // }
+            // todo: make this portable
+            while (binDir != null && !binDir.EndsWith(@"artifacts\bin", FileNameEqualityComparer.StringComparison))
+            {
+                binDir = Path.GetDirectoryName(binDir);
+            }
 
-            // if (binDir == null)
-            // {
-            //     throw new Exception(@"Tool was not launched from the artifacts\bin directory");
-            // }
+            if (binDir == null)
+            {
+                throw new Exception(@"Tool was not launched from the artifacts\bin directory");
+            }
 
-            return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild");
+            return new DirectoryInfo(Path.Combine(binDir, @"Microsoft.CodeAnalysis\Debug\netcoreapp3.1"));
         }
     }
 }

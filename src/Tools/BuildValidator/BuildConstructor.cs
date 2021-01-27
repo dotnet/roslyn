@@ -38,10 +38,10 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(MetadataReader metadataReader, PEReader peReader, string name)
+        public Compilation CreateCompilation(MetadataReader pdbReader, PEReader peReader, string name)
         {
-            var pdbReader = new CompilationOptionsReader(metadataReader, peReader);
-            var pdbCompilationOptions = pdbReader.GetMetadataCompilationOptions();
+            var optionsReader = new CompilationOptionsReader(pdbReader, peReader);
+            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             if (pdbCompilationOptions.Length == 0)
             {
@@ -52,8 +52,8 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilation(pdbReader, name),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(pdbReader, name),
+                    LanguageNames.CSharp => CreateCSharpCompilation(optionsReader, name),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(optionsReader, name),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 

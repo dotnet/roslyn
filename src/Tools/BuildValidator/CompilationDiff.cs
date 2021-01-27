@@ -4,12 +4,19 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.Metadata.Tools;
 
 namespace BuildValidator
 {
@@ -42,48 +49,88 @@ namespace BuildValidator
             OriginalPath = originalPath;
         }
 
-        public static CompilationDiff Create(FileInfo assemblyFile, Compilation producedCompilation, IMethodSymbol? debugEntryPoint)
+        public static unsafe CompilationDiff Create(FileInfo originalBinaryPath, PEReader originalPeReader, MetadataReader originalPdbReader, Compilation producedCompilation, IMethodSymbol? debugEntryPoint)
         {
-            using var peStream = new MemoryStream();
+            using var rebuildPeStream = new MemoryStream();
 
             using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(
                 versionResource: true,
                 noManifest: producedCompilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary,
                 manifestContents: null,
                 iconInIcoFormat: null);
+
+            var sourceLink = new CompilationOptionsReader(originalPdbReader, originalPeReader).GetSourceLinkUTF8();
             var emitResult = producedCompilation.Emit(
-                peStream: peStream,
+                peStream: rebuildPeStream,
                 win32Resources: win32ResourceStream,
                 debugEntryPoint: debugEntryPoint,
-                options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true));
+                options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true),
+                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null);
+                // TODO: embed only if the original was embedded
+                //embeddedTexts: producedCompilation.SyntaxTrees.Select(st => EmbeddedText.FromSource(st.FilePath, st.GetText())));
 
-            Directory.CreateDirectory(Path.Combine(TestData.DebugDirectory, "original"));
-            Directory.CreateDirectory(Path.Combine(TestData.DebugDirectory, "rebuild"));
-            var assemblyFileName = Path.GetFileName(assemblyFile.FullName);
-            File.Copy(
-                assemblyFile.FullName,
-                Path.Combine(TestData.DebugDirectory, "original", assemblyFileName),
-                overwrite: true);
-
-            var dest = Path.Combine(TestData.DebugDirectory, "rebuild", assemblyFileName);
-            if (File.Exists(dest))
+            var rebuildOutputPath = Path.GetTempFileName();
+            using (var rebuildWriter = File.OpenWrite(rebuildOutputPath))
             {
-                File.Delete(dest);
+                rebuildPeStream.CopyTo(rebuildWriter);
             }
-            using var peFileStream = File.Create(dest);
-            peStream.WriteTo(peFileStream);
 
             if (emitResult.Success)
             {
-                var originalBytes = File.ReadAllBytes(assemblyFile.FullName);
-                var newBytes = peStream.ToArray();
+                var originalBytes = File.ReadAllBytes(originalBinaryPath.FullName);
+                var newBytes = rebuildPeStream.ToArray();
 
                 var bytesEqual = originalBytes.SequenceEqual(newBytes);
-                return new CompilationDiff(assemblyFile.FullName, bytesEqual);
+                if (!bytesEqual)
+                {
+                    var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
+
+                    string rebuildTempPath;
+                    fixed (byte* ptr = newBytes)
+                    {
+                        var rebuildPeReader = new PEReader(ptr, newBytes.Length);
+                        MetadataReader? rebuildPdbReader = null;
+                        if (rebuildPeReader.TryOpenAssociatedPortablePdb(
+                            rebuildOutputPath,
+                            path => File.Exists(path) ? File.OpenRead(path) : null,
+                            out var provider,
+                            out _) && provider is { })
+                        {
+                            rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                        }
+                        rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
+                    }
+
+                    Console.WriteLine("The rebuild was not equivalent to the original. Opening a diff...");
+                    Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""");
+                }
+
+                return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
             }
             else
             {
-                return new CompilationDiff(emitResult.Diagnostics, assemblyFile.FullName);
+                return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
+            }
+
+            string writeVisualizationToTempFile(PEReader peReader, MetadataReader? pdbReader)
+            {
+                var tempPath = Path.GetTempFileName();
+                using (var tempFile = File.OpenWrite(tempPath))
+                {
+                    var writer = new StreamWriter(tempFile);
+                    writer.WriteLine("======== PE VISUALIZATION =======");
+                    var visualizer = new MetadataVisualizer(peReader.GetMetadataReader(), writer);
+                    visualizer.Visualize();
+
+                    if (pdbReader is object)
+                    {
+                        writer.WriteLine("======== PDB VISUALIZATION =======");
+                        var pdbVisualizer = new MetadataVisualizer(pdbReader, writer);
+                        pdbVisualizer.Visualize();
+                    }
+                }
+
+                return tempPath;
             }
         }
 

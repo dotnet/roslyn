@@ -45,11 +45,13 @@ namespace BuildValidator
                 PrintHelp();
                 return;
             }
-
-            var loggerFactory = new LoggerFactory(Enumerable.Empty<ILoggerProvider>(), new LoggerFilterOptions()
-            {
-                MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
-            });
+            
+            var loggerFactory = new LoggerFactory(
+                new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
+                new LoggerFilterOptions()
+                {
+                    MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
+                });
 
             if (options.ConsoleOutput)
             {
@@ -83,12 +85,12 @@ namespace BuildValidator
             }
         }
 
-        private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        private static void ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
 
-            foreach (var file in files)
+            foreach (var file in originalBinaries)
             {
                 var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion, logger);
 
@@ -135,11 +137,11 @@ namespace BuildValidator
             logger.LogInformation(sb.ToString());
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
-            if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
+            if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
-                logger.LogTrace($"Ignoring {file.FullName}");
+                logger.LogTrace($"Ignoring {originalBinary.FullName}");
                 return null;
             }
 
@@ -148,40 +150,40 @@ namespace BuildValidator
             try
             {
                 // Find the embedded pdb
-                using var fileStream = file.OpenRead();
-                using var peReader = new PEReader(fileStream);
+                using var originalBinaryStream = originalBinary.OpenRead();
+                using var originalPeReader = new PEReader(originalBinaryStream);
 
-                var pdbOpened = peReader.TryOpenAssociatedPortablePdb(
-                    peImagePath: file.FullName,
+                var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
+                    peImagePath: originalBinary.FullName,
                     filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
                     out pdbReaderProvider,
                     out var pdbPath);
 
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
-                    logger.LogError($"Could not find pdb for {file.FullName}");
+                    logger.LogError($"Could not find pdb for {originalBinary.FullName}");
                     return null;
                 }
 
-                logger.LogInformation($"Verifying {file.FullName} with pdb {pdbPath ?? "[embedded]"}");
+                logger.LogInformation($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
                 using var _ = logger.BeginScope("");
 
-                var reader = pdbReaderProvider.GetMetadataReader();
+                var pdbReader = pdbReaderProvider.GetMetadataReader();
 
                 // TODO: Check compilation version using the PEReader
 
                 var compilation = buildConstructor.CreateCompilation(
-                    reader,
-                    peReader,
-                    Path.GetFileNameWithoutExtension(file.Name));
+                    pdbReader,
+                    originalPeReader,
+                    Path.GetFileNameWithoutExtension(originalBinary.Name));
 
-                var compilationDiff = CompilationDiff.Create(file, compilation, GetDebugEntryPoint());
+                var compilationDiff = CompilationDiff.Create(originalBinary, originalPeReader, pdbReader, compilation, GetDebugEntryPoint());
                 logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
                 return compilationDiff;
 
                 IMethodSymbol? GetDebugEntryPoint()
                 {
-                    var optionsReader = new CompilationOptionsReader(reader, peReader);
+                    var optionsReader = new CompilationOptionsReader(pdbReader, originalPeReader);
                     if (optionsReader.GetMainTypeName() is { } mainTypeName &&
                         optionsReader.GetMainMethodName() is { } mainMethodName)
                     {
@@ -202,8 +204,8 @@ namespace BuildValidator
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                logger.LogError(e, file.FullName);
-                return CompilationDiff.Create(file, e);
+                logger.LogError(e, originalBinary.FullName);
+                return CompilationDiff.Create(originalBinary, e);
             }
             finally
             {

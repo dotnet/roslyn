@@ -45,6 +45,7 @@ namespace BuildValidator
 
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
+        private byte[]? _sourceLinkUTF8;
 
         public CompilationOptionsReader(MetadataReader metadataReader, PEReader peReader)
         {
@@ -56,18 +57,31 @@ namespace BuildValidator
         {
             if (_metadataCompilationOptions is null)
             {
-                var optionsBlob = GetCustomDebugInformationBlobReader(CompilationOptionsGuid);
+                if (!TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out var optionsBlob))
+                    throw new Exception();
+
                 _metadataCompilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
             }
 
             return _metadataCompilationOptions;
         }
 
+        public byte[]? GetSourceLinkUTF8()
+        {
+            if (_sourceLinkUTF8 is null && TryGetCustomDebugInformationBlobReader(SourceLinkGuid, out var optionsBlob))
+            {
+                _sourceLinkUTF8 = optionsBlob.ReadBytes(optionsBlob.Length);
+            }
+            return _sourceLinkUTF8;
+        }
+
         public ImmutableArray<MetadataReferenceInfo> GetMetadataReferences()
         {
             if (_metadataReferenceInfo.IsDefault)
             {
-                var referencesBlob = GetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid);
+                if (!TryGetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid, out var referencesBlob))
+                    throw new Exception();
+
                 _metadataReferenceInfo = ParseMetadataReferenceInfo(referencesBlob).ToImmutableArray();
             }
 
@@ -199,7 +213,7 @@ namespace BuildValidator
             }
         }
 
-        private BlobReader GetCustomDebugInformationBlobReader(Guid infoGuid)
+        private bool TryGetCustomDebugInformationBlobReader(Guid infoGuid, out BlobReader blobReader)
         {
             var blobs = from cdiHandle in _metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
                         let cdi = _metadataReader.GetCustomDebugInformation(cdiHandle)
@@ -208,10 +222,12 @@ namespace BuildValidator
 
             if (blobs.Any())
             {
-                return blobs.Single();
+                blobReader = blobs.Single();
+                return true;
             }
 
-            throw new InvalidDataException($"No blob found for {infoGuid}");
+            blobReader = default;
+            return false;
         }
 
         private static ImmutableArray<(string, string)> ParseCompilationOptions(BlobReader blobReader)

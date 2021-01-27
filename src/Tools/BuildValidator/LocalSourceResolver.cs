@@ -41,7 +41,7 @@ namespace BuildValidator
             if (File.Exists(name))
             {
                 using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: true);
                 if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
                 {
                     _logger.LogError($@"File ""{name}"" has incorrect hash");
@@ -55,42 +55,41 @@ namespace BuildValidator
 
         private static DirectoryInfo GetSourceDirectory()
         {
-            // TODO move this stuff closer to Options or to the entry point
-            return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild");
-            // var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
-            // var srcDir = Directory.GetParent(assemblyLocation);
+            // TODO: use source link, not this
+            var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
+            var srcDir = Directory.GetParent(assemblyLocation);
 
-            // while (srcDir != null)
-            // {
-            //     var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
-            //     if (potentialDir is null)
-            //     {
-            //         srcDir = srcDir.Parent;
-            //     }
-            //     else
-            //     {
-            //         srcDir = potentialDir;
-            //         break;
-            //     }
-            // }
+            while (srcDir != null)
+            {
+                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
+                if (potentialDir is null)
+                {
+                    srcDir = srcDir.Parent;
+                }
+                else
+                {
+                    srcDir = potentialDir;
+                    break;
+                }
+            }
 
-            // if (srcDir == null)
-            // {
-            //     throw new Exception("Unable to find src directory");
-            // }
+            if (srcDir == null)
+            {
+                throw new Exception("Unable to find src directory");
+            }
 
-            // return srcDir;
+            return srcDir;
 
-            // static bool IsSourceDirectory(DirectoryInfo directoryInfo)
-            // {
-            //     if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
-            //     {
-            //         // Check that src/compilers exists to be more accurate about getting the correct src directory
-            //         return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
-            //     }
+            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
+            {
+                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
+                {
+                    // Check that src/compilers exists to be more accurate about getting the correct src directory
+                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
+                }
 
-            //     return false;
-            // }
+                return false;
+            }
         }
     }
 }
