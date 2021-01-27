@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,8 +9,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Windows;
-using System.Windows.Interop;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -120,8 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     return;
                 }
 
-                var dialog = GetUnusedReferencesDialog(project, referenceUpdates);
-                if (dialog.ShowDialog() == false)
+                var dialog = _unusedReferenceDialogProvider.CreateDialog();
+                if (dialog.ShowModal(project, referenceUpdates) == false)
                 {
                     return;
                 }
@@ -191,28 +189,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 .ToImmutableArray();
 
             return referenceUpdates;
-        }
-
-        private Window GetUnusedReferencesDialog(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
-        {
-            var dialog = _unusedReferenceDialogProvider.CreateDialog(project, referenceUpdates);
-
-            var uiShell = _serviceProvider?.GetService<SVsUIShell, IVsUIShell>();
-            if (uiShell is null)
-            {
-                return dialog;
-            }
-
-            uiShell.GetDialogOwnerHwnd(out var ownerHwnd);
-
-            var windowHelper = new WindowInteropHelper(dialog)
-            {
-                Owner = ownerHwnd
-            };
-
-            uiShell.CenterDialogOnWindow(windowHelper.Handle, IntPtr.Zero);
-
-            return dialog;
         }
 
         private void ApplyUnusedReferenceUpdates(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)

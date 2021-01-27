@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Windows;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog
 {
@@ -17,11 +21,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         public string Apply => ServicesVSResources.Apply;
         public string Cancel => ServicesVSResources.Cancel;
 
-        public RemoveUnusedReferencesDialog(FrameworkElement tableControl)
-        {
-            InitializeComponent();
+        private readonly UnusedReferencesTableProvider _tableProvider;
 
-            TablePanel.Child = tableControl;
+        public RemoveUnusedReferencesDialog(UnusedReferencesTableProvider tableProvider)
+            : base()
+        {
+            _tableProvider = tableProvider;
+
+            InitializeComponent();
+        }
+
+        public bool? ShowModal(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        {
+            _tableProvider.AddTableData(project, referenceUpdates);
+
+            using var tableControl = _tableProvider.CreateTableControl();
+            TablePanel.Child = tableControl.Control;
+
+            // The table control updates its view of the datasource on a background thread.
+            // This will force the table to update.
+            ThreadHelper.JoinableTaskFactory.Run(tableControl.ForceUpdateAsync);
+
+            var result = ShowModal();
+
+            TablePanel.Child = null;
+
+            _tableProvider.ClearTableData();
+
+            return result;
         }
 
         private void ApplyButton_Click(object sender, RoutedEventArgs e)

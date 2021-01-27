@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             ITableManagerProvider tableMangerProvider,
             IWpfTableControlProvider tableControlProvider)
         {
-            _tableManager = tableMangerProvider.GetTableManager(nameof(UnusedReferencesDataSource));
+            _tableManager = tableMangerProvider.GetTableManager(UnusedReferencesDataSource.Name);
             _tableControlProvider = tableControlProvider;
 
             _dataSource = new UnusedReferencesDataSource();
@@ -37,30 +37,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public IWpfTableControl4 CreateTableControl()
         {
-            return (IWpfTableControl4)_tableControlProvider.CreateControl(
+            var tableControl = (IWpfTableControl4)_tableControlProvider.CreateControl(
                 _tableManager,
                 autoSubscribe: true,
                 BuildColumnStates(),
-                UnusedReferencesColumnDefinitions.SolutionName,
-                UnusedReferencesColumnDefinitions.ProjectName,
-                UnusedReferencesColumnDefinitions.ReferenceType,
-                UnusedReferencesColumnDefinitions.ReferenceName,
-                UnusedReferencesColumnDefinitions.UpdateAction);
+                UnusedReferencesColumnDefinitions.ColumnNames.ToArray());
+            tableControl.ShowGroupingLine = true;
+            tableControl.DoColumnsAutoAdjust = true;
+            tableControl.DoSortingAndGroupingWhileUnstable = true;
+
+            return tableControl;
+
+            static ImmutableArray<ColumnState> BuildColumnStates()
+            {
+                return ImmutableArray.Create(
+                    new ColumnState2(UnusedReferencesColumnDefinitions.SolutionName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 1),
+                    new ColumnState2(UnusedReferencesColumnDefinitions.ProjectName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 2),
+                    new ColumnState2(UnusedReferencesColumnDefinitions.ReferenceType, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 3),
+                    new ColumnState(UnusedReferencesColumnDefinitions.ReferenceName, isVisible: true, width: 300, sortPriority: 0, descendingSort: false),
+                    new ColumnState(UnusedReferencesColumnDefinitions.UpdateAction, isVisible: true, width: 100, sortPriority: 0, descendingSort: false));
+            }
         }
 
-        public void SetTableData(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        public void AddTableData(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
-            _dataSource.ReplaceData(project, referenceUpdates.OrderBy(update => update.ReferenceInfo.ItemSpecification).ToImmutableArray());
+            _dataSource.AddTableData(project, referenceUpdates);
         }
 
-        private ImmutableArray<ColumnState> BuildColumnStates()
+        public void ClearTableData()
         {
-            return ImmutableArray.Create(
-                new ColumnState2(UnusedReferencesColumnDefinitions.SolutionName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 1),
-                new ColumnState2(UnusedReferencesColumnDefinitions.ProjectName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 2),
-                new ColumnState2(UnusedReferencesColumnDefinitions.ReferenceType, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 3),
-                new ColumnState(UnusedReferencesColumnDefinitions.ReferenceName, isVisible: true, width: 300, sortPriority: 0, descendingSort: false),
-                new ColumnState(UnusedReferencesColumnDefinitions.UpdateAction, isVisible: true, width: 100, sortPriority: 0, descendingSort: false));
+            _dataSource.RemoveAllTableData();
         }
     }
 }
