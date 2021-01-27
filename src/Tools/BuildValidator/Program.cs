@@ -33,7 +33,7 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Options options;
             try
@@ -75,8 +75,8 @@ namespace BuildValidator
                     .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion, logger);
-                Console.Out.Flush();
+                await ValidateFilesAsync(filesToValidate, buildConstructor, thisCompilerVersion, logger);
+                await Console.Out.FlushAsync();
             }
             catch (Exception ex)
             {
@@ -85,14 +85,14 @@ namespace BuildValidator
             }
         }
 
-        private static void ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        private static async Task ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
 
             foreach (var file in originalBinaries)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion, logger);
+                var compilationDiff = await ValidateFileAsync(file, buildConstructor, thisCompilerVersion, logger);
 
                 if (compilationDiff is null)
                 {
@@ -137,7 +137,7 @@ namespace BuildValidator
             logger.LogInformation(sb.ToString());
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo originalBinary, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
             if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
@@ -172,7 +172,7 @@ namespace BuildValidator
 
                 // TODO: Check compilation version using the PEReader
 
-                var compilation = buildConstructor.CreateCompilation(
+                var compilation = await buildConstructor.CreateCompilationAsync(
                     pdbReader,
                     originalPeReader,
                     Path.GetFileNameWithoutExtension(originalBinary.Name));

@@ -28,6 +28,11 @@
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.deps.json" />
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.runtimeconfig.json" />
 
+      <!-- TODO -->
+      <!-- <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)BuildValidator\$(Configuration)\netcoreapp3.1\publish\BuildValidator.dll" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)BuildValidator\$(Configuration)\netcoreapp3.1\publish\BuildValidator.deps.json" />
+      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)BuildValidator\$(Configuration)\netcoreapp3.1\publish\BuildValidator.runtimeconfig.json" /> -->
+
       <!-- References that are either not in the target framework or are a higher version -->
       <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
          https://github.com/NuGet/Home/issues/3584 -->

@@ -38,7 +38,7 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(MetadataReader pdbReader, PEReader peReader, string name)
+        public Task<Compilation> CreateCompilationAsync(MetadataReader pdbReader, PEReader peReader, string name)
         {
             var optionsReader = new CompilationOptionsReader(pdbReader, peReader);
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
@@ -52,8 +52,8 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilation(optionsReader, name),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(optionsReader, name),
+                    LanguageNames.CSharp => CreateCSharpCompilationAsync(optionsReader, name),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilationAsync(optionsReader, name),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
@@ -82,21 +82,21 @@ namespace BuildValidator
             return referenceInfos;
         }
 
-        private IEnumerable<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader)
+        private ImmutableArray<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader, Encoding encoding)
         {
             using var _ = _logger.BeginScope("Source Names");
-            var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos();
+            var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos(encoding);
             var count = 0;
             foreach (var sourceFileInfo in sourceFileInfos)
             {
-                var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
                 count++;
                 if (count >= 10)
                 {
                     _logger.LogInformation($"... {sourceFileInfos.Length - count} more");
                     break;
                 }
-                _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithm} - {hash}");
+                var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithmDescription} - {hash}");
             }
 
             return sourceFileInfos;
@@ -108,29 +108,52 @@ namespace BuildValidator
             return _referenceResolver.ResolveReferences(referenceInfos);
         }
 
-        private ImmutableArray<(string SourceFilePath, SourceText SourceText)> ResolveSources(IEnumerable<SourceFileInfo> sourceFileInfos, Encoding encoding)
+        private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
+        {
+            using var _ = _logger.BeginScope("Source Links");
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            if (sourceLinks.IsDefault)
+            {
+                _logger.LogWarning("No source links found in pdb");
+            }
+            else
+            {
+                foreach (var link in sourceLinks)
+                {
+                    _logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
+                }
+            }
+            return sourceLinks;
+        }
+
+        private async Task<ImmutableArray<(string SourceFilePath, SourceText SourceText)>> ResolveSourcesAsync(
+            ImmutableArray<SourceFileInfo> sourceFileInfos,
+            ImmutableArray<SourceLink> sourceLinks,
+            Encoding encoding)
         {
             _logger.LogInformation("Locating source files");
 
-            var builder = ImmutableArray.CreateBuilder<(string filename, SourceText sourceText)>();
-            foreach (var sourceFileInfo in sourceFileInfos)
+            var tasks = new Task<(string SourceFilePath, SourceText SourceText)>[sourceFileInfos.Length];
+            for (int i = 0; i < sourceFileInfos.Length; i++)
             {
-                var text = _sourceResolver.ResolveSource(sourceFileInfo, encoding);
-                builder.Add((sourceFileInfo.SourceFilePath, text));
+                var sourceFileInfo = sourceFileInfos[i];
+                tasks[i] = _sourceResolver.ResolveSourceAsync(sourceFileInfo, sourceLinks, encoding);
             }
+            var result = await Task.WhenAll(tasks);
 
-            return builder.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         #region CSharp
-        private Compilation CreateCSharpCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader);
             var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(compilationOptionsReader, assemblyName);
+            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
 
-            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            var sources = ResolveSources(sourceFileInfos, encoding);
+            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos); // TODO: improve perf
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding);
             return CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFilePath)).ToImmutableArray(),
@@ -138,10 +161,10 @@ namespace BuildValidator
                 options: compilationOptions);
         }
 
-        private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader, string assemblyName)
+        private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)
         {
             using var scope = _logger.BeginScope("Options");
-            var pdbCompilationOptions = pdbReader.GetMetadataCompilationOptions();
+            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = GetUniqueOption("language-version");
             var optimization = GetUniqueOption("optimization");
@@ -175,13 +198,13 @@ namespace BuildValidator
                 : (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullable);
 
             var compilationOptions = new CSharpCompilationOptions(
-                pdbReader.GetOutputKind(),
+                optionsReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
 
                 // PROTOTYPE: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
                 // end with .dll but the inferred name will be .exe
                 moduleName: assemblyName + ".dll",
-                mainTypeName: pdbReader.GetMainTypeName(),
+                mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: null,
                 usings: null,
                 optimizationLevel,
@@ -189,20 +212,26 @@ namespace BuildValidator
                 !string.IsNullOrEmpty(unsafeString) && bool.Parse(unsafeString),
                 cryptoKeyContainer: null,
                 cryptoKeyFile: null,
-                cryptoPublicKey: default,
+                cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
                 Platform.AnyCpu,
+
+                // presence of diagnostics is expected to not affect emit.
                 ReportDiagnostic.Suppress,
                 warningLevel: 4,
                 specificDiagnosticOptions: null,
+
                 concurrentBuild: true,
                 deterministic: true,
+
                 xmlReferenceResolver: null,
                 sourceReferenceResolver: null,
                 metadataReferenceResolver: null,
+
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
                 publicSign: false,
+
                 metadataImportOptions: MetadataImportOptions.Public,
                 nullableContextOptions: nullableOptions);
             compilationOptions.DebugPlusMode = plus;
@@ -235,13 +264,14 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        private Compilation CreateVisualBasicCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader);
             var compilationOptions = CreateVisualBasicCompilationOptions(compilationOptionsReader);
+            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, Encoding.UTF8); // TODO: is this encoding right?
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            var sources = ResolveSources(sourceFileInfos, Encoding.UTF8);
+            var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
+            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, Encoding.UTF8);
 
             return VisualBasicCompilation.Create(
                 assemblyName,
@@ -314,3 +344,37 @@ namespace BuildValidator
         #endregion
     }
 }
+
+
+#if !NETCOREAPP
+// TODO: remove this by adding an IVT
+namespace System.Diagnostics.CodeAnalysis
+{
+    //
+    // Summary:
+    //     Specifies that when a method returns System.Diagnostics.CodeAnalysis.NotNullWhenAttribute.ReturnValue,
+    //     the parameter will not be null even if the corresponding type allows it.
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class NotNullWhenAttribute : Attribute
+    {
+        //
+        // Summary:
+        //     Initializes the attribute with the specified return value condition.
+        //
+        // Parameters:
+        //   returnValue:
+        //     The return value condition. If the method returns this value, the associated
+        //     parameter will not be null.
+        public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+
+        //
+        // Summary:
+        //     Gets the return value condition.
+        //
+        // Returns:
+        //     The return value condition. If the method returns this value, the associated
+        //     parameter will not be null.
+        public bool ReturnValue { get; }
+    }
+}
+#endif

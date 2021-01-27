@@ -37,6 +37,12 @@ namespace BuildValidator
                     case "/ignorecompilerversion":
                         options.IgnoreCompilerVersion = true;
                         break;
+
+                    // TODO: allow specifying a path to assemblies to validate
+                    // do we have to roll our own command line parsing?
+                    // case "/assembliesPath":
+                    //     options.IgnoreCompilerVersion = true;
+                    //     break;
                 }
             }
 

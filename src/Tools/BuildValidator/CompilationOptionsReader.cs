@@ -6,28 +6,58 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 
 namespace BuildValidator
 {
     internal readonly struct SourceFileInfo
     {
         internal string SourceFilePath { get; }
-        internal string HashAlgorithm { get; }
+        internal SourceHashAlgorithm HashAlgorithm { get; }
         internal byte[] Hash { get; }
+        internal SourceText? EmbeddedText { get; }
+
         internal string SourceFileName => Path.GetFileName(SourceFilePath);
+        internal string HashAlgorithmDescription
+        {
+            get
+            {
+                //string hashAlgorithmDescription;
+                //if (HashAlgorithm == CompilationOptionsReader.HashAlgorithmSha1)
+                //{
+                //    hashAlgorithmDescription = "SHA1";
+                //}
+                //else if (HashAlgorithm == CompilationOptionsReader.HashAlgorithmSha256)
+                //{
+                //    hashAlgorithmDescription = "SHA256A";
+                //}
+                //else
+                //{
+                //    hashAlgorithmDescription = $"Unknown {HashAlgorithm}";
+                //}
+                return HashAlgorithm.ToString();
+            }
+        }
 
         internal SourceFileInfo(
             string sourceFilePath,
-            string hashAlgorithm,
-            byte[] hash)
+            SourceHashAlgorithm hashAlgorithm,
+            byte[] hash,
+            SourceText? embeddedText)
         {
             SourceFilePath = sourceFilePath;
             HashAlgorithm = hashAlgorithm;
             Hash = hash;
+            EmbeddedText = embeddedText;
         }
     }
 
@@ -40,16 +70,16 @@ namespace BuildValidator
         public static readonly Guid EmbeddedSourceGuid = new Guid("0E8A571B-6926-466E-B4AD-8AB04611F5FE");
         public static readonly Guid SourceLinkGuid = new Guid("CC110556-A091-4D38-9FEC-25AB9A351A6A");
 
-        private readonly MetadataReader _metadataReader;
+        private readonly MetadataReader _pdbReader;
         private readonly PEReader _peReader;
 
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
 
-        public CompilationOptionsReader(MetadataReader metadataReader, PEReader peReader)
+        public CompilationOptionsReader(MetadataReader pdbReader, PEReader peReader)
         {
-            _metadataReader = metadataReader;
+            _pdbReader = pdbReader;
             _peReader = peReader;
         }
 
@@ -64,6 +94,27 @@ namespace BuildValidator
             }
 
             return _metadataCompilationOptions;
+        }
+
+        public ImmutableArray<SourceLink> GetSourceLinksOpt()
+        {
+            var sourceLinkUTF8 = GetSourceLinkUTF8();
+            if (sourceLinkUTF8 is null)
+            {
+                return default;
+            }
+
+            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
+            return parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+
+            static SourceLink makeSourceLink(KeyValuePair<string, string> entry)
+            {
+                // TODO: determine if this subsitution is correct
+                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
+                var prefix = key.Remove(key.LastIndexOf("*"));
+                var replace = value.Remove(value.LastIndexOf("*"));
+                return new SourceLink(prefix, replace);
+            }
         }
 
         public byte[]? GetSourceLinkUTF8()
@@ -89,7 +140,7 @@ namespace BuildValidator
         }
 
         public OutputKind GetOutputKind() =>
-            (_metadataReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
+            (_pdbReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
@@ -103,7 +154,7 @@ namespace BuildValidator
 
         private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
         {
-            if (!(_metadataReader.DebugMetadataHeader is { } header) ||
+            if (!(_pdbReader.DebugMetadataHeader is { } header) ||
                 header.EntryPoint.IsNil)
             {
                 return null;
@@ -124,7 +175,87 @@ namespace BuildValidator
             return (typeName, methodName);
         }
 
-        public ImmutableArray<SourceFileInfo> GetSourceFileInfos()
+        private SourceText? ResolveEmbeddedSource(DocumentHandle document, SourceHashAlgorithm hashAlgorithm, Encoding encoding)
+        {
+            byte[] bytes = (from handle in _pdbReader.GetCustomDebugInformation(document)
+                            let cdi = _pdbReader.GetCustomDebugInformation(handle)
+                            where _pdbReader.GetGuid(cdi.Kind) == EmbeddedSourceGuid
+                            select _pdbReader.GetBlobBytes(cdi.Value)).SingleOrDefault();
+
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            int uncompressedSize = BitConverter.ToInt32(bytes, 0);
+            var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
+
+            if (uncompressedSize != 0)
+            {
+                var decompressed = new MemoryStream(uncompressedSize);
+
+                using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
+                {
+                    deflater.CopyTo(decompressed);
+                }
+
+                if (decompressed.Length != uncompressedSize)
+                {
+                    throw new InvalidDataException();
+                }
+
+                stream = decompressed;
+            }
+
+            using (stream)
+            {
+                // todo: IVT and EncodedStringText.Create?
+                return SourceText.From(stream, encoding: encoding, checksumAlgorithm: hashAlgorithm, canBeEmbedded: true);
+            }
+        }
+
+        public byte[]? GetPublicKey()
+        {
+            var metadataReader = _peReader.GetMetadataReader();
+            var blob = metadataReader.GetAssemblyDefinition().PublicKey;
+            if (blob.IsNil)
+            {
+                return null;
+            }
+
+            var reader = metadataReader.GetBlobReader(blob);
+            return reader.ReadBytes(reader.Length);
+        }
+        
+        public unsafe ResourceDescription[]? GetManifestResources()
+        {
+            var metadataReader = _peReader.GetMetadataReader();
+            if (_peReader.PEHeaders.CorHeader is not { } corHeader
+                || !_peReader.PEHeaders.TryGetDirectoryOffset(corHeader.ResourcesDirectory, out var resourcesOffset))
+            {
+                return null;
+            }
+
+            var result = metadataReader.ManifestResources.Select(handle =>
+            {
+                var resource = metadataReader.GetManifestResource(handle);
+                var name = metadataReader.GetString(resource.Name);
+
+                var resourceStart = _peReader.GetEntireImage().Pointer + resourcesOffset + resource.Offset;
+                var length = *(int*)resourceStart;
+                var contentPtr = resourceStart + sizeof(int);
+                var content = new byte[length];
+                Marshal.Copy(new IntPtr(contentPtr), content, 0, length);
+
+                var isPublic = (resource.Attributes & ManifestResourceAttributes.Public) != 0;
+                var description = new ResourceDescription(name, dataProvider: () => new MemoryStream(content), isPublic);
+                return description;
+            }).ToArray();
+
+            return result;
+        }
+
+        public ImmutableArray<SourceFileInfo> GetSourceFileInfos(Encoding encoding)
         {
             // TODO: can we give this utility an IVT to roslyn so it can just read these constants.
             // Alternatively, since we consider the constants to be stable, can we make them public API?
@@ -133,26 +264,21 @@ namespace BuildValidator
                     .GetUniqueOption("source-file-count"));
 
             var builder = ImmutableArray.CreateBuilder<SourceFileInfo>(sourceFileCount);
-            foreach (var documentHandle in _metadataReader.Documents.Take(sourceFileCount))
+            foreach (var documentHandle in _pdbReader.Documents.Take(sourceFileCount))
             {
-                var document = _metadataReader.GetDocument(documentHandle);
-                var name = _metadataReader.GetString(document.Name);
-                var hashAlgorithmGuid = _metadataReader.GetGuid(document.HashAlgorithm);
-                string hashAlgorithm;
-                if (hashAlgorithmGuid == HashAlgorithmSha1)
-                {
-                    hashAlgorithm = "SHA1";
-                }
-                else if (hashAlgorithmGuid == HashAlgorithmSha256)
-                {
-                    hashAlgorithm = "SHA256A";
-                }
-                else
-                {
-                    hashAlgorithm = $"Unknown {hashAlgorithmGuid}";
-                }
-                var hash = _metadataReader.GetBlobBytes(document.Hash);
-                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash));
+                var document = _pdbReader.GetDocument(documentHandle);
+                var name = _pdbReader.GetString(document.Name);
+                
+                var hashAlgorithmGuid = _pdbReader.GetGuid(document.HashAlgorithm);
+                var hashAlgorithm =
+                    hashAlgorithmGuid == HashAlgorithmSha1 ? SourceHashAlgorithm.Sha1
+                    : hashAlgorithmGuid == HashAlgorithmSha256 ? SourceHashAlgorithm.Sha256
+                    : SourceHashAlgorithm.None;
+
+                var hash = _pdbReader.GetBlobBytes(document.Hash);
+                var embeddedContent = ResolveEmbeddedSource(documentHandle, hashAlgorithm, encoding);
+
+                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash, embeddedContent));
             }
 
             return builder.MoveToImmutable();
@@ -215,10 +341,10 @@ namespace BuildValidator
 
         private bool TryGetCustomDebugInformationBlobReader(Guid infoGuid, out BlobReader blobReader)
         {
-            var blobs = from cdiHandle in _metadataReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
-                        let cdi = _metadataReader.GetCustomDebugInformation(cdiHandle)
-                        where _metadataReader.GetGuid(cdi.Kind) == infoGuid
-                        select _metadataReader.GetBlobReader(cdi.Value);
+            var blobs = from cdiHandle in _pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition)
+                        let cdi = _pdbReader.GetCustomDebugInformation(cdiHandle)
+                        where _pdbReader.GetGuid(cdi.Kind) == infoGuid
+                        select _pdbReader.GetBlobReader(cdi.Value);
 
             if (blobs.Any())
             {

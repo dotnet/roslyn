@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -12,84 +15,63 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    /// <summary>
-    /// Roslyn specific implementation for looking for files
-    /// in the Roslyn repo
-    /// </summary>
     internal class LocalSourceResolver
     {
-        private readonly DirectoryInfo _baseDirectory;
         private readonly ILogger _logger;
+        private readonly HttpClient _httpClient;
 
         public LocalSourceResolver(ILoggerFactory loggerFactory)
         {
-            _baseDirectory = GetSourceDirectory();
             _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
-
-            _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
+            _httpClient = new HttpClient();
         }
 
-        public SourceText ResolveSource(SourceFileInfo sourceFileInfo, Encoding encoding)
+        public Task<(string SourceFilePath, SourceText SourceText)> ResolveSourceAsync(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
         {
             var name = sourceFileInfo.SourceFilePath;
-            if (!File.Exists(name))
-            {
-                _logger.LogTrace($"{name} doesn't exist, adding base directory");
-                name = Path.Combine(_baseDirectory.FullName, name);
-            }
 
-            if (File.Exists(name))
+            // TODO: we need to try to fetch an embedded source from the PDB as a first resort
+            // user projects will need to fetch AssemblyInfo.cs, source generator outputs, etc.
+            if (sourceFileInfo.EmbeddedText is { } embeddedText)
+            {
+                return Task.FromResult((name, embeddedText));
+            }
+            else if (!File.Exists(name))
+            {
+                return ResolveHttpSourceAsync(sourceFileInfo, sourceLinks, encoding);
+            }
+            else
             {
                 using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: true);
+                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
                 if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
                 {
                     _logger.LogError($@"File ""{name}"" has incorrect hash");
                 }
-                return sourceText;
-
+                return Task.FromResult((name, sourceText));
             }
 
             throw new FileNotFoundException(name);
         }
 
-        private static DirectoryInfo GetSourceDirectory()
+        private async Task<(string SourceFilePath, SourceText SourceText)> ResolveHttpSourceAsync(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
         {
-            // TODO: use source link, not this
-            var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
-            var srcDir = Directory.GetParent(assemblyLocation);
-
-            while (srcDir != null)
+            if (!sourceLinks.IsDefault)
             {
-                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
-                if (potentialDir is null)
+                foreach (var link in sourceLinks)
                 {
-                    srcDir = srcDir.Parent;
-                }
-                else
-                {
-                    srcDir = potentialDir;
-                    break;
+                    if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
+                    {
+                        var webPath = link.Replace + sourceFileInfo.SourceFilePath.Substring(link.Prefix.Length);
+                        // TODO: retry? handle 404s?
+                        var bytes = await _httpClient.GetByteArrayAsync(webPath);
+                        // TODO: why don't we use the checksum algorithm from the SourceFileInfo
+                        return (sourceFileInfo.SourceFilePath, SourceText.From(bytes, bytes.Length, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false));
+                    }
                 }
             }
 
-            if (srcDir == null)
-            {
-                throw new Exception("Unable to find src directory");
-            }
-
-            return srcDir;
-
-            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
-            {
-                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
-                {
-                    // Check that src/compilers exists to be more accurate about getting the correct src directory
-                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
-                }
-
-                return false;
-            }
+            throw new FileNotFoundException($@"Could not find a source link matching file ""{sourceFileInfo.SourceFilePath}""");
         }
     }
 }

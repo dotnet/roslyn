@@ -162,7 +162,7 @@ namespace BuildValidator
                 throw new Exception(@"Tool was not launched from the artifacts\bin directory");
             }
 
-            return new DirectoryInfo(Path.Combine(binDir, @"Microsoft.CodeAnalysis\Debug\netcoreapp3.1"));
+            return new DirectoryInfo(Path.Combine(binDir, @"RunTests\Debug\netcoreapp3.1"));
         }
     }
 }

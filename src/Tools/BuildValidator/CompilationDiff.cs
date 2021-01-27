@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
@@ -59,50 +60,66 @@ namespace BuildValidator
                 manifestContents: null,
                 iconInIcoFormat: null);
 
+            // TODO: clean up usages of options reader.
+            // TODO: probably extract these emit bits into "BuildConstructor".
             var sourceLink = new CompilationOptionsReader(originalPdbReader, originalPeReader).GetSourceLinkUTF8();
             var emitResult = producedCompilation.Emit(
                 peStream: rebuildPeStream,
                 win32Resources: win32ResourceStream,
+                manifestResources: new CompilationOptionsReader(originalPdbReader, originalPeReader).GetManifestResources(),
                 debugEntryPoint: debugEntryPoint,
-                options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true),
-                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null);
-                // TODO: embed only if the original was embedded
-                //embeddedTexts: producedCompilation.SyntaxTrees.Select(st => EmbeddedText.FromSource(st.FilePath, st.GetText())));
+                options: new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true),
+                    sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
+                    embeddedTexts: producedCompilation.SyntaxTrees
+                        .Select(st => (path: st.FilePath, text: st.GetText()))
+                        .Where(pair => pair.text.CanBeEmbedded)
+                        .Select(pair => EmbeddedText.FromSource(pair.path, pair.text)));
 
-            var rebuildOutputPath = Path.GetTempFileName();
-            using (var rebuildWriter = File.OpenWrite(rebuildOutputPath))
-            {
-                rebuildPeStream.CopyTo(rebuildWriter);
-            }
 
             if (emitResult.Success)
             {
                 var originalBytes = File.ReadAllBytes(originalBinaryPath.FullName);
-                var newBytes = rebuildPeStream.ToArray();
 
-                var bytesEqual = originalBytes.SequenceEqual(newBytes);
+                var rebuildBytes = rebuildPeStream.ToArray();
+                var rebuildOutputPath = Path.GetTempFileName();
+                File.WriteAllBytes(rebuildOutputPath, rebuildBytes);
+
+                var bytesEqual = originalBytes.SequenceEqual(rebuildBytes);
                 if (!bytesEqual)
                 {
-                    var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
-
-                    string rebuildTempPath;
-                    fixed (byte* ptr = newBytes)
+                    // TODO: how do we select which tool to use for validation, since they both appear to be needed in different scenarios.
+                    var useMdv = false;
+                    if (useMdv)
                     {
-                        var rebuildPeReader = new PEReader(ptr, newBytes.Length);
-                        MetadataReader? rebuildPdbReader = null;
-                        if (rebuildPeReader.TryOpenAssociatedPortablePdb(
-                            rebuildOutputPath,
-                            path => File.Exists(path) ? File.OpenRead(path) : null,
-                            out var provider,
-                            out _) && provider is { })
+                        var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
+                        string rebuildTempPath;
+                        fixed (byte* ptr = rebuildBytes)
                         {
-                            rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                            var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
+                            MetadataReader? rebuildPdbReader = null;
+                            if (rebuildPeReader.TryOpenAssociatedPortablePdb(
+                                rebuildOutputPath,
+                                path => File.Exists(path) ? File.OpenRead(path) : null,
+                                out var provider,
+                                out _) && provider is { })
+                            {
+                                rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                            }
+                            rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
                         }
-                        rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
+
+                        Console.WriteLine("The rebuild was not equivalent to the original. Opening a diff...");
+                        Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""");
                     }
 
-                    Console.WriteLine("The rebuild was not equivalent to the original. Opening a diff...");
-                    Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""");
+                    var ildasmOriginalOutputPath = Path.GetTempFileName();
+                    var ildasmRebuildOutputPath = Path.GetTempFileName();
+
+                    // TODO: can we bundle ildasm in with the utility?
+                    Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /out={ildasmOriginalOutputPath}").WaitForExit();
+                    Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{rebuildOutputPath} /out={ildasmRebuildOutputPath}").WaitForExit();
+                    Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{ildasmOriginalOutputPath}"" ""{ildasmRebuildOutputPath}""");
                 }
 
                 return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
@@ -120,7 +137,7 @@ namespace BuildValidator
                     var writer = new StreamWriter(tempFile);
                     writer.WriteLine("======== PE VISUALIZATION =======");
                     var visualizer = new MetadataVisualizer(peReader.GetMetadataReader(), writer);
-                    visualizer.Visualize();
+                    visualizer.VisualizeHeaders();
 
                     if (pdbReader is object)
                     {
