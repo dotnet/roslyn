@@ -2,6 +2,8 @@
 
 This is a list of significant modifications done to Roslyn to support Caravela, along with some details.
 
+To see all changes made in Caravela Compiler, you can do a diff with the last merged Roslyn commit. E.g., at the moment of writing, `git diff Visual-Studio-2019-Version-16.8..master` or `gitk Visual-Studio-2019-Version-16.8..master`.
+
 ## Caravela.Compiler.CodeAnalysis
 
 This shared source project contains Caravela additions to the Microsoft.CodeAnalysis project. It exists for better separation of Caravela Compiler code from Roslyn code
@@ -28,14 +30,14 @@ For example, consider `{ int i; }`. If we started tracking this and then added a
 
 But if we instead created a new block that contained the declaration from the tracked block, then only the declaration could be tracked back to its original.
 
-Tree tracker is called from several places in the code base most interestingly from Syntax.xml.Main.Generated.cs and Syntax.xml.Syntax.Generated.cs. 
+Tree tracker is called from several places in the code base, most interestingly from Syntax.xml.Main.Generated.cs and Syntax.xml.Syntax.Generated.cs. 
 Note that if you need to modify the .Generated.cs files, you should make your changes in `SourceWriter` in the CSharpSyntaxGenerator project.
 
 Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handling diagnostics (in `CSDiagnostic` and `CSharpDiagnosticFilter`).
 
 ## Caravela.Compiler.Shared
 
-This code is included into the Caravela.Compiler.Sdk version of Caravela.Compiler.Interface.dll and the Caravela.Compiler version of Microsoft.CodeAnalysis.dll (using `#if` where distinction between the two is necessary).
+This code is included into the Caravela.Compiler.Sdk version of Caravela.Compiler.Interface.dll and the Caravela.Compiler version of Microsoft.CodeAnalysis.dll (using `#if`s where distinction between the two is necessary).
 
 ### CaravelaCompilerInfo
 
@@ -65,8 +67,8 @@ Added parameters to the Csc MSBuild task and added MSBuild properties.
 
 Added and processed parameters to the command line compiler (which is used by the Csc task).
 
-Also, loading transformers.
+Also, loading transformers from assemblies, using the same approach as loading source generators and analyzers.
 
 ## Microsoft.CodeAnalysis.CSharp.Workspaces
 
-Changes required to make try.postsharp.net work, since it uses the Roslyn Workspace API instead of the command-line compiler.
+Changes required to make try.postsharp.net work, since it uses the Roslyn Workspace API and not the command-line compiler.
