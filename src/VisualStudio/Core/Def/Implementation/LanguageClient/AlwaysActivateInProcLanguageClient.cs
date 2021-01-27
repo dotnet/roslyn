@@ -46,17 +46,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => new VSServerCapabilities
+        {
+            var isPullDiagnostics = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            return new VSServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    // If pull diagnostics isn't enabled, then we don't really need text sync so can save a bunch of
+                    // requests that the platform would otherwise make, and state to store all of the text documents.
+                    // Strictly speaking workspace symbols could be not 100% accurate as a result, but the trade off
+                    // is worth it given usage vs mainline editing scenarios
+                    Change = isPullDiagnostics ? TextDocumentSyncKind.Incremental : TextDocumentSyncKind.None,
+                    OpenClose = isPullDiagnostics,
                 },
-                SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
+                SupportsDiagnosticRequests = isPullDiagnostics,
                 // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
             };
+        }
     }
 }
