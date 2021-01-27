@@ -482,8 +482,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                         }
                     }
 
-                    if (match == null && ( kind == null || currentTag.Kind == kind ) &&
-                       ( category == SyntaxCategory.None || category == currentTag.Category ))
+                    if (match == null && (kind == null || currentTag.Kind == kind) &&
+                       (category == SyntaxCategory.None || category == currentTag.Category))
                     {
                         match = current;
                     }
