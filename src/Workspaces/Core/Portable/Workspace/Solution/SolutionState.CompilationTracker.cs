@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
 
-                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                var unrootedSymbolSet = state.GetUnrootedSymbolSet();
                 if (unrootedSymbolSet == null)
                 {
                     // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
@@ -227,8 +227,7 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         hasSuccessfullyLoaded: false,
-                        sourceGeneratedDocuments,
-                        State.GetUnrootedSymbols(inProgressCompilation)));
+                        sourceGeneratedDocuments));
             }
 
             /// <summary>
@@ -375,6 +374,7 @@ namespace Microsoft.CodeAnalysis
                 if (state.FinalCompilationWithGeneratedDocuments != null && state.FinalCompilationWithGeneratedDocuments.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
                 {
                     compilation = compilationOpt.Value;
+                    state.InitializeUnrootedSymbolSet(compilation);
                     return true;
                 }
 
@@ -468,34 +468,46 @@ namespace Microsoft.CodeAnalysis
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var state = ReadState();
+                        var compilationInfo = await BuildCompilationInfoWorkerAsync().ConfigureAwait(false);
 
-                        // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
-                        if (finalCompilation != null)
-                        {
-                            RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments);
-                        }
+                        // we're about to expose this compilation info out to the world.  If we haven't already, keep
+                        // track of all the unrooted symbols in it so we can map back symbols in the future to having come
+                        // from this.
+                        ReadState().InitializeUnrootedSymbolSet(compilationInfo.Compilation);
 
-                        // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
-                        // build this compilation at a time.
-                        if (lockGate)
-                        {
-                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            {
-                                return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        else
-                        {
-                            return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
-                        }
+                        return compilationInfo;
                     }
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+
+                async Task<CompilationInfo> BuildCompilationInfoWorkerAsync()
+                {
+                    var state = ReadState();
+
+                    // Try to get the built compilation.  If it exists, then we can just return that.
+                    var finalCompilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                    if (finalCompilation != null)
+                    {
+                        RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                        return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments);
+                    }
+
+                    // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
+                    // build this compilation at a time.
+                    if (lockGate)
+                    {
+                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                        {
+                            return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
@@ -801,8 +813,7 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             hasSuccessfullyLoaded,
-                            generatedDocuments,
-                            State.GetUnrootedSymbols(compilation)),
+                            generatedDocuments),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatedDocuments);
