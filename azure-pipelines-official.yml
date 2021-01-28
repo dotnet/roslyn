@@ -329,7 +329,8 @@ stages:
         - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:
-        enable: true
+        # Disable SDL because of https://github.com/dotnet/core-eng/issues/11902
+        enable: false
         params: >-
           -SourceToolsList @("policheck","credscan")
           -TsaInstanceURL $(_TsaInstanceURL)
