@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Optional<Stream> ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
-            return ReadBlob_MustRunInTransaction<Stream>(
+            return ReadBlob_MustRunInTransaction(
                 database, tableName, columnName, rowId,
-                static (self, blobHandle) => self.ReadBlob(blobHandle));
+                static (self, blobHandle) => new Optional<Stream>(self.ReadBlob(blobHandle)));
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
