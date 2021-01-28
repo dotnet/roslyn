@@ -230,9 +230,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Checksum.HashData? ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
+        public Optional<Checksum.HashData> ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
         {
-            var option = ReadBlob_MustRunInTransaction(
+            return ReadBlob_MustRunInTransaction(
                 database, tableName, checksumColumnName, rowId,
                 static (self, blobHandle) =>
                 {
@@ -248,17 +248,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
                     return hashData;
                 });
-
-            return option.HasValue ? option.Value : null;
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Optional<Stream> ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
-            var option = ReadBlob_MustRunInTransaction<Stream>(
+            return ReadBlob_MustRunInTransaction<Stream>(
                 database, tableName, columnName, rowId,
                 static (self, blobHandle) => self.ReadBlob(blobHandle));
-            return option.HasValue ? option.Value : null;
         }
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
