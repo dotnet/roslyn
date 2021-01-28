@@ -768,10 +768,12 @@ namespace NS
         {
             var file1 = @"
 using AliasFoo1 = Foo1.Foo2.Foo3.Foo4;
+using AliasFoo2 = Foo1.Foo2.Foo3.Foo4.Foo6;
 
 namespace Bar
 {
-    using AliasFoo2 = Foo1.Foo2.Foo3.Foo5;
+    using AliasFoo3 = Foo1.Foo2.Foo3.Foo5;
+    using AliasFoo4 = Foo1.Foo2.Foo3.Foo5.Foo7;
     public class CC
     {
         public static void Main()
@@ -789,10 +791,16 @@ namespace Foo1
         {
             public class Foo4
             {
+                public class Foo6
+                {
+                }
             }
 
             public class Foo5
             {
+                public class Foo7
+                {
+                }
             }
         }
     }
@@ -800,7 +808,9 @@ namespace Foo1
 
             var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo4", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo6", "Foo1.Foo2.Foo3");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo5", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo7", "Foo1.Foo2.Foo3");
         }
 
         [InlineData(true)]

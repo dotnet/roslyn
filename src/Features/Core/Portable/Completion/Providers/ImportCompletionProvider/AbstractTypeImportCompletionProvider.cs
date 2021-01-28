@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractTypeImportCompletionProvider : AbstractImportCompletionProvider
     {
+        private static readonly SymbolDisplayFormat s_typeNameDisplayFormat = new(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                             SymbolDisplayGenericsOptions.IncludeVariance);
+
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
 
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var aliasTargetSymbol in GetAliasSymbolTargets(syntaxContext, cancellationToken))
             {
                 var namespaceOfTarget = aliasTargetSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
-                var typeNameOfTarget = aliasTargetSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
+                var typeNameOfTarget = aliasTargetSymbol.ToDisplayString(s_typeNameDisplayFormat);
                 dictionary.Add(namespaceOfTarget, typeNameOfTarget);
             }
 
@@ -101,13 +107,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<CompletionItem> items,
             CompletionContext completionContext,
             HashSet<string> namespacesInScope,
-            MultiDictionary<string, string> aliasTargetNamespaceToTargetMap,
+            MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap,
             TelemetryCounter counter)
         {
             counter.ReferenceCount++;
             foreach (var item in items)
             {
-                if (ShouldAddItem(item, namespacesInScope, aliasTargetNamespaceToTargetMap))
+                if (ShouldAddItem(item, namespacesInScope, aliasTargetNamespaceToTypeNameMap))
                 {
                     // We can return cached item directly, item's span will be fixed by completion service.
                     // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             static bool ShouldAddItem(
                 CompletionItem item,
                 HashSet<string> namespacesInScope,
-                MultiDictionary<string, string> aliasTargetNamespaceToTargetMap)
+                MultiDictionary<string, string> aliasTargetNamespaceToTypeNameMap)
             {
                 var containingNamespace = ImportCompletionItem.GetContainingNamespace(item);
                 // 1. if the namespace of the item is in scoop. Don't add the item
@@ -131,12 +137,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // 2. If the item might be an alias target. First check if its namespace is in the map.
-                if (aliasTargetNamespaceToTargetMap.ContainsKey(containingNamespace))
+                if (aliasTargetNamespaceToTypeNameMap.ContainsKey(containingNamespace))
                 {
                     // Then check its fully qualified name.
-                    // It is done in this way because we don't want to get the fully qualified name for all the items
-                    var fullyQualifiedName = ImportCompletionItem.GetFullyQualifiedNameForTypeItem(item);
-                    if (aliasTargetNamespaceToTargetMap[containingNamespace].Contains(fullyQualifiedName))
+                    // It is done in this way because we don't want to get type name for all the items
+                    var typeName = ImportCompletionItem.GetTypeName(item);
+                    if (aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(typeName))
                     {
                         return false;
                     }
