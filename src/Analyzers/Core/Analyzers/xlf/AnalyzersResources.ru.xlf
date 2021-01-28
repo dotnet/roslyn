@@ -287,6 +287,11 @@
         <target state="translated">Удалите неиспользуемые закрытые члены</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="new">Simplify LINQ expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="translated">Упростите инициализацию коллекции</target>

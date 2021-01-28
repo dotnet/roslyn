@@ -426,7 +426,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
-            get => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is object;
+            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
+        }
+
+        private bool RuntimeSupportsFeature(SpecialMember feature)
+        {
+            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+            return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
+                   GetSpecialTypeMember(feature) is object;
         }
 
         // https://github.com/dotnet/roslyn/issues/46676: Remove when we have a runtime that supports this to test with
@@ -435,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
 
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
-            => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention) is object
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention)
                || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
 
         /// <summary>
@@ -447,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // check for the runtime feature indicator and the required attribute.
                 return
-                    GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is { } &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) &&
                     GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
             }
         }

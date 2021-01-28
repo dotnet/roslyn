@@ -346,4 +346,7 @@
     <value>Namespace does not match folder structure</value>
     <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
   </data>
+  <data name="Simplify_LINQ_expression" xml:space="preserve">
+    <value>Simplify LINQ expression</value>
+  </data>
 </root>

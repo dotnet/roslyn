@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<Checksum>();
+        public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
-        public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<Checksum>();
+        public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
-        public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<Checksum>();
+        public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
-        public Task<Checksum> ReadChecksumAsync(ProjectKey project, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<Checksum>();
+        public Task<bool> ChecksumMatchesAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
-        public Task<Checksum> ReadChecksumAsync(DocumentKey document, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<Checksum>();
+        public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
         public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();

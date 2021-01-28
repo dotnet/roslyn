@@ -21545,7 +21545,7 @@ End Class
 
         <WorkItem(938459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938459")>
         <Fact>
-        Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritenceOrdering()
+        Public Sub UnimplementedMethodsIncorrectSquiggleLocationInterfaceInheritanceOrdering()
             Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="C">
     <file>
