@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Xml.Linq;
 
+using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
@@ -77,7 +78,7 @@ namespace Roslyn.SyntaxVisualizer.Extension
 
             if (activeClassificationFormatMap != null && activeEditorFormatMap != null)
             {
-                var classificationTypeRegistryService = GetMefService<IClassificationTypeRegistryService>();
+                var classificationTypeRegistryService = GetRequiredMefService<IClassificationTypeRegistryService>();
                 if (classificationTypeRegistryService is not null)
                 {
                     syntaxVisualizer.SetTreeViewColors(classificationTypeRegistryService, activeClassificationFormatMap, activeEditorFormatMap);
@@ -193,22 +194,15 @@ namespace Roslyn.SyntaxVisualizer.Extension
             where TService : class
         {
             var service = (TServiceInterface?)GetService(serviceProvider, typeof(TService).GUID, false);
-            return service is null
-                ? throw new InvalidOperationException($"Unable to get service '{typeof(TServiceInterface).FullName}'")
-                : service;
+            Assumes.Present(service);
+            return service;
         }
 
-        private static TServiceInterface? GetMefService<TServiceInterface>() where TServiceInterface : class
+        private static TServiceInterface GetRequiredMefService<TServiceInterface>() where TServiceInterface : class
         {
-            TServiceInterface? service = null;
             var componentModel = GetRequiredMefService<IComponentModel, SComponentModel>(GlobalServiceProvider);
-
-            if (componentModel != null)
-            {
-                service = componentModel.GetService<TServiceInterface>();
-            }
-
-            return service;
+            Assumes.Present(componentModel);
+            return componentModel.GetService<TServiceInterface>(); ;
         }
         #endregion
 
@@ -365,8 +359,8 @@ namespace Roslyn.SyntaxVisualizer.Extension
                         activeWpfTextView.TextBuffer.Changed += HandleTextBufferChanged;
                         activeWpfTextView.LostAggregateFocus += HandleTextViewLostFocus;
 
-                        var classificationFormatMapService = GetMefService<IClassificationFormatMapService>();
-                        var editorFormatMapService = GetMefService<IEditorFormatMapService>();
+                        var classificationFormatMapService = GetRequiredMefService<IClassificationFormatMapService>();
+                        var editorFormatMapService = GetRequiredMefService<IEditorFormatMapService>();
                         activeClassificationFormatMap = classificationFormatMapService?.GetClassificationFormatMap(activeWpfTextView);
                         if (activeClassificationFormatMap is not null)
                         {

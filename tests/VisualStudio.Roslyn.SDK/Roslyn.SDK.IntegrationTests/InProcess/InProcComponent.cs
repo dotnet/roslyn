@@ -43,13 +43,11 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var serviceProvider = (IAsyncServiceProvider2?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
-            if (serviceProvider is null)
-            {
-                throw new InvalidOperationException($"Unable to get service {typeof(IAsyncServiceProvider2).FullName}");
-            }
+            Assumes.Present(serviceProvider);
 
             var @interface = (TInterface?)await serviceProvider.GetServiceAsync(typeof(TService));
-            return @interface ?? throw new InvalidOperationException($"Unable to get service {typeof(TInterface).FullName}");
+            Assumes.Present(@interface);
+            return @interface;
         }
 
         protected async Task<TService> GetComponentModelServiceAsync<TService>()
