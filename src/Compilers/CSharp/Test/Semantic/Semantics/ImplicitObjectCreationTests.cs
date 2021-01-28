@@ -4536,7 +4536,7 @@ class X
 
         [Fact]
         [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
-        public void InEarlyWellknownAttribute()
+        public void InEarlyWellknownAttribute_01()
         {
             var source1 = @"
 public class C
@@ -4586,6 +4586,80 @@ public class B
                 // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
                 //         C.M2();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_02()
+        {
+            var source1 = @"
+using System.Runtime.InteropServices;
+
+public class C
+{
+    public void M1([DefaultParameterValue(new())] object o)
+    {
+    }
+
+    public void M2([DefaultParameterValue(new object())] object o)
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M1([DefaultParameterValue(new())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new()").WithLocation(6, 43),
+                // (10,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M2([DefaultParameterValue(new object())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new object()").WithLocation(10, 43)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_03()
+        {
+            var source1 = @"
+using System;
+
+[AttributeUsage(new AttributeTargets())]
+public class Attr1 : Attribute {}
+
+[AttributeUsage(new())]
+public class Attr2 : Attribute {}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (4,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new AttributeTargets())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new AttributeTargets()").WithArguments("AttributeUsage").WithLocation(4, 17),
+                // (7,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new()").WithArguments("AttributeUsage").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void InAttributes()
+        {
+            var source = @"
+[C(new())]
+public class C : System.Attribute
+{
+   public C(C c) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2),
+                // (2,4): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.C(C)'
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
                 );
         }
     }
