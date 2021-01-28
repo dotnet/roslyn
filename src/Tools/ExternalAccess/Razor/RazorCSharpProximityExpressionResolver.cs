@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal class RazorCSharpProximityExpressionResolver
+    internal static class RazorCSharpProximityExpressionResolverService
     {
         public IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex)
             => CSharpProximityExpressionsService.Do(syntaxTree, absoluteIndex);
