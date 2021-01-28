@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
-        protected abstract IEnumerable<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node);
+        protected abstract ImmutableArray<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node);
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
@@ -76,31 +76,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var dictionary = new MultiDictionary<string, string>(syntaxFactsService.StringComparer);
 
-            foreach (var aliasTargetSymbol in GetAliasSymbolTargets(syntaxContext, cancellationToken))
+            var nodeToCheck = syntaxContext.LeftToken.Parent;
+            if (nodeToCheck == null)
             {
-                var namespaceOfTarget = aliasTargetSymbol.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
-                var typeNameOfTarget = aliasTargetSymbol.ToDisplayString(s_typeNameDisplayFormat);
-                dictionary.Add(namespaceOfTarget, typeNameOfTarget);
+                return dictionary;
             }
 
-            return dictionary;
-        }
-
-        private IEnumerable<ITypeSymbol> GetAliasSymbolTargets(
-            SyntaxContext syntaxContext,
-            CancellationToken cancellationToken)
-        {
             // In case the caret is at the beginning of the file, take the root node.
-            var aliasDeclarations = GetAliasDeclarationNodes(
-                syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken));
+            var aliasDeclarations = GetAliasDeclarationNodes(nodeToCheck);
             foreach (var aliasNode in aliasDeclarations)
             {
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
                 if (symbol is IAliasSymbol {Target: ITypeSymbol target})
                 {
-                    yield return target;
+                    var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
+                    var typeNameOfTarget = target.ToDisplayString(s_typeNameDisplayFormat);
+                    dictionary.Add(namespaceOfTarget, typeNameOfTarget);
                 }
             }
+
+            return dictionary;
         }
 
         private static void AddItems(

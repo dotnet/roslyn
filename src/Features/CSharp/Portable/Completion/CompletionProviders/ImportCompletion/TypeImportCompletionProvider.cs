@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -78,7 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override IEnumerable<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node)
-            => node.GetEnclosingUsingDirectives().Where(n => n.Alias != null);
+        protected override ImmutableArray<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node)
+            => node.GetEnclosingUsingDirectives()
+                .Where(n => n.Alias != null)
+                .OfType<SyntaxNode>()
+                .ToImmutableArray();
     }
 }

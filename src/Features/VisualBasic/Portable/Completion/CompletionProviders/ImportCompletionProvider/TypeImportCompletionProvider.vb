@@ -48,9 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(False)
         End Function
 
-        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             ' VB imports can only be placed before any declarations
-            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax)
+            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax).SelectAsArray(Function(n) DirectCast(n, SyntaxNode))
         End Function
     End Class
 End Namespace
