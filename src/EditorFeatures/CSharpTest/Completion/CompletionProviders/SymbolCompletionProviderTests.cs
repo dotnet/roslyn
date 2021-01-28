@@ -11240,5 +11240,45 @@ $@"public class C
                 expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
                 matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesNotSuggestedInDeclarationDeconstruction()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C
+{
+    int M()
+    {
+        var (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalDeclaredBeforeDeconstructionSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        int y;
+        (var x, $$) = (0, 0);
+    }
+}", "y");
+        }
     }
 }

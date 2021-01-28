@@ -1002,6 +1002,11 @@
         <target state="translated">Kayıt, 'GetHashCode' değil, 'Equals' tanımlıyor.</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Türler ve diğer adlar 'record' olarak adlandırılmamalıdır.</target>
@@ -10505,11 +10510,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">Throw ifadesine bu bağlamda izin verilmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Ayrıştırma deyiminin sol tarafında, bildirim ve ifadeler birlikte kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
