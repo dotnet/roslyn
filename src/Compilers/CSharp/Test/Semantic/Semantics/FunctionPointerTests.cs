@@ -677,7 +677,7 @@ unsafe class C
     }
 }", targetFramework: TargetFramework.NetCoreApp);
 
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

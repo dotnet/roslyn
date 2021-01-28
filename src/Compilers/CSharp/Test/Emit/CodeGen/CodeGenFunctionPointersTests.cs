@@ -5338,7 +5338,7 @@ public unsafe class C
 
             verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
 
-            CompileAndVerify(comp, symbolValidator: symbolValidator);
+            CompileAndVerify(comp, symbolValidator: symbolValidator, verify: Verification.Skipped);
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -6205,13 +6205,21 @@ Derived2 Stdcall, Stdcall, Thiscall ref return
 
             var allSourceComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source1, source2 }, options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(allSourceComp, expectedOutput: expectedOutput, symbolValidator: getSymbolValidator(separateAssembly: false));
+            CompileAndVerify(
+                allSourceComp,
+                expectedOutput: RuntimeUtilities.IsCoreClrRuntime ? expectedOutput : null,
+                symbolValidator: getSymbolValidator(separateAssembly: false),
+                verify: Verification.Skipped);
 
             var baseComp = CreateCompilationWithFunctionPointers(source1);
             var metadataRef = baseComp.EmitToImageReference();
 
             var derivedComp = CreateCompilationWithFunctionPointers(new[] { executableCode, source2 }, references: new[] { metadataRef }, options: TestOptions.UnsafeReleaseExe);
-            CompileAndVerify(derivedComp, expectedOutput: expectedOutput, symbolValidator: getSymbolValidator(separateAssembly: true));
+            CompileAndVerify(
+                derivedComp,
+                expectedOutput: RuntimeUtilities.IsCoreClrRuntime ? expectedOutput : null,
+                symbolValidator: getSymbolValidator(separateAssembly: true),
+                verify: Verification.Skipped);
 
             static Action<ModuleSymbol> getSymbolValidator(bool separateAssembly)
             {
@@ -6442,7 +6450,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6566,7 +6574,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6644,7 +6652,7 @@ unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
@@ -6722,7 +6730,7 @@ public unsafe class Derived : Base
             );
 
             assertMethods(comp.SourceModule);
-            CompileAndVerify(comp, symbolValidator: assertMethods);
+            CompileAndVerify(comp, symbolValidator: assertMethods, verify: Verification.Skipped);
 
             static void assertMethods(ModuleSymbol module)
             {
