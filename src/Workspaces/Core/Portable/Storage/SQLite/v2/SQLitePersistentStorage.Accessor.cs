@@ -103,24 +103,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
 
-                            // Note: it's possible that someone may write to this row between when we get the row ID
-                            // above and now.  That's fine.  We'll just read the new bytes that have been written to
-                            // this location.  Note that only the data for a row in our system can change, the ID will
-                            // always stay the same, and the data will always be valid for our ID.  So there is no
-                            // safety issue here.
-                            if (TryGetRowId(connection, Database.WriteCache, dataId, out var writeCacheRowId))
-                            {
-                                var optional = readColumn(data, connection, Database.WriteCache, writeCacheRowId);
-                                if (optional.HasValue)
-                                    return optional;
-                            }
+                            var optional = ReadColumnHelper(connection, Database.WriteCache, dataId);
+                            if (optional.HasValue)
+                                return optional;
 
-                            if (TryGetRowId(connection, Database.Main, dataId, out var mainRowId))
-                            {
-                                var optional = readColumn(data, connection, Database.Main, mainRowId);
-                                if (optional.HasValue)
-                                    return optional;
-                            }
+                            optional = ReadColumnHelper(connection, Database.Main, dataId);
+                            if (optional.HasValue)
+                                return optional;
                         }
                         catch (Exception ex)
                         {
@@ -130,6 +119,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 }
 
                 return default;
+
+                Optional<T> ReadColumnHelper(SqlConnection connection, Database database, TDatabaseId dataId)
+                {
+                    // Note: it's possible that someone may write to this row between when we get the row ID
+                    // above and now.  That's fine.  We'll just read the new bytes that have been written to
+                    // this location.  Note that only the data for a row in our system can change, the ID will
+                    // always stay the same, and the data will always be valid for our ID.  So there is no
+                    // safety issue here.
+                    return TryGetRowId(connection, database, dataId, out var writeCacheRowId)
+                        ? readColumn(data, connection, database, writeCacheRowId)
+                        : default;
+                }
             }
 
             private Stream? ReadBlobColumn(
