@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="root">The root of the subtree containing the current node corresponding to the original tracked node.</param>
         /// <param name="node">The node instance originally tracked.</param>
-        public static TNode GetCurrentNode<TNode>(this SyntaxNode root, TNode node)
+        public static TNode? GetCurrentNode<TNode>(this SyntaxNode root, TNode node)
             where TNode : SyntaxNode
         {
             return GetCurrentNodes(root, node).SingleOrDefault();

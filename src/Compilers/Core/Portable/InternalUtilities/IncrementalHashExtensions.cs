@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
 
         internal static void AppendData(this IncrementalHash hash, ArraySegment<byte> segment)
         {
-            hash.AppendData(segment.Array, segment.Offset, segment.Count);
+            hash.AppendData(segment.Array!, segment.Offset, segment.Count);
         }
     }
 }

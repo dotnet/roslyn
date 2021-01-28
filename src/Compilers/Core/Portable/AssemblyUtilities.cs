@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
 
             var builder = ImmutableArray.CreateBuilder<string>();
 
-            string? directory = Path.GetDirectoryName(filePath);
+            string directory = Path.GetDirectoryName(filePath)!;
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";
