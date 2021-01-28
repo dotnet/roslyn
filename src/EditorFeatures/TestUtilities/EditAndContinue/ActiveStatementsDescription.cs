@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -125,8 +126,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private static readonly ImmutableArray<Guid> s_dummyThreadIds = ImmutableArray.Create(default(Guid));
-
         internal static ActiveStatement CreateActiveStatement(ActiveStatementFlags flags, LinePositionSpan span, DocumentId documentId)
             => new ActiveStatement(
                 ordinal: 0,
@@ -134,8 +133,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableArray.Create(documentId),
                 flags,
                 span,
-                instructionId: default,
-                s_dummyThreadIds);
+                instructionId: default);
 
         internal static ActiveStatement CreateActiveStatement(TextSpan span, int id, SourceText text, DocumentId documentId)
             => CreateActiveStatement(
