@@ -208,21 +208,6 @@ namespace Microsoft.CodeAnalysis
             public static HashData ReadFrom(ObjectReader reader)
                 => new(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt32());
 
-            //public static HashData? TryReadFrom(Stream stream)
-            //{
-            //    if (stream == null)
-            //        return null;
-            //    BinaryReader
-
-            //    Span<byte> bytes = stackalloc byte[HashSize];
-            //    var read = stream.Read(bytes);
-            //    if (read != HashSize)
-            //        return null;
-
-            //    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out HashData result));
-            //    return result;
-            //}
-
             public override int GetHashCode()
             {
                 // The checksum is already a hash. Just read a 4-byte value to get a well-distributed hash code.
