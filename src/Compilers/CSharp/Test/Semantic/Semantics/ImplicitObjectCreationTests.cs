@@ -4578,7 +4578,7 @@ public class B
     }
 }";
 
-            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.EmitToImageReference()});
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.EmitToImageReference() });
             compilation2.VerifyDiagnostics(
                 // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
                 //         C.M1();
