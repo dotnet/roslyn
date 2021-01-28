@@ -140,7 +140,10 @@ namespace Microsoft.CodeAnalysis
                     var secondarySymbols = unrootedSymbolSet.Value.SecondaryReferencedSymbols;
 
                     var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
-                    var index = secondarySymbols.BinarySearch((symbolHash, null), WeakSymbolComparer.Instance);
+
+                    // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
+                    // the location we should start looking at.
+                    var index = secondarySymbols.BinarySearch((symbolHash, null!), WeakSymbolComparer.Instance);
                     if (index < 0)
                         return false;
 
