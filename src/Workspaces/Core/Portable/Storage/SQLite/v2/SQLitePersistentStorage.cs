@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string DocumentDataTableName = "DocumentData" + Version;
 
         private const string DataIdColumnName = "DataId";
-        public const string ChecksumColumnName = "Checksum";
+        private const string ChecksumColumnName = "Checksum";
         private const string DataColumnName = "Data";
 
         private readonly CancellationTokenSource _shutdownTokenSource = new();
