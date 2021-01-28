@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis
         public Checksum(HashData hash)
             => _checksum = hash;
 
-        public HashData GetHashData() => _checksum;
-
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than
         /// <see cref="HashSize"/>, it will be truncated to the size
