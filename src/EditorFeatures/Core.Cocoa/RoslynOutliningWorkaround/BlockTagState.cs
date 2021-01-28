@@ -9,8 +9,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
-using CoreGraphics;
-using AppKit;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private const string Ellipsis = "...";
         private const int MaxPreviewText = 1000;
 
-        private readonly ICocoaTextEditorFactoryService _textEditorFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
@@ -39,13 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public readonly BlockSpan BlockSpan;
 
         public BlockTagState(
-            ICocoaTextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextSnapshot snapshot,
             BlockSpan blockSpan)
         {
-            _textEditorFactoryService = textEditorFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _subjectBuffer = snapshot.TextBuffer;
@@ -66,40 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             EqualityComparer<object>.Default.GetHashCode(this.CollapsedForm));
 
         public object CollapsedHintForm
-            => CreateElisionBuffer().CurrentSnapshot.GetText(); //new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
-
-#pragma warning disable IDE0051 // Remove unused private members
-        private ICocoaTextView CreateElisionBufferView(ITextBuffer finalBuffer)
-#pragma warning restore IDE0051 // Remove unused private members
-            => CreateShrunkenTextView(_textEditorFactoryService, finalBuffer);
-
-        internal static ICocoaTextView CreateShrunkenTextView(
-            ICocoaTextEditorFactoryService textEditorFactoryService,
-            ITextBuffer finalBuffer)
-        {
-            var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
-            var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
-
-            view.Background = NSColor.Clear.CGColor;
-
-            const double HorizontalCorrection = 8.0;
-            const double VerticalCorrection = 4.0;
-
-            // Force the view to render, measuring its size in the process.
-            view.DisplayTextLineContainingBufferPosition(
-                new SnapshotPoint(view.TextSnapshot, 0),
-                0,
-                ViewRelativePosition.Top,
-                double.MaxValue,
-                double.MaxValue);
-
-            view.VisualElement.SetFrameSize(new CGSize(view.MaxTextRightCoordinate + HorizontalCorrection, view.TextViewLines.LastVisibleLine.Bottom + VerticalCorrection));
-
-            // Zoom out a bit to shrink the text.
-            view.ZoomLevel *= 0.75;
-
-            return view;
-        }
+            => CreateElisionBuffer().CurrentSnapshot.GetText();
 
         private ITextBuffer CreateElisionBuffer()
         {
