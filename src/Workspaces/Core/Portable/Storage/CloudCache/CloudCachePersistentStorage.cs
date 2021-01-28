@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             _cacheService = cacheService;
             _mustSucceed = mustSucceed;
-            _projectToContainerKeyCallback = ps => new(mustSucceed, relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps, CancellationToken.None));
+            _projectToContainerKeyCallback = ps => new(mustSucceed, relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
         public override void Dispose()
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => WriteStreamAsync(name, stream, checksum, s_solutionKey, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(ProjectKey.ToProjectKey(project, cancellationToken), project), cancellationToken);
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? bulkLoadProject, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(projectKey, bulkLoadProject), cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(DocumentKey.ToDocumentKey(document, cancellationToken), document), cancellationToken);
+        protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? bulkLoadDocument, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey, bulkLoadDocument), cancellationToken);
 
         private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
