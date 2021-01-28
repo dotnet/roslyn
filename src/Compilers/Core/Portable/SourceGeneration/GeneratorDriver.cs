@@ -368,11 +368,11 @@ namespace Microsoft.CodeAnalysis
             ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
             foreach (var generatorState in state.GeneratorStates)
             {
-                foreach (var source in generatorState.GeneratedTrees)
+                foreach (var generatedTree in generatorState.GeneratedTrees)
                 {
-                    if (source.Tree is object && compilation.ContainsSyntaxTree(source.Tree))
+                    if (generatedTree.Tree is object && compilation.ContainsSyntaxTree(generatedTree.Tree))
                     {
-                        trees.Add(source.Tree);
+                        trees.Add(generatedTree.Tree);
                     }
                 }
             }
