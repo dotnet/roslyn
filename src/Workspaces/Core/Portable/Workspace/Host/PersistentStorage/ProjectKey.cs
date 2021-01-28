@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             Name = name;
         }
 
-        public static explicit operator ProjectKey(Project project)
+        public static ProjectKey ToProjectKey(Project project)
             => ToProjectKey(project.Solution.State, project.State);
 
         public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
-            => new((SolutionKey)solutionState, projectState.Id, projectState.FilePath, projectState.Name);
+            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name);
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name);
