@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private Optional<T> ReadColumn<T, TData>(
                 TKey key,
-                Func<TData, SqlConnection, TDatabaseId, Database, Optional<T>> readColumn,
+                Func<TData, SqlConnection, Database, long, Optional<T>> readColumn,
                 TData data,
                 CancellationToken cancellationToken)
             {
@@ -101,13 +101,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
-                            var optional = readColumn(data, connection, dataId, Database.WriteCache);
-                            if (optional.HasValue)
-                                return optional;
 
-                            optional = readColumn(data, connection, dataId, Database.Main);
-                            if (optional.HasValue)
-                                return optional;
+                            // Note: it's possible that someone may write to this row between when we get the row ID
+                            // above and now.  That's fine.  We'll just read the new bytes that have been written to
+                            // this location.  Note that only the data for a row in our system can change, the ID will
+                            // always stay the same, and the data will always be valid for our ID.  So there is no
+                            // safety issue here.
+                            if (TryGetRowId(connection, Database.WriteCache, dataId, out var writeCacheRowId))
+                            {
+                                var optional = readColumn(data, connection, Database.WriteCache, writeCacheRowId);
+                                if (optional.HasValue)
+                                    return optional;
+                            }
+
+                            if (TryGetRowId(connection, Database.Main, dataId, out var mainRowId))
+                            {
+                                var optional = readColumn(data, connection, Database.Main, mainRowId);
+                                if (optional.HasValue)
+                                    return optional;
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -124,10 +136,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 var optional = ReadColumn(
                     key,
-                    static (t, connection, dataId, database) => t.self.ReadBlob(connection, database, dataId, t.columnName, t.checksum),
+                    static (t, connection, database, rowId) => t.self.ReadBlob(connection, database, rowId, t.columnName, t.checksum),
                     (self: this, columnName, checksum),
                     cancellationToken);
 
+                Contract.ThrowIfTrue(optional.HasValue && optional.Value == null);
                 return optional.HasValue ? optional.Value : null;
             }
 
@@ -135,7 +148,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
                 var optional = ReadColumn(
                     key,
-                    static (self, connection, dataId, database) => self.ReadChecksum(connection, database, dataId),
+                    static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
                     this, cancellationToken);
 
                 return optional.HasValue ? optional.Value : null;
@@ -181,17 +194,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             private Optional<Stream> ReadBlob(
-                SqlConnection connection, Database database, TDatabaseId dataId, string columnName, Checksum? checksum)
+                SqlConnection connection, Database database, long rowId, string columnName, Checksum? checksum)
             {
-                // Note: it's possible that someone may write to this row between when we
-                // get the row ID above and now.  That's fine.  We'll just read the new
-                // bytes that have been written to this location.  Note that only the
-                // data for a row in our system can change, the ID will always stay the
-                // same, and the data will always be valid for our ID.  So there is no
-                // safety issue here.
-                if (!TryGetRowId(connection, database, dataId, out var rowId))
-                    return default;
-
                 // Have to run the blob reading in a transaction.  This is necessary
                 // for two reasons.  First, blob reading outside a transaction is not
                 // safe to do with the sqlite API.  It may produce corrupt bits if
@@ -208,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         if (t.checksum != null &&
                             !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum))
                         {
-                            return null;
+                            return default;
                         }
 
                         return t.connection.ReadBlob_MustRunInTransaction(t.database, t.self.DataTableName, t.columnName, t.rowId);
@@ -217,15 +221,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             private Optional<Checksum.HashData> ReadChecksum(
-                SqlConnection connection, Database database, TDatabaseId dataId)
+                SqlConnection connection, Database database, long rowId)
             {
-                // Note: it's possible that someone may write to this row between when we get the row ID above and now.
-                // That's fine.  We'll just read the new bytes that have been written to this location.  Note that only
-                // the data for a row in our system can change, the ID will always stay the same, and the data will
-                // always be valid for our ID.  So there is no safety issue here.
-                if (!TryGetRowId(connection, database, dataId, out var rowId))
-                    return default;
-
                 // Have to run the checksum reading in a transaction.  This is necessary as blob reading outside a
                 // transaction is not safe to do with the sqlite API.  It may produce corrupt bits if another thread is
                 // writing to the blob.
