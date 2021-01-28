@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
+        internal abstract AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
+
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
@@ -876,7 +878,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector);
+            _storageService = GetStorageService(
+                (IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(solution, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
@@ -895,7 +898,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector);
+            _storageService = GetStorageService(
+                (IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(workspace, solutionKey, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
@@ -926,8 +930,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             public string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey)
                 => solutionKey.Id == _solutionId ? _storageLocation : null;
         }
-
-        internal abstract AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector);
 
         protected Stream EncodeString(string text)
         {

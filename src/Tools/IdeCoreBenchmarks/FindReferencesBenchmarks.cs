@@ -64,7 +64,7 @@ namespace IdeCoreBenchmarks
                     throw new ArgumentException("Couldn't create workspace");
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
+                    .WithChangedOption(StorageOptions.Database, StorageDatabase.CloudCache)
                     .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)
                     .WithChangedOption(StorageOptions.PrintDatabaseLocation, true)));
 

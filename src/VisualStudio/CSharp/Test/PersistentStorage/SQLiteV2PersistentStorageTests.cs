@@ -14,13 +14,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
-    public class CloudCachePersistentStorageTests : AbstractPersistentStorageTests
-    {
-        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector)
-        {
-            throw new NotImplementedException();
-        }
-    }
     /// <remarks>
     /// Tests are inherited from <see cref="AbstractPersistentStorageTests"/>.  That way we can
     /// write tests once and have them run against all <see cref="IPersistentStorageService"/>
@@ -28,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector)
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
             => new SQLitePersistentStorageService(exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value, locationService, faultInjector);
 
         [Fact]
