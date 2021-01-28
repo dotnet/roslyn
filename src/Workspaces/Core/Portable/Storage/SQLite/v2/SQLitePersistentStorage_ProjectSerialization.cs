@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.ReadStreamAsync((projectKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => _projectAccessor.WriteStreamAsync((ProjectKey.ToProjectKey(project), project, name), stream, checksum, cancellationToken);
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => _projectAccessor.WriteStreamAsync((projectKey, bulkLoadSnapshot, name), stream, checksum, cancellationToken);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
