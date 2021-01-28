@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToProjectKey(project.Solution.State, project.State, cancellationToken);
 
         public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState, CancellationToken cancellationToken)
-            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum(cancellationToken));
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState, cancellationToken);
+
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState, CancellationToken cancellationToken)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum(cancellationToken));
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name, ParseOptionsChecksum);

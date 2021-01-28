@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -21,19 +22,19 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>> _documentToContainerKey = new();
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
 
-        public ProjectCacheContainerKey(bool mustSucceed, string relativePathBase, string? projectFilePath, string projectName, Checksum parseOptionsChecksum)
+        public ProjectCacheContainerKey(bool mustSucceed, string relativePathBase, ProjectKey projectKey)
         {
-            ContainerKey = CreateProjectContainerKey(mustSucceed, relativePathBase, projectFilePath, projectName, parseOptionsChecksum);
+            ContainerKey = CreateProjectContainerKey(mustSucceed, relativePathBase, projectKey);
 
             _documentToContainerKeyCallback = ds => new(CreateDocumentContainerKey(
-                mustSucceed, relativePathBase, projectFilePath, projectName, parseOptionsChecksum, ds.FilePath, ds.Name));
+                mustSucceed, relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds)));
         }
 
         public CloudCacheContainerKey? GetValue(TextDocumentState state)
             => _documentToContainerKey.GetValue(state, _documentToContainerKeyCallback).Value;
 
         public static CloudCacheContainerKey? CreateProjectContainerKey(
-            bool mustSucceed, string relativePathBase, string? projectFilePath, string projectName, Checksum? parseOptionsChecksum)
+            bool mustSucceed, string relativePathBase, ProjectKey projectKey)
         {
             // Creates a container key for this project.  THe container key is a mix of the project's name, relative
             // file path (to the solution), and optional parse options.
@@ -43,20 +44,18 @@ namespace Microsoft.CodeAnalysis.Storage
                 return mustSucceed ? throw new InvalidOperationException($"{nameof(relativePathBase)} is empty") : null;
 
             // We have to have a file path for this project
-            if (string.IsNullOrEmpty(projectFilePath))
-                return mustSucceed ? throw new InvalidOperationException($"{nameof(projectFilePath)} is empty") : null;
+            if (string.IsNullOrEmpty(projectKey.FilePath))
+                return mustSucceed ? throw new InvalidOperationException($"{nameof(projectKey.FilePath)} is empty") : null;
 
             // The file path has to be relative to the solution path.
-            var relativePath = PathUtilities.GetRelativePath(relativePathBase, projectFilePath!);
-            if (relativePath == projectFilePath)
-                return mustSucceed ? throw new InvalidOperationException($"'{projectFilePath}' wasn't relative to '{relativePathBase}'") : null;
+            var relativePath = PathUtilities.GetRelativePath(relativePathBase, projectKey.FilePath!);
+            if (relativePath == projectKey.FilePath)
+                return mustSucceed ? throw new InvalidOperationException($"'{projectKey.FilePath}' wasn't relative to '{relativePathBase}'") : null;
 
             var dimensions = EmptyDimensions
-                .Add(nameof(projectName), projectName)
-                .Add(nameof(projectFilePath), relativePath);
-
-            if (parseOptionsChecksum != null)
-                dimensions = dimensions.Add(nameof(parseOptionsChecksum), parseOptionsChecksum.ToString());
+                .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.Name)}", projectKey.Name)
+                .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.FilePath)}", relativePath)
+                .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.ParseOptionsChecksum)}", projectKey.ParseOptionsChecksum.ToString());
 
             return new CloudCacheContainerKey("Roslyn.Project", dimensions);
         }
@@ -64,29 +63,25 @@ namespace Microsoft.CodeAnalysis.Storage
         public static CloudCacheContainerKey? CreateDocumentContainerKey(
             bool mustSucceed,
             string relativePathBase,
-            string? projectFilePath,
-            string projectName,
-            Checksum? parseOptionsChecksum,
-            string? documentFilePath,
-            string documentName)
+            DocumentKey documentKey)
         {
             // See if we can get a project key for this info.  If not, we def can't get a doc key.
-            var projectKey = CreateProjectContainerKey(mustSucceed, relativePathBase, projectFilePath, projectName, parseOptionsChecksum);
-            if (projectKey == null)
+            var projectContinerKey = CreateProjectContainerKey(mustSucceed, relativePathBase, documentKey.Project);
+            if (projectContinerKey == null)
                 return null;
 
             // We have to have a file path for this document
-            if (string.IsNullOrEmpty(documentFilePath))
-                return mustSucceed ? throw new InvalidOperationException($"{nameof(documentFilePath)} is empty") : null;
+            if (string.IsNullOrEmpty(documentKey.FilePath))
+                return mustSucceed ? throw new InvalidOperationException($"{nameof(documentKey.FilePath)} is empty") : null;
 
             // The file path has to be relative to the solution path.
-            var relativePath = PathUtilities.GetRelativePath(relativePathBase, documentFilePath!);
-            if (relativePath == documentFilePath)
-                return mustSucceed ? throw new InvalidOperationException($"'{documentFilePath}' wasn't relative to '{relativePathBase}'") : null;
+            var relativePath = PathUtilities.GetRelativePath(relativePathBase, documentKey.FilePath!);
+            if (relativePath == documentKey.FilePath)
+                return mustSucceed ? throw new InvalidOperationException($"'{documentKey.FilePath}' wasn't relative to '{relativePathBase}'") : null;
 
-            var dimensions = projectKey.Value.Dimensions
-                .Add(nameof(documentFilePath), relativePath)
-                .Add(nameof(documentName), documentName);
+            var dimensions = projectContinerKey.Value.Dimensions
+                .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.Name)}", documentKey.Name)
+                .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.FilePath)}", relativePath);
 
             return new CloudCacheContainerKey("Roslyn.Document", dimensions);
         }

@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static DocumentKey ToDocumentKey(Document document, CancellationToken cancellation)
-            => new(ProjectKey.ToProjectKey(document.Project, cancellation), document.Id, document.FilePath, document.Name);
+            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project, cancellation), document.State);
+
+        public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
+            => new(projectKey, state.Id, state.FilePath, state.Name);
 
         public SerializableDocumentKey Dehydrate()
             => new(Project.Dehydrate(), Id, FilePath, Name);
