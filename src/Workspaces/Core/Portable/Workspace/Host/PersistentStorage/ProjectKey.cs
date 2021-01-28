@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        [DataMember(Order = 3)]
+        [DataMember(Order = 4)]
         public readonly Checksum ParseOptionsChecksum;
 
         public SerializableProjectKey(SerializableSolutionKey solution, ProjectId id, string filePath, string name, Checksum parseOptionsChecksum)
