@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -44,11 +45,15 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The <see cref="IAssemblySymbol"/>s or <see cref="IModuleSymbol"/>s produced through <see
             /// cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for all the references exposed by <see
-            /// cref="Compilation.References"/>/
+            /// cref="Compilation.References"/>.  Sorted by the hash code produced by <see
+            /// cref="ReferenceEqualityComparer.GetHashCode(object?)"/> so that it can be binary searched efficiently.
             /// </summary>
-            public readonly WeakSet<ISymbol> SecondaryReferencedSymbols;
+            public readonly ImmutableArray<(int hashCode, WeakReference<ISymbol> symbol)> SecondaryReferencedSymbols;
 
-            public UnrootedSymbolSet(WeakReference<IAssemblySymbol> primaryAssemblySymbol, WeakReference<ITypeSymbol?> primaryDynamicSymbol, WeakSet<ISymbol> secondaryReferencedSymbols)
+            public UnrootedSymbolSet(
+                WeakReference<IAssemblySymbol> primaryAssemblySymbol,
+                WeakReference<ITypeSymbol?> primaryDynamicSymbol,
+                ImmutableArray<(int hashCode, WeakReference<ISymbol> symbol)> secondaryReferencedSymbols)
             {
                 PrimaryAssemblySymbol = primaryAssemblySymbol;
                 PrimaryDynamicSymbol = primaryDynamicSymbol;
