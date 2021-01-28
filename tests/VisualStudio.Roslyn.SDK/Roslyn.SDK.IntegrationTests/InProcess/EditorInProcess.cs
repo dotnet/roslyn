@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var vsTextManager = await GetGlobalServiceAsync<SVsTextManager, IVsTextManager>();
+            var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>();
 
             ErrorHandler.ThrowOnFailure(vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView));
 

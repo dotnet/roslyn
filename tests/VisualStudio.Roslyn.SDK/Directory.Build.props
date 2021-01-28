@@ -17,13 +17,13 @@
   <Choose>
     <When Condition="'$(Language)' == 'VB'">
       <PropertyGroup>
-        <LangVersion>15.5</LangVersion>
+        <LangVersion>16</LangVersion>
       </PropertyGroup>
     </When>
 
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>8</LangVersion>
+        <LangVersion>9</LangVersion>
       </PropertyGroup>
 
       <!-- Nullable reference types -->

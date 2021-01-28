@@ -4,7 +4,7 @@ using EnvDTE;
 
 public class RoslynSDKAnalyzerTemplateWizard : RoslynSDKChildTemplateWizard
 {
-    public static Project Project { get; private set; }
+    public static Project? Project { get; private set; }
 
     public override void OnProjectFinishedGenerating(Project project)
     {

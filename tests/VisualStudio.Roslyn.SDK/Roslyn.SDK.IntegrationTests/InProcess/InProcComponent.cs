@@ -7,10 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.Testing.InProcess
@@ -30,25 +32,28 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var dte = await GetGlobalServiceAsync<SDTE, EnvDTE.DTE>();
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>();
             dte.ExecuteCommand(commandName, args);
         }
 
-        protected async Task<TInterface> GetGlobalServiceAsync<TService, TInterface>()
+        protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>()
             where TService : class
             where TInterface : class
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var serviceProvider = (IAsyncServiceProvider2)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
+            var serviceProvider = (IAsyncServiceProvider2?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SAsyncServiceProvider));
             Assumes.Present(serviceProvider);
-            return (TInterface)await serviceProvider.GetServiceAsync(typeof(TService));
+
+            var @interface = (TInterface?)await serviceProvider.GetServiceAsync(typeof(TService));
+            Assumes.Present(@interface);
+            return @interface;
         }
 
         protected async Task<TService> GetComponentModelServiceAsync<TService>()
             where TService : class
         {
-            var componentModel = await GetGlobalServiceAsync<SComponentModel, IComponentModel>();
+            var componentModel = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>();
             return componentModel.GetService<TService>();
         }
 

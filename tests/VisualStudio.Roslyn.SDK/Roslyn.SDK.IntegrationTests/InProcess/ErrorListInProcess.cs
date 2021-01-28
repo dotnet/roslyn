@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var errorList = await GetGlobalServiceAsync<SVsErrorList, IErrorList>();
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>();
             errorList.AreBuildErrorSourceEntriesShown = true;
             errorList.AreOtherErrorSourceEntriesShown = false;
             errorList.AreErrorsShown = true;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
 
-            var errorList = await GetGlobalServiceAsync<SVsErrorList, IErrorList>();
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>();
             var args = await errorList.TableControl.ForceUpdateAsync();
             return args.AllEntries.ToImmutableArray();
         }
