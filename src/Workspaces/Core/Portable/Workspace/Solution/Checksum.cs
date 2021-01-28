@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        private const int HashSize = 20;
+        public const int HashSize = 20;
 
         public static readonly Checksum Null = new(default);
 
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         public Checksum(HashData hash)
             => _checksum = hash;
+
+        public HashData GetHashData() => _checksum;
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than
@@ -147,6 +150,12 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
 
+        public void WriteTo(Span<byte> span)
+        {
+            var localCopy = _checksum;
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref localCopy));
+        }
+
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
 
@@ -198,6 +207,21 @@ namespace Microsoft.CodeAnalysis
 
             public static HashData ReadFrom(ObjectReader reader)
                 => new(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt32());
+
+            //public static HashData? TryReadFrom(Stream stream)
+            //{
+            //    if (stream == null)
+            //        return null;
+            //    BinaryReader
+
+            //    Span<byte> bytes = stackalloc byte[HashSize];
+            //    var read = stream.Read(bytes);
+            //    if (read != HashSize)
+            //        return null;
+
+            //    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out HashData result));
+            //    return result;
+            //}
 
             public override int GetHashCode()
             {

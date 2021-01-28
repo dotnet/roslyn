@@ -70,10 +70,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
-                using var stream = ReadBlobColumn(key, ChecksumColumnName, checksum: null, cancellationToken);
-                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: false, cancellationToken);
-
-                return reader != null && checksum == Checksum.HashData.ReadFrom(reader);
+                var hashData = ReadChecksumColumn(key, cancellationToken);
+                return hashData != null && checksum == hashData.Value;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -89,6 +87,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private Stream? ReadBlobColumn(
                 TKey key, string columnName, Checksum? checksum, CancellationToken cancellationToken)
             {
+                // KEEP IN SYNC WITH ReadChecksumColumn
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
@@ -100,8 +100,37 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         {
                             // First, try to see if there was a write to this key in our in-memory db.
                             // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
-                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksum, cancellationToken) ??
-                                   ReadBlob(connection, Database.Main, dataId, columnName, checksum, cancellationToken);
+                            return ReadBlob(connection, Database.WriteCache, dataId, columnName, checksum) ??
+                                   ReadBlob(connection, Database.Main, dataId, columnName, checksum);
+                        }
+                        catch (Exception ex)
+                        {
+                            StorageDatabaseLogger.LogException(ex);
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            private Checksum.HashData? ReadChecksumColumn(
+                TKey key, CancellationToken cancellationToken)
+            {
+                // KEEP IN SYNC WITH ReadBlobColumn
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!Storage._shutdownTokenSource.IsCancellationRequested)
+                {
+                    using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    if (TryGetDatabaseId(connection, key, out var dataId))
+                    {
+                        try
+                        {
+                            // First, try to see if there was a write to this key in our in-memory db.
+                            // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
+                            return ReadChecksum(connection, Database.WriteCache, dataId, cancellationToken) ??
+                                   ReadChecksum(connection, Database.Main, dataId, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -129,25 +158,21 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // Determine the appropriate data-id to store this stream at.
                     if (TryGetDatabaseId(connection, key, out var dataId))
                     {
-                        var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksum, cancellationToken);
+                        checksum ??= Checksum.Null;
+                        Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
+                        checksum.WriteTo(checksumBytes);
+
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
                         // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
                         InsertOrReplaceBlobIntoWriteCache(
                             connection, dataId,
-                            new ReadOnlySpan<byte>(checksumBytes, 0, checksumLength),
+                            checksumBytes,
                             new ReadOnlySpan<byte>(dataBytes, 0, dataLength));
 
                         if (dataPooled)
-                        {
                             ReturnPooledBytes(dataBytes);
-                        }
-
-                        if (checksumPooled)
-                        {
-                            ReturnPooledBytes(checksumBytes);
-                        }
 
                         return true;
                     }
@@ -157,10 +182,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             private Stream? ReadBlob(
-                SqlConnection connection, Database database,
-                TDatabaseId dataId, string columnName,
-                Checksum? checksum, CancellationToken cancellationToken)
+                SqlConnection connection, Database database, TDatabaseId dataId, string columnName, Checksum? checksum)
             {
+                // KEEP IN SYNC WITH ReadChecksum below.
+
                 // Note: it's possible that someone may write to this row between when we
                 // get the row ID above and now.  That's fine.  We'll just read the new
                 // bytes that have been written to this location.  Note that only the
@@ -186,23 +211,49 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
                         if (t.checksum != null &&
-                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum, t.cancellationToken))
+                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum))
                         {
                             return null;
                         }
 
                         return t.connection.ReadBlob_MustRunInTransaction(t.database, t.self.DataTableName, t.columnName, t.rowId);
                     },
-                    (self: this, connection, database, columnName, checksum, rowId, cancellationToken));
+                    (self: this, connection, database, columnName, checksum, rowId));
             }
 
-            private bool ChecksumsMatch_MustRunInTransaction(
-                SqlConnection connection, Database database, long rowId, Checksum checksum, CancellationToken cancellationToken)
+            private Checksum.HashData? ReadChecksum(
+                SqlConnection connection, Database database,
+                TDatabaseId dataId, CancellationToken cancellationToken)
             {
-                using var checksumStream = connection.ReadBlob_MustRunInTransaction(database, DataTableName, ChecksumColumnName, rowId);
-                using var reader = ObjectReader.TryGetReader(checksumStream, leaveOpen: false, cancellationToken);
+                // KEEP IN SYNC WITH ReadBlob below.
 
-                return reader != null && Checksum.ReadFrom(reader) == checksum;
+                // Note: it's possible that someone may write to this row between when we
+                // get the row ID above and now.  That's fine.  We'll just read the new
+                // bytes that have been written to this location.  Note that only the
+                // data for a row in our system can change, the ID will always stay the
+                // same, and the data will always be valid for our ID.  So there is no
+                // safety issue here.
+                if (!TryGetRowId(connection, database, dataId, out var rowId))
+                {
+                    return null;
+                }
+
+                // Have to run the blob reading in a transaction.  This is necessary
+                // for two reasons.  First, blob reading outside a transaction is not
+                // safe to do with the sqlite API.  It may produce corrupt bits if
+                // another thread is writing to the blob.  Second, if a checksum was
+                // passed in, we need to validate that the checksums match.  This is
+                // only safe if we are in a transaction and no-one else can race with
+                // us.
+                return connection.RunInTransaction(
+                    static t => t.connection.ReadChecksum_MustRunInTransaction(t.database, t.self.DataTableName, ChecksumColumnName, t.rowId),
+                    (self: this, connection, database, rowId, cancellationToken));
+            }
+
+            private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, Database database, long rowId, Checksum checksum)
+            {
+                var storedChecksum = connection.ReadChecksum_MustRunInTransaction(database, DataTableName, ChecksumColumnName, rowId);
+                return storedChecksum != null && checksum == storedChecksum.Value;
             }
 
 #pragma warning disable CA1822 // Mark members as static - instance members used in Debug

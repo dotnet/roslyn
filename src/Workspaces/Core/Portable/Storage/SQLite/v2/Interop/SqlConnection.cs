@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
@@ -257,6 +258,47 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
             ThrowIfNotOk(result);
             return ReadBlob(blob);
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
+        public Checksum.HashData? ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
+        {
+            // NOTE: we do need to do the blob reading in a transaction because of the
+            // following: https://www.sqlite.org/c3ref/blob_open.html
+            //
+            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
+            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
+            // This is true if any column of the row is changed, even a column other than
+            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
+            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
+            // SQLITE_ABORT.
+            if (!IsInTransaction)
+            {
+                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
+            }
+
+            const int ReadOnlyFlags = 0;
+            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, checksumColumnName, rowId, ReadOnlyFlags, out var result);
+
+            if (result == Result.ERROR)
+            {
+                // can happen when rowId points to a row that hasn't been written to yet.
+                return null;
+            }
+
+            ThrowIfNotOk(result);
+
+            // If the length of the blob isn't correct, then we can't read a checksum out of this.
+            var length = NativeMethods.sqlite3_blob_bytes(blob);
+            if (length != Checksum.HashSize)
+                return null;
+
+            Span<byte> bytes = stackalloc byte[Checksum.HashSize];
+            ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, offset: 0));
+
+            Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData hashData));
+
+            return hashData;
         }
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
