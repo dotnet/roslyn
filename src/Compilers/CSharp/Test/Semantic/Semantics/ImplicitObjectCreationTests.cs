@@ -4533,5 +4533,60 @@ class X
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
+
+        [Fact]
+        [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
+        public void InEarlyWellknownAttribute()
+        {
+            var source1 = @"
+public class C
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    
+    [System.Obsolete(""reported 1"", new bool())]
+    static public void M1()
+    {
+    }
+    
+    [System.Obsolete(""reported 2"", new())]
+    static public void M2()
+    {
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+
+            var source2 = @"
+public class B
+{
+    static void Main()
+    {
+        C.M1();
+        C.M2();
+    }
+}";
+
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.EmitToImageReference()});
+            compilation2.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         C.M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         C.M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+        }
     }
 }
