@@ -6,32 +6,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
     Public Class EndRegionDirectiveKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndRegionNotInFileTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#End Region")
-        End Function
+        Public Sub HashEndRegionNotInFileTest()
+            VerifyRecommendationsMissing(<File>|</File>, "#End Region")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndRegionInFileAfterRegionTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashEndRegionInFileAfterRegionTest()
+            VerifyRecommendationsContain(<File>
 #Region "goo"
 |</File>, "#End Region")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function RegionAfterHashEndEndTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub RegionAfterHashEndEndTest()
+            VerifyRecommendationsContain(<File>
 #Region "goo"
 #End |</File>, "Region")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotHashEndRegionAfterHashEndTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotHashEndRegionAfterHashEndTest()
+            VerifyRecommendationsMissing(<File>
 #Region "goo"
 #End |</File>, "#End Region")
-        End Function
+        End Sub
     End Class
 End Namespace

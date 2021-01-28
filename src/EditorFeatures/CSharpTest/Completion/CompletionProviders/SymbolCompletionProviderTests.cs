@@ -10759,8 +10759,10 @@ class C
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10778,27 +10780,29 @@ class Program
     {
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo();
-    }
+    {{
+        Foo(){commitChar}
+    }}
     
     private void Foo(int i)
-    {
-    }
+    {{
+    }}
 
     private void Foo(int i, int c)
-    {
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    {{
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonInNestedMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithSemicolonInNestedMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10813,24 +10817,26 @@ class Program
         return 1;
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo(Foo(););
-    }
+    {{
+        Foo(Foo(){commitChar});
+    }}
     
     private int Foo(int i)
-    {
+    {{
         return 1;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForDelegateInferredType()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForDelegateInferredType(char commitChar)
         {
             var markup = @"
 using System;
@@ -10847,26 +10853,28 @@ class Program
 
     void Bar2(Action t) { }
 }";
-            var expected = @"
+            var expected = $@"
 using System;
 class Program
-{
+{{
     private void Bar()
-    {
-        Bar2(Foo;);
-    }
+    {{
+        Bar2(Foo{commitChar});
+    }}
     
     private void Foo()
-    {
-    }
+    {{
+    }}
 
-    void Bar2(Action t) { }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    void Bar2(Action t) {{ }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForConstructor(char commitChar)
         {
             var markup = @"
 class Program
@@ -10876,19 +10884,21 @@ class Program
         var o = new P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = new Program();
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = new Program(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCharForTypeUnderNonObjectCreationContext(char commitChar)
         {
             var markup = @"
 class Program
@@ -10898,19 +10908,21 @@ class Program
         var o = P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = Program;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = Program{commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForAliasConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForAliasConstructor(char commitChar)
         {
             var markup = @"
 using String2 = System.String;
@@ -10924,19 +10936,47 @@ namespace Bar1
         }
     }
 }";
-            var expected = @"
+            var expected = $@"
 using String2 = System.String;
+namespace Bar1
+{{
+    class Program
+    {{
+        private static void Bar()
+        {{
+            var o = new String2(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: commitChar);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonUnderNameofContext()
+        {
+            var markup = @"
 namespace Bar1
 {
     class Program
     {
         private static void Bar()
         {
-            var o = new String2();
+            var o = nameof(B$$)
         }
     }
 }";
-            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
+            var expected = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(Bar;)
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: ';');
         }
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
@@ -11199,6 +11239,46 @@ $@"public class C
                 markup, "Bar",
                 expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
                 matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesNotSuggestedInDeclarationDeconstruction()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C
+{
+    int M()
+    {
+        var (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalDeclaredBeforeDeconstructionSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        int y;
+        (var x, $$) = (0, 0);
+    }
+}", "y");
         }
     }
 }

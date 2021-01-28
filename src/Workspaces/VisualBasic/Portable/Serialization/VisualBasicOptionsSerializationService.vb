@@ -34,12 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             ' save parse option for embedded types - My types
             writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
             If vbOptions.ParseOptions IsNot Nothing Then
-                WriteTo(vbOptions.ParseOptions, writer, cancellationToken)
+                cancellationToken.ThrowIfCancellationRequested()
+                WriteTo(vbOptions.ParseOptions, writer)
             End If
         End Sub
 
-        Public Overrides Sub WriteTo(options As ParseOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
-            WriteParseOptionsTo(options, writer, cancellationToken)
+        Public Overrides Sub WriteTo(options As ParseOptions, writer As ObjectWriter)
+            WriteParseOptionsTo(options, writer)
 
             Dim vbOptions = DirectCast(options, VisualBasicParseOptions)
             writer.WriteInt32(vbOptions.SpecifiedLanguageVersion)
