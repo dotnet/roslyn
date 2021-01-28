@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Runtime.Serialization;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -32,8 +31,8 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             Name = name;
         }
 
-        public static DocumentKey ToDocumentKey(Document document, CancellationToken cancellation)
-            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project, cancellation), document.State);
+        public static DocumentKey ToDocumentKey(Document document)
+            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
 
         public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
             => new(projectKey, state.Id, state.FilePath, state.Name);

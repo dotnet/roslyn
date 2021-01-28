@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Runtime.Serialization;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -34,14 +33,14 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             ParseOptionsChecksum = parseOptionsChecksum;
         }
 
-        public static ProjectKey ToProjectKey(Project project, CancellationToken cancellationToken)
-            => ToProjectKey(project.Solution.State, project.State, cancellationToken);
+        public static ProjectKey ToProjectKey(Project project)
+            => ToProjectKey(project.Solution.State, project.State);
 
-        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState, CancellationToken cancellationToken)
-            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState, cancellationToken);
+        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
 
-        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState, CancellationToken cancellationToken)
-            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum(cancellationToken));
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name, ParseOptionsChecksum);
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        [DataMember(Order = 3)]
+        [DataMember(Order = 4)]
         public readonly Checksum ParseOptionsChecksum;
 
         public SerializableProjectKey(SerializableSolutionKey solution, ProjectId id, string filePath, string name, Checksum parseOptionsChecksum)

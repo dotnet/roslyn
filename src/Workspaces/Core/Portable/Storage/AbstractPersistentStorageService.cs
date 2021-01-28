@@ -310,6 +310,12 @@ namespace Microsoft.CodeAnalysis.Storage
 
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.WriteStreamAsync(projectKey, name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.WriteStreamAsync(documentKey, name, stream, checksum, cancellationToken);
         }
     }
 }
