@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal class RazorCSharpBreakpointResolver
     {
-        public bool TryGetBreakpointSpan(SyntaxTree tree, int position, CancellationToken cancellationToken, out TextSpan breakpointSpan)
+        public static bool TryGetBreakpointSpan(SyntaxTree tree, int position, CancellationToken cancellationToken, out TextSpan breakpointSpan)
             => BreakpointSpans.TryGetBreakpointSpan(tree, position, cancellationToken, out breakpointSpan);
     }
 }
