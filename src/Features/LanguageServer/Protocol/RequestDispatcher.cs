@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // Create the actual request handlers from the providers.
             var handlers = requestHandlerProviders.SelectMany(lazyProvider => lazyProvider.Value.CreateRequestHandlers());
 
-            // Store the request handlers in a dicitionary from request name to handler instance.
+            // Store the request handlers in a dictionary from request name to handler instance.
             foreach (var handler in handlers)
             {
                 var requestName = handler.Metadata.MethodName;
@@ -51,8 +51,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
-            string? clientName, CancellationToken cancellationToken) where RequestType : class
+        public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
+            RequestExecutionQueue queue,
+            string methodName,
+            RequestType request,
+            LSP.ClientCapabilities clientCapabilities,
+            string? clientName,
+            CancellationToken cancellationToken) where RequestType : class
         {
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");

@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
-        private readonly CompletionListCache? _completionListCache;
+        private readonly CompletionListCache _completionListCache;
 
         public CompletionHandler(
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-            CompletionListCache? completionListCache)
+            CompletionListCache completionListCache)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
@@ -83,12 +83,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
 
-            long? resultId = null;
-            if (_completionListCache != null)
-            {
-                // Cache the completion list so we can avoid recomputation in the resolve handler
-                resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
-            }
+            // Cache the completion list so we can avoid recomputation in the resolve handler
+            var resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
 
             return new LSP.VSCompletionList
             {
@@ -261,7 +257,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public TestAccessor(CompletionHandler completionHandler)
                 => _completionHandler = completionHandler;
 
-            public CompletionListCache? GetCache()
+            public CompletionListCache GetCache()
                 => _completionHandler._completionListCache;
         }
     }

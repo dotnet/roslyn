@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionList? list = null;
 
             // See if we have a cache of the completion list we need
-            if (_completionListCache != null && data.ResultId.HasValue)
+            if (data.ResultId.HasValue)
             {
                 list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
             }
