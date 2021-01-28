@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Runtime.Serialization;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -34,11 +33,11 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             ParseOptionsChecksum = parseOptionsChecksum;
         }
 
-        public static ProjectKey ToProjectKey(Project project, CancellationToken cancellationToken)
-            => ToProjectKey(project.Solution.State, project.State, cancellationToken);
+        public static ProjectKey ToProjectKey(Project project)
+            => ToProjectKey(project.Solution.State, project.State);
 
-        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState, CancellationToken cancellationToken)
-            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum(cancellationToken));
+        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
+            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name, ParseOptionsChecksum);
