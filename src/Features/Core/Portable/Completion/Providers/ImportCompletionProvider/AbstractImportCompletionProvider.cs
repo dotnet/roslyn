@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
         }
 
-        private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        protected HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
 

@@ -810,7 +810,6 @@ namespace Foo1
         {
             var file1 = @"
 using AliasFoo1 = Foo1.Foo2.Foo3.Foo4<int>;
-using AliasC1 = CTestNoCompletionItemWhenThereIsAlias;
 
 namespace Bar
 {

@@ -48,23 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(False)
         End Function
 
-        Protected Overrides Function GetAliasSymbolsName(node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As HashSet(Of String)
-            Dim symbolNames = New HashSet(Of String)()
+        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
             ' VB imports can only be placed before any declarations
-            Dim aliasNodes = node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax)
-
-            For Each candidate As SyntaxNode In aliasNodes
-                If TypeOf candidate Is SimpleImportsClauseSyntax Then
-                    Dim symbol = semanticModel.GetDeclaredSymbol(candidate, cancellationToken)
-                    Dim aliasSymbol = DirectCast(symbol, IAliasSymbol)
-                    If aliasSymbol IsNot Nothing AndAlso aliasSymbol.Target.IsType Then
-                        Dim typeName = aliasSymbol.Target.ToDisplayString(SymbolDisplayFormats.NameFormat)
-                        symbolNames.Add(typeName)
-                    End If
-                End If
-            Next
-
-            Return symbolNames
+            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax)
         End Function
     End Class
 End Namespace

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -77,23 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override HashSet<string> GetAliasSymbolsName(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var symbolNames = new HashSet<string>();
-            foreach (var candidateNode in node.GetEnclosingUsingDirectives())
-            {
-                if (candidateNode.Alias != null)
-                {
-                    var aliasSymbol = semanticModel.GetDeclaredSymbol(candidateNode, cancellationToken);
-                    if (aliasSymbol != null && aliasSymbol.Target.IsType)
-                    {
-                        var typeName = aliasSymbol.Target.ToDisplayString(SymbolDisplayFormats.NameFormat);
-                        symbolNames.Add(typeName);
-                    }
-                }
-            }
-
-            return symbolNames;
-        }
+        protected override IEnumerable<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node)
+            => node.GetEnclosingUsingDirectives().Where(n => n.Alias != null);
     }
 }
