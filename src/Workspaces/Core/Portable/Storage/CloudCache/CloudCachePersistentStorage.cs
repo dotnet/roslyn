@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (!result)
                 return null;
 
-            return pipe.Writer.AsStream();
+            return pipe.Reader.AsStream();
         }
 
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
