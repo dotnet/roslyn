@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Host
             => ChecksumMatchesAsync(documentKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
+            => ChecksumMatchesAsync(ProjectKey.ToProjectKey(project, cancellationToken), project, name, checksum, cancellationToken);
 
         public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
+            => ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document, cancellationToken), document, name, checksum, cancellationToken);
 
         public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
 
@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Host
             => ReadStreamAsync(documentKey, bulkLoadSnapshot: null, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(ProjectKey.ToProjectKey(project), project, name, checksum, cancellationToken);
+            => ReadStreamAsync(ProjectKey.ToProjectKey(project, cancellationToken), project, name, checksum, cancellationToken);
 
         public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(DocumentKey.ToDocumentKey(document), document, name, checksum, cancellationToken);
+            => ReadStreamAsync(DocumentKey.ToDocumentKey(document, cancellationToken), document, name, checksum, cancellationToken);
 
         public abstract Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
         public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
