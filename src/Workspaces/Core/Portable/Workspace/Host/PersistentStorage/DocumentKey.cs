@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Runtime.Serialization;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PersistentStorage
@@ -31,8 +32,8 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             Name = name;
         }
 
-        public static explicit operator DocumentKey(Document document)
-            => new((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
+        public static DocumentKey ToDocumentKey(Document document, CancellationToken cancellation)
+            => new(ProjectKey.ToProjectKey(document.Project, cancellation), document.Id, document.FilePath, document.Name);
 
         public SerializableDocumentKey Dehydrate()
             => new(Project.Dehydrate(), Id, FilePath, Name);

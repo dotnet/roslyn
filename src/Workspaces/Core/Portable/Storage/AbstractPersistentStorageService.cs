@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.Storage
 
         [Obsolete("Use GetStorageAsync instead")]
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
         async ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
+            => await GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken);
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken);
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
             => GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken);

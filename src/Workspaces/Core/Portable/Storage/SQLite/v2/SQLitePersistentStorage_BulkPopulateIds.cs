@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // from a compound key using the IDs for the project's FilePath and Name.
             //
             // If this fails for any reason, we can't proceed.
-            var projectId = TryGetProjectId(connection, ProjectKey.ToProjectKey(solutionState, projectState));
+            var projectId = TryGetProjectId(connection, ProjectKey.ToProjectKey(solutionState, projectState, CancellationToken.None));
             if (projectId == null)
             {
                 return false;
