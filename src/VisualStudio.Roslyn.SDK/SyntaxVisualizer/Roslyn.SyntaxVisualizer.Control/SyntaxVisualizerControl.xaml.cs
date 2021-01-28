@@ -412,14 +412,14 @@ namespace Roslyn.SyntaxVisualizer.Control
                 _isNavigatingFromSourceToTree = false;
             }
 
-            if (highlightMatch && match is not null)
-            {
-                match.Background = Brushes.Yellow;
-                match.BorderBrush = Brushes.Black;
-                match.BorderThickness = s_defaultBorderThickness;
-            }
+            if (!highlightMatch || match is null)
+                return false;
 
-            return match is not null;
+            match.Background = Brushes.Yellow;
+            match.BorderBrush = Brushes.Black;
+            match.BorderThickness = s_defaultBorderThickness;
+
+            return true;
         }
         #endregion
 
