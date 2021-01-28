@@ -7,23 +7,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -43,20 +41,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private static readonly IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-        protected readonly ICocoaTextEditorFactoryService TextEditorFactoryService;
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ICocoaTextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
                 : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
         {
-            TextEditorFactoryService = textEditorFactoryService;
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
@@ -95,22 +90,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                var document = documentSnapshotSpan.Document;
+                if (document == null)
+                    return;
+
                 // Let LSP handle producing tags in the cloud scenario
                 if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
-                {
                     return;
-                }
 
-                var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
-                if (outliningService != null)
-                {
-                    var blockStructure = await outliningService.GetBlockStructureAsync(
+                var outliningService = BlockStructureService.GetService(document);
+                if (outliningService == null)
+                    return;
+
+                var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
 
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
-                }
+                ProcessSpans(
+                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                    blockStructure.Spans);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -126,49 +123,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                var document = documentSnapshotSpan.Document;
+                if (document == null)
+                    return;
+
                 // Let LSP handle producing tags in the cloud scenario
                 if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
-                {
                     return;
-                }
 
-                var outliningService = AbstractStructureTaggerProvider<TRegionTag>.TryGetService(context, documentSnapshotSpan);
-                if (outliningService != null)
-                {
-                    var document = documentSnapshotSpan.Document;
-                    var cancellationToken = context.CancellationToken;
+                var outliningService = BlockStructureService.GetService(document);
+                if (outliningService == null)
+                    return;
 
-                    // Try to call through the synchronous service if possible. Otherwise, fallback
-                    // and make a blocking call against the async service.
-
-                    var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
-
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
-                }
+                var blockStructure = outliningService.GetBlockStructure(document, context.CancellationToken);
+                ProcessSpans(
+                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                    blockStructure.Spans);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static BlockStructureService TryGetService(
-            TaggerContext<TRegionTag> context,
-            DocumentSnapshotSpan documentSnapshotSpan)
-        {
-            var cancellationToken = context.CancellationToken;
-            using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
-            {
-                var document = documentSnapshotSpan.Document;
-                if (document != null)
-                {
-                    return BlockStructureService.GetService(document);
-                }
-            }
-
-            return null;
         }
 
         private void ProcessSpans(
@@ -183,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (TypeLoadException)
             {
-                // We're targetting a version of the BlockTagging infrastructure in
+                // We're targeting a version of the BlockTagging infrastructure in 
                 // VS that may not match the version that the user is currently
                 // developing against.  Be resilient to this until everything moves
                 // forward to the right VS version.
@@ -199,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (spans != null)
             {
                 var snapshot = snapshotSpan.Snapshot;
-                spans = AbstractStructureTaggerProvider<TRegionTag>.GetMultiLineRegions(outliningService, spans, snapshot);
+                spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
                 // Create the outlining tags.
                 var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
@@ -233,9 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private static bool s_exceptionReported = false;
 
         private static ImmutableArray<BlockSpan> GetMultiLineRegions(
-#pragma warning disable IDE0060 // Remove unused parameter
             BlockStructureService service,
-#pragma warning restore IDE0060 // Remove unused parameter
             ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
@@ -254,6 +227,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                         if (!s_exceptionReported)
                         {
                             s_exceptionReported = true;
+                            try
+                            {
+                                throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);
+                            }
+                            catch (InvalidOutliningRegionException e) when (FatalError.ReportAndCatch(e))
+                            {
+                            }
                         }
                         continue;
                     }
@@ -274,152 +254,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
             multiLineRegions.Sort(s_blockSpanComparer);
             return multiLineRegions.ToImmutableAndFree();
-        }
-    }
-
-    internal static partial class ITextSnapshotExtensions
-    {
-        public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int position)
-            => new SnapshotPoint(snapshot, position);
-
-        public static SnapshotPoint? TryGetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-        {
-            var position = snapshot.TryGetPosition(lineNumber, columnIndex);
-            if (position.HasValue)
-            {
-                return new SnapshotPoint(snapshot, position.Value);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Convert a <see cref="LinePositionSpan"/> to <see cref="TextSpan"/>.
-        /// </summary>
-        public static TextSpan GetTextSpan(this ITextSnapshot snapshot, LinePositionSpan span)
-        {
-            return TextSpan.FromBounds(
-                GetPosition(snapshot, span.Start.Line, span.Start.Character),
-                GetPosition(snapshot, span.End.Line, span.End.Character));
-        }
-
-        public static int GetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-            => TryGetPosition(snapshot, lineNumber, columnIndex).Value;
-
-        public static int? TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-        {
-            if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
-            {
-                return null;
-            }
-
-            var end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
-            if (end < 0 || end > snapshot.Length)
-            {
-                return null;
-            }
-
-            return end;
-        }
-
-        public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
-        {
-            position = new SnapshotPoint();
-
-            if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
-            {
-                return false;
-            }
-
-            var line = snapshot.GetLineFromLineNumber(lineNumber);
-            if (columnIndex < 0 || columnIndex >= line.Length)
-            {
-                return false;
-            }
-
-            var result = line.Start.Position + columnIndex;
-            position = new SnapshotPoint(snapshot, result);
-            return true;
-        }
-
-        public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int start, int length)
-            => new SnapshotSpan(snapshot, new Span(start, length));
-
-        public static SnapshotSpan GetSpanFromBounds(this ITextSnapshot snapshot, int start, int end)
-            => new SnapshotSpan(snapshot, Span.FromBounds(start, end));
-
-        public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, Span span)
-            => new SnapshotSpan(snapshot, span);
-
-        public static ITagSpan<TTag> GetTagSpan<TTag>(this ITextSnapshot snapshot, Span span, TTag tag)
-            where TTag : ITag
-        {
-            return new TagSpan<TTag>(new SnapshotSpan(snapshot, span), tag);
-        }
-
-        public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
-        {
-            return TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
-        }
-
-        public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
-        {
-            var startPosition = snapshot.TryGetPosition(startLine, startIndex);
-            var endPosition = snapshot.TryGetPosition(endLine, endIndex);
-            if (startPosition == null || endPosition == null)
-            {
-                return null;
-            }
-
-            return new SnapshotSpan(snapshot, Span.FromBounds(startPosition.Value, endPosition.Value));
-        }
-
-        public static SnapshotSpan GetFullSpan(this ITextSnapshot snapshot)
-        {
-            Contract.ThrowIfNull(snapshot);
-
-            return new SnapshotSpan(snapshot, new Span(0, snapshot.Length));
-        }
-
-        public static NormalizedSnapshotSpanCollection GetSnapshotSpanCollection(this ITextSnapshot snapshot)
-        {
-            Contract.ThrowIfNull(snapshot);
-
-            return new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan());
-        }
-
-        public static void GetLineAndColumn(this ITextSnapshot snapshot, int position, out int lineNumber, out int columnIndex)
-        {
-            var line = snapshot.GetLineFromPosition(position);
-
-            lineNumber = line.LineNumber;
-            columnIndex = position - line.Start.Position;
-        }
-
-        public static bool AreOnSameLine(this ITextSnapshot snapshot, int x1, int x2)
-            => snapshot.GetLineNumberFromPosition(x1) == snapshot.GetLineNumberFromPosition(x2);
-    }
-
-    internal static class TextSpanExtensions
-    {
-        /// <summary>
-        /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/>.
-        /// </summary>
-        public static Span ToSpan(this TextSpan textSpan)
-        {
-            return new Span(textSpan.Start, textSpan.Length);
-        }
-
-        /// <summary>
-        /// Convert a <see cref="TextSpan"/> to a <see cref="SnapshotSpan"/> on the given <see cref="ITextSnapshot"/> instance
-        /// </summary>
-        public static SnapshotSpan ToSnapshotSpan(this TextSpan textSpan, ITextSnapshot snapshot)
-        {
-            Debug.Assert(snapshot != null);
-            var span = textSpan.ToSpan();
-            return new SnapshotSpan(snapshot, span);
         }
     }
 }

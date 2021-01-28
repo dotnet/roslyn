@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 #pragma warning disable IDE0060 // Remove unused parameter
             IThreadingContext threadingContext,
 #pragma warning restore IDE0060 // Remove unused parameter
-            ICocoaTextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IBlockTag parent,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                  collapsedHintForm: null)
         {
             _state = new BlockTagState(
-                textEditorFactoryService, projectionBufferFactoryService,
+                projectionBufferFactoryService,
                 editorOptionsFactoryService, snapshot, blockSpan);
             Level = parent == null ? 0 : parent.Level + 1;
         }

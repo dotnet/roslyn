@@ -29,11 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public VisualStudioForMacStructureTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ICocoaTextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+                : base(threadingContext, notificationService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
         }
 
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             return new RoslynBlockTag(
                 ThreadingContext,
-                this.TextEditorFactoryService,
                 this.ProjectionBufferFactoryService,
                 this.EditorOptionsFactoryService,
                 parentTag, snapshot, region);

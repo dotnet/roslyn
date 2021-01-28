@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     internal class VisualStudio14StructureTaggerProvider :
         AbstractStructureTaggerProvider<IOutliningRegionTag>
     {
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudio14StructureTaggerProvider(
@@ -43,8 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+                : base(threadingContext, notificationService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
+            _textEditorFactoryService = textEditorFactoryService;
         }
 
         protected override IOutliningRegionTag CreateTag(
@@ -58,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             return new RoslynOutliningRegionTag(
                 ThreadingContext,
-                this.TextEditorFactoryService,
-                this.ProjectionBufferFactoryService,
-                this.EditorOptionsFactoryService,
+                _textEditorFactoryService,
+                ProjectionBufferFactoryService,
+                EditorOptionsFactoryService,
                 snapshot, blockSpan);
         }
     }

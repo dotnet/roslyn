@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
     internal partial class VisualStudio15StructureTaggerProvider :
         AbstractStructureTaggerProvider<IBlockTag>
     {
+        private readonly ITextEditorFactoryService _textEditorFactoryService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudio15StructureTaggerProvider(
@@ -36,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, notificationService, textEditorFactoryService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
+                : base(threadingContext, notificationService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
+            _textEditorFactoryService = textEditorFactoryService;
         }
 
         protected override IBlockTag CreateTag(
@@ -45,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         {
             return new RoslynBlockTag(
                 ThreadingContext,
-                this.TextEditorFactoryService,
-                this.ProjectionBufferFactoryService,
-                this.EditorOptionsFactoryService,
+                _textEditorFactoryService,
+                ProjectionBufferFactoryService,
+                EditorOptionsFactoryService,
                 parentTag, snapshot, region);
         }
     }
