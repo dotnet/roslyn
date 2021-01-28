@@ -208,6 +208,8 @@ End Namespace</Text>.Value
         Public Async Function TestNoCompletionItemWhenAliasExists() As Task
             Dim file1 = "
 Imports FFF = Foo1.Foo2.Foo3.Foo4
+Imports FFF1 = Foo1.Foo2.Foo3.Foo4.Foo5
+
 Namespace Bar
     Public Class Bar1
         Private Sub EE()
@@ -221,6 +223,8 @@ Namespace Foo1
     Namespace Foo2
         Namespace Foo3
             Public Class Foo4
+                Public Class Foo5
+                End Class
             End Class
         End Namespace
     End Namespace
@@ -228,6 +232,7 @@ End Namespace
 "
             Dim markup = CreateMarkupForSingleProject(file1, file2, LanguageNames.VisualBasic)
             Await VerifyItemIsAbsentAsync(markup, "Foo4", inlineDescription:="Foo1.Foo2.Foo3")
+            Await VerifyItemIsAbsentAsync(markup, "Foo5", inlineDescription:="Foo1.Foo2.Foo3")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
-                    var aliasTargetNamespaceToTypeNameMap= GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+                    var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
                     foreach (var items in itemsFromAllAssemblies)
                     {
                         AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // 2. If the item might be an alias target. First check if its namespace is in the map.
                 if (aliasTargetNamespaceToTypeNameMap.ContainsKey(containingNamespace))
                 {
-                    // Then check its fully qualified name.
+                    // Then check its type name.
                     // It is done in this way because we don't want to get type name for all the items
                     var typeName = ImportCompletionItem.GetTypeName(item);
                     if (aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(typeName))
