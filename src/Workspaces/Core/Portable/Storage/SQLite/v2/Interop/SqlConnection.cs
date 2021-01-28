@@ -230,75 +230,35 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Checksum.HashData? ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
         {
-            // NOTE: we do need to do the blob reading in a transaction because of the
-            // following: https://www.sqlite.org/c3ref/blob_open.html
-            //
-            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
-            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
-            // This is true if any column of the row is changed, even a column other than
-            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
-            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
-            // SQLITE_ABORT.
-            if (!IsInTransaction)
-            {
-                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
-            }
+            var option = ReadBlob_MustRunInTransaction(
+                database, tableName, checksumColumnName, rowId,
+                static (self, blobHandle) =>
+                {
+                    // If the length of the blob isn't correct, then we can't read a checksum out of this.
+                    var length = NativeMethods.sqlite3_blob_bytes(blobHandle);
+                    if (length != Checksum.HashSize)
+                        return new Optional<Checksum.HashData>();
 
-            const int ReadOnlyFlags = 0;
+                    Span<byte> bytes = stackalloc byte[Checksum.HashSize];
+                    self.ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blobHandle, bytes, offset: 0));
 
-            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var result);
+                    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData hashData));
 
-            if (result == Result.ERROR)
-            {
-                // can happen when rowId points to a row that hasn't been written to yet.
-                return null;
-            }
+                    return hashData;
+                });
 
-            ThrowIfNotOk(result);
-            return ReadBlob(blob);
+            return option.HasValue ? option.Value : null;
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Checksum.HashData? ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
+        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
         {
-            // NOTE: we do need to do the blob reading in a transaction because of the
-            // following: https://www.sqlite.org/c3ref/blob_open.html
-            //
-            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
-            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
-            // This is true if any column of the row is changed, even a column other than
-            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
-            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
-            // SQLITE_ABORT.
-            if (!IsInTransaction)
-            {
-                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
-            }
-
-            const int ReadOnlyFlags = 0;
-            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, checksumColumnName, rowId, ReadOnlyFlags, out var result);
-
-            if (result == Result.ERROR)
-            {
-                // can happen when rowId points to a row that hasn't been written to yet.
-                return null;
-            }
-
-            ThrowIfNotOk(result);
-
-            // If the length of the blob isn't correct, then we can't read a checksum out of this.
-            var length = NativeMethods.sqlite3_blob_bytes(blob);
-            if (length != Checksum.HashSize)
-                return null;
-
-            Span<byte> bytes = stackalloc byte[Checksum.HashSize];
-            ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, offset: 0));
-
-            Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData hashData));
-
-            return hashData;
+            var option = ReadBlob_MustRunInTransaction<Stream>(
+                database, tableName, columnName, rowId,
+                static (self, blobHandle) => self.ReadBlob(blobHandle));
+            return option.HasValue ? option.Value : null;
         }
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
@@ -336,6 +296,39 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // Return our small array back to the pool.
                 SQLitePersistentStorage.ReturnPooledBytes(bytes);
             }
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
+        public Optional<T> ReadBlob_MustRunInTransaction<T>(
+            Database database, string tableName, string columnName, long rowId,
+            Func<SqlConnection, SafeSqliteBlobHandle, Optional<T>> readBlob)
+        {
+            // NOTE: we do need to do the blob reading in a transaction because of the
+            // following: https://www.sqlite.org/c3ref/blob_open.html
+            //
+            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
+            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
+            // This is true if any column of the row is changed, even a column other than
+            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
+            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
+            // SQLITE_ABORT.
+            if (!IsInTransaction)
+            {
+                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
+            }
+
+            const int ReadOnlyFlags = 0;
+
+            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var result);
+
+            if (result == Result.ERROR)
+            {
+                // can happen when rowId points to a row that hasn't been written to yet.
+                return default;
+            }
+
+            ThrowIfNotOk(result);
+            return readBlob(this, blob);
         }
 
         public void ThrowIfNotOk(int result)
