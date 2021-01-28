@@ -942,14 +942,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using (stream)
             {
-                var bytes = new byte[stream.Length];
-                var count = 0;
-                while (count < stream.Length)
-                {
-                    count = stream.Read(bytes, count, (int)stream.Length - count);
-                }
-
-                return _encoding.GetString(bytes);
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return _encoding.GetString(memoryStream.ToArray());
             }
         }
     }
