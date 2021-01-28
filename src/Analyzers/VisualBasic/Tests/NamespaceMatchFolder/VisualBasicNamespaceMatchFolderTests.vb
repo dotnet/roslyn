@@ -53,7 +53,7 @@ End Namespace"
         End Function
 
         <Fact>
-        Public Async Function TestDiagnosticMissing() As Task
+        Public Async Function NamespaceCorrect_DiagnosticMissing() As Task
             Dim source = "Namespace Test.Root.Namespace.A
     Public Class Class1
     End Class
@@ -89,8 +89,8 @@ End Namespace"
         End Function
 
         <Fact>
-        Public Async Function TestInvalidFolderName() As Task
-            Dim source = "Namespace [|A|]
+        Public Async Function TestInvalidFolderName_DiagnosticMissing() As Task
+            Dim source = "Namespace A
     Public Class Class1
     End Class
 End Namespace"
@@ -101,8 +101,8 @@ End Namespace"
         End Function
 
         <Fact>
-        Public Async Function TestDotFolderName() As Task
-            Dim source = "Namespace [|A|]
+        Public Async Function TestDotFolderName_DiagnosticMissing() As Task
+            Dim source = "Namespace A
     Public Class Class1
     End Class
 End Namespace"
