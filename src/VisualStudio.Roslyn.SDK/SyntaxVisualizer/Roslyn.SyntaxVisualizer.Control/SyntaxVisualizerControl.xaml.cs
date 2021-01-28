@@ -504,7 +504,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 var currentTag = (SyntaxTag)current.Tag;
                 if (currentTag.FullSpan.Contains(span))
                 {
-                    if (( currentTag.Span == span || currentTag.FullSpan == span ) && ( kind == null || currentTag.Kind == kind ))
+                    if ((currentTag.Span == span || currentTag.FullSpan == span) && (kind == null || currentTag.Kind == kind))
                     {
                         CollapseEverythingBut(current);
                         match = current;
@@ -515,7 +515,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                         foreach (TreeViewItem item in current.Items)
                         {
-                            if (category != SyntaxCategory.Operation && ( (SyntaxTag)item.Tag ).Category == SyntaxCategory.Operation)
+                            if (category != SyntaxCategory.Operation && ((SyntaxTag)item.Tag).Category == SyntaxCategory.Operation)
                             {
                                 // Do not prefer navigating to IOperation nodes when clicking in source code
                                 continue;
@@ -528,8 +528,8 @@ namespace Roslyn.SyntaxVisualizer.Control
                             }
                         }
 
-                        if (match == null && ( kind == null || currentTag.Kind == kind ) &&
-                           ( category == SyntaxCategory.None || category == currentTag.Category ))
+                        if (match == null && (kind == null || currentTag.Kind == kind) &&
+                           (category == SyntaxCategory.None || category == currentTag.Category))
                         {
                             match = current;
                         }
@@ -889,7 +889,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 ParentItem = parentItem
             };
 
-            var item = CreateTreeViewItem(tag, ( isLeadingTrivia ? "Lead: " : "Trail: " ) + tag.Kind + " " + trivia.Span.ToString(), trivia.ContainsDiagnostics);
+            var item = CreateTreeViewItem(tag, (isLeadingTrivia ? "Lead: " : "Trail: ") + tag.Kind + " " + trivia.Span.ToString(), trivia.ContainsDiagnostics);
             item.SetResourceReference(ForegroundProperty, SyntaxTriviaTextBrushKey);
 
             if (SyntaxTree != null && trivia.ContainsDiagnostics)
@@ -1024,7 +1024,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
         private static TreeViewItem? FindTreeViewItem(DependencyObject source)
         {
-            while (source != null && !( source is TreeViewItem ))
+            while (source != null && !(source is TreeViewItem))
             {
                 if (source is ContentElement contentElement)
                 {
@@ -1079,15 +1079,15 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var directedSyntaxGraphEnabled =
-                ( SyntaxNodeDirectedGraphRequested != null ) &&
-                ( SyntaxTokenDirectedGraphRequested != null ) &&
-                ( SyntaxTriviaDirectedGraphRequested != null );
+                (SyntaxNodeDirectedGraphRequested != null) &&
+                (SyntaxTokenDirectedGraphRequested != null) &&
+                (SyntaxTriviaDirectedGraphRequested != null);
 
             var symbolDetailsEnabled =
-                ( SemanticModel != null ) &&
-                ( ( (SyntaxTag)_currentSelection.Tag ).Category == SyntaxCategory.SyntaxNode );
+                (SemanticModel != null) &&
+                (((SyntaxTag)_currentSelection.Tag).Category == SyntaxCategory.SyntaxNode);
 
-            if (( !directedSyntaxGraphEnabled ) && ( !symbolDetailsEnabled ))
+            if ((!directedSyntaxGraphEnabled) && (!symbolDetailsEnabled))
             {
                 e.Handled = true;
             }
@@ -1145,7 +1145,7 @@ namespace Roslyn.SyntaxVisualizer.Control
             }
 
             var currentTag = (SyntaxTag)_currentSelection.Tag;
-            if (( SemanticModel != null ) && ( currentTag.Category == SyntaxCategory.SyntaxNode ) && currentTag.SyntaxNode is not null)
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode) && currentTag.SyntaxNode is not null)
             {
                 var symbol = SemanticModel.GetSymbolInfo(currentTag.SyntaxNode).Symbol;
                 if (symbol == null)
@@ -1177,7 +1177,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 return;
             }
 
-            if (( SemanticModel != null ) && ( currentTag.Category == SyntaxCategory.SyntaxNode ))
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).Type;
                 DisplaySymbolInPropertyGrid(symbol);
@@ -1199,7 +1199,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 return;
             }
 
-            if (( SemanticModel != null ) && ( currentTag.Category == SyntaxCategory.SyntaxNode ))
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetTypeInfo(currentTag.SyntaxNode).ConvertedType;
                 DisplaySymbolInPropertyGrid(symbol);
@@ -1221,7 +1221,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 return;
             }
 
-            if (( SemanticModel != null ) && ( currentTag.Category == SyntaxCategory.SyntaxNode ))
+            if ((SemanticModel != null) && (currentTag.Category == SyntaxCategory.SyntaxNode))
             {
                 var symbol = SemanticModel.GetAliasInfo(currentTag.SyntaxNode);
                 DisplaySymbolInPropertyGrid(symbol);
