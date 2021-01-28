@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (relativePath == documentFilePath)
                 return mustSucceed ? throw new InvalidOperationException($"'{documentFilePath}' wasn't relative to '{relativePathBase}'") : null;
 
-            var dimensions = EmptyDimensions
+            var dimensions = projectKey.Value.Dimensions
                 .Add(nameof(documentFilePath), relativePath)
                 .Add(nameof(documentName), documentName);
 
