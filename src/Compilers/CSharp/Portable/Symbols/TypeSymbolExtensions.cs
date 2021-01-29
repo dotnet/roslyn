@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -376,6 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
         }
 
+        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol type)
+        {
+            return (TypeSymbol?)GetDelegateType(type) ?? type as FunctionPointerTypeSymbol;
+        }
+
         /// <summary>
         /// return true if the type is constructed from System.Linq.Expressions.Expression`1
         /// </summary>
@@ -443,6 +449,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<ParameterSymbol>);
             }
             return invokeMethod.Parameters;
+        }
+
+        public static ImmutableArray<ParameterSymbol> DelegateOrFunctionPointerParameters(this TypeSymbol type)
+        {
+            Debug.Assert(type is FunctionPointerTypeSymbol || type.IsDelegateType());
+            if (type is FunctionPointerTypeSymbol { Signature: { Parameters: var functionPointerParameters } })
+            {
+                return functionPointerParameters;
+            }
+            else
+            {
+                return type.DelegateParameters();
+            }
         }
 
         public static bool TryGetElementTypesWithAnnotationsIfTupleType(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
