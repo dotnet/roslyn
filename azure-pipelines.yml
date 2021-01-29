@@ -15,14 +15,15 @@ pr:
 - demos/*
 
 jobs:
-- job: List_Helix_WorkItems
+- job: List_Helix_Jobs
   pool: server
   steps:
   - task: InvokeRESTAPI@1
+    displayName: Invoke Helix REST API
     inputs:
       connectionType: 'connectedServiceName'
       serviceConnection: 'Helix.Net API'
       method: 'GET'
-      urlSuffix: api/jobs/458c9301-eae6-4d8d-8abd-d5afddf177fd/workitems?api-version=2019-06-17
+      urlSuffix: api/jobs?Creator=GitHub&count=20&api-version=2019-06-17
       waitForCompletion: false
       header: '{}'
