@@ -1160,7 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub CheckUnmanagedCallersOnly(ByRef errorInfo As DiagnosticInfo)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated AndAlso (errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1) Then
                 Dim hasUnmanagedCallersOnly As Boolean =
-                    DirectCast(ContainingModule, PEModuleSymbol).Module.FindLastTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
+                    DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
                 _packedFlags.SetIsUnmanagedCallersOnly(hasUnmanagedCallersOnly)
 
                 If _packedFlags.IsUnmanagedCallersOnly Then
