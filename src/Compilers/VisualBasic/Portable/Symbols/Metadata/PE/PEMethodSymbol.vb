@@ -61,7 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' h = conditional attributes populated. 1 bit
             ' i = is init-only. 1 bit.
             ' j = is init-only populated. 1 bit.
-            ' k = UnmanagedCallersOnlyAttribute. 1 bit
 
             Private _bits As Integer
 
@@ -76,7 +75,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
             Private Const s_isInitOnlyBit = 1 << 12
             Private Const s_isInitOnlyPopulatedBit = 1 << 13
-            Private Const s_isUnmanagedCallersOnlyBit = 1 << 14
 
             Public Property MethodKind As MethodKind
                 Get
@@ -142,12 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Get
             End Property
 
-            Public ReadOnly Property IsUnmanagedCallersOnly As Boolean
-                Get
-                    Return (_bits And s_isUnmanagedCallersOnlyBit) <> 0
-                End Get
-            End Property
-
             Private Shared Function BitsAreUnsetOrSame(bits As Integer, mask As Integer) As Boolean
                 Return (bits And mask) = 0 OrElse (bits And mask) = mask
             End Function
@@ -185,12 +177,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim bitsToSet = If(isInitOnly, s_isInitOnlyBit, 0) Or s_isInitOnlyPopulatedBit
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
                 ThreadSafeFlagOperations.Set(_bits, bitsToSet)
-            End Sub
-
-            Public Sub SetIsUnmanagedCallersOnly(isUnmanagedCallersOnly As Boolean)
-                Dim bitToSet = If(isUnmanagedCallersOnly, s_isUnmanagedCallersOnlyBit, 0)
-                Debug.Assert(BitsAreUnsetOrSame(_bits, bitToSet Or s_isUseSiteDiagnosticPopulatedBit))
-                ThreadSafeFlagOperations.Set(_bits, bitToSet)
             End Sub
         End Structure
 
@@ -1158,12 +1144,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Sub CheckUnmanagedCallersOnly(ByRef errorInfo As DiagnosticInfo)
-            If Not _packedFlags.IsUseSiteDiagnosticPopulated AndAlso (errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1) Then
+            If errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1 Then
                 Dim hasUnmanagedCallersOnly As Boolean =
                     DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
-                _packedFlags.SetIsUnmanagedCallersOnly(hasUnmanagedCallersOnly)
 
-                If _packedFlags.IsUnmanagedCallersOnly Then
+                If hasUnmanagedCallersOnly Then
                     errorInfo = MergeUseSiteErrorInfo(errorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
                 End If
             End If
