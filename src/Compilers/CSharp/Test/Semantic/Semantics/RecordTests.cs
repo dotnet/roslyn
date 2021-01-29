@@ -228,7 +228,6 @@ class E
             comp.VerifyDiagnostics();
         }
 
-        
         [Fact, WorkItem(49263, "https://github.com/dotnet/roslyn/issues/49263")]
         public void DeriveFromSelf()
         {
@@ -275,7 +274,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src, references: new[] { useCompilationReference ? lib_comp.ToMetadataReference() : lib_comp.EmitToImageReference() });
+            var comp = CreateCompilation(src, references: new[] { AsReference(lib_comp, useCompilationReference) });
             comp.VerifyEmitDiagnostics();
         }
 
