@@ -1577,7 +1577,7 @@ lReportErrorOnTwoTokens:
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
                 arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.UnmanagedCallersOnlyAttribute) Then
-                ' VB does not support UnmanagedCallersOnly definitions on methods at all
+                ' VB does not support UnmanagedCallersOnly attributes on methods at all
                 arguments.Diagnostics.Add(ERRID.ERR_UnmanagedCallersOnlyNotSupported, arguments.AttributeSyntaxOpt.Location)
             End If
 
