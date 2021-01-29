@@ -60,7 +60,7 @@
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
-    <MicrosoftVisualStudioRpcContractsVersion>16.9.65</MicrosoftVisualStudioRpcContractsVersion>
+    <MicrosoftVisualStudioRpcContractsVersion>16.10.4-alpha</MicrosoftVisualStudioRpcContractsVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -115,7 +115,7 @@
     <MicrosoftServiceHubClientVersion>2.7.89</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.7.339</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <MicrosoftVisualStudioCacheVersion>16.9.26-beta</MicrosoftVisualStudioCacheVersion>
+    <MicrosoftVisualStudioCacheVersion>16.10.4-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>16.0.467</MicrosoftVisualStudioComponentModelHostVersion>
