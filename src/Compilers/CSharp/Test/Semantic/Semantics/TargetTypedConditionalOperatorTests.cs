@@ -587,5 +587,66 @@ System.Int32: 65";
             CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3), expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()), expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        public void UserDefinedConversions_01()
+        {
+            var source =
+@"struct A
+{
+    public static implicit operator A(short s) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static A operator+(A x, A y) => throw null;
+}
+struct B
+{
+    public static implicit operator B(int i) => throw null;
+}
+class Program
+{
+    static B F(bool b, A a) 
+    {
+        return (b ? a : 0) + a;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49627, "https://github.com/dotnet/roslyn/issues/49627")]
+        public void UserDefinedConversions_02()
+        {
+            var source =
+@"struct A
+{
+    public static implicit operator A(int i) => throw null;
+    public static implicit operator int(A a) => throw null;
+    public static A operator+(A x, A y) => throw null;
+}
+struct B
+{
+    public static implicit operator B(int i) => throw null;
+}
+class Program
+{
+    static B F(bool b, A a) 
+    {
+        return (b ? a : 0) + a;
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16),
+                // (15,17): error CS8370: Feature 'target-typed conditional expression' is not available in C# 7.3. Please use language version 9.0 or greater.
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "b ? a : 0").WithArguments("target-typed conditional expression", "9.0").WithLocation(15, 17));
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion())).VerifyDiagnostics(
+                // (15,16): error CS0029: Cannot implicitly convert type 'A' to 'B'
+                //         return (b ? a : 0) + a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16));
+        }
     }
 }
