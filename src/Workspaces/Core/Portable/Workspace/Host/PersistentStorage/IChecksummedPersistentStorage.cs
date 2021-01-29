@@ -79,5 +79,8 @@ namespace Microsoft.CodeAnalysis.Host
         /// reads to ensure the data is only read back if it matches that checksum.
         /// </summary>
         Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
+
+        Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
+        Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum = null, CancellationToken cancellationToken = default);
     }
 }

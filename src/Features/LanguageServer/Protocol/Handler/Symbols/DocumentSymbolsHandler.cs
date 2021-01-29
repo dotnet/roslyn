@@ -24,9 +24,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
-    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [LspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
+    internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
 
-        public async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
