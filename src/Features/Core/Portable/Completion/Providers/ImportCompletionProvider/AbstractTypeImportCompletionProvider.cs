@@ -19,12 +19,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractTypeImportCompletionProvider : AbstractImportCompletionProvider
     {
-        private static readonly SymbolDisplayFormat s_typeNameDisplayFormat = new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters |
-                             SymbolDisplayGenericsOptions.IncludeVariance);
-
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
 
@@ -87,11 +81,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var aliasNode in aliasDeclarations)
             {
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
-                if (symbol is IAliasSymbol {Target: ITypeSymbol target} && target.TypeKind != TypeKind.Error)
+                if (symbol is IAliasSymbol {Target: ITypeSymbol target}
+                    && target.TypeKind != TypeKind.Error)
                 {
-                    var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
-                    var typeNameOfTarget = target.ToDisplayString(s_typeNameDisplayFormat);
-                    dictionary.Add(namespaceOfTarget, typeNameOfTarget);
+                    // If the target type is a type constructs from generics type, e.g.
+                    // using AliasBar = Bar<int>
+                    // namespace Foo
+                    // {
+                    //      public class Bar<T>
+                    //      {
+                    //      }
+                    // }
+                    // namespace Foo2
+                    // {
+                    //      public class Main
+                    //      {
+                    //          $$
+                    //      }
+                    // }
+                    // In such case, user might want to type Bar<string> and still want 'using Foo'.
+                    // We shouldn't try to filter the CompletionItem for Bar<T> later.
+                    // so just ignore the Bar<int> here.
+                    var typeParameter = target.GetTypeParameters();
+                    if (typeParameter.IsEmpty)
+                    {
+                        var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
+                        var typeNameOfTarget = target.Name;
+                        dictionary.Add(namespaceOfTarget, typeNameOfTarget);
+                    }
                 }
             }
 
