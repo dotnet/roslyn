@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class AttributeTests_UnmanagedCallersOnly
         Inherits BasicTestBase
 
@@ -75,16 +75,16 @@ End Class
             Dim comp = CreateCompilation(source, references:={NetCoreApp.SystemRuntimeInteropServices}, targetFramework:=TargetFramework.NetCoreApp)
 
             comp.AssertTheseDiagnostics(<![CDATA[
-BC42365: 'UnmanagedCallersOnly' is not supported.
+BC42365: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly>
      ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' is not supported.
+BC42365: 'UnmanagedCallersOnly' attribute is not supported.
     <UnmanagedCallersOnly(CallConvs := { GetType(CallConvCdecl) })>
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' is not supported.
+BC42365: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
-BC42365: 'UnmanagedCallersOnly' is not supported.
+BC42365: 'UnmanagedCallersOnly' attribute is not supported.
         <UnmanagedCallersOnly>
          ~~~~~~~~~~~~~~~~~~~~
 ]]>)
@@ -113,10 +113,6 @@ Class D
     Sub S1()
         C.M1()
         Dim f As System.Action = AddressOf C.M1
-
-
-        'Dim c As New C()
-        'c.Extension()
     End Sub
 End Class
 ]]>
@@ -133,6 +129,12 @@ BC30657: 'M1' has a return type that is not supported or parameter types that ar
         Dim f As System.Action = AddressOf C.M1
                                            ~~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim m1 = c.GetMethod("M1")
+
+            Assert.NotNull(m1.GetUseSiteErrorInfo())
+            Assert.True(m1.HasUnsupportedMetadata)
         End Sub
 
         <Fact>
@@ -198,6 +200,14 @@ BC30657: 'Prop' has a return type that is not supported or parameter types that 
         Dim i = C.Prop
                 ~~~~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim prop = c.GetProperty("Prop")
+
+            Assert.NotNull(prop.GetMethod.GetUseSiteErrorInfo())
+            Assert.True(prop.GetMethod.HasUnsupportedMetadata)
+            Assert.NotNull(prop.SetMethod.GetUseSiteErrorInfo())
+            Assert.True(prop.SetMethod.HasUnsupportedMetadata)
         End Sub
 
         <Fact>
@@ -241,6 +251,12 @@ BC30657: 'M1' has a return type that is not supported or parameter types that ar
         Dim f As System.Action = AddressOf c1.M1
                                            ~~~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim m1 = c.GetMethod("M1")
+
+            Assert.NotNull(m1.GetUseSiteErrorInfo())
+            Assert.True(m1.HasUnsupportedMetadata)
         End Sub
 
         <Fact>
@@ -314,6 +330,14 @@ BC30657: 'Item' has a return type that is not supported or parameter types that 
         Dim i = c1(1)
                 ~~~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim prop = c.GetProperty("Item")
+
+            Assert.NotNull(prop.GetMethod.GetUseSiteErrorInfo())
+            Assert.True(prop.GetMethod.HasUnsupportedMetadata)
+            Assert.NotNull(prop.SetMethod.GetUseSiteErrorInfo())
+            Assert.True(prop.SetMethod.HasUnsupportedMetadata)
         End Sub
 
         <Fact>
@@ -357,6 +381,12 @@ BC30657: '+' has a return type that is not supported or parameter types that are
         Dim c3 = c1 + c2
                  ~~~~~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim add = c.GetMethod("op_Addition")
+
+            Assert.NotNull(add.GetUseSiteErrorInfo())
+            Assert.True(add.HasUnsupportedMetadata)
         End Sub
 
         <Fact>
@@ -399,6 +429,12 @@ BC30657: '+' has a return type that is not supported or parameter types that are
         Dim c2 = +c1
                  ~~~
 ]]>)
+
+            Dim c = comp.GetTypeByMetadataName("C")
+            Dim plus = c.GetMethod("op_UnaryPlus")
+
+            Assert.NotNull(plus.GetUseSiteErrorInfo())
+            Assert.True(plus.HasUnsupportedMetadata)
         End Sub
     End Class
 End Namespace

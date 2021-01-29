@@ -5627,6 +5627,6 @@
     <value>Init-only '{0}' cannot be implemented.</value>
   </data>
   <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
-    <value>'UnmanagedCallersOnly' is not supported.</value>
+    <value>'UnmanagedCallersOnly' attribute is not supported.</value>
   </data>
 </root>
