@@ -505,5 +505,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         FindDocumentInWorkspace = 480,
         RegisterWorkspace = 481,
+
+        LSP_RequestCounter = 482,
     }
 }
