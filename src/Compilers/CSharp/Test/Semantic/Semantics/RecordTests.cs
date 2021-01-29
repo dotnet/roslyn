@@ -255,6 +255,54 @@ record R : R;
                 );
         }
 
+        [CombinatorialData]
+        [Theory, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers(bool useCompilationReference)
+        {
+            var lib_src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+";
+            var lib_comp = CreateCompilation(lib_src);
+
+            var src = @"
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src, references: new[] { useCompilationReference ? lib_comp.ToMetadataReference() : lib_comp.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_SingleCompilation()
+        {
+            var src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)",
+                model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor()
         {
