@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
                 this.title = title;
                 this.testHost = testHost;
-                this.workspaceKind = workspaceKind ?? WorkspaceKind.Host;
+                this.workspaceKind = workspaceKind;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)

@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
         private readonly string _workspaceKind;
 
-        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind)
+        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
             this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
-            _workspaceKind = workspaceKind;
+            _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
             this.AdditionalDocuments = new List<TestHostDocument>();
