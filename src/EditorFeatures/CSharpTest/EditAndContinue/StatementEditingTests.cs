@@ -6951,7 +6951,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[A]]@2", "Insert [A]@3");
+            edits.VerifyEdits(
+                "Insert [[A]]@2",
+                "Insert [A]@3");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -6967,7 +6969,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Delete [[A]]@2", "Delete [A]@3");
+            edits.VerifyEdits(
+                "Delete [[A]]@2",
+                "Delete [A]@3");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -6999,7 +7003,11 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[A]]@2 -> [[A, B]]@2", "Insert [B]@6", "Delete [[B]]@5", "Delete [B]@6");
+            edits.VerifyEdits(
+                "Update [[A]]@2 -> [[A, B]]@2",
+                "Insert [B]@6",
+                "Delete [[B]]@5",
+                "Delete [B]@6");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7017,7 +7025,11 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[A, B]]@2 -> [[A]]@2", "Insert [[B]]@5", "Insert [B]@6", "Delete [B]@6");
+            edits.VerifyEdits(
+                "Update [[A, B]]@2 -> [[A]]@2",
+                "Insert [[B]]@5",
+                "Insert [B]@6",
+                "Delete [B]@6");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7065,7 +7077,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[return: A]]@2", "Insert [A]@11");
+            edits.VerifyEdits(
+                "Insert [[return: A]]@2",
+                "Insert [A]@11");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7081,7 +7095,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Delete [[return: A]]@2", "Delete [A]@11");
+            edits.VerifyEdits(
+                "Delete [[return: A]]@2",
+                "Delete [A]@11");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7113,7 +7129,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
+            edits.VerifyEdits(
+                "Insert [[A]]@9",
+                "Insert [A]@10");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7129,7 +7147,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
+            edits.VerifyEdits(
+                "Delete [[A]]@9",
+                "Delete [A]@10");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7161,7 +7181,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
+            edits.VerifyEdits(
+                "Insert [[A]]@9",
+                "Insert [A]@10");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
@@ -7177,7 +7199,9 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
+            edits.VerifyEdits(
+                "Delete [[A]]@9",
+                "Delete [A]@10");
 
             // Get top edits so we can validate rude edits
             edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
