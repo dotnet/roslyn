@@ -2408,9 +2408,7 @@ unsafe
 
     static void Test1<T1>(delegate* unmanaged<T1, void>[] func) {}
 }
-", options: TestOptions.UnsafeReleaseExe);
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+", options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
