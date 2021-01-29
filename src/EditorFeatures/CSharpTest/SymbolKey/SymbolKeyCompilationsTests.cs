@@ -248,8 +248,6 @@ class C
         {
             var src1 = @"using System;
 
-public delegate void DGoo(int p1);
-
 namespace N1.N2
 {
     public interface IBase { }
@@ -268,8 +266,6 @@ namespace N1.N2
 ";
 
             var src2 = @"using System;
-
-public delegate void DGoo(int p1, string p2); // add 1 more parameter
 
 namespace N1.N2
 {

@@ -135,7 +135,6 @@ End Namespace
             Dim src1 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
 Imports System
-Public Delegate Sub DGoo(p As Integer)
 
 Namespace N1.N2
 
@@ -161,8 +160,6 @@ End Namespace
 
             Dim src2 = <compilation name="C2CTypeSymbolChanged01">
                            <file name="a.vb">
-Public Delegate Sub DGoo(p1 As Integer, p2 As String) ' One more param
-
 Namespace N1.N2
 
     Public Interface IBase
