@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.ParseOptions:
-                        SerializeParseOptions((ParseOptions)value, writer, cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        SerializeParseOptions((ParseOptions)value, writer);
                         return;
 
                     case WellKnownSynchronizationKind.ProjectReference:
@@ -221,6 +222,9 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
             => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
+
+        public Checksum CreateParseOptionsChecksum(ParseOptions value)
+            => Checksum.Create(WellKnownSynchronizationKind.ParseOptions, value, this);
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

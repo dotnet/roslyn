@@ -436,14 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    GetSpecialTypeMember(feature) is object;
         }
 
-        // https://github.com/dotnet/roslyn/issues/46676: Remove when we have a runtime that supports this to test with
-        private bool _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
-        internal void SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention()
-            => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
-
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
-            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention)
-               || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
         /// <summary>
         /// True if the target runtime support covariant returns of methods declared in classes.

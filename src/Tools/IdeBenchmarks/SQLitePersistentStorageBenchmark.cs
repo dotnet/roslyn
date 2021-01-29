@@ -70,7 +70,7 @@ namespace IdeBenchmarks
             _storageService = new SQLitePersistentStorageService(connectionPoolService, new LocationService());
 
             var solution = _workspace.CurrentSolution;
-            _storage = _storageService.GetStorageWorkerAsync(_workspace, (SolutionKey)solution, solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            _storage = _storageService.GetStorageWorkerAsync(_workspace, SolutionKey.ToSolutionKey(solution), solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
             if (_storage == NoOpPersistentStorage.Instance)
             {
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
