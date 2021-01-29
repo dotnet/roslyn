@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Return true if the type contains any function pointer types.
         /// </summary>
-        internal static bool ContainsFunctionPointer(this TypeSymbol type) => 
+        internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
         /// <summary>
