@@ -1,4 +1,5 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,16 +19,22 @@ namespace Roslyn.Test.Utilities
     internal sealed partial class SourceWithMarkedNodes
     {
         public readonly string Source;
-        public readonly string StrippedSource;
         public readonly string Input;
         public readonly SyntaxTree Tree;
         public readonly ImmutableArray<MarkedSpan> MarkedSpans;
         public readonly ImmutableArray<ValueTuple<TextSpan, int, int>> SpansAndKindsAndIds;
 
-        public SourceWithMarkedNodes(string markedSource, Func<string, SyntaxTree> parser, Func<string, int> getSyntaxKind)
+        /// <summary>
+        /// Parses source code with markers for further processing
+        /// </summary>
+        /// <param name="markedSource">The marked source</param>
+        /// <param name="parser">Delegate to turn source code into a syntax tree</param>
+        /// <param name="getSyntaxKind">Delegate to turn a marker into a syntax kind</param>
+        /// <param name="removeTags">Whether to remove tags from the source, as distinct from replacing them with whitespace. Note that if this
+        /// value is true then any marked node other than the first, will have an incorrect offset.</param>
+        public SourceWithMarkedNodes(string markedSource, Func<string, SyntaxTree> parser, Func<string, int> getSyntaxKind, bool removeTags = false)
         {
-            Source = ClearTags(markedSource);
-            StrippedSource = RemoveTags(markedSource);
+            Source = removeTags ? RemoveTags(markedSource) : ClearTags(markedSource);
             Input = markedSource;
             Tree = parser(Source);
 

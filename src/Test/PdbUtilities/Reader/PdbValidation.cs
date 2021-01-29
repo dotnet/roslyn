@@ -645,9 +645,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Now reverse the list so we can insert without worrying about offsets
             expectedTags.Reverse();
 
-            var expected = source.StrippedSource;
+            var expected = source.Source;
 
-            // Loop backwards so our inserts don't affect subsequent inserts
             foreach (var tag in expectedTags)
             {
                 expected = expected.Insert(tag.StartIndex, tag.Tag);

@@ -104,11 +104,9 @@ class Test
         return f1(4);
     }
 }
-"));
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
 
-            // Because lambda and closure information is offset based on method start, stripping tags
-            // is necessary to be able to recreate expected input
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.StrippedSource, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.Tree, options: TestOptions.DebugDll);
 
             compilation.VerifyPdbLambdasAndClosures(source);
         }
