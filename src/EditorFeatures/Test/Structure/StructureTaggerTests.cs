@@ -57,7 +57,7 @@ namespace MyNamespace
             Assert.True(tags[3].IsImplementation);
 
             // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
+            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
             Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
             Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
             Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
@@ -96,7 +96,7 @@ namespace MyNamespace
             Assert.True(tags[3].IsImplementation);
 
             // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
+            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
             Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
             Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
             Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
@@ -131,7 +131,7 @@ End Namespace";
             Assert.True(tags[3].IsImplementation);
 
             // verify line counts
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
+            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
             Assert.Equal(9, hints[0].TextSnapshot.LineCount); // namespace
             Assert.Equal(7, hints[1].TextSnapshot.LineCount); // region
             Assert.Equal(5, hints[2].TextSnapshot.LineCount); // class
@@ -150,23 +150,23 @@ End Module";
             using var workspace = TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
-            var hints = tags.Select(x => x.CollapsedHintForm).Cast<ViewHostingControl>().ToArray();
+            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().ToArray();
             Assert.Equal("Sub Main(args As String())\r\nEnd Sub", hints[1].GetText_TestOnly()); // method
             hints.Do(v => v.TextView_TestOnly.Close());
         }
 
-        private static async Task<List<IOutliningRegionTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
+        private static async Task<List<IStructureTag>> GetTagsFromWorkspaceAsync(TestWorkspace workspace)
         {
             var hostdoc = workspace.Documents.First();
             var view = hostdoc.GetTextView();
 
-            var provider = workspace.ExportProvider.GetExportedValue<VisualStudio14StructureTaggerProvider>();
+            var provider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-            var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
+            var context = new TaggerContext<IStructureTag>(document, view.TextSnapshot);
             await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-            return context.tagSpans.Select(x => x.Tag).ToList();
+            return context.tagSpans.Select(x => x.Tag).OrderBy(t => t.OutliningSpan.Value.Start).ToList();
         }
     }
 }

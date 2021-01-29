@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,13 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
-    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> :
-        AsynchronousTaggerProvider<TRegionTag>
-        where TRegionTag : class, ITag
+    internal abstract partial class AbstractStructureTaggerProvider :
+        AsynchronousTaggerProvider<IStructureTag>
     {
-        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
-            Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
-
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
         /// </summary>
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         /// Keep this in sync with <see cref="ProduceTagsAsync"/>
         /// </summary>
         protected sealed override void ProduceTagsSynchronously(
-            TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
@@ -147,63 +141,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         private void ProcessSpans(
-            TaggerContext<TRegionTag> context,
+            TaggerContext<IStructureTag> context,
             SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
-            try
+            var snapshot = snapshotSpan.Snapshot;
+            spans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+            foreach (var span in spans)
             {
-                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
-            }
-            catch (TypeLoadException)
-            {
-                // We're targeting a version of the BlockTagging infrastructure in 
-                // VS that may not match the version that the user is currently
-                // developing against.  Be resilient to this until everything moves
-                // forward to the right VS version.
+                var tag = new StructureTag(this, span, snapshot);
+                context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
         }
 
-        private void ProcessSpansWorker(
-            TaggerContext<TRegionTag> context,
-            SnapshotSpan snapshotSpan,
-            BlockStructureService outliningService,
-            ImmutableArray<BlockSpan> spans)
-        {
-            if (spans != null)
-            {
-                var snapshot = snapshotSpan.Snapshot;
-                spans = GetMultiLineRegions(outliningService, spans, snapshot);
-
-                // Create the outlining tags.
-                var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
-
-                foreach (var region in spans)
-                {
-                    var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
-
-                    while (tagSpanStack.Count > 0 &&
-                           tagSpanStack.Peek().Span.End <= spanToCollapse.Span.Start)
-                    {
-                        tagSpanStack.Pop();
-                    }
-
-                    var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
-                    var tag = CreateTag(parentTag?.Tag, snapshot, region);
-
-                    if (tag != null)
-                    {
-                        var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
-
-                        context.AddTag(tagSpan);
-                        tagSpanStack.Push(tagSpan);
-                    }
-                }
-            }
-        }
-
-        protected abstract TRegionTag CreateTag(TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
+        internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
 
         private static bool s_exceptionReported = false;
 
@@ -247,13 +200,92 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 }
             }
 
-            // Make sure the regions are lexicographically sorted.  This is needed
-            // so we can appropriately parent them for BlockTags.
-            //
-            // Note we pass a IComparer instead of a Comparison to work around this
-            // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
-            multiLineRegions.Sort(s_blockSpanComparer);
             return multiLineRegions.ToImmutableAndFree();
         }
+
+        #region Creating Preview Buffers
+
+        private const int MaxPreviewText = 1000;
+
+        /// <summary>
+        /// Given a <see cref="StructureTag"/>, creates an ITextBuffer with the content to display 
+        /// in the tooltip.
+        /// </summary>
+        protected ITextBuffer CreateElisionBufferForTagTooltip(StructureTag tag)
+        {
+            // Remove any starting whitespace.
+            var span = TrimStartingNewlines(new SnapshotSpan(tag.Snapshot, tag.CollapsedHintFormSpan));
+
+            // Trim the length if it's too long.
+            var shortSpan = span;
+            if (span.Length > MaxPreviewText)
+            {
+                shortSpan = ComputeShortSpan(span);
+            }
+
+            // Create an elision buffer for that span, also trimming the
+            // leading whitespace.
+            var elisionBuffer = CreateElisionBufferWithoutIndentation(shortSpan);
+            var finalBuffer = elisionBuffer;
+
+            // If we trimmed the length, then make a projection buffer that 
+            // has the above elision buffer and follows it with "..."
+            if (span.Length != shortSpan.Length)
+            {
+                finalBuffer = CreateTrimmedProjectionBuffer(elisionBuffer);
+            }
+
+            return finalBuffer;
+        }
+
+        private ITextBuffer CreateTrimmedProjectionBuffer(ITextBuffer elisionBuffer)
+        {
+            // The elision buffer is too long.  We've already trimmed it, but now we want to add
+            // a "..." to it.  We do that by creating a projection of both the elision buffer and
+            // a new text buffer wrapping the ellipsis.
+            var elisionSpan = elisionBuffer.CurrentSnapshot.GetFullSpan();
+
+            var sourceSpans = new List<object>()
+                {
+                    elisionSpan.Snapshot.CreateTrackingSpan(elisionSpan, SpanTrackingMode.EdgeExclusive),
+                    "..."
+                };
+
+            var projectionBuffer = ProjectionBufferFactoryService.CreateProjectionBuffer(
+                projectionEditResolver: null,
+                sourceSpans: sourceSpans,
+                options: ProjectionBufferOptions.None);
+
+            return projectionBuffer;
+        }
+
+        private static SnapshotSpan ComputeShortSpan(SnapshotSpan span)
+        {
+            var endIndex = span.Start + MaxPreviewText;
+            var line = span.Snapshot.GetLineFromPosition(endIndex);
+
+            return new SnapshotSpan(span.Snapshot, Span.FromBounds(span.Start, line.EndIncludingLineBreak));
+        }
+
+        private static SnapshotSpan TrimStartingNewlines(SnapshotSpan span)
+        {
+            while (span.Length > 1 && char.IsWhiteSpace(span.Snapshot[span.Start]))
+            {
+                span = new SnapshotSpan(span.Snapshot, span.Start + 1, span.Length - 1);
+            }
+
+            return span;
+        }
+
+        private ITextBuffer CreateElisionBufferWithoutIndentation(
+            SnapshotSpan shortHintSpan)
+        {
+            return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
+                EditorOptionsFactoryService.GlobalOptions,
+                contentType: null,
+                exposedSpans: shortHintSpan);
+        }
+
+        #endregion
     }
 }
