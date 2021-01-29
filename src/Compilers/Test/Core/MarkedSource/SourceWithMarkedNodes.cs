@@ -1,5 +1,4 @@
-﻿
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,7 +17,13 @@ namespace Roslyn.Test.Utilities
 {
     internal sealed partial class SourceWithMarkedNodes
     {
+        /// <summary>
+        /// The source with markers stripped out, that was used to produce the tree
+        /// </summary>
         public readonly string Source;
+        /// <summary>
+        /// The original input source, with markers in tact
+        /// </summary>
         public readonly string Input;
         public readonly SyntaxTree Tree;
         public readonly ImmutableArray<MarkedSpan> MarkedSpans;
