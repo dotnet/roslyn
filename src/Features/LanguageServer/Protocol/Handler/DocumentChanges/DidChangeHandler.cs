@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
         public override async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document);
+            Contract.ThrowIfNull(context.Document, $"Got a change request for {request.TextDocument.Uri} but the document was not found in a workspace");
 
             var text = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
