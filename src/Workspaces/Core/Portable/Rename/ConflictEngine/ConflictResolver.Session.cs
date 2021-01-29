@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                             {
                                 var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
-                                if (newLocations.Any(loc => loc.SourceSpan.Start == adjustedStartPosition))
+                                if (newLocations.Any(loc => loc!.SourceSpan.Start == adjustedStartPosition))
                                 {
                                     hasConflict = false;
                                     break;

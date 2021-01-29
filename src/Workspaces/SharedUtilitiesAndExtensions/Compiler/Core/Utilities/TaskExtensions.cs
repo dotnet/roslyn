@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
 
                 var threadParameter = Expression.Parameter(typeof(Thread), "thread");
                 var expression = Expression.Lambda<Func<Thread, bool>>(
-                    Expression.Call(threadParameter, property.GetMethod),
+                    Expression.Call(threadParameter, property.GetMethod!),
                     threadParameter);
 
                 return expression.Compile();

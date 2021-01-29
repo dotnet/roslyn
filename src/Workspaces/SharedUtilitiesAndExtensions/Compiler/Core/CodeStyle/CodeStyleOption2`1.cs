@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()),
+                new XAttribute(nameof(Value), GetValueForSerialization()!),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
         private object? GetValueForSerialization()
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            var version = (int)element.Attribute(nameof(SerializationVersion))!;
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
