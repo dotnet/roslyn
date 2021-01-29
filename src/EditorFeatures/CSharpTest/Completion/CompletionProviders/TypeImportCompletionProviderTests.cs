@@ -816,6 +816,41 @@ namespace Foo1
         [InlineData(true)]
         [InlineData(false)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestAttributesAlias(bool isProjectReference)
+        {
+            var file1 = @"
+using myAlias = Foo.BarAttribute;
+using myAlia2 = Foo.BarAttributeDifferentEnding;
+
+namespace Foo2
+{
+    public class Main
+    {
+        $$
+    }
+}";
+
+            var file2 = @"
+namespace Foo
+{
+    public class BarAttribute: System.Attribute
+    {
+    }
+
+    public class BarAttributeDifferentEnding: System.Attribute
+    {
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttribute", "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "BarAttributeDifferentEnding", "Foo");
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestGenericsAliasHasNoEffect(bool isProjectReference)
         {
             var file1 = @"
