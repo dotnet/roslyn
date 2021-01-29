@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var type in container.GetTypeMembers(GetName(metadataName), arity))
                 {
+                    // Delegates should be handled by DelegateSymbolKey
+                    if (type.TypeKind == TypeKind.Delegate)
+                        continue;
+
                     var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
                     currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
 

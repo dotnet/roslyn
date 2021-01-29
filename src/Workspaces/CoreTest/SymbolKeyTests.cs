@@ -1064,6 +1064,180 @@ public class C
             }
         }
 
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates0()
+        {
+            // Can't map if delegate isn't there anymore.
+            var source1 = @"delegate void D();";
+            var source2 = @"";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates1()
+        {
+            // Can't map if different parameter lengths
+            var source1 = @"delegate void D();";
+            var source2 = @"delegate void D(int i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates2()
+        {
+            // Can't map if different parameter types
+            var source1 = @"delegate void D(int i);";
+            var source2 = @"delegate void D(bool b);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates3()
+        {
+            // Can't map if different ref kinds types
+            var source1 = @"delegate void D(ref int i);";
+            var source2 = @"delegate void D(int i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates4()
+        {
+            // Can't map if different arity
+            var source1 = @"delegate void D<T>(int i);";
+            var source2 = @"delegate void D(int i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates5()
+        {
+            // Can't map if same arity but different param types
+            var source1 = @"delegate void D<T>(T i);";
+            var source2 = @"delegate void D<T>(int i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates6()
+        {
+            // Can't map if different types that unify after instantiation
+            var source1 = @"delegate void D<T>(T i);";
+            var source2 = @"delegate void D<T>(int i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+            delegateType1 = delegateType1.Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.Null(result.GetAnySymbol());
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates7()
+        {
+            // Can find result, even with multiple restarts.
+            var source1 = @"delegate void D<T>(T i);";
+            var source2 = @"
+delegate void D<T>(int i);
+delegate void D<T>(int i, int j);
+delegate void D<T>(T i);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+            delegateType1 = delegateType1.Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+
+            TestRoundTrip(delegateType1, compilation);
+
+            var symbolKey = delegateType1.GetSymbolKey();
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var result = symbolKey.Resolve(compilation2);
+            Assert.NotNull(result.GetAnySymbol());
+            Assert.Equal(delegateType1.ToDisplayString(), result.GetAnySymbol().ToDisplayString());
+        }
+
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)

@@ -308,6 +308,7 @@ namespace Microsoft.CodeAnalysis
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
             private readonly List<IMethodSymbol?> _methodSymbolStack = new();
+            private readonly List<INamedTypeSymbol?> _delegateSymbolStack = new();
 
             public SymbolKeyReader()
             {
@@ -385,15 +386,28 @@ namespace Microsoft.CodeAnalysis
             public void PushMethod(IMethodSymbol? method)
                 => _methodSymbolStack.Add(method);
 
+            public void PushDelegate(INamedTypeSymbol? delegateType)
+                => _delegateSymbolStack.Add(delegateType);
+
             public void PopMethod(IMethodSymbol? method)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(Equals(method, _methodSymbolStack[_methodSymbolStack.Count - 1]));
+                Contract.ThrowIfFalse(Equals(method, _methodSymbolStack[^1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
+            }
+
+            public void PopDelegate(INamedTypeSymbol? delegateType)
+            {
+                Contract.ThrowIfTrue(_delegateSymbolStack.Count == 0);
+                Contract.ThrowIfFalse(Equals(delegateType, _delegateSymbolStack[^1]));
+                _delegateSymbolStack.RemoveAt(_delegateSymbolStack.Count - 1);
             }
 
             public IMethodSymbol? ResolveMethod(int index)
                 => _methodSymbolStack[index];
+
+            public INamedTypeSymbol? ResolveDelegate(int index)
+                => _delegateSymbolStack[index];
 
             internal SyntaxTree? GetSyntaxTree(string filePath)
             {
@@ -454,6 +468,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.BodyLevel => BodyLevelSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.Delegate => DelegateSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.Field => FieldSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Resolve(this, out failureReason),
@@ -472,7 +487,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.TypeParameter => TypeParameterSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.TypeParameterOrdinal => TypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.MethodTypeParameterOrdinal => MethodTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.DelegateTypeParameterOrdinal => DelegateTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
                     _ => throw new NotImplementedException(),
                 };
 

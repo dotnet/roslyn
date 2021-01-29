@@ -8,25 +8,25 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class TypeParameterOrdinalSymbolKey
+        private static class DelegateTypeParameterOrdinalSymbolKey
         {
-            public static void Create(ITypeParameterSymbol symbol, int methodIndex, SymbolKeyWriter visitor)
+            public static void Create(ITypeParameterSymbol symbol, int delegateIndex, SymbolKeyWriter visitor)
             {
-                Contract.ThrowIfFalse(symbol.TypeParameterKind == TypeParameterKind.Method);
-                visitor.WriteInteger(methodIndex);
+                Contract.ThrowIfFalse(symbol.TypeParameterKind == TypeParameterKind.Type);
+                visitor.WriteInteger(delegateIndex);
                 visitor.WriteInteger(symbol.Ordinal);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var methodIndex = reader.ReadInteger();
+                var delegateIndex = reader.ReadInteger();
                 var ordinal = reader.ReadInteger();
-                var method = reader.ResolveMethod(methodIndex);
+                var delegateType = reader.ResolveDelegate(delegateIndex);
 
-                var typeParameter = method?.TypeParameters[ordinal];
+                var typeParameter = delegateType?.TypeParameters[ordinal];
                 if (typeParameter == null)
                 {
-                    failureReason = $"({nameof(TypeParameterOrdinalSymbolKey)} failed)";
+                    failureReason = $"({nameof(DelegateTypeParameterOrdinalSymbolKey)} failed)";
                     return default;
                 }
 

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             Field = 'F',
             FunctionPointer = 'G',
             DynamicType = 'I',
+            Delegate = 'L',
             Method = 'M',
             Namespace = 'N',
             PointerType = 'O',
@@ -46,7 +47,12 @@ namespace Microsoft.CodeAnalysis
             Array = '%',
             Reference = '#',
             Null = '!',
-            TypeParameterOrdinal = '@',
+
+            // A reference to a type parameter for the containing method while writing out a method's signature.
+            MethodTypeParameterOrdinal = '@',
+
+            // A reference to a type parameter for the containing delegate while writing out a delegate's signature.
+            DelegateTypeParameterOrdinal = '$',
         }
 
         private class SymbolKeyWriter : SymbolVisitor, IDisposable
@@ -66,6 +72,7 @@ namespace Microsoft.CodeAnalysis
             public CancellationToken CancellationToken { get; private set; }
 
             private readonly List<IMethodSymbol> _methodSymbolStack = new();
+            private readonly List<INamedTypeSymbol> _delegateTypeStack = new();
 
             internal int _nestingCount;
             private int _nextId;
@@ -135,7 +142,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int id;
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out _);
+                var shouldWriteOrdinal = ShouldWriteMethodTypeParameterOrdinal(symbol, out _) ||
+                                         ShouldWriteDelegateTypeParameterOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -421,6 +429,11 @@ namespace Microsoft.CodeAnalysis
                         AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
                     }
                 }
+                else if (namedTypeSymbol.DelegateInvokeMethod != null)
+                {
+                    WriteType(SymbolKeyType.Delegate);
+                    DelegateSymbolKey.Create(namedTypeSymbol, this);
+                }
                 else
                 {
                     WriteType(SymbolKeyType.NamedType);
@@ -466,13 +479,18 @@ namespace Microsoft.CodeAnalysis
 
             public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
             {
-                // If it's a reference to a method type parameter, and we're currently writing
-                // out a signture, then only write out the ordinal of type parameter.  This 
-                // helps prevent recursion problems in cases like "Goo<T>(T t).
-                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
+                // If it's a reference to a method type parameter, and we're currently writing out a signature, then
+                // only write out the ordinal of type parameter.  This helps prevent recursion problems in cases like
+                // "Goo<T>(T t).
+                if (ShouldWriteMethodTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
                 {
-                    WriteType(SymbolKeyType.TypeParameterOrdinal);
-                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);
+                    WriteType(SymbolKeyType.MethodTypeParameterOrdinal);
+                    MethodTypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, methodIndex, this);
+                }
+                else if (ShouldWriteDelegateTypeParameterOrdinal(typeParameterSymbol, out var delegateIndex))
+                {
+                    WriteType(SymbolKeyType.DelegateTypeParameterOrdinal);
+                    DelegateTypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, delegateIndex, this);
                 }
                 else
                 {
@@ -481,21 +499,34 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
+            public bool ShouldWriteMethodTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
             {
-                if (symbol.Kind == SymbolKind.TypeParameter)
+                if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
                 {
-                    var typeParameter = (ITypeParameterSymbol)symbol;
-                    if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
+                    for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
                     {
-                        for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
+                        if (typeParameter.DeclaringMethod!.Equals(_methodSymbolStack[i]))
                         {
-                            var method = _methodSymbolStack[i];
-                            if (typeParameter.DeclaringMethod!.Equals(method))
-                            {
-                                methodIndex = i;
-                                return true;
-                            }
+                            methodIndex = i;
+                            return true;
+                        }
+                    }
+                }
+
+                methodIndex = -1;
+                return false;
+            }
+
+            public bool ShouldWriteDelegateTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
+            {
+                if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Type, DeclaringType: { TypeKind: TypeKind.Delegate } } typeParameter)
+                {
+                    for (int i = 0, n = _delegateTypeStack.Count; i < n; i++)
+                    {
+                        if (typeParameter.DeclaringType!.Equals(_delegateTypeStack[i]))
+                        {
+                            methodIndex = i;
+                            return true;
                         }
                     }
                 }
@@ -510,8 +541,18 @@ namespace Microsoft.CodeAnalysis
             public void PopMethod(IMethodSymbol method)
             {
                 Contract.ThrowIfTrue(_methodSymbolStack.Count == 0);
-                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack[_methodSymbolStack.Count - 1]));
+                Contract.ThrowIfFalse(method.Equals(_methodSymbolStack[^1]));
                 _methodSymbolStack.RemoveAt(_methodSymbolStack.Count - 1);
+            }
+
+            public void PushDelegate(INamedTypeSymbol delegateType)
+                => _delegateTypeStack.Add(delegateType);
+
+            public void PopDelegate(INamedTypeSymbol delegateType)
+            {
+                Contract.ThrowIfTrue(_delegateTypeStack.Count == 0);
+                Contract.ThrowIfFalse(delegateType.Equals(_delegateTypeStack[^1]));
+                _delegateTypeStack.RemoveAt(_delegateTypeStack.Count - 1);
             }
         }
     }
