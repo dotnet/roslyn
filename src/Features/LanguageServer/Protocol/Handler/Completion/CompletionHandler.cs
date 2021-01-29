@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (currentRuleCache.TryGetValue(commitCharacterRules, out var currentRules))
                 {
+                    // The item only had default characters, so we don't need to send them.
                     if (currentRules.IsEmpty)
                     {
                         return null;
@@ -344,6 +345,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             commitCharacters.AddRange(rule.Characters);
                             break;
                     }
+                }
+
+                if (commitCharacters.SetEquals(CompletionRules.Default.DefaultCommitCharacters))
+                {
+                    // Cache that we only had the default characters to avoid checking again.
+                    currentRuleCache.Add(item.Rules.CommitCharacterRules, ImmutableArray<string>.Empty);
+                    return null;
                 }
 
                 var commitCharacterSet = commitCharacters.Select(c => c.ToString()).ToImmutableArray();
