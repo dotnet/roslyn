@@ -148,16 +148,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return false;
                 }
 
-                // 2. If the item might be an alias target. First check if its namespace is in the map.
-                if (aliasTargetNamespaceToTypeNameMap.ContainsKey(containingNamespace))
+                // 2. If the item might be an alias target. First check if the target alias map has any value then
+                // check if the type name is in the dictionary.
+                // It is done in this way to avoid calling ImportCompletionItem.GetTypeName for all the CompletionItems
+                if (!aliasTargetNamespaceToTypeNameMap.IsEmpty
+                    && aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(ImportCompletionItem.GetTypeName(item)))
                 {
-                    // Then check its type name.
-                    // It is done in this way because we don't want to get type name for all the items
-                    var typeName = ImportCompletionItem.GetTypeName(item);
-                    if (aliasTargetNamespaceToTypeNameMap[containingNamespace].Contains(typeName))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 return true;
