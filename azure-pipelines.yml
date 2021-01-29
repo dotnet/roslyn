@@ -25,5 +25,5 @@ jobs:
       serviceConnection: 'Helix.Net API'
       method: 'GET'
       urlSuffix: api/jobs?Creator=GitHub&count=20&api-version=2019-06-17
-      waitForCompletion: false
+      waitForCompletion: true
       header: '{}'
