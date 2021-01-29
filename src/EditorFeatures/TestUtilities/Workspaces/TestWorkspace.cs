@@ -53,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
-        private readonly string? _workspaceKind;
+        private readonly string _workspaceKind;
 
-        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
+        public TestWorkspace(ExportProvider? exportProvider = null, TestComposition? composition = null, string workspaceKind = WorkspaceKind.Host, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+            : base(GetHostServices(exportProvider, composition), workspaceKind)
         {
             Contract.ThrowIfTrue(exportProvider != null && composition != null);
 
