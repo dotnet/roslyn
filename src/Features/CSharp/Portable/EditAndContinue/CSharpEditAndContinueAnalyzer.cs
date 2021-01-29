@@ -554,13 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
 
-            if (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement))
-            {
-                // For local functions we use the parent local function decalration so we can see edits to parameters and attributes
-                return StatementSyntaxComparer.Default.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
-            }
-
-            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax)
+            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
                 Debug.Assert(oldBody is ExpressionSyntax || oldBody is BlockSyntax);
                 Debug.Assert(newBody is ExpressionSyntax || newBody is BlockSyntax);

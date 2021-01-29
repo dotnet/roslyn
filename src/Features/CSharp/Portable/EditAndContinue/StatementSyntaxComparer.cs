@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class StatementSyntaxComparer : SyntaxComparer
@@ -89,24 +90,59 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             RoslynDebug.Assert(_oldRoot != null);
             RoslynDebug.Assert(_newRoot != null);
-            RoslynDebug.Assert(_oldRootChild != null);
-            RoslynDebug.Assert(_newRootChild != null);
 
-            var child = (root == _oldRoot) ? _oldRootChild : _newRootChild;
-
-            if (GetLabelImpl(child) != Label.Ignored)
+            foreach (var child in GetRootChildren(root))
             {
-                yield return child;
+                if (GetLabelImpl(child) != Label.Ignored)
+                {
+                    yield return child;
+                }
+                else
+                {
+                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
+                    {
+                        if (HasLabel(descendant))
+                        {
+                            yield return descendant;
+                        }
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<SyntaxNode> GetRootChildren(SyntaxNode node)
+        {
+            if (node == _oldRoot || node == _newRoot)
+            {
+                RoslynDebug.Assert(_oldRootChild != null);
+                RoslynDebug.Assert(_newRootChild != null);
+
+                if (node is LocalFunctionStatementSyntax localFunc)
+                {
+                    // local functions have multiple children we need to process for matches, but we won't automatically
+                    // descend into them, assuming they're nested, so we override the default behaviour and return
+                    // multiple children
+                    foreach (var attributeList in localFunc.AttributeLists)
+                    {
+                        yield return attributeList;
+                    }
+
+                    yield return localFunc.ReturnType;
+
+                    if (localFunc.TypeParameterList is not null)
+                    {
+                        yield return localFunc.TypeParameterList;
+                    }
+
+                    yield return localFunc.ParameterList;
+                }
+
+                yield return (node == _oldRoot) ? _oldRootChild : _newRootChild;
             }
             else
             {
-                foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
-                {
-                    if (HasLabel(descendant))
-                    {
-                        yield return descendant;
-                    }
-                }
+                // If no root was specified then just return the node itself, no root means no special root children
+                yield return node;
             }
         }
 
@@ -115,29 +151,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
-            if (node == _oldRoot || node == _newRoot)
+            foreach (var rootChild in GetRootChildren(node))
             {
-                RoslynDebug.Assert(_oldRoot != null);
-                RoslynDebug.Assert(_newRoot != null);
-                RoslynDebug.Assert(_oldRootChild != null);
-                RoslynDebug.Assert(_newRootChild != null);
-
-                var rootChild = (node == _oldRoot) ? _oldRootChild : _newRootChild;
-
                 if (HasLabel(rootChild))
                 {
                     yield return rootChild;
                 }
 
-                node = rootChild;
-            }
-
-            // TODO: avoid allocation of closure
-            foreach (var descendant in node.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == node || !LambdaUtilities.IsLambdaBodyStatementOrExpression(c))))
-            {
-                if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
+                // TODO: avoid allocation of closure
+                foreach (var descendant in rootChild.DescendantNodes(descendIntoChildren: c => !IsLeaf(c) && (c == rootChild || !LambdaUtilities.IsLambdaBodyStatementOrExpression(c))))
                 {
-                    yield return descendant;
+                    if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendant) && HasLabel(descendant))
+                    {
+                        yield return descendant;
+                    }
                 }
             }
         }
@@ -882,6 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.UsingStatement:
                 case SyntaxKind.SwitchSection:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
