@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var aliasNode in aliasDeclarations)
             {
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
-                if (symbol is IAliasSymbol {Target: ITypeSymbol target})
+                if (symbol is IAliasSymbol {Target: ITypeSymbol target} && target.TypeKind != TypeKind.Error)
                 {
                     var namespaceOfTarget = target.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat);
                     var typeNameOfTarget = target.ToDisplayString(s_typeNameDisplayFormat);
