@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +25,7 @@ namespace Microsoft.CodeAnalysis
             => PooledObject<HashSet<TItem>>.Create(pool);
 
         public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
             => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
 
         public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool)
@@ -75,6 +74,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
         {
             var map = pool.Allocate();
             map.Clear();
@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static void ClearAndFree<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> map)
+            where TKey : notnull
         {
             if (map == null)
             {

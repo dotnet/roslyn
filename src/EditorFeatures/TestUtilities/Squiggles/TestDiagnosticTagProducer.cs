@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = args.GetDiagnostics(_workspace, forPullDiagnostics: false);
+                _diagnostics = args.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 
@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public bool SupportGetDiagnostics => false;
 
-            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-                => includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed);
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+                => new(includeSuppressedDiagnostics ? _diagnostics : _diagnostics.WhereAsArray(d => !d.IsSuppressed));
         }
     }
 }

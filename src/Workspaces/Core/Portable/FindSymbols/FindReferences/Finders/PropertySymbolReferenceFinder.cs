@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IPropertySymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
@@ -184,8 +184,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
+                // The indexerReference for an element access expression will not be null
                 return ComputeElementAccessInformationAsync(
-                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return (matched, reason, indexerReference);
         }
 
-        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeElementAccessInformationAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {

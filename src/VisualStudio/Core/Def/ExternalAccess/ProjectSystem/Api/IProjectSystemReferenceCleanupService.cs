@@ -17,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// </summary>
         Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(
             string projectPath,
-            string targetFrameworkMoniker,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -27,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// <returns>True, if the reference was updated.</returns>
         Task<bool> TryUpdateReferenceAsync(
             string projectPath,
-            string targetFrameworkMoniker,
             ProjectSystemReferenceUpdate referenceUpdate,
             CancellationToken cancellationToken);
     }

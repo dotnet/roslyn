@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
 
-            WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+            var replicationContext = assetStorage.GetReplicationContext(scopeId);
+            WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
         }
 
         public static void WriteData(
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionAsset? singleAsset,
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
+            SolutionReplicationContext context,
             int scopeId,
             Checksum[] checksums,
             CancellationToken cancellationToken)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (singleAsset != null)
             {
                 writer.WriteInt32(1);
-                WriteAsset(writer, serializer, checksums[0], singleAsset, cancellationToken);
+                WriteAsset(writer, serializer, context, checksums[0], singleAsset, cancellationToken);
                 return;
             }
 
@@ -68,10 +70,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var (checksum, asset) in assetMap)
             {
-                WriteAsset(writer, serializer, checksum, asset, cancellationToken);
+                WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
             }
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)asset.Kind);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // null is already indicated by checksum and kind above:
                 if (asset.Value is not null)
                 {
-                    serializer.Serialize(asset.Value, writer, cancellationToken);
+                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
                 }
             }
         }
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Use local pipe to avoid blocking the current thread on networking IO.
             var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
 
-            Exception? exception = null;
+            Exception? copyException = null;
 
             // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
             var copyTask = Task.Run(async () =>
@@ -109,12 +111,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    exception = e;
+                    copyException = e;
                 }
                 finally
                 {
-                    await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
-                    await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
+                    await localPipe.Writer.CompleteAsync(copyException).ConfigureAwait(false);
                 }
             }, mustNotCancelToken);
 
@@ -124,17 +125,40 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
                 return ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
             }
-            catch (EndOfStreamException)
+            catch (EndOfStreamException) when (IsEndOfStreamExceptionExpected(copyException, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw exception ?? ExceptionUtilities.Unreachable;
+                throw copyException ?? ExceptionUtilities.Unreachable;
             }
             finally
             {
                 // Make sure to complete the copy and pipes before returning, otherwise the caller could complete the
                 // reader and/or writer while they are still in use.
                 await copyTask.ConfigureAwait(false);
+            }
+
+            // Local functions
+            static bool IsEndOfStreamExceptionExpected(Exception? copyException, CancellationToken cancellationToken)
+            {
+                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
+                // EndOfStreamException, we known 'copyTask' has already completed its work.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // The writer closed early due to a cancellation request.
+                    return true;
+                }
+
+                if (copyException is not null)
+                {
+                    // An exception occurred while attempting to copy data to the local pipe. Catch and throw the
+                    // exception that occurred during that copy operation.
+                    return true;
+                }
+
+                // The reader attempted to read more data than was copied to the local pipe. Avoid catching the
+                // exception to reveal the faulty read stack in telemetry.
+                return false;
             }
         }
 

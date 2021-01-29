@@ -37,16 +37,6 @@
         <target state="translated">続行しますか。破損状態のコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">インポートされていない名前空間の項目</target>
@@ -79,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">インラインのヒント</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -122,11 +112,6 @@
         <target state="translated">句読点</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">ドキュメントの削除はサポートされていません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">ファイル名の変更 (種類がファイル名と一致しません)(_F)</target>
@@ -144,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">コメントの分割</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +244,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">ユーザー タイプ - レコード</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -644,7 +629,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
         <source>Rename operation was cancelled or is not valid</source>
-        <target state="translated">名前の変更操作は取り消されたか、または検証されていません。</target>
+        <target state="translated">名前の変更操作は取り消されたか、または検証されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Symbol">
@@ -664,7 +649,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1111,7 +1096,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' の名前を '{1}' に変更します。</target>
+        <target state="translated">'{0}' の名前を '{1}' に変更します:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1126,7 +1111,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' への呼び出し</target>
+        <target state="translated">'{0}' への呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1146,7 +1131,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' を実装します</target>
+        <target state="translated">'{0}' を実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1166,7 +1151,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
-        <target state="translated">プレビューの変更(_P)</target>
+        <target state="translated">変更のプレビュー(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply3">

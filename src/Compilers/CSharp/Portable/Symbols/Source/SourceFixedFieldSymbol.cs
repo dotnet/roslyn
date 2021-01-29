@@ -240,5 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => throw ExceptionUtilities.Unreachable;
 
         internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 }

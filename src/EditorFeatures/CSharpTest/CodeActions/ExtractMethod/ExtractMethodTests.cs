@@ -1657,7 +1657,7 @@ class C
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790()
         {
             await TestInRegularAndScript1Async(@"
@@ -1698,7 +1698,7 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_1()
         {
             await TestInRegularAndScript1Async(@"
@@ -1738,7 +1738,7 @@ class Test
         }
 
         [WorkItem(538229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task Bug3790_2()
         {
             await TestInRegularAndScript1Async(@"
@@ -1778,7 +1778,7 @@ class Test
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyProperty()
         {
             await TestInRegularAndScript1Async(@"
@@ -1803,7 +1803,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexer()
         {
             await TestInRegularAndScript1Async(@"
@@ -1828,7 +1828,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertyGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1861,7 +1861,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyPropertySetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1894,7 +1894,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerGetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1927,7 +1927,7 @@ class Program
         }
 
         [WorkItem(392560, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestExpressionBodyIndexerSetAccessor()
         {
             await TestInRegularAndScript1Async(@"
@@ -1959,7 +1959,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestTupleWithInferredNames()
         {
             await TestAsync(@"
@@ -1989,7 +1989,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction4()
         {
             await TestAsync(@"
@@ -2018,7 +2018,7 @@ class Program
 }", TestOptions.Regular7_1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestDeconstruction5()
         {
             await TestAsync(@"
@@ -4206,7 +4206,7 @@ class C
         }
 
         [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestInRecord()
         {
             await TestInRegularAndScript1Async(@"

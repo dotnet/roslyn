@@ -125,14 +125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
+                bool foundBadField = false;
                 foreach (var f in ContainingType.GetFieldsToEmit())
                 {
                     if (!f.IsStatic)
                     {
                         fields.Add(f);
+
+                        var parameterType = f.Type;
+                        if (parameterType.IsUnsafe())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations.FirstOrNone(), parameterType);
+                            foundBadField = true;
+                        }
+                        else if (parameterType.IsRestrictedType())
+                        {
+                            // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                            foundBadField = true;
+                        }
                     }
                 }
-                if (fields.Count > 0)
+                if (fields.Count > 0 && !foundBadField)
                 {
                     retExpr = MethodBodySynthesizer.GenerateFieldEquals(
                         retExpr,

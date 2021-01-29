@@ -1866,6 +1866,134 @@ End Class",
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguageCycleAvoidance() As Task
+            Await TestInRegularAndScriptAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
+        <Document>
+            public class BaseType
+            {
+                public BaseType(int x, int y) { }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+Public Class B
+    Inherits BaseType
+
+    Public Sub New(a As Integer)
+        [|Me.New(a, 1)|]
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>.ToString(),
+"
+Public Class B
+    Inherits BaseType
+
+    Public Sub New(a As Integer)
+        Me.New(a, 1)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        MyBase.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(49850, "https://github.com/dotnet/roslyn/issues/49850")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguage() As Task
+            Await TestInRegularAndScriptAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
+        <Document>
+public class BaseType
+{
+    public BaseType(string x) { }
+}</Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New BaseType(42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class BaseType
+{
+    private int v;
+
+    public BaseType(string x) { }
+
+    public BaseType(int v)
+    {
+        this.v = v;
+    }
+}")
+        End Function
+
+        <WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguageWithMissingType() As Task
+            Await TestAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProjectWithExtraType" CommonReferences="true">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language="C#" Name="CSharpProjectGeneratingInto" CommonReferences="true">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New C(42, 42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", TestOptions.Regular)
+        End Function
+
         <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function CreateFieldDefaultNamingStyle() As Task

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -217,14 +215,15 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Action object passed to a cancellation token registration.
         /// </summary>
-        private static readonly Action<object> s_cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
+        private static readonly Action<object?> s_cancellationTokenCanceledEventHandler = CancellationTokenCanceledEventHandler;
 
         /// <summary>
         /// Callback executed when a cancellation token is canceled during a Wait.
         /// </summary>
         /// <param name="obj">The syncLock that protects a <see cref="NonReentrantLock"/> instance.</param>
-        private static void CancellationTokenCanceledEventHandler(object obj)
+        private static void CancellationTokenCanceledEventHandler(object? obj)
         {
+            RoslynDebug.AssertNotNull(obj);
             lock (obj)
             {
                 // Release all waiters to check their cancellation tokens.

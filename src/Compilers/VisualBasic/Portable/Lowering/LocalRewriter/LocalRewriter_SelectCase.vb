@@ -189,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim method = New SynthesizedStringSwitchHashMethod(_emitModule.SourceModule, privateImplClass)
-            privateImplClass.TryAddSynthesizedMethod(method)
+            privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter())
         End Sub
 
         Private Function RewriteSelectExpression(

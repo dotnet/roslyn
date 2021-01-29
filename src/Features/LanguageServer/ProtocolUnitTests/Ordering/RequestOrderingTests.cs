@@ -4,15 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,10 +18,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
         protected override TestComposition Composition => base.Composition
-            .AddParts(typeof(MutatingRequestHandler))
-            .AddParts(typeof(NonMutatingRequestHandler))
-            .AddParts(typeof(FailingRequestHandler))
-            .AddParts(typeof(FailingMutatingRequestHandler));
+            .AddParts(typeof(MutatingRequestHandlerProvider))
+            .AddParts(typeof(NonMutatingRequestHandlerProvider))
+            .AddParts(typeof(FailingRequestHandlerProvider))
+            .AddParts(typeof(FailingMutatingRequestHandlerProvider));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
@@ -36,7 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            var responses = await TestAsync(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started at or after the one before it
             Assert.True(responses[1].StartTime >= responses[0].EndTime);
@@ -52,7 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            var responses = await TestAsync(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started immediately, without waiting
             Assert.True(responses[1].StartTime < responses[0].EndTime);
@@ -68,7 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            var responses = await TestAsync(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var responses = await TestAsync(testLspServer, requests);
 
             // The non mutating tasks should have waited for the first task to finish
             Assert.True(responses[1].StartTime >= responses[0].EndTime);
@@ -87,45 +86,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            var responses = await TestAsync(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var responses = await TestAsync(testLspServer, requests);
 
             // All tasks should start without waiting for any to finish
             Assert.True(responses[1].StartTime < responses[0].EndTime);
             Assert.True(responses[2].StartTime < responses[0].EndTime);
             Assert.True(responses[1].StartTime < responses[2].EndTime);
             Assert.True(responses[2].StartTime < responses[1].EndTime);
-        }
-
-        [Fact]
-        public async Task NonMutatingOperatesOnTheRightSolutions()
-        {
-            var requests = new[] {
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-                new TestRequest(MutatingRequestHandler.MethodName),
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-                new TestRequest(NonMutatingRequestHandler.MethodName),
-            };
-
-            var responses = await TestAsync(requests);
-
-            // first two tasks should have kicked off without waiting
-            Assert.True(responses[0].StartTime < responses[1].EndTime);
-            Assert.True(responses[1].StartTime < responses[0].EndTime);
-
-            // The mutating task should have kicked off without waiting for those to finish
-            Assert.True(responses[2].StartTime < responses[1].EndTime);
-            Assert.True(responses[2].StartTime < responses[0].EndTime);
-
-            // The last two tasks should have waited for the mutating task
-            Assert.True(responses[3].StartTime >= responses[2].EndTime);
-            Assert.True(responses[4].StartTime >= responses[2].EndTime);
-
-            // The last two should have operated on different solutions than the first three
-            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[0].Solution.WorkspaceVersion);
-            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[1].Solution.WorkspaceVersion);
-            Assert.NotEqual(responses[3].Solution.WorkspaceVersion, responses[2].Solution.WorkspaceVersion);
-            Assert.Equal(responses[3].Solution.WorkspaceVersion, responses[3].Solution.WorkspaceVersion);
         }
 
         [Fact]
@@ -138,7 +106,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            var waitables = StartTestRun(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
@@ -164,7 +133,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            var waitables = StartTestRun(requests);
+            using var testLspServer = CreateTestLspServer("class C { }", out _);
+            var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
             await Assert.ThrowsAsync<InvalidOperationException>(() => waitables[0]);
@@ -175,9 +145,71 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.All(waitables.Skip(1), w => Assert.True(w.IsCanceled));
         }
 
-        private async Task<TestResponse[]> TestAsync(TestRequest[] requests)
+        [Fact]
+        public async Task NonMutatingRequestsOperateOnTheSameSolutionAfterMutation()
         {
-            var waitables = StartTestRun(requests);
+            using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
+
+            var expectedSolution = testLspServer.GetCurrentSolution();
+
+            // solution should be the same because no mutations have happened
+            var solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            Assert.Equal(expectedSolution, solution);
+
+            // Open a document, to get a forked solution
+            await ExecuteDidOpen();
+
+            // solution should be different because there has been a mutation
+            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            Assert.NotEqual(expectedSolution, solution);
+
+            expectedSolution = solution;
+
+            // solution should be the same because no mutations have happened
+            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            Assert.Equal(expectedSolution, solution);
+
+            // Apply some random change to the workspace that the LSP server doesn't "see"
+            testLspServer.TestWorkspace.SetCurrentSolution(s => s.WithProjectName(s.Projects.First().Id, "NewName"), WorkspaceChangeKind.ProjectChanged);
+
+            expectedSolution = testLspServer.GetCurrentSolution();
+
+            // solution should be different because there has been a workspace change
+            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            Assert.NotEqual(expectedSolution, solution);
+
+            expectedSolution = solution;
+
+            // solution should be the same because no mutations have happened
+            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            Assert.Equal(expectedSolution, solution);
+
+            return;
+
+            async Task<Solution> GetLSPSolution(string methodName)
+            {
+                var request = new TestRequest(methodName);
+                var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                return response.Solution;
+            }
+
+            async Task ExecuteDidOpen()
+            {
+                var didOpenParams = new LSP.DidOpenTextDocumentParams
+                {
+                    TextDocument = new LSP.TextDocumentItem
+                    {
+                        Uri = locations["caret"].First().Uri,
+                        Text = "// hi there"
+                    }
+                };
+                await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+        }
+
+        private static async Task<TestResponse[]> TestAsync(TestLspServer testLspServer, TestRequest[] requests)
+        {
+            var waitables = StartTestRun(testLspServer, requests);
 
             var responses = await Task.WhenAll(waitables);
 
@@ -188,21 +220,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             return responses;
         }
 
-        private List<Task<TestResponse>> StartTestRun(TestRequest[] requests)
+        private static List<Task<TestResponse>> StartTestRun(TestLspServer testLspServer, TestRequest[] requests)
         {
-            using var workspace = CreateTestWorkspace("class C { }", out _);
-            var solution = workspace.CurrentSolution;
-
-            var queue = CreateRequestQueue(solution);
-            var languageServer = GetLanguageServer(solution);
             var clientCapabilities = new LSP.ClientCapabilities();
 
             var waitables = new List<Task<TestResponse>>();
-            var order = 1;
             foreach (var request in requests)
             {
-                request.RequestOrder = order++;
-                waitables.Add(languageServer.ExecuteRequestAsync<TestRequest, TestResponse>(queue, request.MethodName, request, clientCapabilities, null, CancellationToken.None));
+                waitables.Add(testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, clientCapabilities, null, CancellationToken.None));
             }
 
             return waitables;

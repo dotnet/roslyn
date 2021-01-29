@@ -820,11 +820,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> members)
         {
+            return EnumDeclaration(name, underlyingType: null, accessibility, modifiers, members);
+        }
+
+        internal override SyntaxNode EnumDeclaration(string name, SyntaxNode underlyingType, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode> members = null)
+        {
             return SyntaxFactory.EnumDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.EnumDeclaration),
                 name.ToIdentifierToken(),
-                null,
+                underlyingType != null ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList((BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)underlyingType))) : null,
                 this.AsEnumMembers(members));
         }
 
@@ -849,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (fd.Declaration.Variables.Count == 1)
                     {
                         var vd = fd.Declaration.Variables[0];
-                        return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer);
+                        return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer?.Value);
                     }
                     break;
             }
@@ -1271,8 +1276,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => 1,
             };
 
+        private static SyntaxNode EnsureRecordDeclarationHasBody(SyntaxNode declaration)
+        {
+            if (declaration is RecordDeclarationSyntax recordDeclaration)
+            {
+                return recordDeclaration
+                    .WithSemicolonToken(default)
+                    .WithOpenBraceToken(recordDeclaration.OpenBraceToken == default ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken) : recordDeclaration.OpenBraceToken)
+                    .WithCloseBraceToken(recordDeclaration.CloseBraceToken == default ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken) : recordDeclaration.CloseBraceToken);
+            }
+
+            return declaration;
+        }
+
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
+            declaration = EnsureRecordDeclarationHasBody(declaration);
             var newMembers = this.AsMembersOf(declaration, members);
 
             var existingMembers = this.GetMembers(declaration);
@@ -1948,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (this.GetDeclarationKind(existingNode))
             {
                 case DeclarationKind.Class:
-                case DeclarationKind.Record:
+                case DeclarationKind.RecordClass:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
                 case DeclarationKind.Enum:

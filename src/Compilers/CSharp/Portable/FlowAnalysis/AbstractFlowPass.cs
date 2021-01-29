@@ -962,13 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
 
-            var pattern = node.Pattern;
-            bool negated = false;
-            while (pattern is BoundNegatedPattern n)
-            {
-                negated = !negated;
-                pattern = n.Negated;
-            }
+            bool negated = node.Pattern.IsNegated(out var pattern);
+            Debug.Assert(negated == node.IsNegated);
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;
@@ -1639,6 +1634,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected Optional<TLocalState> NonMonotonicState;
 
+        /// <summary>
+        /// Join state from other try block, potentially in a nested method.
+        /// </summary>
+        protected virtual void JoinTryBlockState(ref TLocalState self, ref TLocalState other)
+        {
+            Join(ref self, ref other);
+        }
+
         private void VisitTryBlockWithAnyTransferFunction(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
         {
             if (_nonMonotonicTransfer)
@@ -1651,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1680,7 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 
@@ -1725,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (oldTryState.HasValue)
                 {
                     var oldTryStateValue = oldTryState.Value;
-                    Join(ref oldTryStateValue, ref tempTryStateValue);
+                    JoinTryBlockState(ref oldTryStateValue, ref tempTryStateValue);
                     oldTryState = oldTryStateValue;
                 }
 

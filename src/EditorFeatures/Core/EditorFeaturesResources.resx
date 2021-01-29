@@ -924,9 +924,6 @@ Do you want to proceed?</value>
   <data name="Expander_image_element" xml:space="preserve">
     <value>Expander</value>
   </data>
-  <data name="Removal_of_document_not_supported" xml:space="preserve">
-    <value>Removal of document not supported</value>
-  </data>
   <data name="Split_comment" xml:space="preserve">
     <value>Split comment</value>
   </data>
@@ -938,12 +935,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Inline_Hints" xml:space="preserve">
     <value>Inline Hints</value>
-  </data>
-  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
-    <value>Error creating instance of CodeFixProvider '{0}'</value>
-  </data>
-  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
-    <value>Error creating instance of CodeFixProvider</value>
   </data>
   <data name="User_Types_Records" xml:space="preserve">
     <value>User Types - Records</value>

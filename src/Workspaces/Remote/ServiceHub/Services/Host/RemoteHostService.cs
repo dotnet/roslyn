@@ -43,9 +43,11 @@ namespace Microsoft.CodeAnalysis.Remote
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
+#if DEBUG
 #pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
 #pragma warning restore
+#endif
 
         static RemoteHostService()
         {
@@ -66,14 +68,6 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(serviceProvider, stream)
         {
             _shutdownCancellationSource = new CancellationTokenSource();
-
-            if (TestData == null || !TestData.IsInProc)
-            {
-                // Try setting this process's priority BelowNormal.
-                // this should let us to freely try to use all resources possible without worrying about affecting
-                // host's work such as responsiveness or build.
-                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
-            }
 
             // this service provide a way for client to make sure remote host is alive
             StartService();
@@ -119,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     m["InstanceId"] = InstanceId;
                 }));
 
+#if DEBUG
                 // start performance reporter
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
@@ -126,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
                     _performanceReporter = new PerformanceReporter(Logger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
                 }
+#endif
             }, cancellationToken);
         }
 

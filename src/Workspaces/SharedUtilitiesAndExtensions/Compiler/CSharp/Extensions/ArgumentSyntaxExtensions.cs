@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return default;
         }
 
-        public static RefKind GetRefKind(this ArgumentSyntax argument)
+        public static RefKind GetRefKind(this ArgumentSyntax? argument)
             => argument?.RefKindKeyword.Kind() switch
             {
                 SyntaxKind.RefKeyword => RefKind.Ref,

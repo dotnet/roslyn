@@ -31,6 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
 
+        public static string Option_Enable_Razor_pull_diagnostics_experimental_requires_restart
+            => ServicesVSResources.Enable_Razor_pull_diagnostics_experimental_requires_restart;
+
         public static string Option_use_64bit_analysis_process
             => ServicesVSResources.Use_64_bit_process_for_code_analysis_requires_restart;
 
@@ -69,6 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_hints_for_lambda_parameter_types
             => ServicesVSResources.Show_hints_for_lambda_parameter_types;
+
+        public static string Option_Show_hints_for_implicit_object_creation
+            => ServicesVSResources.Show_hints_for_implicit_object_creation;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -213,6 +219,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages
             => CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
+
+        public static string Option_Add_missing_using_directives_on_paste
+            => CSharpVSResources.Add_missing_using_directives_on_paste;
 
         public static string Option_Report_invalid_placeholders_in_string_dot_format_calls
             => CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;

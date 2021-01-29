@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public static readonly OperationStatus Succeeded = new(OperationStatusFlag.Succeeded, reason: null);
         public static readonly OperationStatus FailedWithUnknownReason = new(OperationStatusFlag.None, reason: FeaturesResources.Unknown_error_occurred);
         public static readonly OperationStatus OverlapsHiddenPosition = new(OperationStatusFlag.None, FeaturesResources.generated_code_is_overlapping_with_hidden_portion_of_the_code);
+        public static readonly OperationStatus NoValidLocationToInsertMethodCall = new(OperationStatusFlag.None, FeaturesResources.No_valid_location_to_insert_method_call);
 
         public static readonly OperationStatus NoActiveStatement = new(OperationStatusFlag.BestEffort, FeaturesResources.The_selection_contains_no_active_statement);
         public static readonly OperationStatus ErrorOrUnknownType = new(OperationStatusFlag.BestEffort, FeaturesResources.The_selection_contains_an_error_or_unknown_type);

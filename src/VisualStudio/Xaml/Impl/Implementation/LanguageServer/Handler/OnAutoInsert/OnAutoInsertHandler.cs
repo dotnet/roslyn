@@ -17,9 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [LspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,22 +27,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public async Task<DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
             var document = context.Document;
             if (document == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             var insertService = document.Project.LanguageServices.GetService<IXamlAutoInsertService>();
             if (insertService == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var result = await insertService.GetAutoInsertAsync(document, request.Character[0], offset, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
-                return response.ToArray();
+                return null;
             }
 
             Contract.ThrowIfNull(result.TextChange.NewText);
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 insertText = insertText.Insert(result.CaretOffset.Value, "$0");
             }
 
-            response.Add(new DocumentOnAutoInsertResponseItem
+            return new DocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = insertFormat,
                 TextEdit = new TextEdit
@@ -70,9 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     NewText = insertText,
                     Range = ProtocolConversions.TextSpanToRange(result.TextChange.Span, text)
                 }
-            });
-
-            return response.ToArray();
+            };
         }
     }
 }

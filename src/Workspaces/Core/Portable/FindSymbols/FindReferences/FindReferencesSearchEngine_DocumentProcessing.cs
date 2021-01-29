@@ -2,30 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
-
     internal partial class FindReferencesSearchEngine
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            DocumentMap.ValueSet documentQueue)
+            HashSet<(ISymbol symbol, IReferenceFinder finder)> documentQueue)
         {
             await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
 
-            SemanticModel model = null;
+            SemanticModel? model = null;
             try
             {
-                model = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                model = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
 
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);

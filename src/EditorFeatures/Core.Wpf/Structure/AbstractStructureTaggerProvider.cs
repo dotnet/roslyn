@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -94,16 +95,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetService(context, documentSnapshotSpan);
-                if (outliningService != null)
-                {
-                    var blockStructure = await outliningService.GetBlockStructureAsync(
+                var document = documentSnapshotSpan.Document;
+                if (document == null)
+                    return;
+
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
+                    return;
+
+                var outliningService = BlockStructureService.GetService(document);
+                if (outliningService == null)
+                    return;
+
+                var blockStructure = await outliningService.GetBlockStructureAsync(
                         documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
 
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
-                }
+                ProcessSpans(
+                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                    blockStructure.Spans);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -119,43 +128,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
-                var outliningService = TryGetService(context, documentSnapshotSpan);
-                if (outliningService != null)
-                {
-                    var document = documentSnapshotSpan.Document;
-                    var cancellationToken = context.CancellationToken;
+                var document = documentSnapshotSpan.Document;
+                if (document == null)
+                    return;
 
-                    // Try to call through the synchronous service if possible. Otherwise, fallback
-                    // and make a blocking call against the async service.
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
+                    return;
 
-                    var blockStructure = outliningService.GetBlockStructure(document, cancellationToken);
+                var outliningService = BlockStructureService.GetService(document);
+                if (outliningService == null)
+                    return;
 
-                    ProcessSpans(
-                        context, documentSnapshotSpan.SnapshotSpan, outliningService,
-                        blockStructure.Spans);
-                }
+                var blockStructure = outliningService.GetBlockStructure(document, context.CancellationToken);
+                ProcessSpans(
+                    context, documentSnapshotSpan.SnapshotSpan, outliningService,
+                    blockStructure.Spans);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-        }
-
-        private static BlockStructureService TryGetService(
-            TaggerContext<TRegionTag> context,
-            DocumentSnapshotSpan documentSnapshotSpan)
-        {
-            var cancellationToken = context.CancellationToken;
-            using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
-            {
-                var document = documentSnapshotSpan.Document;
-                if (document != null)
-                {
-                    return BlockStructureService.GetService(document);
-                }
-            }
-
-            return null;
         }
 
         private void ProcessSpans(

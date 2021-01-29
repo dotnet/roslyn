@@ -13,7 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -26,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IWorkspaceTelemetryService? _telemetryService;
+        private readonly IWorkspaceStatusService? _workspaceStatusService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -137,6 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
+            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+            _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+
             Id = id;
             Language = language;
             _displayName = displayName;
@@ -182,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _parseOptions = parseOptions;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
         {
             lock (_gate)
             {
@@ -194,6 +201,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
+                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                // fully loaded.
+                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+
+                // We only log telemetry during solution open
+                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                {
+                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     _projectPropertyModificationsInBatch.Add(withNewValue);
@@ -202,6 +223,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(Id, withNewValue);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reports a telemetry event if compilation information is being thrown away after being previously computed
+        /// </summary>
+        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        {
+            // We log the number of syntax trees that have been parsed even if there was no compilation created yet
+            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var parsedTrees = 0;
+            foreach (var documentState in projectState.DocumentStates.Values)
+            {
+                if (documentState.TryGetSyntaxTree(out _))
+                {
+                    parsedTrees++;
+                }
+            }
+
+            // But we also want to know if a compilation was created
+            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
+
+            if (parsedTrees > 0 || hadCompilation)
+            {
+                Logger.Log(FunctionId.Workspace_Project_CompilationThrownAway, KeyValueLogMessage.Create(m =>
+                {
+                    // Note: Not using our project Id. This is the same ProjectGuid that the project system uses
+                    // so data can be correlated
+                    m["ProjectGuid"] = projectState.ProjectInfo.Attributes.TelemetryId.ToString("B");
+                    m["SyntaxTreesParsed"] = parsedTrees;
+                    m["HadCompilation"] = hadCompilation;
+                }));
             }
         }
 
@@ -232,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string AssemblyName
         {
             get => _assemblyName;
-            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value));
+            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -241,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
-            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
+            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -250,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ParseOptions? ParseOptions
         {
             get => _parseOptions;
-            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value));
+            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         /// <summary>

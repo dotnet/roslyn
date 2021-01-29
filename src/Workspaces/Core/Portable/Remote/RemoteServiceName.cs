@@ -50,9 +50,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 (WellKnownServiceHubService.RemoteHost, false, _) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
                 (WellKnownServiceHubService.RemoteHost, true, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
                 (WellKnownServiceHubService.RemoteHost, true, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64 + SuffixServerGC,
-                (WellKnownServiceHubService.RemoteLanguageServer, false, _) => Prefix + nameof(WellKnownServiceHubService.RemoteLanguageServer),
-                (WellKnownServiceHubService.RemoteLanguageServer, true, false) => Prefix + nameof(WellKnownServiceHubService.RemoteLanguageServer) + Suffix64,
-                (WellKnownServiceHubService.RemoteLanguageServer, true, true) => Prefix + nameof(WellKnownServiceHubService.RemoteLanguageServer) + Suffix64 + SuffixServerGC,
 
                 (WellKnownServiceHubService.IntelliCode, false, _) => IntelliCodeServiceName,
                 (WellKnownServiceHubService.IntelliCode, true, false) => IntelliCodeServiceName + Suffix64,

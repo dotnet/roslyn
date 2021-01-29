@@ -138,8 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public override RefKind RefKind
         {
@@ -232,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we haven't found the constructor part that declares the variable:
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal abstract override bool IsNullableAnalysisEnabled();
 
         protected abstract CSharpSyntaxNode GetInitializer();
 

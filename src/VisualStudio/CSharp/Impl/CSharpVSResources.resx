@@ -539,9 +539,6 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate_Event_Subscription" xml:space="preserve">
-    <value>Generate Event Subscription</value>
-  </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
   </data>
@@ -577,7 +574,7 @@
     <value>When on multiple lines</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Inside_namespace" xml:space="preserve">
     <value>Inside namespace</value>
@@ -603,7 +600,7 @@
     <value>Prefer switch expression</value>
   </data>
   <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
-    <value>Automatically show completion list in argument lists (experimental)</value>
+    <value>Automatically show completion list in argument lists</value>
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>
@@ -628,5 +625,9 @@
   </data>
   <data name="Show_hints_for_new_expressions" xml:space="preserve">
     <value>Show hints for 'new' expressions</value>
+  </data>
+  <data name="Add_missing_using_directives_on_paste" xml:space="preserve">
+    <value>Add missing using directives on paste</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
 </root>

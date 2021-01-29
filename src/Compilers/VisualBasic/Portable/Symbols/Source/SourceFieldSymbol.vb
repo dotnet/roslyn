@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             Dim unusedType = Me.Type
-            GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            GetConstantValue(ConstantFieldsInProgress.Empty)
 
             ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
@@ -167,9 +167,409 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the constant value.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param>
-        Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param>
+        Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
             Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Helper to get a constant value of the field with cycle detection.
+        ''' Also avoids deep recursion due to references to other constant fields in the value.
+        ''' Derived types utilizing this helper should provide storage for the lazily calculated
+        ''' <see cref="EvaluatedConstant"/> value and should implement the following APIs:
+        ''' <see cref="GetLazyConstantTuple()"/>,
+        ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, DiagnosticBag)"/>,
+        ''' <see cref="MakeConstantTuple(ConstantFieldsInProgress.Dependencies, DiagnosticBag)"/>.
+        ''' </summary>
+        Protected Function GetConstantValueImpl(inProgress As ConstantFieldsInProgress) As ConstantValue
+            Dim constantTuple As EvaluatedConstant = GetLazyConstantTuple()
+            If constantTuple IsNot Nothing Then
+                Return constantTuple.Value
+            End If
+
+            If Not inProgress.IsEmpty Then
+                ' Add this field as a dependency of the original field, and
+                ' return ConstantValue.Bad. The outer caller will call
+                ' this method again after evaluating any dependencies.
+                inProgress.AddDependency(Me)
+                Return CodeAnalysis.ConstantValue.Bad
+            End If
+
+            ' Order dependencies.
+            Dim order = ArrayBuilder(Of ConstantValueUtils.FieldInfo).GetInstance()
+            OrderAllDependencies(order)
+
+            ' Evaluate fields in order.
+            For Each info In order
+                ' Bind the field value regardless of whether the field represents
+                ' the start of a cycle. In the cycle case, there will be unevaluated
+                ' dependencies and the result will be ConstantValue.Bad plus cycle error.
+                info.Field.BindConstantTupleIfNecessary(info.StartsCycle)
+            Next
+
+            order.Free()
+
+            ' Return the value of this field.
+            Return GetLazyConstantTuple().Value
+        End Function
+
+        Private Sub BindConstantTupleIfNecessary(startsCycle As Boolean)
+            If GetLazyConstantTuple() Is Nothing Then
+                Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
+                Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
+                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim constantTuple As EvaluatedConstant = MakeConstantTuple(dependencies, diagnostics)
+                dependencies.Freeze()
+
+                If startsCycle Then
+                    diagnostics.Clear()
+                    diagnostics.Add(ERRID.ERR_CircularEvaluation1, Locations(0), CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                End If
+
+                SetLazyConstantTuple(constantTuple, diagnostics)
+                diagnostics.Free()
+                builder.Free()
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Generate a list containing the field and all dependencies
+        ''' of that field that require evaluation. The list is ordered by
+        ''' dependencies, with fields with no dependencies first. Cycles are
+        ''' broken at the first field lexically in the cycle. If multiple threads
+        ''' call this method with the same field, the order of the fields
+        ''' returned should be the same, although some fields may be missing
+        ''' from the lists in some threads as other threads evaluate fields.
+        ''' </summary>
+        Private Sub OrderAllDependencies(order As ArrayBuilder(Of ConstantValueUtils.FieldInfo))
+            Debug.Assert(order.Count = 0)
+
+            Dim graph = PooledDictionary(Of SourceFieldSymbol, DependencyInfo).GetInstance()
+
+            CreateGraph(graph)
+
+            Debug.Assert(graph.Count >= 1)
+            CheckGraph(graph)
+
+#If DEBUG Then
+            Dim fields = ArrayBuilder(Of SourceFieldSymbol).GetInstance()
+            fields.AddRange(graph.Keys)
+#End If
+
+            OrderGraph(graph, order)
+
+#If DEBUG Then
+            ' Verify all entries in the graph are in the ordered list.
+            Dim map = New HashSet(Of SourceFieldSymbol)(order.Select(Function(o) o.Field).Distinct())
+            Debug.Assert(fields.All(Function(f) map.Contains(f)))
+            fields.Free()
+#End If
+
+            graph.Free()
+        End Sub
+
+        Private Structure DependencyInfo
+            ''' <summary>
+            ''' The set of fields on which the field depends.
+            ''' </summary>
+            Public Dependencies As ImmutableHashSet(Of SourceFieldSymbol)
+
+            ''' <summary>
+            ''' The set of fields that depend on the field.
+            ''' </summary>
+            Public DependedOnBy As ImmutableHashSet(Of SourceFieldSymbol)
+        End Structure
+
+        ''' <summary>
+        ''' Build a dependency graph (a map from
+        ''' field to dependencies).
+        ''' </summary>
+        Private Sub CreateGraph(graph As Dictionary(Of SourceFieldSymbol, DependencyInfo))
+
+            Dim pending = ArrayBuilder(Of SourceFieldSymbol).GetInstance()
+            pending.Push(Me)
+
+            While pending.Count > 0
+                Dim field As SourceFieldSymbol = pending.Pop()
+
+                Dim node As DependencyInfo = Nothing
+                If graph.TryGetValue(field, node) Then
+                    If node.Dependencies IsNot Nothing Then
+                        ' Already visited node.
+                        Continue While
+                    End If
+                Else
+                    node = New DependencyInfo()
+                    node.DependedOnBy = ImmutableHashSet(Of SourceFieldSymbol).Empty
+                End If
+
+                Dim dependencies As ImmutableHashSet(Of SourceFieldSymbol) = field.GetConstantValueDependencies()
+                ' GetConstantValueDependencies will return an empty set if
+                ' the constant value has already been calculated. That avoids
+                ' calculating the full graph repeatedly. For instance with
+                ' "Enum E : M0 = 0 : M1 = M0 + 1 : ... : Mn = Mn-1 + 1 : End Enum", we'll calculate
+                ' the graph M0, ..., Mi for the first field we evaluate, Mi. But for
+                ' the next field, Mj, we should only calculate the graph Mi, ..., Mj.
+                node.Dependencies = dependencies
+                graph(field) = node
+
+                For Each dependency As SourceFieldSymbol In dependencies
+                    pending.Push(dependency)
+
+                    If Not graph.TryGetValue(dependency, node) Then
+                        node = New DependencyInfo()
+                        node.DependedOnBy = ImmutableHashSet(Of SourceFieldSymbol).Empty
+                    End If
+
+                    node.DependedOnBy = node.DependedOnBy.Add(field)
+                    graph(dependency) = node
+                Next
+            End While
+
+            pending.Free()
+        End Sub
+
+        ''' <summary>
+        ''' Return the constant value dependencies. Compute the dependencies
+        ''' if necessary by evaluating the constant value but only persist the
+        ''' constant value if there were no dependencies. (If there are dependencies,
+        ''' the constant value will be re-evaluated after evaluating dependencies.)
+        ''' </summary>
+        Private Function GetConstantValueDependencies() As ImmutableHashSet(Of SourceFieldSymbol)
+            Dim valueTuple = GetLazyConstantTuple()
+            If valueTuple IsNot Nothing Then
+                ' Constant value already determined. No need to
+                ' compute dependencies since the constant values
+                ' of all dependencies should be evaluated as well.
+                Return ImmutableHashSet(Of SourceFieldSymbol).Empty
+            End If
+
+            Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
+            Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            valueTuple = MakeConstantTuple(dependencies, diagnostics)
+            dependencies.Freeze()
+
+            Dim result As ImmutableHashSet(Of SourceFieldSymbol)
+
+            ' Only persist if there are no dependencies and the calculation
+            ' completed successfully. (We could probably persist in other
+            ' scenarios but it's probably not worth the added complexity.)
+            If (builder.Count = 0) AndAlso
+               Not valueTuple.Value.IsBad AndAlso
+               Not diagnostics.HasAnyResolvedErrors() Then
+
+                SetLazyConstantTuple(valueTuple, diagnostics)
+                result = ImmutableHashSet(Of SourceFieldSymbol).Empty
+            Else
+                result = ImmutableHashSet(Of SourceFieldSymbol).Empty.Union(builder)
+            End If
+
+            diagnostics.Free()
+            builder.Free()
+            Return result
+        End Function
+
+        <Conditional("DEBUG")>
+        Private Shared Sub CheckGraph(graph As Dictionary(Of SourceFieldSymbol, DependencyInfo))
+            ' Avoid O(n^2) behavior by checking
+            ' a maximum number of entries.
+            Dim i As Integer = 10
+
+            For Each pair In graph
+                Dim field As SourceFieldSymbol = pair.Key
+                Dim node As DependencyInfo = pair.Value
+
+                Debug.Assert(node.Dependencies IsNot Nothing)
+                Debug.Assert(node.DependedOnBy IsNot Nothing)
+
+                For Each dependency As SourceFieldSymbol In node.Dependencies
+                    Dim n As DependencyInfo = Nothing
+                    Dim ok = graph.TryGetValue(dependency, n)
+                    Debug.Assert(ok)
+                    Debug.Assert(n.DependedOnBy.Contains(field))
+                Next
+
+                For Each dependedOnBy As SourceFieldSymbol In node.DependedOnBy
+                    Dim n As DependencyInfo = Nothing
+                    Dim ok = graph.TryGetValue(dependedOnBy, n)
+                    Debug.Assert(ok)
+                    Debug.Assert(n.Dependencies.Contains(field))
+                Next
+
+                i -= 1
+                If i = 0 Then
+                    Exit For
+                End If
+            Next
+
+            Debug.Assert(graph.Values.Sum(Function(n) n.DependedOnBy.Count) = graph.Values.Sum(Function(n) n.Dependencies.Count))
+        End Sub
+
+        Private Shared Sub OrderGraph(graph As Dictionary(Of SourceFieldSymbol, DependencyInfo), order As ArrayBuilder(Of FieldInfo))
+            Debug.Assert(graph.Count > 0)
+
+            Dim lastUpdated As PooledHashSet(Of SourceFieldSymbol) = Nothing
+            Dim fieldsInvolvedInCycles As ArrayBuilder(Of SourceFieldSymbol) = Nothing
+
+            While graph.Count > 0
+                ' Get the set of fields in the graph that have no dependencies.
+                Dim search = If(DirectCast(lastUpdated, IEnumerable(Of SourceFieldSymbol)), graph.Keys)
+                Dim [set] = ArrayBuilder(Of SourceFieldSymbol).GetInstance()
+                For Each field In search
+                    Dim node As DependencyInfo = Nothing
+                    If graph.TryGetValue(field, node) AndAlso node.Dependencies.Count = 0 Then
+                        [set].Add(field)
+                    End If
+                Next
+
+                lastUpdated?.Free()
+                lastUpdated = Nothing
+                If [set].Count > 0 Then
+                    Dim updated = PooledHashSet(Of SourceFieldSymbol).GetInstance()
+
+                    ' Remove fields with no dependencies from the graph.
+                    For Each field In [set]
+                        Dim node = graph(field)
+
+                        ' Remove the field from the Dependencies
+                        ' of each field that depends on it.
+                        For Each dependedOnBy In node.DependedOnBy
+                            Dim n = graph(dependedOnBy)
+                            n.Dependencies = n.Dependencies.Remove(field)
+                            graph(dependedOnBy) = n
+                            updated.Add(dependedOnBy)
+                        Next
+
+                        graph.Remove(field)
+                    Next
+
+                    CheckGraph(graph)
+
+                    ' Add the set to the ordered list.
+                    For Each item In [set]
+                        order.Add(New FieldInfo(item, startsCycle:=False))
+                    Next
+
+                    lastUpdated = updated
+                Else
+                    ' All fields have dependencies which means all fields are involved
+                    ' in cycles. Break the first cycle found. (Note some fields may have
+                    ' dependencies but are not strictly part of any cycle. For instance,
+                    ' B And C in: "Enum E : A = A + B : B = C : C = D : D = D : End Enum").
+                    Dim field = GetStartOfFirstCycle(graph, fieldsInvolvedInCycles)
+
+                    ' Break the dependencies.
+                    Dim node = graph(field)
+
+                    ' Remove the field from the DependedOnBy
+                    ' of each field it has as a dependency.
+                    For Each dependency In node.Dependencies
+                        Dim n = graph(dependency)
+                        n.DependedOnBy = n.DependedOnBy.Remove(field)
+                        graph(dependency) = n
+                    Next
+
+                    node = graph(field)
+                    Dim updated = PooledHashSet(Of SourceFieldSymbol).GetInstance()
+
+                    ' Remove the field from the Dependencies
+                    ' of each field that depends on it.
+                    For Each dependedOnBy In node.DependedOnBy
+                        Dim n = graph(dependedOnBy)
+                        n.Dependencies = n.Dependencies.Remove(field)
+                        graph(dependedOnBy) = n
+                        updated.Add(dependedOnBy)
+                    Next
+
+                    graph.Remove(field)
+
+                    CheckGraph(graph)
+
+                    ' Add the start of the cycle to the ordered list.
+                    order.Add(New FieldInfo(field, startsCycle:=True))
+
+                    lastUpdated = updated
+                End If
+
+                [set].Free()
+            End While
+
+            lastUpdated?.Free()
+            fieldsInvolvedInCycles?.Free()
+        End Sub
+
+        Private Shared Function GetStartOfFirstCycle(
+            graph As Dictionary(Of SourceFieldSymbol, DependencyInfo),
+            ByRef fieldsInvolvedInCycles As ArrayBuilder(Of SourceFieldSymbol)
+        ) As SourceFieldSymbol
+            Debug.Assert(graph.Count > 0)
+
+            If fieldsInvolvedInCycles Is Nothing Then
+                fieldsInvolvedInCycles = ArrayBuilder(Of SourceFieldSymbol).GetInstance(graph.Count)
+                ' We sort fields that belong to the same compilation by location to process cycles in deterministic order.
+                ' Relative order between compilations is not important, cycles do not cross compilation boundaries. 
+                fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(Function(f) f.DeclaringCompilation).
+                    SelectMany(Function(g) g.OrderByDescending(Function(f1, f2) g.Key.CompareSourceLocations(f1.Locations(0), f2.Locations(0)))))
+            End If
+
+            Do
+                Dim field As SourceFieldSymbol = fieldsInvolvedInCycles.Pop()
+
+                If graph.ContainsKey(field) AndAlso IsPartOfCycle(graph, field) Then
+                    Return field
+                End If
+            Loop
+        End Function
+
+        Private Shared Function IsPartOfCycle(graph As Dictionary(Of SourceFieldSymbol, DependencyInfo), field As SourceFieldSymbol) As Boolean
+            Dim [set] = PooledHashSet(Of SourceFieldSymbol).GetInstance()
+            Dim stack = ArrayBuilder(Of SourceFieldSymbol).GetInstance()
+
+            Dim stopAt As SourceFieldSymbol = field
+            Dim result As Boolean = False
+            stack.Push(field)
+
+            While stack.Count > 0
+                field = stack.Pop()
+                Dim node = graph(field)
+
+                If node.Dependencies.Contains(stopAt) Then
+                    result = True
+                    Exit While
+                End If
+
+                For Each dependency In node.Dependencies
+                    If [set].Add(dependency) Then
+                        stack.Push(dependency)
+                    End If
+                Next
+            End While
+
+            stack.Free()
+            [set].Free()
+            Return result
+        End Function
+
+        ''' <summary>
+        ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
+        ''' </summary>
+        Protected Overridable Function GetLazyConstantTuple() As EvaluatedConstant
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        ''' <summary>
+        ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
+        ''' </summary>
+        Protected Overridable Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        ''' <summary>
+        ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
+        ''' </summary>
+        Protected Overridable Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Public Overrides ReadOnly Property IsShared As Boolean
@@ -256,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             If Me.IsConst Then
-                If Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing Then
+                If Me.GetConstantValue(ConstantFieldsInProgress.Empty) IsNot Nothing Then
                     Dim data = GetDecodedWellKnownAttributeData()
                     If data Is Nothing OrElse data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
                         If Me.Type.SpecialType = SpecialType.System_DateTime Then
@@ -357,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Me.IsConst Then
                 If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
-                    constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                    constValue = Me.GetConstantValue(ConstantFieldsInProgress.Empty)
 
                     If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
                         arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())

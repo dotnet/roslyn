@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (text.Storage is not null)
             {
+                context.AddResource(text.Storage);
+
                 writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
                 writer.WriteEncoding(text.Storage.Encoding);
 
@@ -103,17 +105,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
-        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var language = options.Language;
 
             // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
-            service.WriteTo(options, writer, cancellationToken);
+            service.WriteTo(options, writer);
         }
 
         private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)
@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
         }
 
-        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteMetadataReferenceTo(reference, writer, cancellationToken);
+            WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)

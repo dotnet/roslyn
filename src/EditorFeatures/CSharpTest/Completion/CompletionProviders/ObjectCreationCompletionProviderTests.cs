@@ -677,5 +677,121 @@ namespace ConsoleApplication1
 ";
             await VerifyItemExistsAsync(markup, "List<object?>");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        object o = new object(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "object", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateNullableObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        object? o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        object? o = new object(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "object", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateStringAsLocalAndCommitWithCustomizedCommitChar(char commitChar)
+        {
+            var markup = @"
+class Program
+{
+    void Bar()
+    {
+        string o = new $$
+    }
+}";
+            var expectedMark = $@"
+class Program
+{{
+    void Bar()
+    {{
+        string o = new string(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "string", expectedMark, commitChar: commitChar);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CreateGenericListAsLocalAndCommitWithCustomizedChar(char commitChar)
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    void Bar()
+    {
+        List<int> o = new $$
+    }
+}";
+            var expectedMark = $@"
+using System.Collections.Generic;
+class Program
+{{
+    void Bar()
+    {{
+        List<int> o = new List<int>(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: commitChar);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CreateGenericListAsFieldAndCommitWithSemicolon()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new $$
+}";
+            var expectedMark = @"
+using System.Collections.Generic;
+class Program
+{
+    private List<int> o = new List<int>();
+}";
+            await VerifyProviderCommitAsync(markup, "List<int>", expectedMark, commitChar: ';');
+        }
     }
 }

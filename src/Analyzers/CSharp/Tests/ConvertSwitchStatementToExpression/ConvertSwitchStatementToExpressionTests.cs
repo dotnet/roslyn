@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
@@ -2008,6 +2006,60 @@ class Program
                 FixedCode = fixedCode,
                 LanguageVersion = CSharp9,
             }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M(object i)
+    {
+        [|switch|] (i.GetType())
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M(object i)
+    {
+        return i.GetType() switch
+        {
+            _ => 0,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(49788, "https://github.com/dotnet/roslyn/issues/49788")]
+        public async Task TestParenthesizedExpression2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M()
+    {
+        [|switch|] (1 + 1)
+        {
+            default: return 0;
+        }
+    }
+}",
+@"class Program
+{
+    int M()
+    {
+        return (1 + 1) switch
+        {
+            _ => 0,
+        };
+    }
+}");
         }
     }
 }

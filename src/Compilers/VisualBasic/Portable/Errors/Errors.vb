@@ -1384,7 +1384,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'ERR_QueryStartsWithLet = 36608
         'ERR_NoQueryExpressionsInDebugger = 36609
         ERR_QueryNameNotDeclared = 36610
-        '// Available 36611
+
+        ERR_SharedEventNeedsHandlerInTheSameType = 36611
 
         ERR_NestedFunctionArgumentNarrowing3 = 36612
 
@@ -1752,6 +1753,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 37309
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 37310
 
+        ERR_AssignmentInitOnly = 37311
+        ERR_OverridingInitOnlyProperty = 37312
+        ERR_PropertyDoesntImplementInitOnly = 37313
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -1976,6 +1981,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_AttributeNotSupportedInVB = 42381
         ERR_MultipleAnalyzerConfigsInSameDir = 42500
+        WRN_GeneratorFailedDuringInitialization = 42501
+        WRN_GeneratorFailedDuringGeneration = 42502
+        WRN_AnalyzerReferencesFramework = 42503
 
         ' // AVAILABLE                             42600 - 49998
         ERRWRN_NextAvailable = 42600
@@ -2035,5 +2043,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_InterpolatedStrings
         FEATURE_UnconstrainedTypeParameterInConditional
         FEATURE_CommentsAfterLineContinuation
+        FEATURE_InitOnlySettersUsage
     End Enum
 End Namespace

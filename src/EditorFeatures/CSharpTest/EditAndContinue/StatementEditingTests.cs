@@ -6854,7 +6854,7 @@ interface I
 
             // lambdas are ok as they are emitted to a nested type
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetCoreApp30 },
+                targetFrameworks: new[] { TargetFramework.NetCoreApp },
                 expectedDiagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),

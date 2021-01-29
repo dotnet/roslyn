@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // generate MethodDef entries for them.
                     foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
                     {
-                        _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl);
+                        _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl.GetCciAdapter());
                     }
                 }
             }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
                 if ((object)synthesizedAccessor != null)
                 {
-                    _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                    _moduleBeingBuilt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetCciAdapter());
                 }
             }
         }

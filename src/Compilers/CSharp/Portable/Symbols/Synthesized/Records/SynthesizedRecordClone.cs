@@ -144,7 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            if (containingType.IsObjectType())
+            if (containingType.IsObjectType() || containingType is not NamedTypeSymbol containingNamedType)
+            {
+                return null;
+            }
+
+            // If this symbol is from metadata, getting all members can cause us to realize a lot of structures that we otherwise
+            // don't have to. Optimize for the common case here of there not being a method named <Clone>$. If there is a method
+            // with that name, it's most likely the one we're interested in, and we can't get around loading everything to find it.
+            if (!containingNamedType.HasPossibleWellKnownCloneMethod())
             {
                 return null;
             }

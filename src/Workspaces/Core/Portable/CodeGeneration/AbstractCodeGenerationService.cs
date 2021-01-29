@@ -181,14 +181,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(WorkspacesResources.Could_not_find_location_to_generation_symbol_into);
             }
 
-            var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
-
             var destinationTree = destinationDeclaration.SyntaxTree;
+            var oldDocument = solution.GetRequiredDocument(destinationTree);
+
+            if (options.Options is null)
+            {
+                var documentOptions = await oldDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                options = options.With(options: documentOptions);
+            }
+
+            var transformedDeclaration = declarationTransform(destinationDeclaration, options, availableIndices, cancellationToken);
 
             var root = await destinationTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var currentRoot = root.ReplaceNode(destinationDeclaration, transformedDeclaration);
 
-            var oldDocument = solution.GetRequiredDocument(destinationTree);
             var newDocument = oldDocument.WithSyntaxRoot(currentRoot);
 
             if (options.AddImports)

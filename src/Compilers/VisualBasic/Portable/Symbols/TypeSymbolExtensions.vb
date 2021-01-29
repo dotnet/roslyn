@@ -243,105 +243,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         <Extension()>
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
-
-            If t1 Is t2 Then
-                Return True
-            ElseIf t1 Is Nothing OrElse t2 Is Nothing Then
-                Return False
-            End If
-
-            If compareKind = TypeCompareKind.ConsiderEverything Then
-                Return t1.Equals(t2)
-            End If
-
-            Dim kind = t1.Kind
-
-            If kind <> t2.Kind Then
-                Return False
-            End If
-
-            ' Custom modifiers can be inside arrays, pointers and generic instantiations (VB doesn't support pointers)
-            If kind = SymbolKind.ArrayType Then
-                Dim array1 = DirectCast(t1, ArrayTypeSymbol)
-                Dim array2 = DirectCast(t2, ArrayTypeSymbol)
-
-                Return array1.IsSameType(array2, compareKind)
-            ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
-                Return AnonymousTypeManager.IsSameType(t1, t2, compareKind)
-
-            ElseIf kind = SymbolKind.NamedType OrElse kind = SymbolKind.ErrorType Then
-                If t1.IsTupleType OrElse t2.IsTupleType Then
-                    If t1.GetTupleUnderlyingTypeOrSelf().IsSameType(t2.GetTupleUnderlyingTypeOrSelf(), compareKind) Then
-                        If (compareKind And TypeCompareKind.IgnoreTupleNames) = 0 Then
-                            If Not t1.IsTupleType OrElse Not t2.IsTupleType OrElse Not HasSameTupleNames(t1, t2) Then
-                                Return False
-                            End If
-                        End If
-                        Return True
-                    Else
-                        Return False
-                    End If
-                End If
-
-                Dim t1IsDefinition = t1.IsDefinition
-                Dim t2IsDefinition = t2.IsDefinition
-
-                If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
-
-                    If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
-                        Return False ' different definition
-                    End If
-
-                    ' Compare arguments for this type and all containing types
-                    Dim container1 As NamedTypeSymbol = DirectCast(t1, NamedTypeSymbol)
-                    Dim container2 As NamedTypeSymbol = DirectCast(t2, NamedTypeSymbol)
-
-                    Do
-
-                        If Not (container1 Is container1.ConstructedFrom AndAlso container2 Is container2.ConstructedFrom) Then
-                            ' No need to compare type arguments on those containers when they didn't add type arguments (that would cause cycles)
-
-                            If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
-                                Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
-
-                                Return False
-                            End If
-
-                            Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
-                            Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
-
-                            For i As Integer = 0 To args1.Length - 1 Step 1
-                                If Not args1(i).IsSameType(args2(i), compareKind) Then
-                                    Return False
-                                End If
-                            Next
-                        End If
-
-                        container1 = container1.ContainingType
-                        container2 = container2.ContainingType
-
-                        If container1 Is Nothing OrElse
-                           container1 Is container2 Then ' Shortcut
-                            Exit Do
-                        End If
-
-                    Loop
-
-                    Return True
-                End If
-            ElseIf kind = SymbolKind.TypeParameter Then
-                If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
-                    Return False ' different definition
-                End If
-
-                Return t1.ContainingType.IsSameType(t2.ContainingType, compareKind)
-            End If
-
-            Return t1.Equals(t2)
+            Return TypeSymbol.Equals(t1, t2, compareKind)
         End Function
 
-        Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
+        Friend Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
             Dim hasMods1 = type1.HasTypeArgumentsCustomModifiers()
             Dim hasMods2 = type2.HasTypeArgumentsCustomModifiers()
 
@@ -1415,6 +1320,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return New Cci.TypeReferenceWithAttributes(typeRef)
+        End Function
+
+        <Extension>
+        Friend Function IsWellKnownTypeIsExternalInit(typeSymbol As TypeSymbol) As Boolean
+            Return typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit")
+        End Function
+
+        <Extension>
+        Private Function IsWellKnownCompilerServicesTopLevelType(typeSymbol As TypeSymbol, name As String) As Boolean
+            If Not String.Equals(typeSymbol.Name, name) Then
+                Return False
+            End If
+
+            Return IsCompilerServicesTopLevelType(typeSymbol)
+        End Function
+
+        <Extension>
+        Friend Function IsCompilerServicesTopLevelType(typeSymbol As TypeSymbol) As Boolean
+            Return typeSymbol.ContainingType Is Nothing AndAlso IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices")
+        End Function
+
+        <Extension>
+        Private Function IsContainedInNamespace(typeSymbol As TypeSymbol, outerNS As String, midNS As String, innerNS As String) As Boolean
+            Dim innerNamespace = typeSymbol.ContainingNamespace
+            If Not String.Equals(innerNamespace?.Name, innerNS) Then
+                Return False
+            End If
+
+            Dim midNamespace = innerNamespace.ContainingNamespace
+            If Not String.Equals(midNamespace?.Name, midNS) Then
+                Return False
+            End If
+
+            Dim outerNamespace = midNamespace.ContainingNamespace
+            If Not String.Equals(outerNamespace?.Name, outerNS) Then
+                Return False
+            End If
+
+            Dim globalNamespace = outerNamespace.ContainingNamespace
+            Return globalNamespace IsNot Nothing AndAlso globalNamespace.IsGlobalNamespace
         End Function
     End Module
 

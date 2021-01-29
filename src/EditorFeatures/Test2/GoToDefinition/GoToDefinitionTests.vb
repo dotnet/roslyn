@@ -107,10 +107,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Private Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document, cursorPosition, threadingContext, presenter)
-                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(threadingContext, lazyPresenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(threadingContext, lazyPresenter))
+                        DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(threadingContext, presenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

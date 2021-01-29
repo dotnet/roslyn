@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {

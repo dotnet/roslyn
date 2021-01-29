@@ -1019,7 +1019,7 @@ class C
     }
 }
 ";
-            var comp = CreateNullableCompilation(source);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 1
@@ -2068,7 +2068,12 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                );
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(13, 17),
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c.c").WithLocation(13, 17));
         }
 
         [Fact]
@@ -2253,6 +2258,114 @@ class C
                 //             x.ToString(); // 11
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(67, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        public void NestedPattern_Field_01()
+        {
+            var source =
+@"#nullable enable
+class E
+{
+    public E F = new E();
+}
+class Test
+{
+    static void M(E e)
+    {
+        switch (e)
+        {
+            case { F: { F: { F: { F: null } } } }: break;
+        }
+        e.F.F.F.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         e.F.F.F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e.F.F.F.F").WithLocation(14, 9));
+        }
+
+        [Fact]
+        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        public void NestedPattern_Field_02()
+        {
+            var source =
+@"#nullable enable
+class E
+{
+    public E F = new E();
+}
+class Test
+{
+    static void M(E e)
+    {
+        switch (e)
+        {
+            case { F: { F: { F: { F: { F: null } } } } }: break;
+        }
+        e.F.F.F.F.F.ToString();
+    }
+}";
+            // No warning because MaxSlotDepth exceeded.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        public void NestedPattern_Property_01()
+        {
+            var source =
+@"#nullable enable
+class E
+{
+    public E P => new E();
+}
+class Test
+{
+    static void M(E e)
+    {
+        switch (e)
+        {
+            case { P: { P: { P: { P: null } } } }: break;
+        }
+        e.P.P.P.P.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         e.P.P.P.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e.P.P.P.P").WithLocation(14, 9));
+        }
+
+        [Fact]
+        [WorkItem(50161, "https://github.com/dotnet/roslyn/issues/50161")]
+        public void NestedPattern_Property_02()
+        {
+            var source =
+@"#nullable enable
+class E
+{
+    public E P => new E();
+}
+class Test
+{
+    static void M(E e)
+    {
+        switch (e)
+        {
+            case { P: { P: { P: { P: { P: null } } } } }: break;
+        }
+        e.P.P.P.P.P.ToString();
+    }
+}";
+            // No warning because MaxSlotDepth exceeded.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }

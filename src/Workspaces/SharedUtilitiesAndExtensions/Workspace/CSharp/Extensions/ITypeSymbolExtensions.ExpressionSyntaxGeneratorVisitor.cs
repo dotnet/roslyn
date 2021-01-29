@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
+                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create())!;
 
             private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (!TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
+                if (TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
 
                 typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingType.Accept(this);
+                        var container = symbol.ContainingType.Accept(this)!;
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!;
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!;
                     return CreateMemberAccessExpression(symbol, container, syntax);
                 }
             }

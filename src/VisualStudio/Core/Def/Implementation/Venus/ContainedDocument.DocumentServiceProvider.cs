@@ -63,6 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 public SpanMapper(ITextBuffer primaryBuffer)
                     => _primaryBuffer = primaryBuffer;
 
+                /// <summary>
+                /// Legacy venus does not support us adding import directives and them mapping them to their own concepts.
+                /// </summary>
+                public bool SupportsMappingImportDirectives => false;
+
                 public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.

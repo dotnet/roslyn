@@ -1562,6 +1562,98 @@ namespace Foo
             }
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCommitCharForParameterlessConstructor(char commitChar)
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new $$
+        }
+    }
+}";
+
+            var expected = $@"
+using AA;
+
+namespace AA
+{{
+    public class C
+    {{
+    }}
+}}
+
+namespace BB
+{{
+    public class B
+    {{
+        public void M()
+        {{
+            var c = new C(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task TestCommitWithCustomizedCommitCharUnderNonObjectCreationContext(char commitChar)
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            $$
+        }
+    }
+}";
+
+            var expected = $@"
+using AA;
+
+namespace AA
+{{
+    public class C
+    {{
+    }}
+}}
+namespace BB
+{{
+    public class B
+    {{
+        public void M()
+        {{
+            C{commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, flags: flags);
 

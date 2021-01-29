@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Handle cases when the previous method doesn't exist.
 
             MethodDefinitionHandle previousHandle;
-            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
+            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method.GetCciAdapter(), out previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Emit
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap)
         {
             var hoistedLocals = new Dictionary<EncHoistedLocalInfo, int>();
-            var awaiters = new Dictionary<Cci.ITypeReference, int>();
+            var awaiters = new Dictionary<Cci.ITypeReference, int>(Cci.SymbolEquivalentEqualityComparer.Instance);
 
             for (int slotIndex = 0; slotIndex < hoistedLocalSlots.Length; slotIndex++)
             {

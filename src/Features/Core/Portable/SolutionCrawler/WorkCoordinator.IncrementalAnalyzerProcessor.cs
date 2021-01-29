@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return null;
                     }
 
-                    if (!memberPath.TryResolve(root, out SyntaxNode memberNode))
+                    if (!memberPath.TryResolve(root, out SyntaxNode? memberNode))
                     {
                         return null;
                     }

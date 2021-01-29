@@ -3092,5 +3092,126 @@ class Program
 
             await TestAsync(text, "global::System.IO.FileAttributes", mode);
         }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("")]
+        [InlineData("Re")]
+        [InlineData("Col")]
+        [InlineData("Color.Green or", false)]
+        [InlineData("Color.Green or ")]
+        [InlineData("(Color.Green or ")] // start of: is (Color.Red or Color.Green) and not Color.Blue
+        [InlineData("Color.Green or Re")]
+        [InlineData("Color.Green or Color.Red or ")]
+        [InlineData("Color.Green orWrittenWrong ", false)]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestEnumInPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldInferColor = true)
+        {
+            var markup = @$"
+class C
+{{
+    public enum Color
+    {{
+        Red,
+        Green,
+    }}
+
+    public void M(Color c)
+    {{
+        var isRed = c is {isPattern}[||];
+    }}
+}}
+";
+
+            var expectedType = shouldInferColor
+                ? "global::C.Color"
+                : "global::System.Object";
+            await TestAsync(markup, expectedType, TestMode.Position);
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("")]
+        [InlineData("Col")]
+        [InlineData("Color.R")]
+        [InlineData("Red")]
+        [InlineData("Color.Green or ")]
+        [InlineData("Color.Green or Re")]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: {partialWritten}[||]
+    }}
+}}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchStatement_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestEnumInPatterns_SwitchExpression_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        var isRed = this switch
+        {
+            { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
     }
 }

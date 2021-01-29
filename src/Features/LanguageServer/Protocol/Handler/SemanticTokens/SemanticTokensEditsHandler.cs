@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -23,13 +19,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
     /// or every time an edit is made by the user.
     /// </summary>
-    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false), Shared]
+    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false)]
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
         private readonly SemanticTokensCache _tokensCache;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensEditsHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;
@@ -302,7 +296,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         internal static LSP.SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
-            => new LSP.SemanticTokensEdit
+            => new()
             {
                 Start = start,
                 DeleteCount = deleteCount,
@@ -311,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<SemanticToken[]>
         {
-            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new LongestCommonSemanticTokensSubsequence();
+            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
             protected override bool ItemsEqual(
                 SemanticToken[] oldSemanticTokens, int oldIndex,
