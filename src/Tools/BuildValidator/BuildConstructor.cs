@@ -139,7 +139,7 @@ namespace BuildValidator
                 var sourceFileInfo = sourceFileInfos[i];
                 tasks[i] = _sourceResolver.ResolveSourceAsync(sourceFileInfo, sourceLinks, encoding);
             }
-            var result = await Task.WhenAll(tasks);
+            var result = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             return result.ToImmutableArray();
         }
@@ -153,7 +153,7 @@ namespace BuildValidator
 
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos); // TODO: improve perf
             var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
-            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding);
+            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding).ConfigureAwait(false);
             return CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFilePath)).ToImmutableArray(),
@@ -344,7 +344,6 @@ namespace BuildValidator
         #endregion
     }
 }
-
 
 #if !NETCOREAPP
 // TODO: remove this by adding an IVT

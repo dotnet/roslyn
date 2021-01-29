@@ -83,13 +83,19 @@ namespace BuildValidator
             _peReader = peReader;
         }
 
+        public BlobReader GetMetadataCompilationOptionsBlobReader()
+        {
+            if (!TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out var optionsBlob))
+                throw new Exception();
+
+            return optionsBlob;
+        }
+
         public MetadataCompilationOptions GetMetadataCompilationOptions()
         {
             if (_metadataCompilationOptions is null)
             {
-                if (!TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out var optionsBlob))
-                    throw new Exception();
-
+                var optionsBlob = GetMetadataCompilationOptionsBlobReader();
                 _metadataCompilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
             }
 

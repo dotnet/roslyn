@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
@@ -65,17 +66,21 @@ namespace BuildValidator
             var sourceLink = new CompilationOptionsReader(originalPdbReader, originalPeReader).GetSourceLinkUTF8();
             var emitResult = producedCompilation.Emit(
                 peStream: rebuildPeStream,
+                pdbStream: null,
+                xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
                 manifestResources: new CompilationOptionsReader(originalPdbReader, originalPeReader).GetManifestResources(),
-                debugEntryPoint: debugEntryPoint,
                 options: new EmitOptions(
                     debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true),
-                    sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
-                    embeddedTexts: producedCompilation.SyntaxTrees
-                        .Select(st => (path: st.FilePath, text: st.GetText()))
-                        .Where(pair => pair.text.CanBeEmbedded)
-                        .Select(pair => EmbeddedText.FromSource(pair.path, pair.text)));
-
+                debugEntryPoint: debugEntryPoint,
+                metadataPEStream: null,
+                pdbOptionsBlobReader: new CompilationOptionsReader(originalPdbReader, originalPeReader).GetMetadataCompilationOptionsBlobReader(),
+                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
+                embeddedTexts: producedCompilation.SyntaxTrees
+                    .Select(st => (path: st.FilePath, text: st.GetText()))
+                    .Where(pair => pair.text.CanBeEmbedded)
+                    .Select(pair => EmbeddedText.FromSource(pair.path, pair.text)),
+                cancellationToken: CancellationToken.None);
 
             if (emitResult.Success)
             {
@@ -89,7 +94,7 @@ namespace BuildValidator
                 if (!bytesEqual)
                 {
                     // TODO: how do we select which tool to use for validation, since they both appear to be needed in different scenarios.
-                    var useMdv = false;
+                    var useMdv = true;
                     if (useMdv)
                     {
                         var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
