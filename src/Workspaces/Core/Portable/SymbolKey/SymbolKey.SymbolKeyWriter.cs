@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis
 
             private readonly List<IMethodSymbol> _methodSymbolStack = new();
             private readonly List<INamedTypeSymbol> _delegateTypeStack = new();
+            private readonly List<INamedTypeSymbol> _delegateOriginalDefinitionTypeStack = new();
 
             internal int _nestingCount;
             private int _nextId;
@@ -530,9 +531,9 @@ namespace Microsoft.CodeAnalysis
             {
                 if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Type, DeclaringType: { TypeKind: TypeKind.Delegate } } typeParameter)
                 {
-                    for (int i = 0, n = _delegateTypeStack.Count; i < n; i++)
+                    for (int i = 0, n = _delegateOriginalDefinitionTypeStack.Count; i < n; i++)
                     {
-                        if (typeParameter.DeclaringType!.Equals(_delegateTypeStack[i]))
+                        if (typeParameter.DeclaringType.OriginalDefinition!.Equals(_delegateOriginalDefinitionTypeStack[i]))
                         {
                             delegateTypeIndex = i;
                             return true;
@@ -580,6 +581,21 @@ namespace Microsoft.CodeAnalysis
                 Contract.ThrowIfTrue(_delegateTypeStack.Count == 0);
                 Contract.ThrowIfFalse(delegateType.Equals(_delegateTypeStack[^1]));
                 _delegateTypeStack.RemoveAt(_delegateTypeStack.Count - 1);
+            }
+
+            public void PushDelegateOriginalDefinition(INamedTypeSymbol delegateType)
+            {
+                Contract.ThrowIfFalse(delegateType == delegateType.OriginalDefinition);
+                _delegateOriginalDefinitionTypeStack.Add(delegateType);
+            }
+
+            public void PopDelegateOriginalDefinition(INamedTypeSymbol delegateType)
+            {
+                Contract.ThrowIfFalse(delegateType == delegateType.OriginalDefinition);
+
+                Contract.ThrowIfTrue(_delegateOriginalDefinitionTypeStack.Count == 0);
+                Contract.ThrowIfFalse(_delegateOriginalDefinitionTypeStack.Equals(_delegateTypeStack[^1]));
+                _delegateTypeStack.RemoveAt(_delegateOriginalDefinitionTypeStack.Count - 1);
             }
         }
     }

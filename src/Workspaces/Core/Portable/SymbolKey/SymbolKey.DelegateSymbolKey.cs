@@ -33,12 +33,14 @@ namespace Microsoft.CodeAnalysis
                 // ourselves into the visitor context so that any type parameters that reference us get written out as
                 // an ordinal and do not cause circularities.
                 var originalDefinition = symbol.OriginalDefinition;
-                visitor.PushDelegate(originalDefinition);
+                visitor.PushDelegate(symbol);
+                visitor.PushDelegateOriginalDefinition(originalDefinition);
 
                 visitor.WriteRefKindArray(originalDefinition.DelegateInvokeMethod!.Parameters);
                 visitor.WriteParameterTypesArray(originalDefinition.DelegateInvokeMethod!.Parameters);
 
-                visitor.PopDelegate(originalDefinition);
+                visitor.PopDelegateOriginalDefinition(originalDefinition);
+                visitor.PopDelegate(symbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
@@ -97,10 +99,13 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var candidateDelegate in candidateDelegates)
                 {
+                    var candidateDelegateOriginalDefinition = candidateDelegate.OriginalDefinition;
+
                     // Restore our position to right before the list of parameters.  Also, push this candidate into our
                     // delegate-resolution-stack so that we can properly resolve type parameter ordinals.
                     reader.Position = beforeParametersPosition;
                     reader.PushDelegate(candidateDelegate);
+                    reader.PushDelegateOriginalDefinition(candidateDelegate);
 
                     // Now try to read in the parameter types and compare them to the parameter types of our delegate.
                     using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out _);
@@ -109,6 +114,7 @@ namespace Microsoft.CodeAnalysis
                         ? candidateDelegate
                         : null;
 
+                    reader.PopDelegateOriginalDefinition(candidateDelegate);
                     reader.PopDelegate(candidateDelegate);
 
                     // Break on the first result we find.
