@@ -373,7 +373,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 fixed (byte* tableNamePtr = tableNameBytes)
                 fixed (byte* columnNamePtr = columnNameBytes)
                 {
-                    // sqlite requires a byte* and a length *not* including the trailing zero.
+                    // sqlite requires a byte* and a length *not* including the trailing zero.  So subtract one from all
+                    // the array lengths to get the length they expect.
 
                     const int ReadOnlyFlags = 0;
                     using var blob = NativeMethods.sqlite3_blob_open(
