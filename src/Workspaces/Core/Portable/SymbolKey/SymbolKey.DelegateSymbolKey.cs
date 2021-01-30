@@ -21,13 +21,14 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
                 var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+
                 if (constructedFromFailureReason != null)
                 {
                     failureReason = $"({nameof(ConstructedDelegateSymbolKey)} {nameof(constructedFrom)} failed -> {constructedFromFailureReason})";
                     return default;
                 }
 
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 if (typeArgumentsFailureReason != null)
                 {
                     failureReason = $"({nameof(ConstructedDelegateSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";

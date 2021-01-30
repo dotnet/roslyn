@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                 var valueToName = new Dictionary<char, string>();
                 foreach (var field in typeof(SymbolKeyType).GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
-                    var value = (char)field.GetValue(null)!;
+                    var value = (char)(SymbolKeyType)field.GetValue(null)!;
                     if (valueToName.TryGetValue(value, out var existing))
                         throw new InvalidOperationException($"{nameof(SymbolKeyType)} has two fields with value '{value}'. '{existing}' and '{field.Name}'.");
 
