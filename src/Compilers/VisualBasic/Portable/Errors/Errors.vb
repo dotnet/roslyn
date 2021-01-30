@@ -1955,7 +1955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         'WRN_PDBConstantStringValueTooLong = 42363  we gave up on this warning. See comments in commonCompilation.Emit()
         WRN_ReturnTypeAttributeOnWriteOnlyProperty = 42364
 
-        ' // AVAILABLE 42365
+        ERR_UnmanagedCallersOnlyNotSupported = 42365
 
         WRN_InvalidVersionFormat = 42366
         WRN_MainIgnored = 42367
