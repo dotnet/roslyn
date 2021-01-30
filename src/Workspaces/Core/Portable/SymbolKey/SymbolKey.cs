@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis
     ///         the "same" <see cref="ISymbol.ContainingSymbol"/>,
     ///         equal <see cref="ISymbol.MetadataName"/>,
     ///         equal <see cref="INamedTypeSymbol.Arity"/> and 
-    ///         the "same" <see cref="INamedTypeSymbol.TypeArguments"/>.</item>
+    ///         the "same" <see cref="INamedTypeSymbol.TypeArguments"/>. If the named type is a delegate,
+    ///         it must have the "same" <see cref="IParameterSymbol.Type"/>s and 
+    ///         equal <see cref="IParameterSymbol.RefKind"/>s.
     ///   <item>Two <see cref="INamespaceSymbol"/>s are the "same" if they have 
     ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and
     ///         equal <see cref="ISymbol.MetadataName"/>.
