@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -944,11 +945,17 @@ public class C
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
 
-            var aggressiveInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_Aggressive", SymbolFilter.Member).Single();
-            Assert.Equal(MethodImplAttributes.AggressiveInlining, aggressiveInliningMethod.ImplementationAttributes);
+            Action<ModuleSymbol> validator = module =>
+            {
+                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var aggressiveInliningMethod = c.GetMember<MethodSymbol>("M_Aggressive");
+                Assert.Equal(MethodImplAttributes.AggressiveInlining, aggressiveInliningMethod.ImplementationAttributes);
 
-            var noInliningMethod = (IMethodSymbol)comp.GetSymbolsWithName("M_NoInlining", SymbolFilter.Member).Single();
-            Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.ImplementationAttributes);
+                var noInliningMethod = c.GetMember<MethodSymbol>("M_NoInlining");
+                Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.ImplementationAttributes);
+            };
+
+            CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
 
