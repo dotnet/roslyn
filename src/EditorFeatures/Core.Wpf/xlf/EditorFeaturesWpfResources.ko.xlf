@@ -7,16 +7,6 @@
         <target state="translated">이름 바꾸기 수행 중 오류 발생: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">제안을 수집하는 중 - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">제안을 수집하는 중 - 솔루션이 완전히 로드될 때까지 기다리는 중</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">Regex - 주석</target>
