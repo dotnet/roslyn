@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// Used to log information from within the compiler server
     /// </summary>
     /// <remarks>
-    /// Implementations of this interface must assume they are used on multilpe threads without any form
+    /// Implementations of this interface must assume they are used on multiple threads without any form
     /// of synchronization.
     /// </remarks>
     internal interface ICompilerServerLogger

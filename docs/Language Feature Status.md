@@ -18,6 +18,12 @@ efforts behind them.
 | [Constant Interpolated Strings](https://github.com/dotnet/csharplang/issues/2951) | master | [Merged into 16.9p3](https://github.com/dotnet/roslyn/pull/49676) | [kevinsun-dev](https://github.com/kevinsun-dev) | [333fred](https://github.com/333fred) | [jaredar](https://github.com/jaredpar), [agocke](https://github.com/agocke) |
 | [Mix declarations and variables in deconstruction](https://github.com/dotnet/csharplang/issues/125) | master | [In Progress](https://github.com/dotnet/roslyn/issues/47746) | [YairHalberstadt ](https://github.com/YairHalberstadt ) | [jcouv](https://github.com/jcouv) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 
+# VB 16.9
+
+| Feature                                                                                            | Branch                                                                                                         | State                                                        | Developers                                                                   | Reviewer                                                                           | LDM Champ                               |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------|-----------------------------------------|
+| [Enable consumption of init-only properties](https://github.com/dotnet/roslyn/pull/50414) | master                                      | [Merged (16.9p3)](https://github.com/dotnet/roslyn/issues/50792)                                                  | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv)     
+
 # C# 9
 
 | Feature                                                                                            | Branch                                                                                                         | State                                                        | Developers                                                                   | Reviewer                                                                           | LDM Champ                               |

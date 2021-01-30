@@ -643,7 +643,8 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
                Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics:=Nothing) Then
                 Return Nothing
             End If

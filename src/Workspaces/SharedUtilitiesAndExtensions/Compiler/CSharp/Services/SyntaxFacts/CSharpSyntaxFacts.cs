@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsRecord(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -1895,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                     return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.Record;
+                    return DeclarationKind.RecordClass;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:

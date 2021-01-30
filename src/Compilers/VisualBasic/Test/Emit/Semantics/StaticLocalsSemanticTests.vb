@@ -1084,7 +1084,7 @@ End Class
 
 
 
-        Public Sub Semantic_InheritenceConstructor()
+        Public Sub Semantic_InheritanceConstructor()
             'The Use of Static Locals in both a base and derived class constructor - instance method
 
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(

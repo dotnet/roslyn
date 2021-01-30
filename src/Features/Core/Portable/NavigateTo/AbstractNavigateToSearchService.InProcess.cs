@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
 
             var highPriDocsSet = highPriDocs.ToSet();
-            var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
+            var lowPriDocs = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+                              .Where(d => !highPriDocsSet.Contains(d));
 
             var orderedDocs = highPriDocs.AddRange(lowPriDocs);
 
             Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
-            Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
             Debug.Assert(orderedDocs.Distinct().Length == orderedDocs.Length, "Ordered list contained a duplicate!");
             Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
 
