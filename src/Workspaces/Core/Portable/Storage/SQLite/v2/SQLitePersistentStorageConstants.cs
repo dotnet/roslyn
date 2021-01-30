@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         //    and validating checksums without the overhead of reading the full 'value' into
         //    memory.
         // 3. Use an in-memory DB to cache writes before flushing to disk.
-        private const string Version = "3";
+        // 4. Store checksums directly inline (i.e. 20 bytes), instead of usign ObjectWriter serialization (which adds
+        //    more data to the checksum).
+        private const string Version = "4";
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique

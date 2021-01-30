@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         private static readonly byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.Main.GetName());
         private static readonly byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.WriteCache.GetName());
 
-        private static readonly byte[] s_solutionTableName = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
-        private static readonly byte[] s_projectTableName = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
-        private static readonly byte[] s_documentTableName = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
+        private static readonly byte[] s_solutionTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
+        private static readonly byte[] s_projectTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
+        private static readonly byte[] s_documentTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
 
-        private static readonly byte[] s_checksumColumnName = GetUtf8BytesWithTrailingZero(ChecksumColumnName);
-        private static readonly byte[] s_dataColumnName = GetUtf8BytesWithTrailingZero(DataColumnName);
+        private static readonly byte[] s_checksumColumnNameWithTrailingZero = GetUtf8BytesWithTrailingZero(ChecksumColumnName);
+        private static readonly byte[] s_dataColumnNameWithTrailingZero = GetUtf8BytesWithTrailingZero(DataColumnName);
 
         private static byte[] GetUtf8BytesWithTrailingZero(string value)
         {
@@ -354,16 +354,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
             var tableNameBytes = table switch
             {
-                Table.Solution => s_solutionTableName,
-                Table.Project => s_projectTableName,
-                Table.Document => s_documentTableName,
+                Table.Solution => s_solutionTableNameWithTrailingZero,
+                Table.Project => s_projectTableNameWithTrailingZero,
+                Table.Document => s_documentTableNameWithTrailingZero,
                 _ => throw ExceptionUtilities.UnexpectedValue(table),
             };
 
             var columnNameBytes = column switch
             {
-                Column.Data => s_dataColumnName,
-                Column.Checksum => s_checksumColumnName,
+                Column.Data => s_dataColumnNameWithTrailingZero,
+                Column.Checksum => s_checksumColumnNameWithTrailingZero,
                 _ => throw ExceptionUtilities.UnexpectedValue(column),
             };
 
