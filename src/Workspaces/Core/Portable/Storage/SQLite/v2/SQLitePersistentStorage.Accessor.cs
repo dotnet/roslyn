@@ -17,6 +17,8 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
+    using static SQLitePersistentStorageConstants;
+
     internal partial class SQLitePersistentStorage
     {
         /// <summary>
@@ -48,15 +50,23 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 var main = Database.Main.GetName();
                 var writeCache = Database.WriteCache.GetName();
 
+                var dataTableName = this.Table switch
+                {
+                    Table.Solution => SolutionDataTableName,
+                    Table.Project => ProjectDataTableName,
+                    Table.Document => DocumentDataTableName,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Table),
+                };
+
                 Storage = storage;
-                _select_rowid_from_main_table_where_0 = $@"select rowid from {main}.{DataTableName} where ""{DataIdColumnName}"" = ?";
-                _select_rowid_from_writecache_table_where_0 = $@"select rowid from {writeCache}.{DataTableName} where ""{DataIdColumnName}"" = ?";
-                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{DataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
-                _delete_from_writecache_table = $"delete from {writeCache}.{DataTableName};";
-                _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{DataTableName} select * from {writeCache}.{DataTableName};";
+                _select_rowid_from_main_table_where_0 = $@"select rowid from {main}.{dataTableName} where ""{DataIdColumnName}"" = ?";
+                _select_rowid_from_writecache_table_where_0 = $@"select rowid from {writeCache}.{dataTableName} where ""{DataIdColumnName}"" = ?";
+                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {writeCache}.{dataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+                _delete_from_writecache_table = $"delete from {writeCache}.{dataTableName};";
+                _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {main}.{dataTableName} select * from {writeCache}.{dataTableName};";
             }
 
-            protected abstract string DataTableName { get; }
+            protected abstract Table Table { get; }
 
             protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, out TDatabaseId dataId);
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
@@ -83,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-                => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
+                => ReadDataBlobColumn(key, checksum, cancellationToken);
 
             private Optional<T> ReadColumn<T, TData>(
                 TKey key,
@@ -133,13 +143,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 }
             }
 
-            private Stream? ReadBlobColumn(
-                TKey key, string columnName, Checksum? checksum, CancellationToken cancellationToken)
+            private Stream? ReadDataBlobColumn(
+                TKey key, Checksum? checksum, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
                     key,
-                    static (t, connection, database, rowId) => t.self.ReadBlob(connection, database, rowId, t.columnName, t.checksum),
-                    (self: this, columnName, checksum),
+                    static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
+                    (self: this, checksum),
                     cancellationToken);
 
                 Contract.ThrowIfTrue(optional.HasValue && optional.Value == null);
@@ -195,8 +205,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return false;
             }
 
-            private Optional<Stream> ReadBlob(
-                SqlConnection connection, Database database, long rowId, string columnName, Checksum? checksum)
+            private Optional<Stream> ReadDataBlob(
+                SqlConnection connection, Database database, long rowId, Checksum? checksum)
             {
                 // Have to run the blob reading in a transaction.  This is necessary
                 // for two reasons.  First, blob reading outside a transaction is not
@@ -217,9 +227,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                             return default;
                         }
 
-                        return t.connection.ReadBlob_MustRunInTransaction(t.database, t.self.DataTableName, t.columnName, t.rowId);
+                        return t.connection.ReadDataBlob_MustRunInTransaction(t.database, t.self.Table, t.rowId);
                     },
-                    (self: this, connection, database, columnName, checksum, rowId));
+                    (self: this, connection, database, checksum, rowId));
             }
 
             private Optional<Checksum.HashData> ReadChecksum(
@@ -229,13 +239,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // transaction is not safe to do with the sqlite API.  It may produce corrupt bits if another thread is
                 // writing to the blob.
                 return connection.RunInTransaction(
-                    static t => t.connection.ReadChecksum_MustRunInTransaction(t.database, t.self.DataTableName, ChecksumColumnName, t.rowId),
+                    static t => t.connection.ReadChecksum_MustRunInTransaction(t.database, t.self.Table, t.rowId),
                     (self: this, connection, database, rowId));
             }
 
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, Database database, long rowId, Checksum checksum)
             {
-                var storedChecksum = connection.ReadChecksum_MustRunInTransaction(database, DataTableName, ChecksumColumnName, rowId);
+                var storedChecksum = connection.ReadChecksum_MustRunInTransaction(database, Table, rowId);
                 return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 

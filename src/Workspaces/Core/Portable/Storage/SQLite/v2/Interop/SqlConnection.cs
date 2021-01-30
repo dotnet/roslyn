@@ -6,12 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
+using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
+    using static SQLitePersistentStorageConstants;
+
     /// <summary>
     /// Encapsulates a connection to a sqlite database.  On construction an attempt will be made
     /// to open the DB if it exists, or create it if it does not.
@@ -27,6 +31,31 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// </summary>
     internal class SqlConnection
     {
+        // Cached utf8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
+        // having to convert these names to/from utf16 to utf8 on every call.  Sqlite requires these be null terminated.
+
+        private static byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero("main");
+        private static byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero("writecache");
+
+        private static byte[] s_solutionTableName = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
+        private static byte[] s_projectTableName = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
+        private static byte[] s_documentTableName = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
+
+        private static readonly byte[] s_checksumColumnName = GetUtf8BytesWithTrailingZero(ChecksumColumnName);
+        private static readonly byte[] s_dataColumnName = GetUtf8BytesWithTrailingZero(DataColumnName);
+
+        private static byte[] GetUtf8BytesWithTrailingZero(string value)
+        {
+            var length = Encoding.UTF8.GetByteCount(value);
+
+            var byteArray = new byte[length + 1];
+            var wrote = Encoding.UTF8.GetBytes(value, 0, value.Length, byteArray, 0);
+            Contract.ThrowIfFalse(wrote == length);
+
+            byteArray[^1] = 0;
+            return byteArray;
+        }
+
         /// <summary>
         /// The raw handle to the underlying DB.
         /// </summary>
@@ -230,18 +259,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Optional<Stream> ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Optional<Stream> ReadDataBlob_MustRunInTransaction(Database database, Table table, long rowId)
         {
             return ReadBlob_MustRunInTransaction(
-                database, tableName, columnName, rowId,
+                database, table, Column.Data, rowId,
                 static (self, blobHandle) => new Optional<Stream>(self.ReadBlob(blobHandle)));
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Optional<Checksum.HashData> ReadChecksum_MustRunInTransaction(Database database, string tableName, string checksumColumnName, long rowId)
+        public Optional<Checksum.HashData> ReadChecksum_MustRunInTransaction(Database database, Table table, long rowId)
         {
             return ReadBlob_MustRunInTransaction(
-                database, tableName, checksumColumnName, rowId,
+                database, table, Column.Checksum, rowId,
                 static (self, blobHandle) =>
                 {
                     // If the length of the blob isn't correct, then we can't read a checksum out of this.
@@ -297,7 +326,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Optional<T> ReadBlob_MustRunInTransaction<T>(
-            Database database, string tableName, string columnName, long rowId,
+            Database database, Table table, Column column, long rowId,
             Func<SqlConnection, SafeSqliteBlobHandle, Optional<T>> readBlob)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
@@ -314,18 +343,56 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
             }
 
-            const int ReadOnlyFlags = 0;
-
-            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var result);
-
-            if (result == Result.ERROR)
+            var databaseNameBytes = database switch
             {
-                // can happen when rowId points to a row that hasn't been written to yet.
-                return default;
-            }
+                Database.Main => s_mainNameWithTrailingZero,
+                Database.WriteCache => s_writeCacheNameWithTrailingZero,
+                _ => throw ExceptionUtilities.UnexpectedValue(database),
+            };
 
-            ThrowIfNotOk(result);
-            return readBlob(this, blob);
+            var tableNameBytes = table switch
+            {
+                Table.Solution => s_solutionTableName,
+                Table.Project => s_projectTableName,
+                Table.Document => s_documentTableName,
+                _ => throw ExceptionUtilities.UnexpectedValue(table),
+            };
+
+            var columnNameBytes = column switch
+            {
+                Column.Data => s_dataColumnName,
+                Column.Checksum => s_checksumColumnName,
+                _ => throw ExceptionUtilities.UnexpectedValue(column),
+            };
+
+            unsafe
+            {
+                fixed (byte* databaseNamePtr = databaseNameBytes)
+                fixed (byte* tableNamePtr = tableNameBytes)
+                fixed (byte* columnNamePtr = columnNameBytes)
+                {
+                    // sqlite requires a byte* and a length *not* including the trailing zero.
+
+                    const int ReadOnlyFlags = 0;
+                    using var blob = NativeMethods.sqlite3_blob_open(
+                        _handle,
+                        utf8z.FromPtrLen(databaseNamePtr, databaseNameBytes.Length - 1),
+                        utf8z.FromPtrLen(tableNamePtr, tableNameBytes.Length - 1),
+                        utf8z.FromPtrLen(columnNamePtr, columnNameBytes.Length - 1),
+                        rowId,
+                        ReadOnlyFlags,
+                        out var result);
+
+                    if (result == Result.ERROR)
+                    {
+                        // can happen when rowId points to a row that hasn't been written to yet.
+                        return default;
+                    }
+
+                    ThrowIfNotOk(result);
+                    return readBlob(this, blob);
+                }
+            }
         }
 
         public void ThrowIfNotOk(int result)

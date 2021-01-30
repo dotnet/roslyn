@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
         }
 
-        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, string sdb, string table, string col, long rowid, int flags, out Result result)
+        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, utf8z sdb, utf8z table, utf8z col, long rowid, int flags, out Result result)
         {
             using var _ = db.Lease();
 
