@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis
 
             // A reference to a type parameter for the containing delegate while writing out a delegate's signature.
             DelegateTypeParameterOrdinal = '$',
+
+            // A reference to the containing delegate while writing out a delegate's signatuer.
+            DelegateOrdinal = '^',
         }
 
         private class SymbolKeyWriter : SymbolVisitor, IDisposable
@@ -143,7 +146,8 @@ namespace Microsoft.CodeAnalysis
 
                 int id;
                 var shouldWriteOrdinal = ShouldWriteMethodTypeParameterOrdinal(symbol, out _) ||
-                                         ShouldWriteDelegateTypeParameterOrdinal(symbol, out _);
+                                         ShouldWriteDelegateTypeParameterOrdinal(symbol, out _) ||
+                                         ShouldWriteDelegateOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -429,6 +433,11 @@ namespace Microsoft.CodeAnalysis
                         AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
                     }
                 }
+                else if (ShouldWriteDelegateOrdinal(namedTypeSymbol, out var delegateIndex))
+                {
+                    WriteType(SymbolKeyType.DelegateOrdinal);
+                    DelegateOrdinalSymbolKey.Create(namedTypeSymbol, delegateIndex, this);
+                }
                 else if (namedTypeSymbol.DelegateInvokeMethod != null)
                 {
                     WriteType(SymbolKeyType.Delegate);
@@ -517,7 +526,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public bool ShouldWriteDelegateTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
+            public bool ShouldWriteDelegateTypeParameterOrdinal(ISymbol symbol, out int delegateTypeIndex)
             {
                 if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Type, DeclaringType: { TypeKind: TypeKind.Delegate } } typeParameter)
                 {
@@ -525,13 +534,31 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (typeParameter.DeclaringType!.Equals(_delegateTypeStack[i]))
                         {
-                            methodIndex = i;
+                            delegateTypeIndex = i;
                             return true;
                         }
                     }
                 }
 
-                methodIndex = -1;
+                delegateTypeIndex = -1;
+                return false;
+            }
+
+            public bool ShouldWriteDelegateOrdinal(ISymbol symbol, out int delegateTypeIndex)
+            {
+                if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate })
+                {
+                    for (int i = 0, n = _delegateTypeStack.Count; i < n; i++)
+                    {
+                        if (symbol.Equals(_delegateTypeStack[i]))
+                        {
+                            delegateTypeIndex = i;
+                            return true;
+                        }
+                    }
+                }
+
+                delegateTypeIndex = -1;
                 return false;
             }
 

@@ -489,6 +489,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.MethodTypeParameterOrdinal => MethodTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.DelegateTypeParameterOrdinal => DelegateTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.DelegateOrdinal => DelegateOrdinalSymbolKey.Resolve(this, out failureReason),
                     _ => throw new NotImplementedException(),
                 };
 
