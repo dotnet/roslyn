@@ -35,12 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
             IGlobalOptionService globalOptionService,
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
-            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }

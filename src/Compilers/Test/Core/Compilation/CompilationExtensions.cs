@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var compilation = createCompilation();
-            var roots = ArrayBuilder<IOperation>.GetInstance();
+            var roots = ArrayBuilder<(IOperation operation, ISymbol associatedSymbol)>.GetInstance();
             var stopWatch = new Stopwatch();
             if (!System.Diagnostics.Debugger.IsAttached)
             {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         if (operation.Parent == null)
                         {
-                            roots.Add(operation);
+                            roots.Add((operation, semanticModel.GetDeclaredSymbol(operation.Syntax)));
                         }
                     }
                 }
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
-            foreach (var root in roots)
+            foreach (var (root, associatedSymbol) in roots)
             {
                 foreach (var operation in root.DescendantsAndSelf())
                 {
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 stopWatch.Stop();
-                checkControlFlowGraph(root);
+                checkControlFlowGraph(root, associatedSymbol);
                 stopWatch.Start();
             }
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             stopWatch.Stop();
             return;
 
-            void checkControlFlowGraph(IOperation root)
+            void checkControlFlowGraph(IOperation root, ISymbol associatedSymbol)
             {
                 switch (root)
                 {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // https://github.com/dotnet/roslyn/issues/27593 tracks adding ControlFlowGraph support in script code.
                         if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation), associatedSymbol);
                         }
 
                         break;
@@ -356,14 +356,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case IConstructorBodyOperation constructorBody:
                     case IFieldInitializerOperation fieldInitializerOperation:
                     case IPropertyInitializerOperation propertyInitializerOperation:
-                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
                         // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
                         if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
                         break;
                 }
