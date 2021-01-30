@@ -10,6 +10,49 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
+        private static class ConstructedDelegateSymbolKey
+        {
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            {
+                visitor.WriteSymbolKey(symbol.ConstructedFrom);
+                visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+            }
+
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            {
+                var constructedFrom = reader.ReadSymbolKey(out var constructedFromFailureReason);
+                if (constructedFromFailureReason != null)
+                {
+                    failureReason = $"({nameof(ConstructedDelegateSymbolKey)} {nameof(constructedFrom)} failed -> {constructedFromFailureReason})";
+                    return default;
+                }
+
+                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
+                if (typeArgumentsFailureReason != null)
+                {
+                    failureReason = $"({nameof(ConstructedDelegateSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
+                    return default;
+                }
+
+                if (constructedFrom.SymbolCount == 0 || typeArguments.IsDefault)
+                {
+                    failureReason = $"({nameof(ConstructedDelegateSymbolKey)} {nameof(typeArguments)} failed -> 'constructedFrom.SymbolCount == 0 || typeArguments.IsDefault')";
+                    return default;
+                }
+
+                var typeArgumentArray = typeArguments.Builder.ToArray();
+
+                using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
+                foreach (var type in constructedFrom.OfType<INamedTypeSymbol>())
+                {
+                    if (type.TypeParameters.Length == typeArgumentArray.Length)
+                        result.AddIfNotNull(type.Construct(typeArgumentArray));
+                }
+
+                return CreateResolution(result, $"({nameof(ConstructedDelegateSymbolKey)} could not successfully construct)", out failureReason);
+            }
+        }
+
         private static class DelegateSymbolKey
         {
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
@@ -17,17 +60,6 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
                 visitor.WriteInteger(symbol.Arity);
-                visitor.WriteBoolean(symbol.IsUnboundGenericType);
-
-                // If we're a constructed in some fashion, then write out the type args we were constructed with.
-                if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
-                {
-                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
-                }
-                else
-                {
-                    visitor.WriteSymbolKeyArray(ImmutableArray<ITypeSymbol>.Empty);
-                }
 
                 // Now, write out the parameter types for the delegate's original invoke method.  Ensure we push
                 // ourselves into the visitor context so that any type parameters that reference us get written out as
@@ -45,37 +77,7 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString()!;
                 var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
                 var arity = reader.ReadInteger();
-                var isUnboundGenericType = reader.ReadBoolean();
-                using var typeArguments = reader.ReadSymbolKeyArray<ITypeSymbol>(out var typeArgumentsFailureReason);
                 using var refKinds = reader.ReadRefKindArray();
-
-                if (containingSymbolFailureReason != null)
-                {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(containingSymbolFailureReason)} failed -> {containingSymbolFailureReason})";
-                    return default;
-                }
-
-                if (typeArgumentsFailureReason != null)
-                {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed -> {typeArgumentsFailureReason})";
-                    return default;
-                }
-
-                if (typeArguments.IsDefault)
-                {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(typeArguments)} failed)";
-                    return default;
-                }
-
-                if (refKinds.IsDefault)
-                {
-                    failureReason = $"({nameof(NamedTypeSymbolKey)} {nameof(refKinds)} failed)";
-                    return default;
-                }
-
-                var typeArgumentArray = typeArguments.Count == 0
-                    ? Array.Empty<ITypeSymbol>()
-                    : typeArguments.Builder.ToArray();
 
                 using var result = PooledArrayBuilder<INamedTypeSymbol>.GetInstance();
                 using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var candidateDelegates);
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 // Get all the candidate delegates.  These will be delegates with the  right name/arity, and whose
                 // signature has the right number of parameters and refkinds.  We'll validate that the signature types
                 // actually match after this.
-                AddDelegatesInContainer(containingSymbolResolution, metadataName, arity, isUnboundGenericType, typeArgumentArray, refKinds, candidateDelegates);
+                AddDelegatesInContainer(containingSymbolResolution, metadataName, arity, refKinds, candidateDelegates);
 
                 // For each delegate type that we look at, we'll have to resolve the parameter list of its 'Invoke'
                 // method in the context of that delegate type.  i.e. if we have `delegate void Goo<T>(IList<T> list);
@@ -142,8 +144,6 @@ namespace Microsoft.CodeAnalysis
                 SymbolKeyResolution containingSymbolResolution,
                 string metadataName,
                 int arity,
-                bool isUnboundGenericType,
-                ITypeSymbol[] typeArguments,
                 PooledArrayBuilder<RefKind> refKinds,
                 ArrayBuilder<INamedTypeSymbol> delegatesInContainer)
             {
@@ -158,11 +158,7 @@ namespace Microsoft.CodeAnalysis
                         if (!ParameterRefKindsMatch(type.DelegateInvokeMethod!.Parameters, refKinds))
                             continue;
 
-                        // Instantiate the delegate as appropriate.
-                        var currentType = typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
-                        currentType = isUnboundGenericType ? currentType.ConstructUnboundGenericType() : currentType;
-
-                        delegatesInContainer.Add(currentType);
+                        delegatesInContainer.Add(type);
                     }
                 }
             }

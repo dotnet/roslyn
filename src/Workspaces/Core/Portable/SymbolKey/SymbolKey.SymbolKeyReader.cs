@@ -468,7 +468,10 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.BodyLevel => BodyLevelSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.ConstructedMethod => ConstructedMethodSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.NamedType => NamedTypeSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.ConstructedDelegate => ConstructedDelegateSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.Delegate => DelegateSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.DelegateTypeParameterOrdinal => DelegateTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
+                    SymbolKeyType.DelegateOrdinal => DelegateOrdinalSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.Field => FieldSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Resolve(this, out failureReason),
@@ -488,8 +491,6 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.AnonymousType => AnonymousTypeSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.AnonymousFunctionOrDelegate => AnonymousFunctionOrDelegateSymbolKey.Resolve(this, out failureReason),
                     SymbolKeyType.MethodTypeParameterOrdinal => MethodTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.DelegateTypeParameterOrdinal => DelegateTypeParameterOrdinalSymbolKey.Resolve(this, out failureReason),
-                    SymbolKeyType.DelegateOrdinal => DelegateOrdinalSymbolKey.Resolve(this, out failureReason),
                     _ => throw new NotImplementedException(),
                 };
 

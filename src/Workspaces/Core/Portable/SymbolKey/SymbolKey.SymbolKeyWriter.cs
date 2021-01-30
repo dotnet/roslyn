@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,11 +22,12 @@ namespace Microsoft.CodeAnalysis
         {
             Alias = 'A',
             BodyLevel = 'B',
-            ConstructedMethod = 'C',
+            ConstructedDelegate = 'C',
             NamedType = 'D',
             ErrorType = 'E',
             Field = 'F',
             FunctionPointer = 'G',
+            ConstructedMethod = 'H',
             DynamicType = 'I',
             Delegate = 'L',
             Method = 'M',
@@ -60,6 +62,19 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyWriter : SymbolVisitor, IDisposable
         {
+            static SymbolKeyWriter()
+            {
+                var valueToName = new Dictionary<char, string>();
+                foreach (var field in typeof(SymbolKeyType).GetFields(BindingFlags.Public | BindingFlags.Static))
+                {
+                    var value = (char)field.GetValue(null)!;
+                    if (valueToName.TryGetValue(value, out var existing))
+                        throw new InvalidOperationException($"{nameof(SymbolKeyType)} has two fields with value '{value}'. '{existing}' and '{field.Name}'.");
+
+                    valueToName.Add(value, field.Name);
+                }
+            }
+
             private static readonly ObjectPool<SymbolKeyWriter> s_writerPool = SharedPools.Default<SymbolKeyWriter>();
 
             private readonly Action<ISymbol> _writeSymbolKey;
@@ -433,15 +448,23 @@ namespace Microsoft.CodeAnalysis
                         AnonymousTypeSymbolKey.Create(namedTypeSymbol, this);
                     }
                 }
-                else if (ShouldWriteDelegateOrdinal(namedTypeSymbol, out var delegateIndex))
+                else if (namedTypeSymbol.TypeKind == TypeKind.Delegate)
                 {
-                    WriteType(SymbolKeyType.DelegateOrdinal);
-                    DelegateOrdinalSymbolKey.Create(namedTypeSymbol, delegateIndex, this);
-                }
-                else if (namedTypeSymbol.DelegateInvokeMethod != null)
-                {
-                    WriteType(SymbolKeyType.Delegate);
-                    DelegateSymbolKey.Create(namedTypeSymbol, this);
+                    if (!namedTypeSymbol.ConstructedFrom.Equals(namedTypeSymbol))
+                    {
+                        WriteType(SymbolKeyType.ConstructedDelegate);
+                        ConstructedDelegateSymbolKey.Create(namedTypeSymbol, this);
+                    }
+                    else if (ShouldWriteDelegateOrdinal(namedTypeSymbol, out var delegateIndex))
+                    {
+                        WriteType(SymbolKeyType.DelegateOrdinal);
+                        DelegateOrdinalSymbolKey.Create(namedTypeSymbol, delegateIndex, this);
+                    }
+                    else
+                    {
+                        WriteType(SymbolKeyType.Delegate);
+                        DelegateSymbolKey.Create(namedTypeSymbol, this);
+                    }
                 }
                 else
                 {
