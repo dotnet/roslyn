@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Individual smaller text changes that are more fine grained than the total <see cref="TextChange"/> value.
         /// This can be useful for host that do not support diffing changes to find minimal edits.  Even if this is 
-        /// provide, <see cref="TextChange"/> must still be provided.
+        /// provided, <see cref="TextChange"/> must still be provided as well.
         /// </summary>
         public ImmutableArray<TextChange> TextChanges { get; }
 
