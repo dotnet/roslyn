@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
+        /// <summary>
+        /// Symbol key for a constructed delegate.  i.e. <c>D&lt;int&gt;</c> as opposed to <c>D&lt;T&gt;</c>.
+        /// </summary>
         private static class ConstructedDelegateSymbolKey
         {
             public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)

@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
+        /// <summary>
+        /// Symbol key to reference a delegate that is in the middle of being written out (or read in).  This can happen
+        /// as delegates can be recursive in nature.  For example <c>delegate void D(D d);</c>.  We need a way to not
+        /// infinitely recurse when we hit the reference to D inside its own signature.
+        /// </summary>
         private static class DelegateOrdinalSymbolKey
         {
             public static void Create(INamedTypeSymbol namedType, int delegateIndex, SymbolKeyWriter visitor)
