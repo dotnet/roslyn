@@ -648,5 +648,47 @@ class Program
                 //         return (b ? a : 0) + a;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(b ? a : 0) + a").WithArguments("A", "B").WithLocation(15, 16));
         }
+
+        [Fact]
+        public void NaturalType_01()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b, object x, string y)
+    {
+        _ = b ? x : y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Equal("System.Object", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NaturalType_02()
+        {
+            var source =
+@"class Program
+{
+    static void F(bool b, int x)
+    {
+        int? y = b ? x : null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("System.Int32?", typeInfo.ConvertedType.ToTestDisplayString());
+        }
     }
 }
