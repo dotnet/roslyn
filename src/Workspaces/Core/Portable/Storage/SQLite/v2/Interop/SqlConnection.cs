@@ -48,10 +48,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         {
             var length = Encoding.UTF8.GetByteCount(value);
 
+            // Add one for the trailing zero.
             var byteArray = new byte[length + 1];
             var wrote = Encoding.UTF8.GetBytes(value, 0, value.Length, byteArray, 0);
             Contract.ThrowIfFalse(wrote == length);
 
+            // Paranoia, but write in the trailing zero no matter what.
             byteArray[^1] = 0;
             return byteArray;
         }
