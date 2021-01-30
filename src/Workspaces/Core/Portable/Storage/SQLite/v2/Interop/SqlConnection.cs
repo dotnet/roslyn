@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         // Cached utf8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
         // having to convert these names to/from utf16 to utf8 on every call.  Sqlite requires these be null terminated.
 
-        private static byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.Main.GetName());
-        private static byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.WriteCache.GetName());
+        private static readonly byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.Main.GetName());
+        private static readonly byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.WriteCache.GetName());
 
-        private static byte[] s_solutionTableName = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
-        private static byte[] s_projectTableName = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
-        private static byte[] s_documentTableName = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
+        private static readonly byte[] s_solutionTableName = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
+        private static readonly byte[] s_projectTableName = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
+        private static readonly byte[] s_documentTableName = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
 
         private static readonly byte[] s_checksumColumnName = GetUtf8BytesWithTrailingZero(ChecksumColumnName);
         private static readonly byte[] s_dataColumnName = GetUtf8BytesWithTrailingZero(DataColumnName);
