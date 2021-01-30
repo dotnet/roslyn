@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        private const string DefaultIndexerName = "Item";
-
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;

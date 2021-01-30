@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourcePropertySymbolBase : PropertySymbol, IAttributeTargetSymbol
     {
+        protected const string DefaultIndexerName = "Item";
+
         /// <summary>
         /// Condensed flags storing useful information about the <see cref="SourcePropertySymbolBase"/>
         /// so that we do not have to go back to source to compute this data.
@@ -57,10 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations.Boxed _lazyType;
 
-        /// <summary>
-        /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
-        /// </summary>
-        private readonly string _sourceName;
+        private string _lazySourceName;
 
         private string _lazyDocComment;
         private string _lazyExpandedDocComment;
@@ -138,35 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.IsExpressionBodied;
             }
 
-            if (isIndexer && indexerNameAttributeLists.Count != 0 && !isExplicitInterfaceImplementation)
+            if (isIndexer)
             {
-                // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
-                // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
-                // to be initialized before we pass this symbol to LoadCustomAttributes.
-
-                // CONSIDER: none of the information from this early binding pass is cached.  Everything will
-                // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
-                // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
-                // handle partially filled bags.
-                CustomAttributesBag<CSharpAttributeData>? temp = null;
-                LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
-                if (temp != null)
+                if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
                 {
-                    Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                    var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                    if (propertyData != null)
-                    {
-                        _sourceName = propertyData.IndexerName;
-                    }
+                    _lazySourceName = memberName;
                 }
-            }
+                else
+                {
+                    Debug.Assert(memberName == DefaultIndexerName);
+                }
 
-            _sourceName = _sourceName ?? memberName; // _sourceName may have been set while loading attributes
-            _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
+                _name = ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt);
+            }
+            else
+            {
+                _name = _lazySourceName = memberName;
+            }
 
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
             {
-                string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
+                Debug.Assert(!IsIndexer);
+                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
                 BackingField = new SynthesizedBackingFieldSymbol(this,
                                                                       fieldName,
                                                                       isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
@@ -407,13 +399,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         internal string SourceName
         {
             get
             {
-                return _sourceName;
+                if (_lazySourceName is null)
+                {
+                    Debug.Assert(IsIndexer);
+
+                    var indexerNameAttributeLists = ((IndexerDeclarationSyntax)CSharpSyntaxNode).AttributeLists;
+                    Debug.Assert(indexerNameAttributeLists.Count != 0);
+                    Debug.Assert(!IsExplicitInterfaceImplementation);
+
+                    string? sourceName = null;
+
+                    // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
+
+                    // CONSIDER: none of the information from this early binding pass is cached.  Everything will
+                    // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
+                    // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
+                    // handle partially filled bags.
+                    CustomAttributesBag<CSharpAttributeData>? temp = null;
+                    LoadAndValidateAttributes(OneOrMany.Create(indexerNameAttributeLists), ref temp, earlyDecodingOnly: true);
+                    if (temp != null)
+                    {
+                        Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
+                        var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
+                        if (propertyData != null)
+                        {
+                            sourceName = propertyData.IndexerName;
+                        }
+                    }
+
+                    sourceName = sourceName ?? DefaultIndexerName;
+
+                    InterlockedOperations.Initialize(ref _lazySourceName, sourceName);
+                }
+
+                return _lazySourceName;
             }
         }
+#nullable disable
 
         public override string MetadataName
         {
@@ -421,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Explicit implementation names may have spaces if the interface
                 // is generic (between the type arguments).
-                return _sourceName.Replace(" ", "");
+                return SourceName.Replace(" ", "");
             }
         }
 
