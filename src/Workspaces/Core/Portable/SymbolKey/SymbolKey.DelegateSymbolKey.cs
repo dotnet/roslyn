@@ -32,14 +32,11 @@ namespace Microsoft.CodeAnalysis
                 // Now, write out the parameter types for the delegate's original invoke method.  Ensure we push
                 // ourselves into the visitor context so that any type parameters that reference us get written out as
                 // an ordinal and do not cause circularities.
-                var originalDefinition = symbol.OriginalDefinition;
                 visitor.PushDelegate(symbol);
-                visitor.PushDelegateOriginalDefinition(originalDefinition);
 
-                visitor.WriteRefKindArray(originalDefinition.DelegateInvokeMethod!.Parameters);
-                visitor.WriteParameterTypesArray(originalDefinition.DelegateInvokeMethod!.Parameters);
+                visitor.WriteRefKindArray(symbol.DelegateInvokeMethod!.Parameters);
+                visitor.WriteParameterTypesArray(symbol.DelegateInvokeMethod!.Parameters);
 
-                visitor.PopDelegateOriginalDefinition(originalDefinition);
                 visitor.PopDelegate(symbol);
             }
 
@@ -99,22 +96,18 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var candidateDelegate in candidateDelegates)
                 {
-                    var candidateDelegateOriginalDefinition = candidateDelegate.OriginalDefinition;
-
                     // Restore our position to right before the list of parameters.  Also, push this candidate into our
                     // delegate-resolution-stack so that we can properly resolve type parameter ordinals.
                     reader.Position = beforeParametersPosition;
                     reader.PushDelegate(candidateDelegate);
-                    reader.PushDelegateOriginalDefinition(candidateDelegate);
 
                     // Now try to read in the parameter types and compare them to the parameter types of our delegate.
                     using var originalParameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out _);
 
-                    var match = reader.ParameterTypesMatch(candidateDelegate.OriginalDefinition.DelegateInvokeMethod!.Parameters, originalParameterTypes)
+                    var match = reader.ParameterTypesMatch(candidateDelegate.DelegateInvokeMethod!.Parameters, originalParameterTypes)
                         ? candidateDelegate
                         : null;
 
-                    reader.PopDelegateOriginalDefinition(candidateDelegate);
                     reader.PopDelegate(candidateDelegate);
 
                     // Break on the first result we find.

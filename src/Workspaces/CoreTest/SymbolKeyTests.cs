@@ -1065,7 +1065,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates0()
+        public void TestDelegates00()
         {
             // Can't map if delegate isn't there anymore.
             var source1 = @"delegate void D();";
@@ -1086,7 +1086,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates1()
+        public void TestDelegates01()
         {
             // Can't map if different parameter lengths
             var source1 = @"delegate void D();";
@@ -1107,7 +1107,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates2()
+        public void TestDelegates02()
         {
             // Can't map if different parameter types
             var source1 = @"delegate void D(int i);";
@@ -1128,7 +1128,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates3()
+        public void TestDelegates03()
         {
             // Can't map if different ref kinds types
             var source1 = @"delegate void D(ref int i);";
@@ -1149,7 +1149,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates4()
+        public void TestDelegates04()
         {
             // Can't map if different arity
             var source1 = @"delegate void D<T>(int i);";
@@ -1170,7 +1170,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates5()
+        public void TestDelegates05()
         {
             // Can't map if same arity but different param types
             var source1 = @"delegate void D<T>(T i);";
@@ -1191,7 +1191,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates6()
+        public void TestDelegates06()
         {
             // Can't map if different types that unify after instantiation
             var source1 = @"delegate void D<T>(T i);";
@@ -1213,7 +1213,7 @@ public class C
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates7()
+        public void TestDelegates07()
         {
             // Can find result, even with multiple restarts.
             var source1 = @"delegate void D<T>(T i);";
@@ -1239,7 +1239,7 @@ delegate void D<T>(T i);";
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates8()
+        public void TestDelegates08()
         {
             // Recursive delegate reference
             var source1 = @"delegate void D(D d);";
@@ -1253,7 +1253,7 @@ delegate void D<T>(T i);";
         }
 
         [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
-        public void TestDelegates9()
+        public void TestDelegates09()
         {
             // Recursive delegate reference
             var source1 = @"delegate void D(D d, System.Collections.Generic.IEnumerable<D> ds);";
@@ -1544,6 +1544,100 @@ delegate void D<T>(T i);";
 
             TestRoundTrip(delegateType1, compilation);
             TestRoundTrip(delegateType2, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates28()
+        {
+            // Recursive delegate reference
+            var source1 = @"delegate void D<T>(D<D<T>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates29()
+        {
+            // Recursive delegate reference
+            var source1 = @"
+using System.Collections.Generic;
+delegate void D<T>(List<D<D<T>>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates30()
+        {
+            // Recursive delegate reference
+            var source1 = @"
+using System.Collections.Generic;
+delegate void D<T>(D<List<D<T>>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates31()
+        {
+            // Recursive delegate reference
+            var source1 = @"
+using System.Collections.Generic;
+delegate void D<T>(D<D<List<T>>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates32()
+        {
+            // Recursive delegate reference
+            var source1 = @"
+using System.Collections.Generic;
+delegate void D<T>(D<List<D<List<T>>>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
+        }
+
+        [Fact, WorkItem(50890, "https://github.com/dotnet/roslyn/issues/50890")]
+        public void TestDelegates33()
+        {
+            // Recursive delegate reference
+            var source1 = @"
+using System.Collections.Generic;
+delegate void D<T>(List<D<List<D<List<T>>>>> d);";
+
+            var compilation = GetCompilation(source1, LanguageNames.CSharp);
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var delegateType1 = GetDeclaredSymbols(compilation).OfType<INamedTypeSymbol>().Single(n => n.Name == "D");
+
+            TestRoundTrip(delegateType1, compilation);
         }
 
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
