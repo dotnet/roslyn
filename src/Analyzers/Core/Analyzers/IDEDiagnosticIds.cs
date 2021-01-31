@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
 
         public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
-      
+
         public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
 
         // 2000 range for experimental formatting enforcement
