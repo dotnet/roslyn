@@ -844,7 +844,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
@@ -863,7 +863,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
             VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
