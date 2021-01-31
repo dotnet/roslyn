@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 #nullable disable
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,17 +13,26 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspMethod(MethodName, mutatesSolutionState: true), PartNotDiscoverable]
+    [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    internal class FailingMutatingRequestHandlerProvider : AbstractRequestHandlerProvider
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FailingMutatingRequestHandlerProvider()
+        {
+        }
+
+        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        {
+            return ImmutableArray.Create<IRequestHandler>(new FailingMutatingRequestHandler());
+        }
+    }
+
+    [LspMethod(MethodName, mutatesSolutionState: true)]
     internal class FailingMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingMutatingRequestHandler);
         private const int Delay = 100;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FailingMutatingRequestHandler()
-        {
-        }
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 

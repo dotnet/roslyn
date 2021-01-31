@@ -502,6 +502,12 @@ DoneWithErrorReporting:
                                         DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
                                         InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
                 End If
+
+                If implementedPropertySetMethod?.IsInitOnly <> implementingProperty.SetMethod?.IsInitOnly Then
+                    Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementInitOnly,
+                                            implementedProperty)
+                    errorReported = True
+                End If
             End If
 
             If implementedSym IsNot Nothing AndAlso implementingSym.ContainsTupleNames() AndAlso
