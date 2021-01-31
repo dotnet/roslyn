@@ -344,9 +344,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
             Get
-                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) IsNot Nothing
+                Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
             End Get
         End Property
+
+        Private Function RuntimeSupportsFeature(feature As SpecialMember) As Boolean
+            Debug.Assert(SpecialMembers.GetDescriptor(feature).DeclaringTypeId = SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+
+            Dim runtimeFeature = GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+            Return runtimeFeature.IsClassType() AndAlso runtimeFeature.IsMetadataAbstract AndAlso runtimeFeature.IsMetadataSealed AndAlso
+                   GetSpecialTypeMember(feature) IsNot Nothing
+        End Function
 
         ''' <summary>
         ''' Return an array of assemblies involved in canonical type resolution of

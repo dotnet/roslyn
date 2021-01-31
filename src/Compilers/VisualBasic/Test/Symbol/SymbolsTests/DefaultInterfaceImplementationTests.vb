@@ -68,6 +68,10 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
                ~~
 </errors>
             )
+
+            Dim i1M1 = comp1.GetMember(Of MethodSymbol)("I1.M1")
+            Assert.Empty(i1M1.ExplicitInterfaceImplementations)
+            Assert.Null(i1M1.ContainingType.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
         <Fact>
@@ -142,6 +146,12 @@ BC30149: Class 'C' must implement 'Sub M1()' for interface 'I1'.
                ~~
 </errors>
             )
+
+            Dim i1M1 = comp1.GetMember(Of MethodSymbol)("I1.M1")
+            Dim i2 = comp1.GetMember(Of NamedTypeSymbol)("I2")
+            Dim i2i1M1 = i2.GetMembers().OfType(Of MethodSymbol)().Single()
+            Assert.Same(i1M1, i2i1M1.ExplicitInterfaceImplementations.Single())
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M1))
         End Sub
 
         <Fact>

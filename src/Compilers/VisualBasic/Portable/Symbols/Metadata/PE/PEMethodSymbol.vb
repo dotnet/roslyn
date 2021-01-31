@@ -1136,11 +1136,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
                 EnsureTypeParametersAreLoaded(errorInfo)
+                CheckUnmanagedCallersOnly(errorInfo)
                 Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
             Return _uncommonFields?._lazyUseSiteErrorInfo
         End Function
+
+        Private Sub CheckUnmanagedCallersOnly(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1 Then
+                Dim hasUnmanagedCallersOnly As Boolean =
+                    DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
+
+                If hasUnmanagedCallersOnly Then
+                    errorInfo = MergeUseSiteErrorInfo(errorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                End If
+            End If
+        End Sub
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
             If _packedFlags.IsUseSiteDiagnosticPopulated Then
