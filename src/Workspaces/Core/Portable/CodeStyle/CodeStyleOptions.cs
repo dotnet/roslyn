@@ -32,5 +32,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <inheritdoc cref="CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess"/>
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess =
             CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.ToPublicOption();
+
+        /// <inheritdoc cref="CodeStyleOptions2.AllowMultipleBlankLines"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> AllowMultipleBlankLines =
+            CodeStyleOptions2.AllowMultipleBlankLines.ToPublicOption();
+
+        /// <inheritdoc cref="CodeStyleOptions2.AllowStatementImmediatelyAfterBlock"/>
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> AllowStatementImmediatelyAfterBlock =
+            CodeStyleOptions2.AllowStatementImmediatelyAfterBlock.ToPublicOption();
     }
 }

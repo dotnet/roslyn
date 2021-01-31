@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -465,6 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             public readonly bool NewLinesForBracesInControlBlocks;
             public readonly bool WrappingKeepStatementsOnSingleLine;
 
+            public readonly bool AllowBlankLinesBetweenConsecutiveBraces;
+            public readonly bool AllowEmbeddedStatementsOnSameLine;
+            public readonly bool AllowMultipleBlankLines;
+            public readonly bool AllowStatementImmediatelyAfterBlock;
+
             public CachedOptions(AnalyzerConfigOptions? options)
             {
                 NewLineForMembersInObjectInit = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForMembersInObjectInit);
@@ -482,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 NewLinesForBracesInLambdaExpressionBody = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody);
                 NewLinesForBracesInControlBlocks = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInControlBlocks);
                 WrappingKeepStatementsOnSingleLine = GetOptionOrDefault(options, CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
+
+                AllowBlankLinesBetweenConsecutiveBraces = GetOptionOrDefault(options, CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces).Value;
+                AllowEmbeddedStatementsOnSameLine = GetOptionOrDefault(options, CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine).Value;
+                AllowMultipleBlankLines = GetOptionOrDefault(options, CodeStyleOptions2.AllowMultipleBlankLines).Value;
+                AllowStatementImmediatelyAfterBlock = GetOptionOrDefault(options, CodeStyleOptions2.AllowStatementImmediatelyAfterBlock).Value;
             }
 
             public static bool operator ==(CachedOptions left, CachedOptions right)
@@ -491,6 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 => !(left == right);
 
             private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, PerLanguageOption2<T> option)
             {
                 if (options is null)
                     return option.DefaultValue;
