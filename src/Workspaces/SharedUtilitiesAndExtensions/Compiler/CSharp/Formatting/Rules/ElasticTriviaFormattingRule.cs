@@ -6,10 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -19,6 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     internal class ElasticTriviaFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
+
+        private readonly CachedOptions _options;
+
+        public ElasticTriviaFormattingRule()
+            : this(new CachedOptions(null))
+        {
+        }
+
+        private ElasticTriviaFormattingRule(CachedOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        {
+            var cachedOptions = new CachedOptions(options);
+
+            if (cachedOptions == _options)
+            {
+                return this;
+            }
+
+            return new ElasticTriviaFormattingRule(cachedOptions);
+        }
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
@@ -456,5 +484,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
             => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
+
+        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        {
+            public readonly bool AllowBlankLinesBetweenConsecutiveBraces;
+            public readonly bool AllowEmbeddedStatementsOnSameLine;
+            public readonly bool AllowMultipleBlankLines;
+            public readonly bool AllowStatementImmediatelyAfterBlock;
+
+            public CachedOptions(AnalyzerConfigOptions? options)
+            {
+                AllowBlankLinesBetweenConsecutiveBraces = GetOptionOrDefault(options, CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces).Value;
+                AllowEmbeddedStatementsOnSameLine = GetOptionOrDefault(options, CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine).Value;
+                AllowMultipleBlankLines = GetOptionOrDefault(options, CodeStyleOptions2.AllowMultipleBlankLines).Value;
+                AllowStatementImmediatelyAfterBlock = GetOptionOrDefault(options, CodeStyleOptions2.AllowStatementImmediatelyAfterBlock).Value;
+            }
+
+            public static bool operator ==(CachedOptions left, CachedOptions right)
+                => left.Equals(right);
+
+            public static bool operator !=(CachedOptions left, CachedOptions right)
+                => !(left == right);
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, PerLanguageOption2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CachedOptions options && Equals(options);
+
+            public bool Equals(CachedOptions other)
+            {
+                return AllowBlankLinesBetweenConsecutiveBraces == other.AllowBlankLinesBetweenConsecutiveBraces
+                    && AllowEmbeddedStatementsOnSameLine == other.AllowEmbeddedStatementsOnSameLine
+                    && AllowMultipleBlankLines == other.AllowMultipleBlankLines
+                    && AllowStatementImmediatelyAfterBlock == other.AllowStatementImmediatelyAfterBlock;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 0;
+                hashCode = (hashCode << 1) + (AllowBlankLinesBetweenConsecutiveBraces ? 1 : 0);
+                hashCode = (hashCode << 1) + (AllowEmbeddedStatementsOnSameLine ? 1 : 0);
+                hashCode = (hashCode << 1) + (AllowMultipleBlankLines ? 1 : 0);
+                hashCode = (hashCode << 1) + (AllowStatementImmediatelyAfterBlock ? 1 : 0);
+                return hashCode;
+            }
+        }
+
     }
 }
