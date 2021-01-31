@@ -53,32 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // ObjectCreationExpression for primitive types, such as "new int()", are treated as constants and allowed in attribute arguments.
                 case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                     {
-                        var objectCreation = (ObjectCreationExpressionSyntax)node;
-                        if (objectCreation.Initializer == null)
-                        {
-                            var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
-                            unusedDiagnostics.Free();
-
-                            var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);
-                            switch (kind)
-                            {
-                                case TypedConstantKind.Primitive:
-                                case TypedConstantKind.Enum:
-                                    switch (type.TypeKind)
-                                    {
-                                        case TypeKind.Struct:
-                                        case TypeKind.Class:
-                                        case TypeKind.Enum:
-                                            return true;
-                                        default:
-                                            return false;
-                                    }
-                            }
-                        }
-
-                        return false;
+                        var objectCreation = (BaseObjectCreationExpressionSyntax)node;
+                        return objectCreation.Initializer == null && (objectCreation.ArgumentList?.Arguments.Count ?? 0) == 0;
                     }
 
                 // sizeof(int)
