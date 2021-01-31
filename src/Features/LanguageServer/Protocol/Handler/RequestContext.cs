@@ -187,6 +187,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void UpdateTrackedDocument(Uri documentUri, SourceText changedText)
             => _documentChangeTracker.UpdateTrackedDocument(documentUri, changedText);
 
+        public SourceText GetTrackedDocumentSource(Uri documentUri)
+            => _documentChangeTracker.GetTrackedDocumentSource(documentUri);
+
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
         /// </summary>
@@ -200,6 +203,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => Enumerable.Empty<(Uri DocumentUri, SourceText Text)>();
+
+            public SourceText GetTrackedDocumentSource(Uri documentUri) => null!;
 
             public bool IsTracking(Uri documentUri) => false;
             public void StartTracking(Uri documentUri, SourceText initialText) { }
