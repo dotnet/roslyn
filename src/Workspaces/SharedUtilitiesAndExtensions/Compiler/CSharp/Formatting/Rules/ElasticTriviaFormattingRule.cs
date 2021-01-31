@@ -135,11 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return operation;
             }
 
-            var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken);
-            if (betweenMemberOperation != null)
-            {
-                return betweenMemberOperation;
-            }
+            var betweenOperation =
+                GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken) ??
+                GetAdjustNewLinesOperationBetweenStatements(previousToken, currentToken) ??
+                GetAdjustNewLinesOperationBetweenBraces(previousToken, currentToken) ??
+                GetAdjustNewLinesOperationBetweenTokens(previousToken, currentToken);
+
+            if (betweenOperation != null)
+                return betweenOperation;
 
             var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Line);
             if (line == 0)
@@ -150,7 +153,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenStatements(in SyntaxToken previousToken, in SyntaxToken currentToken)
+        {
+            return null;
+        }
+
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenBraces(in SyntaxToken previousToken, in SyntaxToken currentToken)
+        {
+            return null;
+        }
+
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenTokens(in SyntaxToken previousToken, in SyntaxToken currentToken)
+        {
+            return null;
+        }
+
+        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(in SyntaxToken previousToken, in SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
             {
