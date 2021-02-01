@@ -649,11 +649,10 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundTypeArgumentsOperation(boundTypeArguments As BoundTypeArguments) As IInvalidOperation
-            ' This can occur in scenarios involving unresolved extension methods in Strict mode, such as
-            ' element.UnresolvedExtension(Of String)()
-            ' Binding treats the `Of String` as the argument to the method, resulting in one of the children of the BoundBadExpression
-            ' being these type arguments. Just create an invalid operation to represent the node, as it won't ever be surfaced in good
-            ' code.
+            ' This can occur in scenarios involving latebound member accesses in Strict mode, such as
+            ' element.UnresolvedMember(Of String)
+            ' The BadExpression has 2 children in this case: the receiver, and the type arguments. 
+            ' Just create an invalid operation to represent the node, as it won't ever be surfaced in good code.
 
             Dim syntax As SyntaxNode = boundTypeArguments.Syntax
             ' Match GetTypeInfo behavior for the syntax
