@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(MutatingRequestHandlerProvider))
             .AddParts(typeof(NonMutatingRequestHandlerProvider))
             .AddParts(typeof(FailingRequestHandlerProvider))
-            .AddParts(typeof(FailingMutatingRequestHandlerProvider));
+            .AddParts(typeof(FailingMutatingRequestHandlerProvider))
+            .AddParts(typeof(SkipBuildingSolutionRequestHandlerProvider));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
