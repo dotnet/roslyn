@@ -912,5 +912,35 @@ Block[B8] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(35813, "https://github.com/dotnet/roslyn/issues/35813"), WorkItem(45382, "https://github.com/dotnet/roslyn/issues/45382")>
+        Public Sub InvalidTypeArguments()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Public Sub M(node As Object)
+        node.ExtensionMethod(Of Object)() 'BIND:"node.ExtensionMethod(Of Object)()"
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'node.Extens ... f Object)()')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'node.Extens ... (Of Object)')
+        Children(2):
+            IParameterReferenceOperation: node (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'node')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '(Of Object)')
+              Children(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30574: Option Strict On disallows late binding.
+        node.ExtensionMethod(Of Object)() 'BIND:"node.ExtensionMethod(Of Object)()"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
