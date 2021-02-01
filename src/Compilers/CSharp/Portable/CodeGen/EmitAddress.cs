@@ -382,8 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             for (int i = 0; i < indices.Length; ++i)
             {
                 BoundExpression index = indices[i];
-                EmitExpression(index, used: true);
-                TreatLongsAsNative(index.Type.PrimitiveTypeCode);
+                TreatLongsAsNative(index, used: true);
             }
         }
 

@@ -3155,7 +3155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false, allowNativeIntegers: false);
+                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
@@ -7319,7 +7319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1, allowNativeIntegers: rank == 1);
+                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -7348,7 +7348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics, bool allowIndexAndRange, bool allowNativeIntegers)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics, bool allowIndexAndRange)
         {
             Debug.Assert(index != null);
 
@@ -7363,19 +7363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
-                TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics);
-
-            if (result is null && allowNativeIntegers)
-            {
-                result = TryImplicitConversionToArrayIndex(index, SpecialType.System_IntPtr, node, diagnostics) ??
-                         TryImplicitConversionToArrayIndex(index, SpecialType.System_UIntPtr, node, diagnostics);
-            }
-
-            if (result is null)
-            {
-                result = TryImplicitConversionToArrayIndex(index, SpecialType.System_Int64, node, diagnostics) ??
-                         TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt64, node, diagnostics);
-            }
+                TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics) ??
+                TryImplicitConversionToArrayIndex(index, SpecialType.System_Int64, node, diagnostics) ??
+                TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt64, node, diagnostics);
 
             if (result is null && allowIndexAndRange)
             {
@@ -7523,7 +7513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false, allowNativeIntegers: false);
+            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 

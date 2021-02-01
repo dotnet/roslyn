@@ -14207,13 +14207,14 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
             verifier.VerifyIL("C.F1",
 @"{
-  // Code size        5 (0x5)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
-  IL_0002:  conv.i
-  IL_0003:  ldelem.i4
-  IL_0004:  ret
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
 }");
             verifier.VerifyIL("C.F2",
 @"{
@@ -14252,22 +14253,24 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
             verifier.VerifyIL("C.F1",
 @"{
-  // Code size        5 (0x5)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
-  IL_0002:  conv.i
-  IL_0003:  ldelem.i4
-  IL_0004:  ret
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
 }");
             verifier.VerifyIL("C.F2",
 @"{
-  // Code size        4 (0x4)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  ldelem.i4
-  IL_0003:  ret
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
 }");
         }
 
@@ -14300,19 +14303,17 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
   .maxstack  1
   IL_0000:  ldc.i4.2
   IL_0001:  conv.i8
-  IL_0002:  conv.ovf.i
+  IL_0002:  conv.i
   IL_0003:  newarr     ""int""
   IL_0008:  ret
 }");
             verifier.VerifyIL("C.F2",
 @"{
-  // Code size        9 (0x9)
+  // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  conv.i8
-  IL_0002:  conv.ovf.i
-  IL_0003:  newarr     ""int""
-  IL_0008:  ret
+  IL_0001:  newarr     ""int""
+  IL_0006:  ret
 }");
         }
 
@@ -14345,19 +14346,18 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
   .maxstack  1
   IL_0000:  ldc.i4.2
   IL_0001:  conv.i8
-  IL_0002:  conv.ovf.i.un
+  IL_0002:  conv.i
   IL_0003:  newarr     ""int""
   IL_0008:  ret
 }");
             verifier.VerifyIL("C.F2",
 @"{
-  // Code size        9 (0x9)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  conv.u8
-  IL_0002:  conv.ovf.i.un
-  IL_0003:  newarr     ""int""
-  IL_0008:  ret
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
 }");
         }
 

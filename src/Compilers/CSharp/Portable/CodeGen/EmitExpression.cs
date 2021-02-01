@@ -1804,18 +1804,248 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// When array operation get long or ulong arguments the args should be 
-        /// cast to native int.
-        /// Note that the cast is always checked.
+        /// cast to native int. This handles ensuring the appropriate checked
+        /// or unchecked cast is inserted and attempts to elide unnecessary intermediate
+        /// conversions to avoid cases like: nint->long->nint.
         /// </summary>
-        private void TreatLongsAsNative(Microsoft.Cci.PrimitiveTypeCode tc)
+        private void TreatLongsAsNative(BoundExpression index, bool used)
         {
+            Microsoft.Cci.PrimitiveTypeCode tc = index.Type.PrimitiveTypeCode;
+
+            var code = ILOpCode.Nop;
+
             if (tc == Microsoft.Cci.PrimitiveTypeCode.Int64)
             {
-                _builder.EmitOpCode(ILOpCode.Conv_ovf_i);
+                code = ILOpCode.Conv_ovf_i;
             }
             else if (tc == Microsoft.Cci.PrimitiveTypeCode.UInt64)
             {
-                _builder.EmitOpCode(ILOpCode.Conv_ovf_i_un);
+                code = ILOpCode.Conv_ovf_i_un;
+            }
+
+            if (code != ILOpCode.Nop)
+            {
+                var constantValue = index.ConstantValue;
+
+                // The ILOpCode used below are based on what we emit for:
+                //      (nint)value
+                // or, where a checked overflow is required, what we emit for:
+                //      checked((nint)value)
+
+                if ((constantValue != null) && constantValue.IsIntegral)
+                {
+                    ConstantValueTypeDiscriminator discriminator = constantValue.Discriminator;
+
+                    switch (discriminator)
+                    {
+                        case ConstantValueTypeDiscriminator.SByte:
+                        case ConstantValueTypeDiscriminator.Int16:
+                        case ConstantValueTypeDiscriminator.Int32:
+                            {
+                                // The constant is signed and smaller than (or potentially equal, in the
+                                // case of System_Int32) native integer so we can ignore the cast to long
+                                // or ulong and instead emit a direct unchecked cast to native int. 
+
+                                code = ILOpCode.Conv_i;
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.Byte:
+                        case ConstantValueTypeDiscriminator.UInt16:
+                            {
+                                // The constant is unsigned and smaller than native integer so we
+                                // can ignore the cast to long or ulong and instead emit a direct
+                                // unchecked cast to native int.
+
+                                code = ILOpCode.Conv_u;
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.UInt32:
+                            {
+                                // The constant is unsigned and may be equal in length or smaller than native integer
+                                // while ldelem only officially supports int32 or native int. If the constant is
+                                // less than or equal to int.MaxValue, we can just emit a direct unchecked cast to
+                                // native int; otherwise we need a checked cast to native int.
+
+                                if (constantValue.UInt32Value <= int.MaxValue)
+                                {
+                                    code = ILOpCode.Conv_u;
+                                }
+                                else
+                                {
+                                    code = ILOpCode.Conv_ovf_i_un;
+                                }
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.Int64:
+                            {
+                                // The constant is signed but may be equal in length or larger than native integer so
+                                // we can emit a unchecked cast if the value is an int32 and a checked cast otherwise.
+
+                                if ((constantValue.Int64Value >= int.MinValue) && (constantValue.Int64Value <= int.MaxValue))
+                                {
+                                    code = ILOpCode.Conv_i;
+                                }
+                                else
+                                {
+                                    code = ILOpCode.Conv_ovf_i;
+                                }
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.UInt64:
+                            {
+                                // The constant is unsigned but may be equal in length or larger than native integer so
+                                // we can emit a unchecked cast if the value is an int32 and a checked cast otherwise.
+
+                                if (constantValue.UInt64Value <= int.MaxValue)
+                                {
+                                    code = ILOpCode.Conv_i;
+                                }
+                                else
+                                {
+                                    code = ILOpCode.Conv_ovf_i_un;
+                                }
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.NInt:
+                            {
+                                // The constant is a native int and of the right sign for ldelem, so
+                                // we can just avoid any conversion being emitted.
+
+                                code = ILOpCode.Nop;
+                                break;
+                            }
+
+                        case ConstantValueTypeDiscriminator.NUInt:
+                            {
+                                // The constant is unsigned and equal in length to native integer while ldelem only
+                                // officially supports int32 or native int. If the constant is less than or equal
+                                // to int.MaxValue, we can just emit a direct unchecked cast to native int; otherwise
+                                // we need a checked cast to native int.
+
+                                if (constantValue.UInt32Value <= int.MaxValue)
+                                {
+                                    code = ILOpCode.Conv_i;
+                                }
+                                else
+                                {
+                                    code = ILOpCode.Conv_ovf_i_un;
+                                }
+                                break;
+                            }
+                    }
+                }
+                else if (index is BoundConversion conversion)
+                {
+                    BoundExpression operand = conversion.Operand;
+                    var specialType = operand.Type.SpecialType;
+
+                    if ((operand is BoundConversion nestedConversion) && (specialType == SpecialType.System_UIntPtr))
+                    {
+                        // For the case where the user has explicitly cast some input to nuint for use
+                        // in the indexer, we want to check if that is itself a conversion as there are
+                        // multiple cases where we can improve the codegen here.
+
+                        operand = nestedConversion.Operand;
+                        specialType = operand.Type.SpecialType;
+                    }
+
+                    switch (specialType)
+                    {
+                        case SpecialType.System_SByte:
+                        case SpecialType.System_Int16:
+                        case SpecialType.System_Int32:
+                            {
+                                // These types are signed and smaller than (or potentially equal, in the
+                                // case of System_Int32) native integer so we can ignore the cast to long
+
+                                if (code != ILOpCode.Conv_ovf_i_un)
+                                {
+                                    // When we are converting to long, this is an unchecked sign extension
+                                    // to nint
+
+                                    code = ILOpCode.Conv_i;
+                                }
+                                else
+                                {
+                                    // When we are converting to ulong, we need a checked cast instead but
+                                    // can go directly to nuint
+
+                                    code = ILOpCode.Conv_ovf_u;
+                                }
+
+                                index = operand;
+                                break;
+                            }
+
+                        case SpecialType.System_Byte:
+                        case SpecialType.System_UInt16:
+                            {
+                                // These types are unsigned and smaller than native integer so we can
+                                // ignore the cast to long/ulong and instead emit an unchecked zero extension
+                                // to nuint
+
+                                code = ILOpCode.Conv_u;
+                                index = operand;
+                                break;
+                            }
+
+                        case SpecialType.System_UInt32:
+                        case SpecialType.System_UIntPtr:
+                            {
+                                // The type is unsigned and is either equal in length or smaller than native integer,
+                                // but ldelem only officially supports int32 or native int, so we need to use an overflow
+                                // conversion to nint from an unsigned type, but can bypass the conversion to long/ulong
+
+                                code = ILOpCode.Conv_ovf_i_un;
+                                index = operand;
+                                break;
+                            }
+
+                        case SpecialType.System_Int64:
+                        case SpecialType.System_UInt64:
+                            {
+                                // This allows us to optimize conversions such as long->ulong->nint
+                                // to just long->ulong->nint.ovf
+
+                                // In a 64-bit environment, we'll lose no bits going from long->nuint but
+                                // negative values will become too big for nint, so the overflow catches them
+
+                                // In a 32-bit environment, we'd normally lose bits, but we can elide the
+                                // conversion since negative values will become too big for nint and any bits
+                                // we'd otherwise lose represent values that are too large for nint, so the overflow
+                                // catches them as well
+
+                                index = operand;
+                                break;
+                            }
+
+                        case SpecialType.System_IntPtr:
+                            {
+                                // The type is already native int so we can avoid the conversion to long/ulong
+
+                                if (code != ILOpCode.Conv_ovf_i_un)
+                                {
+                                    // Additionally, when we are converting to long, we can avoid all conversions
+                                    code = ILOpCode.Nop;
+                                }
+
+                                index = operand;
+                                break;
+                            }
+                    }
+                }
+            }
+
+            EmitExpression(index, used: true);
+
+            if (code != ILOpCode.Nop)
+            {
+                _builder.EmitOpCode(code);
             }
         }
 
