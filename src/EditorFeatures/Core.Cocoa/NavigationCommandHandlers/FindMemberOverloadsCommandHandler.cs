@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync)))
                 {
-                    // Let the presented know we're starting a search.
+                    // Let the presented know we're starting a search.  We pass in no cancellation token here as this
+                    // operation itself is fire-and-forget and the user won't cancel the operation through us (though
+                    // the window itself can cancel the operation if it is taken over for another find operation.
                     var context = presenter.StartSearch(
                         EditorFeaturesResources.Navigating, supportsReferences: true, CancellationToken.None);
 

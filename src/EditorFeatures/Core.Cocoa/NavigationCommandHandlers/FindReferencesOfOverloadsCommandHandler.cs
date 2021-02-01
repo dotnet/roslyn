@@ -105,8 +105,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 using (var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync)))
                 {
-                    // Let the presented know we're starting a search.  It will give us back
-                    // the context object that the FAR service will push results into.
+                    // Let the presented know we're starting a search.  It will give us back the context object that the
+                    // FAR service will push results into.  We pass in no cancellation token here as this operation
+                    // itself is fire-and-forget and the user won't cancel the operation through us (though the window
+                    // itself can cancel the operation if it is taken over for another find operation.
                     var context = presenter.StartSearch(
                         EditorFeaturesResources.Find_References, supportsReferences: true, CancellationToken.None);
 
