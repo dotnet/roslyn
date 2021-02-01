@@ -28,6 +28,12 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNames.Parser.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNames.Parser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\NetFX20\ResultProvider.NetFX20.csproj" />

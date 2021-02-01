@@ -28,9 +28,18 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\SymbolDisplay\ObjectDisplay.cs">
       <Link>Compiler\SymbolDisplay\ObjectDisplay.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNames.Parser.cs">
+      <Link>Compiler\Symbols\Synthesized\GeneratedNames.Parser.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Core\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.ResultProvider.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ResultProvider.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />

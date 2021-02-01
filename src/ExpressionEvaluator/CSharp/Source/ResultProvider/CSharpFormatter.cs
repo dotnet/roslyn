@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.ObjectModel;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
@@ -45,6 +46,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             expression = RemoveComments(expression);
             expression = RemoveFormatSpecifiers(expression, out formatSpecifiers);
             return RemoveLeadingAndTrailingContent(expression, 0, expression.Length, IsWhitespace, ch => ch == ';' || IsWhitespace(ch));
+        }
+
+        /// <summary>
+        /// Parses a compiler-generated name and returns the simpler user-visible name.
+        /// </summary>
+        internal override string PrettifyCompilerGeneratedName(string name)
+        {
+            if (!GeneratedNames.TryParseGeneratedName(name, out GeneratedNameKind kind, out int openBracketOffset, out int closeBracketOffset) ||
+                kind == GeneratedNameKind.None)
+            {
+                return name;
+            }
+
+            string result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+            return result;
         }
 
         private static string RemoveComments(string expression)

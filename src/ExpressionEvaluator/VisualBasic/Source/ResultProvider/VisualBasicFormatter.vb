@@ -49,6 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return RemoveLeadingAndTrailingWhitespace(expression)
         End Function
 
+        Friend Overrides Function PrettifyCompilerGeneratedName(expression As String) As String
+            Return expression
+        End Function
+
         Private Shared Function RemoveComments(expression As String) As String
             ' Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
             ' Do not remove any comments that might be in a string. 

@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool memberIsStatic)
         {
             string qualifier;
+
             if (memberIsStatic)
             {
                 bool sawInvalidIdentifier;
@@ -160,6 +161,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 qualifier = parentFullName;
             }
+
+            if (qualifier.IsCompilerGenerated())
+            {
+                qualifier = PrettifyCompilerGeneratedName(qualifier);
+            }
+
+            if (memberName.IsCompilerGenerated())
+            {
+                memberName = PrettifyCompilerGeneratedName(memberName);
+            }
+
+            if (string.IsNullOrEmpty(qualifier))
+            {
+                return memberName;
+            }
+
             return $"{qualifier}.{memberName}";
         }
 
@@ -187,6 +204,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsPredefinedType(Type type);
 
         internal abstract bool IsWhitespace(char c);
+
+        internal abstract string PrettifyCompilerGeneratedName(string name);
 
         // Note: We could be less conservative (e.g. "new C()").
         private bool NeedsParentheses(string expr)
