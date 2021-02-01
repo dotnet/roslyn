@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
   </ItemGroup>
 </Project>
