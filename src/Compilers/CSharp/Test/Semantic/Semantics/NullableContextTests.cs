@@ -2136,10 +2136,7 @@ class Program
     {
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/50160: Debug.Assert() failure in MemberSemanticModel.GetSnapshotManager().
-#if !DEBUG
             VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
-#endif
         }
 
         [Theory]
