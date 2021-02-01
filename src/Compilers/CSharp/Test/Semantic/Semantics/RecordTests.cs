@@ -280,9 +280,7 @@ class C
         public void GetSimpleNonTypeMembers_DirectApiCheck()
         {
             var src = @"
-public record RecordA(RecordB B);
-
-public record RecordB(int C);
+public record RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
