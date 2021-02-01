@@ -14276,6 +14276,56 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
+        public void ArrayAccessIntPtr()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int r = F(new int[] { 1, 2 }, IntPtr.Zero);
+        System.Console.WriteLine(r);
+    }
+    static int F(int[] a, IntPtr index)
+    {
+        return a[index];
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (11,16): error CS0266: Cannot implicitly convert type 'System.IntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return a[index];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[index]").WithArguments("System.IntPtr", "int").WithLocation(11, 16));
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUIntPtr()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int r = F(new int[] { 1, 2 }, UIntPtr.Zero);
+        System.Console.WriteLine(r);
+    }
+    static int F(int[] a, UIntPtr index)
+    {
+        return a[index];
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (11,16): error CS0266: Cannot implicitly convert type 'System.UIntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return a[index];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[index]").WithArguments("System.UIntPtr", "int").WithLocation(11, 16));
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
         public void ArrayCreationNInt()
         {
             string source =
@@ -14359,6 +14409,54 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
   IL_0002:  newarr     ""int""
   IL_0007:  ret
 }");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationIntPtr()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int[] a = F(IntPtr.Zero);
+    }
+    static int[] F(IntPtr length)
+    {
+        return new int[length];
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (10,24): error CS0266: Cannot implicitly convert type 'System.IntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return new int[length];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "length").WithArguments("System.IntPtr", "int").WithLocation(10, 24));
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUIntPtr()
+        {
+            string source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        int[] a = F(UIntPtr.Zero);
+    }
+    static int[] F(UIntPtr length)
+    {
+        return new int[length];
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (10,24): error CS0266: Cannot implicitly convert type 'System.UIntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return new int[length];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "length").WithArguments("System.UIntPtr", "int").WithLocation(10, 24));
         }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
@@ -14465,6 +14563,56 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
   IL_0008:  ldind.i4
   IL_0009:  ret
 }");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void PointerAccessIntPtr()
+        {
+            string source =
+@"using System;
+unsafe class C
+{
+    static void Main()
+    {
+        int* a = stackalloc int[] { 1, 2 };
+        int r = F(a, IntPtr.Zero);
+    }
+    static int F(int* a, IntPtr index)
+    {
+        return a[index];
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (11,18): error CS0266: Cannot implicitly convert type 'System.IntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return a[index];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "index").WithArguments("System.IntPtr", "int").WithLocation(11, 18));
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void PointerAccessUIntPtr()
+        {
+            string source =
+@"using System;
+unsafe class C
+{
+    static void Main()
+    {
+        int* a = stackalloc int[] { 1, 2 };
+        int r = F(a, UIntPtr.Zero);
+    }
+    static int F(int* a, UIntPtr index)
+    {
+        return a[index];
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                    // (11,18): error CS0266: Cannot implicitly convert type 'System.UIntPtr' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         return a[index];
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "index").WithArguments("System.UIntPtr", "int").WithLocation(11, 18));
         }
     }
 }
