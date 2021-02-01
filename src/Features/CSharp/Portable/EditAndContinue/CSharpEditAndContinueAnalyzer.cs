@@ -1352,10 +1352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.Parameter:
-                    // We ignore anonymous methods and lambdas, 
-                    // we only care about parameters of member declarations.
                     var parameter = (ParameterSyntax)node;
-                    return GetDiagnosticSpan(parameter.Modifiers, parameter.Type, parameter);
+                    // Lambda parameters don't have types or modifiers, so the parameter is the only node
+                    var startNode = parameter.Type ?? (SyntaxNode)parameter;
+                    return GetDiagnosticSpan(parameter.Modifiers, startNode, parameter);
 
                 case SyntaxKind.AttributeList:
                     var attributeList = (AttributeListSyntax)node;

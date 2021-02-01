@@ -217,6 +217,7 @@ class C
         /*<span>*/expr;/*</span>*/
         /*<span>*/int a;/*</span>*/
         F(/*<span>*/(x)/*</span>*/ => x);
+        F(/*<span>*/x/*</span>*/ => x);
         F(/*<span>*/delegate/*</span>*/(x) { });
         F(from a in b /*<span>*/select/*</span>*/ a.x);
         F(from a in b /*<span>*/let/*</span>*/ x = expr select expr);
