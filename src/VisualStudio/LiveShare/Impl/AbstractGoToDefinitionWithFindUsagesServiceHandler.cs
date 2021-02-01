@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             // LiveShare doesn't go through Roslyn LSP infrastructure, but creating one of our request contexts here is a convenient way to handle
             // text document lookup
-            var lspContext = LSPHandler.RequestContext.Create(request.TextDocument, null, requestContext.GetClientCapabilities(), _workspaceRegistrationService, null, null);
+            var lspContext = LSPHandler.RequestContext.Create(skipBuildingLSPSolution: false, request.TextDocument, null, requestContext.GetClientCapabilities(), _workspaceRegistrationService, null, null);
             var document = lspContext.Document;
             if (document == null)
             {
