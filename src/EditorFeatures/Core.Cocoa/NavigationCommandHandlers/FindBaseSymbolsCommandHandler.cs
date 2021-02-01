@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 {
                     // Let the presented know we're starting a search.
                     var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
+                        EditorFeaturesResources.Navigating, supportsReferences: true, CancellationToken.None);
 
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,

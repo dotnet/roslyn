@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 {
                     // Let the presented know we're starting a search.
                     var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
+                        EditorFeaturesResources.Navigating, supportsReferences: true, CancellationToken.None);
                     try
                     {
                         using (Logger.LogBlock(

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            private readonly CancellationTokenSource _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -85,14 +85,21 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #endregion
 
+            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 CancellationToken cancellationToken)
             {
                 presenter.AssertIsForeground();
+
+                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+                // caller can cancel our work or we can cancel the work.
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -220,8 +227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter.AssertIsForeground();
                 _cancellationTokenSource.Cancel();
             }
-
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
             public void Clear()
             {

@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -113,13 +114,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into. This operation is not externally cancellable.  Instead, the find refs
+                // window will cancel it if another request is made to use it.
                 var context = presenter.StartSearchWithCustomColumns(
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
-                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp,
+                    CancellationToken.None);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

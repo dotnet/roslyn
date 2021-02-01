@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     // Let the presented know we're starting a search.  It will give us back
                     // the context object that the FAR service will push results into.
                     var context = presenter.StartSearch(
-                        EditorFeaturesResources.Find_References, supportsReferences: true);
+                        EditorFeaturesResources.Find_References, supportsReferences: true, CancellationToken.None);
 
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,

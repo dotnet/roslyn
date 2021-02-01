@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
             // Let the presenter know we're starting a search.  It will give us back
             // the context object that the FAR service will push results into.
-            var context = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
+            var context = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
 
             await AbstractFindUsagesService.FindSymbolReferencesAsync(context, symbol, project).ConfigureAwait(false);
 

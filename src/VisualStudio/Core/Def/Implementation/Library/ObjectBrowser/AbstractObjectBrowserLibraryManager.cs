@@ -510,10 +510,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             try
             {
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into.  This operation is not externally cancellable.  Instead, the find
+                // refs window will cancel it if another request is made to use it.
                 var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                    EditorFeaturesResources.Find_References, supportsReferences: true, CancellationToken.None);
 
                 var cancellationToken = context.CancellationToken;
 

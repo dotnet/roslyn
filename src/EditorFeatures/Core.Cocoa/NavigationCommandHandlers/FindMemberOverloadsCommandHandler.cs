@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 {
                     // Let the presented know we're starting a search.
                     var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
+                        EditorFeaturesResources.Navigating, supportsReferences: true, CancellationToken.None);
 
                     using (Logger.LogBlock(
                         FunctionId.CommandHandler_FindAllReference,

@@ -32,17 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// It can also show messages about no references being found at the end of the search.
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
-        FindUsagesContext StartSearch(string title, bool supportsReferences);
+        /// <param name="cancellationToken">External cancellation token controlling whether finding shoudl be canceled
+        /// or not.  This will be combined with a cancellation token owned by the <see cref="FindUsagesContext"/>.
+        /// Callers should consider <see cref="FindUsagesContext.CancellationToken"/> to be the source of truth for
+        /// cancellation from that point on.</param>
+        FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken);
 
         /// <summary>
         /// Call this method to display the Containing Type, Containing Member, or Kind columns
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="supportsReferences"></param>
-        /// <param name="includeContainingTypeAndMemberColumns"></param>
-        /// <param name="includeKindColumn"></param>
-        /// /// <returns></returns>
-        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
+        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -101,9 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
             if (presenter != null)
             {
-                // We have multiple definitions, or we have definitions with multiple locations.
-                // Present this to the user so they can decide where they want to go to.
-                var context = presenter.StartSearch(title, supportsReferences: false);
+                // We have multiple definitions, or we have definitions with multiple locations. Present this to the
+                // user so they can decide where they want to go to.  If we cancel this will trigger the context to
+                // cancel as well.
+                var context = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
                 foreach (var definition in nonExternalItems)
                 {
                     await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
