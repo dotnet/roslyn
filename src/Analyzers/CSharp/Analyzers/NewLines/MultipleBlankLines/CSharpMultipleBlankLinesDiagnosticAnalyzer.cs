@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
 
@@ -10,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.MultipleBlankLines
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpMultipleBlankLinesDiagnosticAnalyzer : AbstractMultipleBlankLinesDiagnosticAnalyzer
     {
-        protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.IsKind(SyntaxKind.EndOfLineTrivia);
+        public CSharpMultipleBlankLinesDiagnosticAnalyzer()
+            : base(CSharpSyntaxFacts.Instance)
+        {
+        }
     }
 }

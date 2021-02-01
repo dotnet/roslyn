@@ -2,9 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.NewLines.ConsecutiveStatementPlacement
     ''' <summary>
@@ -29,15 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NewLines.ConsecutiveStatementPlacem
     Friend NotInheritable Class VisualBasicConsecutiveStatementPlacementDiagnosticAnalyzer
         Inherits AbstractConsecutiveStatementPlacementDiagnosticAnalyzer(Of ExecutableStatementSyntax)
 
-        Protected Overrides Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.EndOfLineTrivia
-        End Function
+        Public Sub New()
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
+        End Sub
 
-        Protected Overrides Function IsWhitespace(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.WhitespaceTrivia
-        End Function
-
-        Protected Overrides Function IsBlockStatement(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsBlockLikeStatement(node As SyntaxNode) As Boolean
             Return TypeOf node Is EndBlockStatementSyntax OrElse
                    TypeOf node Is NextStatementSyntax OrElse
                    TypeOf node Is LoopStatementSyntax

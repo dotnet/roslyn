@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 {
@@ -14,7 +15,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TExecutableStatementSyntax : SyntaxNode
     {
-        protected AbstractConsecutiveStatementPlacementDiagnosticAnalyzer()
+        private readonly ISyntaxFacts _syntaxFacts;
+
+        protected AbstractConsecutiveStatementPlacementDiagnosticAnalyzer(ISyntaxFacts syntaxFacts)
             : base(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
                    CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
@@ -22,11 +25,10 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Blank_line_required_between_block_and_subsequent_statement), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
+            _syntaxFacts = syntaxFacts;
         }
 
-        protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
-        protected abstract bool IsWhitespace(SyntaxTrivia trivia);
-        protected abstract bool IsBlockStatement(SyntaxNode node);
+        protected abstract bool IsBlockLikeStatement(SyntaxNode node);
         protected abstract Location GetDiagnosticLocation(SyntaxNode block);
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -51,8 +53,8 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             if (node.ContainsDiagnostics && node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
-            if (IsBlockStatement(node))
-                ProcessBlockStatement(context, severity, node);
+            if (IsBlockLikeStatement(node))
+                ProcessBlockLikeStatement(context, severity, node);
 
             foreach (var child in node.ChildNodesAndTokens())
             {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             }
         }
 
-        private void ProcessBlockStatement(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode block)
+        private void ProcessBlockLikeStatement(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode block)
         {
             // Don't examine broken blocks.
             var endToken = block.GetLastToken();
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             if (!endToken.TrailingTrivia.Any())
                 return;
 
-            if (!IsEndOfLine(endToken.TrailingTrivia.Last()))
+            if (!_syntaxFacts.IsEndOfLineTrivia(endToken.TrailingTrivia.Last()))
                 return;
 
             // Grab whatever comes after the close brace.  If it's not the start of a statement, ignore it.
@@ -90,10 +92,10 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             foreach (var trivia in nextToken.LeadingTrivia)
             {
                 // If there's a blank line between the brace and the next token, we're all set.
-                if (IsEndOfLine(trivia))
+                if (_syntaxFacts.IsEndOfLineTrivia(trivia))
                     return;
 
-                if (IsWhitespace(trivia))
+                if (_syntaxFacts.IsWhitespaceTrivia(trivia))
                     continue;
 
                 // got something that wasn't whitespace.  Bail out as we don't want to place any restrictions on this code.
