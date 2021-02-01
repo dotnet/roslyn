@@ -111,6 +111,21 @@ namespace Microsoft.CodeAnalysis.Storage
             if (!result)
                 return null;
 
+            // Clients will end up doing blocking reads on the synchronous stream we return from this.  This can
+            // negatively impact our calls as that will cause sync blocking on the async work to fill the pipe.  To
+            // alleviate that issue, we actually asynchronously read in the entire stream into memory inside the reader
+            // and then pass that out.  This should not be a problem in practice as PipeReader internally intelligently
+            // uses and pools reasonable sized buffers, preventing us from exacerbating the GC or causing LOH
+            // allocations.
+            while (true)
+            {
+                var readResult = await pipe.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                pipe.Reader.AdvanceTo(readResult.Buffer.Start, readResult.Buffer.End);
+
+                if (readResult.IsCompleted)
+                    break;
+            }
+
             return pipe.Reader.AsStream();
         }
 
