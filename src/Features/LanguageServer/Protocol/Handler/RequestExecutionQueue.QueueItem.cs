@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
 
+            /// <inheritdoc cref="LspMethodAttribute.SkipBuildingLSPSolution" />
+            public readonly bool SkipBuildingLSPSolution;
+
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
 
@@ -39,9 +42,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
+            public QueueItem(bool mutatesSolutionState, bool skipBuildingLSPSolution, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
+                SkipBuildingLSPSolution = skipBuildingLSPSolution;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 TextDocument = textDocument;

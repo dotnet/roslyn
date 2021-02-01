@@ -76,16 +76,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(handlerEntry, string.Format("Request handler entry not found for method {0}", methodName));
 
             var mutatesSolutionState = handlerEntry.Value.MutatesSolutionState;
+            var skipBuildingLSPSolution = handlerEntry.Value.SkipBuildingLSPSolution;
 
             var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, handler, cancellationToken);
+            return ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, skipBuildingLSPSolution, handler, cancellationToken);
         }
 
-        protected virtual Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken) where RequestType : class
+        protected virtual Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool skipBuildingLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken) where RequestType : class
         {
-            return queue.ExecuteAsync(mutatesSolutionState, handler, request, clientCapabilities, clientName, methodName, cancellationToken);
+            return queue.ExecuteAsync(mutatesSolutionState, skipBuildingLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken);
         }
 
         internal TestAccessor GetTestAccessor()

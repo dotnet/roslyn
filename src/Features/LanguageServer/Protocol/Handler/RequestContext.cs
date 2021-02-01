@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal readonly struct RequestContext
     {
         public static RequestContext Create(
+            bool skipBuildingLSPSolution,
             TextDocumentIdentifier? textDocument,
             string? clientName,
             ClientCapabilities clientCapabilities,
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is not null)
             {
+                Contract.ThrowIfTrue(skipBuildingLSPSolution, "GetTextDocument should return null if skipBuildingLSPSolution is set.");
+
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             documentChangeTracker ??= new NoOpDocumentChangeTracker();
 
-            var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
+            var lspSolution = skipBuildingLSPSolution ? workspaceSolution : BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
             // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
