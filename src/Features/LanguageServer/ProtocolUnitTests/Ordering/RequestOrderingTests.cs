@@ -185,6 +185,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Equal(expectedSolution, solution);
         }
 
+        [Fact]
+        public async Task HandlerThatSkipsBuildingLSPSolutionGetsWorkspaceSolution()
+        {
+            using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
+
+            var expectedSolution = testLspServer.GetCurrentSolution();
+
+            var solution = await GetLSPSolution(testLspServer, SkipBuildingSolutionRequestHandler.MethodName);
+            Assert.Equal(expectedSolution, solution);
+
+            // Open a document, to create a change that LSP handlers wouldn normally see
+            await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
+
+            // solution shouldn't have changed
+            solution = await GetLSPSolution(testLspServer, SkipBuildingSolutionRequestHandler.MethodName);
+            Assert.Equal(expectedSolution, solution);
+        }
+
         private static async Task ExecuteDidOpen(TestLspServer testLspServer, Uri documentUri)
         {
             var didOpenParams = new LSP.DidOpenTextDocumentParams
