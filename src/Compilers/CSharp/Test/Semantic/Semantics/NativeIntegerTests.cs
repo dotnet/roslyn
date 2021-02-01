@@ -13990,5 +13990,135 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             static TypeSymbol getInterface(CSharpCompilation comp, string typeName) =>
                 comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
         }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNInt()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int r = F(new int[] { 1 }, 0);
+        System.Console.WriteLine(r);
+    }
+    static int F(int[] a, nint i)
+    {
+        return a[i];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNUInt()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int r = F(new int[] { 1 }, 0);
+        System.Console.WriteLine(r);
+    }
+    static int F(int[] a, nuint i)
+    {
+        return a[i];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void PointerAccessNInt()
+        {
+            string source =
+@"unsafe class C
+{
+    static void Main()
+    {
+        int* a = stackalloc int[] { 1 };
+        int r = F(a, 0);
+        System.Console.WriteLine(r);
+    }
+    static int F(int* a, nint i)
+    {
+        return a[i];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i8
+  IL_0003:  ldc.i4.4
+  IL_0004:  conv.i8
+  IL_0005:  mul
+  IL_0006:  conv.i
+  IL_0007:  add
+  IL_0008:  ldind.i4
+  IL_0009:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void PointerAccessNUInt()
+        {
+            string source =
+@"unsafe class C
+{
+    static void Main()
+    {
+        int* a = stackalloc int[] { 1 };
+        int r = F(a, 0);
+        System.Console.WriteLine(r);
+    }
+    static int F(int* a, nuint i)
+    {
+        return a[i];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u8
+  IL_0003:  ldc.i4.4
+  IL_0004:  conv.i8
+  IL_0005:  mul
+  IL_0006:  conv.u
+  IL_0007:  add
+  IL_0008:  ldind.i4
+  IL_0009:  ret
+}");
+        }
     }
 }
