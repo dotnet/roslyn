@@ -11288,6 +11288,38 @@ False");
 ");
         }
 
+        [Fact, WorkItem(48765, "https://github.com/dotnet/roslyn/issues/48765")]
+        public void TypeOfFunctionPointerInAttribute()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+[Attr(typeof(delegate*<void>))]
+[Attr(typeof(delegate*<void>[]))]
+[Attr(typeof(C<delegate*<void>[]>))]
+unsafe class Attr : System.Attribute
+{
+    public Attr(System.Type type) {}
+}
+
+class C<T> {}
+");
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario. Currently, we don't know how to
+            // encode these in metadata, and may need to work with the runtime team to define a new format.
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>)").WithLocation(4, 7),
+                // (5,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>[]))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>[])").WithLocation(5, 7),
+                // (6,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(C<delegate*<void>[]>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
+            );
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
