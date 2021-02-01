@@ -309,20 +309,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool useTabs = false)
         {
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var locationTyped = locations["type"].Single();
 
             if (useTabs)
             {
-                var newSolution = workspace.CurrentSolution.WithOptions(
-                    workspace.CurrentSolution.Options.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs));
-                workspace.TryApplyChanges(newSolution);
+                var newSolution = testLspServer.GetCurrentSolution().WithOptions(
+                    testLspServer.GetCurrentSolution().Options.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs));
+                testLspServer.TestWorkspace.TryApplyChanges(newSolution);
             }
 
-            var document = workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single();
+            var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
             var documentText = await document.GetTextAsync();
 
-            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped);
 
             AssertEx.NotNull(result);
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
@@ -332,19 +332,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyNoResult(string characterTyped, string markup)
         {
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var locationTyped = locations["type"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped);
 
             Assert.Null(result);
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
+        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> RunOnAutoInsertAsync(TestLspServer testLspServer, string characterTyped, LSP.Location locationTyped)
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>(queue, MSLSPMethods.OnAutoInsertName,
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>(MSLSPMethods.OnAutoInsertName,
                            CreateDocumentOnAutoInsertParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
