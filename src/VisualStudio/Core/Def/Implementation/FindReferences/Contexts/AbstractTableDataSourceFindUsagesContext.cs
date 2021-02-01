@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #endregion
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+            public sealed override CancellationToken CancellationToken { get; }
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
@@ -100,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
                 // caller can cancel our work or we can cancel the work.
                 _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                CancellationToken = _cancellationTokenSource.Token;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -225,7 +226,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
+
+                // Cancel any in flight find work that is going on.
                 _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
             }
 
             public void Clear()
