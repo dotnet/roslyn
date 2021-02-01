@@ -675,10 +675,9 @@ unsafe class C
         delegate* unmanaged[Thiscall, Stdcall]<void> ptr2 = param1;
         delegate* unmanaged[Stdcall, Stdcall, Thiscall]<void> ptr3 = param1;
     }
-}");
+}", targetFramework: TargetFramework.NetCoreApp);
 
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-            CompileAndVerify(comp);
+            CompileAndVerify(comp, verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1039,9 +1038,7 @@ unsafe class C
         delegate* unmanaged[Cdecl, Stdcall]<void> ptr7 = param2;
         delegate* unmanaged[Thiscall, Stdcall, Cdecl]<void> ptr8 = param2;
     }
-}");
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+}", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (6,49): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate* unmanaged[Cdecl]<void>'. An explicit conversion exists (are you missing a cast?)
@@ -2411,9 +2408,7 @@ unsafe
 
     static void Test1<T1>(delegate* unmanaged<T1, void>[] func) {}
 }
-", options: TestOptions.UnsafeReleaseExe);
-
-            comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
+", options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,5): error CS0411: The type arguments for method 'Test1<T1>(delegate* unmanaged<T1, void>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.

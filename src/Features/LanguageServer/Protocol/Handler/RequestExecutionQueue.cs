@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
+        private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
         // This dictionary is used to cache our forked LSP solution so we don't have to
         // recompute it for each request. We don't need to worry about threading because they are only
@@ -78,7 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(
             ILspLogger logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
-            string serverName)
+            string serverName,
+            string serverTypeName)
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
@@ -87,6 +89,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
             _documentChangeTracker = new DocumentChangeTracker();
+
+            // Pass the language client instance type name to the telemetry logger to ensure we can
+            // differentiate between the different C# LSP servers that have the same client name.
+            // We also don't use the language client's name property as it is a localized user facing string
+            // which is difficult to write telemetry queries for.
+            _requestTelemetryLogger = new RequestTelemetryLogger(serverTypeName);
 
             // Start the queue processing
             _ = ProcessQueueAsync();
@@ -100,6 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             _cancelSource.Cancel();
             DrainQueue();
+            _requestTelemetryLogger.Dispose();
         }
 
         /// <summary>
@@ -154,15 +163,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
+
+                        // Update success count for the request
+                        _requestTelemetryLogger.LogSuccess(methodName);
                     }
                     catch (OperationCanceledException ex)
                     {
                         completion.TrySetCanceled(ex.CancellationToken);
+                        _requestTelemetryLogger.LogCancel(methodName);
                     }
                     catch (Exception exception)
                     {
                         // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
+
+                        // Update the failure count for the request.
+                        // Failure details are captured separately in a non fatal watson report.
+                        _requestTelemetryLogger.LogFailure(methodName);
 
                         // Also allow the exception to flow back to the request queue to handle as appropriate
                         throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);

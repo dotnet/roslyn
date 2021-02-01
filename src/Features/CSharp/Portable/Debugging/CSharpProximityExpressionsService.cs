@@ -100,10 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             }
         }
 
-        // Internal for testing purposes
-        internal static IList<string> Do(SyntaxTree syntaxTree, int position)
-            => Do(syntaxTree, position, CancellationToken.None);
-
         private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             => new Worker(syntaxTree, position).Do(cancellationToken);
 
@@ -113,6 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             bool includeDeclarations)
         {
             new RelevantExpressionsCollector(includeDeclarations, expressions).Visit(statement);
+        }
+
+        internal static class TestAccessor
+        {
+            public static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken = default)
+                => CSharpProximityExpressionsService.Do(syntaxTree, position, cancellationToken);
         }
     }
 }

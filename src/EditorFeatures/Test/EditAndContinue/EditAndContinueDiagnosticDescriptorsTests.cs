@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.ErrorReadingFile),
                 FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.MessageFormat);
 
-            d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(12);
+            d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(ManagedEditAndContinueAvailabilityStatus.Optimized);
             Assert.Equal("ENC2012", d.Id);
             Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
             Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable", EnforceOnBuild.Never.ToCustomTag() }, d.CustomTags);
