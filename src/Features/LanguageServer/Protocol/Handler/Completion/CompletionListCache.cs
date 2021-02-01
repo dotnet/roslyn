@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
@@ -17,7 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
     /// Caches completion lists in between calls to CompletionHandler and
     /// CompletionResolveHandler. Used to avoid unnecessary recomputation.
     /// </summary>
-    [Export(typeof(CompletionListCache)), Shared]
     internal class CompletionListCache
     {
         /// <summary>
@@ -45,8 +41,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         private readonly List<(long, CompletionList)> _resultIdToCompletionList = new();
         #endregion
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionListCache()
         {
         }
