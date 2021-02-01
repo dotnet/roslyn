@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case EditKind.Move:
-                        ClassifyMove();
+                        ClassifyMove(_newNode);
                         return;
 
                     case EditKind.Insert:
@@ -1932,9 +1932,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             #region Move and Reorder
 
-            private void ClassifyMove()
+            private void ClassifyMove(SyntaxNode newNode)
             {
-                if (!_isTopLevelEdit)
+                if (newNode.IsKind(SyntaxKind.LocalFunctionStatement))
                 {
                     return;
                 }
