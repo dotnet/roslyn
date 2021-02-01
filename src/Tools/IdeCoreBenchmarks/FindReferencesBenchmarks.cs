@@ -97,6 +97,7 @@ namespace IdeCoreBenchmarks
                 if (type == null)
                     throw new Exception("Couldn't find type");
 
+                Console.WriteLine("Starting find-refs");
                 start = DateTime.Now;
                 var references = await SymbolFinder.FindReferencesAsync(type, solution);
                 Console.WriteLine("Time to find-refs: " + (DateTime.Now - start));
