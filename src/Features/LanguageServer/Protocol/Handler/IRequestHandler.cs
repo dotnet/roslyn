@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// as a part of handling this request.
         /// </summary>
         bool MutatesSolutionState { get; }
+
+        /// <summary>
+        /// Whether or not the handler execution queue should build a solution that represents the LSP
+        /// state of the world. If this property is set the handler should return null from
+        /// <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>
+        /// and should not access <see cref="RequestContext.Solution"/> for document information.
+        /// </summary>
+        bool SkipBuildingLSPSolution { get; }
     }
 
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
