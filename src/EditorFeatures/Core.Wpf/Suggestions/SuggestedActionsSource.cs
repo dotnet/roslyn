@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                    var selectionOpt = TryGetCodeRefactoringSelection(range);
+                    var selection = TryGetCodeRefactoringSelection(range);
 
                     Func<string, IDisposable?> addOperationScope =
                         description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description));
@@ -213,9 +213,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         document, range, addOperationScope, cancellationToken);
                     var refactorings = GetRefactorings(
                         supportsFeatureService, requestedActionCategories, workspace,
-                        document, selectionOpt, addOperationScope, cancellationToken);
+                        document, selection, addOperationScope, cancellationToken);
 
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selectionOpt);
+                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
                     if (!filteredSets.HasValue)
                     {
                         return null;
@@ -326,20 +326,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
                 Document document,
-                TextSpan? selectionOpt,
+                TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
 
-                if (!selectionOpt.HasValue)
+                if (!selection.HasValue)
                 {
                     // this is here to fail test and see why it is failed.
                     Trace.WriteLine("given range is not current");
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
                 }
-
-                var selection = selectionOpt.Value;
 
                 if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     _owner._codeRefactoringService == null ||
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
+                    workspace, _owner._codeRefactoringService, document, selection.Value, isBlocking: true,
                     addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
