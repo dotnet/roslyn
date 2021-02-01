@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         /// <summary>
         /// <see cref="IFindUsagesContext"/> acts as a <see cref="CancellationTokenSource"/>, enabling it to determine
-        /// when a particular find operation should be cancelled.  Once a client creates a <see cref="FindUsagesContext"/>
+        /// when a particular find operation should be cancelled.  Once a client creates a <see cref="IFindUsagesContext"/>
         /// it should be considered the source of truth for cancellation.
         /// </summary>
         /// <remarks>
