@@ -14051,6 +14051,60 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
+        public void ArrayCreationNInt()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        const nint length = 3;
+        int[] a = new int[length];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.Main",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.i8
+  IL_0002:  conv.ovf.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  pop
+  IL_0009:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNUInt()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        const nuint length = 3;
+        int[] a = new int[length];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.Main",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.i8
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  newarr     ""int""
+  IL_0008:  pop
+  IL_0009:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
         public void PointerAccessNInt()
         {
             string source =
