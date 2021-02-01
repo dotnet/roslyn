@@ -28138,5 +28138,24 @@ namespace System.Runtime.CompilerServices
 </member>
 ", constructor.GetDocumentationCommentXml());
         }
+
+        [Fact, WorkItem(50198, "https://github.com/dotnet/roslyn/issues/50198")]
+        public void Repro50198()
+        {
+            var src = @"
+using System.ComponentModel;
+
+public record BaseViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler PropertyChanged;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,46): warning CS0067: The event 'BaseViewModel.PropertyChanged' is never used
+                //     public event PropertyChangedEventHandler PropertyChanged;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "PropertyChanged").WithArguments("BaseViewModel.PropertyChanged").WithLocation(6, 46)
+                );
+        }
     }
 }
