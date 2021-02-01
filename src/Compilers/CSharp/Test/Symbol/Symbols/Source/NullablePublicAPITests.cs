@@ -4156,7 +4156,7 @@ class D<T>
         }
 
         [Fact]
-        public void SpeculativeModel_InAttribute()
+        public void SpeculativeModel_InAttribute01()
         {
             var source = @"
 using System;
@@ -4187,6 +4187,36 @@ class Test
 
             var symbolInfo = specModel.GetSymbolInfo(newAttributeUsage.ArgumentList.Arguments[0].Expression);
             Assert.Equal(SpecialType.System_String, ((IFieldSymbol)symbolInfo.Symbol).Type.SpecialType);
+        }
+
+        [Fact]
+        public void SpeculativeModel_InAttribute02()
+        {
+            var source =
+@"class A : System.Attribute
+{
+    internal A(object obj) { }
+}
+class Program
+{
+#nullable disable
+    [A(
+#nullable enable
+        typeof(object)]
+    static void Main()
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var typeOf = syntaxTree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();
+            var type = SyntaxFactory.ParseTypeName("string");
+            model.TryGetSpeculativeSemanticModel(typeOf.Type.SpanStart, type, out model, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.NotNull(model);
+
+            var symbolInfo = model.GetTypeInfo(type);
+            Assert.Equal(SpecialType.System_String, symbolInfo.Type.SpecialType);
         }
 
         [Fact]
