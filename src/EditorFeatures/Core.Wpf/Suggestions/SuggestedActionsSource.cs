@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // Next, before we do any async work, acquire the user's selection, directly grabbing
                 // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
-                // blocking concerns if VS wants to block on this call (for example, if the user 
+                // blocking concerns if VS wants to block on this call (for example, if the user
                 // explicitly invokes the 'show smart tag' command).
                 //
                 // This work must happen on the UI thread as it needs to access the _textView's mutable
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 //         thread VS will kick us off and then immediately block to get the results so
                 //         that they can expand the lightbulb.  In this case we cannot do BG work first,
                 //         then call back into the UI thread to try to get the user selection.  This will
-                //         deadlock as the UI thread is blocked on us.  
+                //         deadlock as the UI thread is blocked on us.
                 //
                 // There are two solution to '2'.  Either introduce reentrancy (which we really don't
                 // like to do), or just ensure that we acquire and get the users selection up front.
