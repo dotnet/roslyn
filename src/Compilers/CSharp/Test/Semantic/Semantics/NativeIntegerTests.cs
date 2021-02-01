@@ -14190,16 +14190,32 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        int r = F(new int[] { 1 }, 0);
-        System.Console.WriteLine(r);
+        int r1 = F1(new int[] { 1, 2 });
+        int r2 = F2(new int[] { 1, 2 }, 0);
+        System.Console.WriteLine(r1 + r2);
     }
-    static int F(int[] a, nint i)
+    static int F1(int[] a)
     {
-        return a[i];
+        const nint index = 1;
+        return a[index];
+    }
+    static int F2(int[] a, nint index)
+    {
+        return a[index];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Skipped);
-            verifier.VerifyIL("C.F",
+            var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F2",
 @"{
   // Code size        4 (0x4)
   .maxstack  2
@@ -14219,16 +14235,32 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        int r = F(new int[] { 1 }, 0);
-        System.Console.WriteLine(r);
+        int r1 = F1(new int[] { 1, 2 });
+        int r2 = F2(new int[] { 1, 2 }, 0);
+        System.Console.WriteLine(r1 + r2);
     }
-    static int F(int[] a, nuint i)
+    static int F1(int[] a)
     {
-        return a[i];
+        const nuint index = 1;
+        return a[index];
+    }
+    static int F2(int[] a, nuint index)
+    {
+        return a[index];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Skipped);
-            verifier.VerifyIL("C.F",
+            var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F2",
 @"{
   // Code size        4 (0x4)
   .maxstack  2
@@ -14248,21 +14280,39 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        const nint length = 3;
-        int[] a = new int[length];
+        int[] a1 = F1();
+        int[] a2 = F2(3);
+    }
+    static int[] F1()
+    {
+        const nint length = 2;
+        return new int[length];
+    }
+    static int[] F2(nint length)
+    {
+        return new int[length];
     }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped);
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.F1",
 @"{
-  // Code size       10 (0xa)
+  // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldc.i4.3
+  IL_0000:  ldc.i4.2
   IL_0001:  conv.i8
   IL_0002:  conv.ovf.i
   IL_0003:  newarr     ""int""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i8
+  IL_0002:  conv.ovf.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
 }");
         }
 
@@ -14275,21 +14325,39 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        const nuint length = 3;
-        int[] a = new int[length];
+        int[] a1 = F1();
+        int[] a2 = F2(3);
+    }
+    static int[] F1()
+    {
+        const nuint length = 2;
+        return new int[length];
+    }
+    static int[] F2(nuint length)
+    {
+        return new int[length];
     }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped);
-            verifier.VerifyIL("C.Main",
+            verifier.VerifyIL("C.F1",
 @"{
-  // Code size       10 (0xa)
+  // Code size        9 (0x9)
   .maxstack  1
-  IL_0000:  ldc.i4.3
+  IL_0000:  ldc.i4.2
   IL_0001:  conv.i8
   IL_0002:  conv.ovf.i.un
   IL_0003:  newarr     ""int""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
 }");
         }
 
@@ -14302,17 +14370,34 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        int* a = stackalloc int[] { 1 };
-        int r = F(a, 0);
-        System.Console.WriteLine(r);
+        int* a1 = stackalloc int[] { 1, 2 };
+        int r1 = F1(a1);
+        int* a2 = stackalloc int[] { 1, 2 };
+        int r2 = F2(a2, 0);
+        System.Console.WriteLine(r1 + r2);
     }
-    static int F(int* a, nint i)
+    static int F1(int* a)
     {
-        return a[i];
+        const nint index = 1;
+        return a[index];
+    }
+    static int F2(int* a, nint index)
+    {
+        return a[index];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
-            verifier.VerifyIL("C.F",
+            var verifier = CompileAndVerify(source, expectedOutput: "3", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.4
+  IL_0002:  add
+  IL_0003:  ldind.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F2",
 @"{
   // Code size       10 (0xa)
   .maxstack  3
@@ -14338,17 +14423,34 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 {
     static void Main()
     {
-        int* a = stackalloc int[] { 1 };
-        int r = F(a, 0);
-        System.Console.WriteLine(r);
+        int* a1 = stackalloc int[] { 1, 2 };
+        int r1 = F1(a1);
+        int* a2 = stackalloc int[] { 1, 2 };
+        int r2 = F2(a2, 0);
+        System.Console.WriteLine(r1 + r2);
     }
-    static int F(int* a, nuint i)
+    static int F1(int* a)
     {
-        return a[i];
+        const nuint index = 1;
+        return a[index];
+    }
+    static int F2(int* a, nuint index)
+    {
+        return a[index];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
-            verifier.VerifyIL("C.F",
+            var verifier = CompileAndVerify(source, expectedOutput: "3", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.4
+  IL_0002:  add
+  IL_0003:  ldind.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F2",
 @"{
   // Code size       10 (0xa)
   .maxstack  3
