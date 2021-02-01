@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis
 
         public void WriteTo(Span<byte> span)
         {
-            var localCopy = _checksum;
-            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref localCopy));
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
