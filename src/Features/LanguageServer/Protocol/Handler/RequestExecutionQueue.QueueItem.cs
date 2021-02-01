@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
 
-            /// <inheritdoc cref="LspMethodAttribute.SkipBuildingLSPSolution" />
             public readonly bool SkipBuildingLSPSolution;
+            /// <inheritdoc cref="IRequestHandler.SkipBuildingLSPSolution" />
 
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
