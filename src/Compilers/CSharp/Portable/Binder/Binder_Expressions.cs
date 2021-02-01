@@ -1270,6 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#nullable enable
         private BoundExpression BindTypeOf(TypeOfExpressionSyntax node, DiagnosticBag diagnostics)
         {
             ExpressionSyntax typeSyntax = node.Type;
@@ -1294,10 +1295,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadNullableTypeof, node.Location);
                 hasError = true;
             }
+            else if (this.InAttributeArgument && type.ContainsFunctionPointer())
+            {
+                // https://github.com/dotnet/roslyn/issues/48765 tracks removing this error and properly supporting function
+                // pointers in attribute types. Until then, we don't know how serialize them, so error instead of crashing
+                // during emit.
+                diagnostics.Add(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, node.Location);
+                hasError = true;
+            }
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
+#nullable disable
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, DiagnosticBag diagnostics)
         {
