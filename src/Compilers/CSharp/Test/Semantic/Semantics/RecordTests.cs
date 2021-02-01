@@ -276,6 +276,20 @@ class C
                 model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_DirectApiCheck()
+        {
+            var src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+";
+            var comp = CreateCompilation(src);
+            var b = comp.GlobalNamespace.GetTypeMember("RecordB");
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)" },
+                b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
+        }
+
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor()
         {
