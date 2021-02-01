@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override (LocalState initialState, LocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
             int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
@@ -206,8 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // visit switch header
-            var expressionState = VisitRvalueWithState(node.Expression);
-            LocalState initialState = this.State.Clone();
+            Visit(node.Expression);
+            var expressionState = ResultType;
+            var initialState = new PossiblyConditionalState(this);
 
             DeclareLocals(node.InnerLocals);
             foreach (var section in node.SwitchSections)
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var afterSwitchState = labelStateMap.TryGetValue(node.BreakLabel, out var stateAndReachable) ? stateAndReachable.state : UnreachableState();
             labelStateMap.Free();
-            return (initialState, afterSwitchState);
+            return afterSwitchState;
         }
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
@@ -246,13 +247,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitStatementList(node);
         }
 
+        private struct PossiblyConditionalState
+        {
+            public LocalState State;
+            public LocalState StateWhenTrue;
+            public LocalState StateWhenFalse;
+            public bool IsConditionalState;
+
+            public PossiblyConditionalState(LocalState state)
+            {
+                StateWhenTrue = StateWhenFalse = default;
+                IsConditionalState = false;
+                State = state.Clone();
+            }
+
+            public PossiblyConditionalState(NullableWalker nullableWalker)
+            {
+                if (nullableWalker.IsConditionalState)
+                {
+                    StateWhenTrue = nullableWalker.StateWhenTrue.Clone();
+                    StateWhenFalse = nullableWalker.StateWhenFalse.Clone();
+                    IsConditionalState = true;
+                    State = default;
+                }
+                else
+                {
+                    StateWhenTrue = StateWhenFalse = default;
+                    IsConditionalState = false;
+                    State = nullableWalker.State.Clone();
+                }
+            }
+
+            public PossiblyConditionalState Clone()
+            {
+                PossiblyConditionalState result;
+                if (IsConditionalState)
+                {
+                    result.IsConditionalState = true;
+                    result.State = default;
+                    result.StateWhenTrue = StateWhenTrue.Clone();
+                    result.StateWhenFalse = StateWhenFalse.Clone();
+                }
+                else
+                {
+                    result.IsConditionalState = false;
+                    result.State = State.Clone();
+                    result.StateWhenTrue = default;
+                    result.StateWhenFalse = default;
+                }
+
+                return result;
+            }
+        }
+
         private PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>
             LearnFromDecisionDag(
             SyntaxNode node,
             BoundDecisionDag decisionDag,
             BoundExpression expression,
             TypeWithState expressionType,
-            ref LocalState initialState)
+            ref PossiblyConditionalState initialState)
         {
             // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
             // not copying the input to evaluate the patterns.  In this way we infer non-nullability of the original
@@ -263,7 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (originalInputSlot <= 0)
             {
                 originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
-                initialState[originalInputSlot] = expressionType.State;
             }
 
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
@@ -271,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
 
-            var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (LocalState state, bool believedReachable)>.GetInstance();
+            var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (PossiblyConditionalState state, bool believedReachable)>.GetInstance();
             nodeStateMap.Add(decisionDag.RootNode, (state: initialState.Clone(), believedReachable: true));
 
             var labelStateMap = PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>.GetInstance();
@@ -280,8 +333,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool found = nodeStateMap.TryGetValue(dagNode, out var nodeStateAndBelievedReachable);
                 Debug.Assert(found); // the topologically sorted nodes should contain only reachable nodes
-                (LocalState nodeState, bool nodeBelievedReachable) = nodeStateAndBelievedReachable;
-                SetState(nodeState);
+                (PossiblyConditionalState nodeState, bool nodeBelievedReachable) = nodeStateAndBelievedReachable;
+                if (nodeState.IsConditionalState)
+                {
+                    SetConditionalState(nodeState.StateWhenTrue, nodeState.StateWhenFalse);
+                }
+                else
+                {
+                    SetState(nodeState.State);
+                }
 
                 switch (dagNode)
                 {
@@ -290,7 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var evaluation = p.Evaluation;
                             (int inputSlot, TypeSymbol inputType) = tempMap.TryGetValue(evaluation.Input, out var slotAndType) ? slotAndType : throw ExceptionUtilities.Unreachable;
                             Debug.Assert(inputSlot > 0);
-                            var inputState = this.State[inputSlot];
 
                             switch (evaluation)
                             {
@@ -331,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 outputSlot = makeDagTempSlot(TypeWithAnnotations.Create(e.Type, NullableAnnotation.NotAnnotated), output);
                                                 break;
                                         }
+                                        Debug.Assert(!IsConditionalState);
+                                        Unsplit();
                                         State[outputSlot] = NullableFlowState.NotNull;
                                         addToTempMap(output, outputSlot, e.Type);
                                         break;
@@ -363,6 +424,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         }
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
+
+                                        if (property.GetMethod is not null)
+                                        {
+                                            // A property evaluation splits the state if MemberNotNullWhen is used
+                                            ApplyMemberPostConditions(inputSlot, property.GetMethod);
+                                        }
+
                                         break;
                                     }
                                 case BoundDagIndexEvaluation e:
@@ -377,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }
-                            gotoNode(p.Next, this.State, nodeBelievedReachable);
+                            gotoNodeWithCurrentState(p.Next, nodeBelievedReachable);
                             break;
                         }
                     case BoundTestDecisionDagNode p:
@@ -387,11 +455,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
 
                             (int inputSlot, TypeSymbol inputType) = slotAndType;
-                            var inputState = this.State[inputSlot];
+                            Debug.Assert(test is not BoundDagNonNullTest || !IsConditionalState);
                             Split();
                             switch (test)
                             {
-                                case BoundDagTypeTest t:
+                                case BoundDagTypeTest:
                                     if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
@@ -400,6 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
                                     break;
                                 case BoundDagNonNullTest t:
+                                    var inputMaybeNull = this.StateWhenTrue[inputSlot].MayBeNull();
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
@@ -410,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
-                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputState.MayBeNull());
+                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable & inputMaybeNull);
                                     break;
                                 case BoundDagExplicitNullTest _:
                                     if (inputSlot > 0)
@@ -427,8 +496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
-                                    gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
-                                    gotoNode(p.WhenFalse, this.StateWhenFalse, nodeBelievedReachable);
+                                    bool isFalseTest = t.Value == ConstantValue.False;
+                                    gotoNode(p.WhenTrue, isFalseTest ? this.StateWhenFalse : this.StateWhenTrue, nodeBelievedReachable);
+                                    gotoNode(p.WhenFalse, isFalseTest ? this.StateWhenTrue : this.StateWhenFalse, nodeBelievedReachable);
                                     break;
                                 case BoundDagRelationalTest _:
                                     if (inputSlot > 0)
@@ -445,10 +515,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundLeafDecisionDagNode d:
                         // We have one leaf decision dag node per reachable label
+                        Unsplit(); // Could be split in pathological cases like `false switch { ... }`
                         labelStateMap.Add(d.Label, (this.State, nodeBelievedReachable));
                         break;
                     case BoundWhenDecisionDagNode w:
                         // bind the pattern variables, inferring their types as well
+                        Unsplit();
                         foreach (var binding in w.Bindings)
                         {
                             var variableAccess = binding.VariableAccess;
@@ -472,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
                                     if (localSlot > 0)
                                     {
-                                        this.State[localSlot] = tempState;
+                                        TrackNullableStateForAssignment(valueOpt: null, inferredType, localSlot, TypeWithState.Create(tempType, tempState), tempSlot);
                                     }
                                 }
                                 else
@@ -544,15 +616,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
-            void gotoNode(BoundDecisionDagNode node, LocalState state, bool believedReachable)
+            void gotoNodeWithCurrentState(BoundDecisionDagNode node, bool believedReachable)
             {
                 if (nodeStateMap.TryGetValue(node, out var stateAndReachable))
                 {
-                    Join(ref state, ref stateAndReachable.state);
+                    switch (IsConditionalState, stateAndReachable.state.IsConditionalState)
+                    {
+                        case (true, true):
+                            Debug.Assert(false);
+                            Join(ref this.StateWhenTrue, ref stateAndReachable.state.StateWhenTrue);
+                            Join(ref this.StateWhenFalse, ref stateAndReachable.state.StateWhenFalse);
+                            break;
+                        case (true, false):
+                            Debug.Assert(false);
+                            Join(ref this.StateWhenTrue, ref stateAndReachable.state.State);
+                            Join(ref this.StateWhenFalse, ref stateAndReachable.state.State);
+                            break;
+                        case (false, true):
+                            Debug.Assert(false);
+                            Split();
+                            Join(ref this.StateWhenTrue, ref stateAndReachable.state.StateWhenTrue);
+                            Join(ref this.StateWhenFalse, ref stateAndReachable.state.StateWhenFalse);
+                            break;
+                        case (false, false):
+                            Join(ref this.State, ref stateAndReachable.state.State);
+                            break;
+                    }
                     believedReachable |= stateAndReachable.believedReachable;
                 }
 
-                nodeStateMap[node] = (state, believedReachable);
+                nodeStateMap[node] = (new PossiblyConditionalState(this), believedReachable);
+            }
+
+            void gotoNode(BoundDecisionDagNode node, LocalState state, bool believedReachable)
+            {
+                PossiblyConditionalState result;
+                if (nodeStateMap.TryGetValue(node, out var stateAndReachable))
+                {
+                    result = stateAndReachable.state;
+                    switch (result.IsConditionalState)
+                    {
+                        case true:
+                            Debug.Assert(false);
+                            Join(ref result.StateWhenTrue, ref state);
+                            Join(ref result.StateWhenFalse, ref state);
+                            break;
+                        case false:
+                            Join(ref result.State, ref state);
+                            break;
+                    }
+                    believedReachable |= stateAndReachable.believedReachable;
+                }
+                else
+                {
+                    result = new PossiblyConditionalState(state);
+                }
+
+                nodeStateMap[node] = (result, believedReachable);
             }
 
             int makeDagTempSlot(TypeWithAnnotations type, BoundDagTemp temp)
@@ -589,8 +709,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var expressionState = VisitRvalueWithState(node.Expression);
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
+            Visit(node.Expression);
+            var expressionState = ResultType;
+            var state = new PossiblyConditionalState(this);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
@@ -687,8 +809,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
             VisitPatternForRewriting(node.Pattern);
-            var expressionState = VisitRvalueWithState(node.Expression);
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
+            Visit(node.Expression);
+            var expressionState = ResultType;
+            var state = new PossiblyConditionalState(this);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
             var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();
