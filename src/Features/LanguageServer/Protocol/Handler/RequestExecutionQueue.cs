@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -206,7 +207,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lspSolutionCache.Remove(context.Solution.Workspace);
+                        // If the handler doesn't use a solution we just assume the first workspace, which matches the
+                        // assumptions in RequestContext.Create if a request doens't have a document
+                        var workspace = work.RequiresLSPSolution ? context.Solution!.Workspace : _workspaceRegistrationService.GetAllRegistrations().First();
+                        _lspSolutionCache.Remove(workspace);
                     }
                     else
                     {

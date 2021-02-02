@@ -29,6 +29,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker)
         {
+            documentChangeTracker ??= new NoOpDocumentChangeTracker();
+
+            if (!requiresLSPSolution)
+            {
+                Contract.ThrowIfFalse(textDocument is null, "GetTextDocument should return null if the handler doesn't require an LSP solution.");
+
+                return new RequestContext(solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
+            }
+
             // Go through each registered workspace, find the solution that contains the document that
             // this request is for, and then updates it based on the state of the world as we know it, based on the
             // text content in the document change tracker.
@@ -40,8 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is not null)
             {
-                Contract.ThrowIfTrue(requiresLSPSolution, "GetTextDocument should return null if requiresLSPSolution is set.");
-
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
@@ -54,9 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            documentChangeTracker ??= new NoOpDocumentChangeTracker();
-
-            var lspSolution = requiresLSPSolution ? BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker) : workspaceSolution;
+            var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
             // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
@@ -151,9 +156,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
-        /// The solution state that the request should operate on.
+        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
-        public readonly Solution Solution;
+        public readonly Solution? Solution;
 
         /// <summary>
         /// The client capabilities for the request.
@@ -170,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        public RequestContext(Solution? solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
         {
             Document = document;
             Solution = solution;

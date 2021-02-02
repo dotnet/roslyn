@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Whether or not the handler execution queue should build a solution that represents the LSP
         /// state of the world. If this property is not set the handler should return null from
         /// <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>
-        /// and <see cref="RequestContext.Solution"/> should not be used.
+        /// and <see cref="RequestContext.Solution"/> will be null.
         /// </summary>
         bool RequiresLSPSolution { get; }
     }

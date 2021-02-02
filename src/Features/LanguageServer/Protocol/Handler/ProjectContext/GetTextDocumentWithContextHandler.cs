@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             // We specifically don't use context.Document here because we want multiple
             var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
 

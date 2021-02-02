@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override async Task<SymbolInformation[]?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             var solution = context.Solution;
 
             using var progress = BufferedProgress.Create(request.PartialResultToken);
