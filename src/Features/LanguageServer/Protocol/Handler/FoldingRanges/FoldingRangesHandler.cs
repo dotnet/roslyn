@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
+        public override string MethodName => Methods.TextDocumentFoldingRangeName;
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
         public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)

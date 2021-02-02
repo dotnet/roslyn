@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
+        public string MethodName => LSP.Methods.TextDocumentCompletionResolveName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
         {
             Contract.ThrowIfNull(request.Data);

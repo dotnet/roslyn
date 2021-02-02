@@ -61,6 +61,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
+        public abstract string MethodName { get; }
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 
         /// <summary>

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => MSLSPMethods.ProjectContextsName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 

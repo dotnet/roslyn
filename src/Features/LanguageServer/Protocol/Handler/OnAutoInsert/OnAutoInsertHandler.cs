@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
+        public override string MethodName => LSP.MSLSPMethods.OnAutoInsertName;
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
 
         public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)

@@ -40,6 +40,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
+        public string MethodName => Methods.TextDocumentCodeActionName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         public TextDocumentIdentifier? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
 
         public async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)

@@ -34,6 +34,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _allProviders = allProviders;
         }
 
+        public override string MethodName => LSP.Methods.TextDocumentSignatureHelpName;
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
         public override async Task<LSP.SignatureHelp> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)

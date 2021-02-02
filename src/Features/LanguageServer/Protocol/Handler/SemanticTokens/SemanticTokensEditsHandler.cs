@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _tokensCache = tokensCache;
         }
 
+        public string MethodName => SemanticTokensMethods.TextDocumentSemanticTokensEditsName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensEditsParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);

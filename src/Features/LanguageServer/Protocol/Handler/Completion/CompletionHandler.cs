@@ -46,6 +46,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
+        public string MethodName => LSP.Methods.TextDocumentCompletionName;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
 
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)

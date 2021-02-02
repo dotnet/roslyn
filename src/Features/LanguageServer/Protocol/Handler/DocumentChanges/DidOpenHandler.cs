@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public override string Method => LSP.Methods.TextDocumentDidOpenName;
 
         public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => false;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => null;
 
