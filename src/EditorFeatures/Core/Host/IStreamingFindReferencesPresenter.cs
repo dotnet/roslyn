@@ -104,17 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // user so they can decide where they want to go to.  If we cancel this will trigger the context to
                 // cancel as well.
                 var context = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
-                foreach (var definition in nonExternalItems)
+                try
                 {
-                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                    foreach (var definition in nonExternalItems)
+                        await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
                 }
-
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                finally
+                {
+                    await context.OnCompletedAsync().ConfigureAwait(false);
+                }
             }
 
             return true;

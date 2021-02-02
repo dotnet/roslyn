@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -228,8 +228,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter.AssertIsForeground();
 
                 // Cancel any in flight find work that is going on.
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+                }
             }
 
             public void Clear()

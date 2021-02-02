@@ -129,14 +129,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     context.CancellationToken))
                 {
-                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
-
-                    // Note: we don't need to put this in a finally.  The only time we might not hit
-                    // this is if cancellation or another error gets thrown.  In the former case,
-                    // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case something wrong has happened
-                    // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync().ConfigureAwait(false);
+                    }
                 }
             }
             catch (OperationCanceledException)

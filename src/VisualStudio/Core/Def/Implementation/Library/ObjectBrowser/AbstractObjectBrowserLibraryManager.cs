@@ -516,22 +516,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 var context = presenter.StartSearch(
                     EditorFeaturesResources.Find_References, supportsReferences: true, CancellationToken.None);
 
-                var cancellationToken = context.CancellationToken;
-
-                // Kick off the work to do the actual finding on a BG thread.  That way we don'
-                // t block the calling (UI) thread too long if we happen to do our work on this
-                // thread.
-                await Task.Run(async () =>
+                try
                 {
-                    await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
-                }, cancellationToken).ConfigureAwait(false);
+                    var cancellationToken = context.CancellationToken;
 
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                    // Kick off the work to do the actual finding on a BG thread.  That way we don'
+                    // t block the calling (UI) thread too long if we happen to do our work on this
+                    // thread.
+                    await Task.Run(async () =>
+                    {
+                        await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await context.OnCompletedAsync().ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
