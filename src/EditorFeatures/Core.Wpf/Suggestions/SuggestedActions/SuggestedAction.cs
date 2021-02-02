@@ -144,33 +144,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var extensionManager = Workspace.Services.GetService<IExtensionManager>();
             extensionManager.PerformAction(Provider, () =>
             {
-#if COCOA
-                InvokeWorkerAsync(getFromDocument, progressTracker, cancellationToken).Forget();
-#else
                 InvokeWorker(getFromDocument, progressTracker, cancellationToken);
-#endif
             });
         }
 
-#if COCOA
-        /// <summary>
-        /// This method used to be synchronous in the original Roslyn codebase:
-        /// https://github.com/dotnet/roslyn/blob/79f59efbf33379e842b8bd9cc44746ec71203cc9/src/EditorFeatures/Core.Wpf/Suggestions/SuggestedActions/SuggestedAction.cs#L145
-        /// This was because they wanted to block the UI thread while the fix was applied,
-        /// so that the user can't do anything disruptive in the meantime.
-        /// The fix may show a message box asking the user for confirmation.
-        /// On Windows this is not an issue because the message box would
-        /// use its own thread, and not deadlock waiting on the UI thread.
-        /// On Mac however this leads to a deadlock, because the message box
-        /// waits on the UI thread to free up, and the UI thread is blocked
-        /// on the codepath that is showing the message box.
-        /// By making the method async we resolve the deadlock and free up
-        /// the UI thread to let the message box proceed.
-        /// </summary>
-        private async Task InvokeWorkerAsync(
-#else
         private void InvokeWorker(
-#endif
             Func<Document> getFromDocument, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             AssertIsForeground();
@@ -180,22 +158,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var options = actionWithOptions.GetOptions(cancellationToken);
                 if (options != null)
                 {
-#if COCOA
-                    operations = await GetOperationsAsync(actionWithOptions, options, cancellationToken).ConfigureAwait(true);
-#else
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
                     operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
-#endif
                 }
             }
             else
             {
-#if COCOA
-                operations = await GetOperationsAsync(progressTracker, cancellationToken).ConfigureAwait(true);
-#else
                 // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
                 operations = GetOperationsAsync(progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
-#endif
             }
 
             if (operations != null)
@@ -207,9 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(
                     FunctionId.CodeFixes_ApplyChanges, KeyValueLogMessage.Create(LogType.UserAction, m => CreateLogProperties(m)), cancellationToken))
                 {
-#if !COCOA
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-#endif
                     _isApplied = EditHandler.Apply(Workspace, getFromDocument(),
                         operations.ToImmutableArray(), CodeAction.Title,
                         progressTracker, cancellationToken);
