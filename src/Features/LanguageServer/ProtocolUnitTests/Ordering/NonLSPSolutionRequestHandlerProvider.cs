@@ -12,37 +12,40 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
-    internal class SkipBuildingSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
+    internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SkipBuildingSolutionRequestHandlerProvider()
+        public NonLSPSolutionRequestHandlerProvider()
         {
         }
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> InitializeHandlers()
         {
-            return ImmutableArray.Create<IRequestHandler>(new SkipBuildingSolutionRequestHandler());
+            return ImmutableArray.Create<IRequestHandler>(new NonLSPSolutionRequestHandler());
         }
     }
 
-    [LspMethod(MethodName, mutatesSolutionState: false, SkipBuildingLSPSolution = true)]
-    internal class SkipBuildingSolutionRequestHandler : IRequestHandler<TestRequest, TestResponse>
+    internal class NonLSPSolutionRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
-        public const string MethodName = nameof(SkipBuildingSolutionRequestHandler);
+        public const string MethodName = nameof(NonLSPSolutionRequestHandler);
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => false;
+        string IRequestHandler.MethodName => MethodName;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
         public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new TestResponse
-            {
-                Solution = context.Solution
-            });
+            Assert.Null(context.Solution);
+
+            return Task.FromResult(new TestResponse());
         }
     }
 }

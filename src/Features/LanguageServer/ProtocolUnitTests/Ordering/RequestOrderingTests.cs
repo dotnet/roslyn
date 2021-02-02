@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(NonMutatingRequestHandlerProvider))
             .AddParts(typeof(FailingRequestHandlerProvider))
             .AddParts(typeof(FailingMutatingRequestHandlerProvider))
-            .AddParts(typeof(SkipBuildingSolutionRequestHandlerProvider));
+            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
@@ -191,17 +191,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
             using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
 
-            var expectedSolution = testLspServer.GetCurrentSolution();
-
-            var solution = await GetLSPSolution(testLspServer, SkipBuildingSolutionRequestHandler.MethodName);
-            Assert.Equal(expectedSolution, solution);
+            var solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
+            Assert.Null(solution);
 
             // Open a document, to create a change that LSP handlers wouldn normally see
             await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
 
             // solution shouldn't have changed
-            solution = await GetLSPSolution(testLspServer, SkipBuildingSolutionRequestHandler.MethodName);
-            Assert.Equal(expectedSolution, solution);
+            solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
+            Assert.Null(solution);
         }
 
         private static async Task ExecuteDidOpen(TestLspServer testLspServer, Uri documentUri)
