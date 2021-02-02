@@ -277,6 +277,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundReDimOperation(DirectCast(boundNode, BoundRedimStatement))
                 Case BoundKind.RedimClause
                     Return CreateBoundReDimClauseOperation(DirectCast(boundNode, BoundRedimClause))
+                Case BoundKind.TypeArguments
+                    Return CreateBoundTypeArgumentsOperation(DirectCast(boundNode, BoundTypeArguments))
 
                 Case BoundKind.AddressOfOperator,
                      BoundKind.ArrayLiteral,
@@ -643,6 +645,22 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
             Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
             Dim children = CreateFromArray(Of BoundExpression, IOperation)(boundBadExpression.ChildBoundNodes)
+            Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundTypeArgumentsOperation(boundTypeArguments As BoundTypeArguments) As IInvalidOperation
+            ' This can occur in scenarios involving latebound member accesses in Strict mode, such as
+            ' element.UnresolvedMember(Of String)
+            ' The BadExpression has 2 children in this case: the receiver, and the type arguments. 
+            ' Just create an invalid operation to represent the node, as it won't ever be surfaced in good code.
+
+            Dim syntax As SyntaxNode = boundTypeArguments.Syntax
+            ' Match GetTypeInfo behavior for the syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As ConstantValue = boundTypeArguments.ConstantValueOpt
+            Dim isImplicit As Boolean = boundTypeArguments.WasCompilerGenerated
+            Dim children As ImmutableArray(Of IOperation) = ImmutableArray(Of IOperation).Empty
+
             Return New InvalidOperation(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 

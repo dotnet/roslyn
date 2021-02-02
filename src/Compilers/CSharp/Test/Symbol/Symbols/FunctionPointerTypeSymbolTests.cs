@@ -247,9 +247,18 @@ class C
 
             void verify(CSharpCompilation comp)
             {
-                comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-
-                comp.VerifyDiagnostics();
+                if (expectedConvention == CallingConvention.Unmanaged)
+                {
+                    comp.VerifyDiagnostics(
+                        // (4,36): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                        //     public unsafe void M(delegate* unmanaged<string> p) {}
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(4, 36)
+                    );
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
                 var c = comp.GetTypeByMetadataName("C");
                 var m = c.GetMethod("M");
                 var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;

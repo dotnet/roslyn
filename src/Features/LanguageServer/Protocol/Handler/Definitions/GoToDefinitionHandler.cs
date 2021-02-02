@@ -12,14 +12,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentDefinitionName, mutatesSolutionState: false)]
+    [ExportLspRequestHandlerProvider, Shared]
+    [LspMethod(LSP.Methods.TextDocumentDefinitionName, mutatesSolutionState: false)]
     internal class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
-            : base(metadataAsSourceFileService)
+        public GoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService) : base(metadataAsSourceFileService)
         {
         }
 
