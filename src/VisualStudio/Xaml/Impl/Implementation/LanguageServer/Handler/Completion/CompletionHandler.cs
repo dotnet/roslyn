@@ -36,6 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
+        public override string MethodName => Methods.TextDocumentCompletionName;
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         public override TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
         public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)

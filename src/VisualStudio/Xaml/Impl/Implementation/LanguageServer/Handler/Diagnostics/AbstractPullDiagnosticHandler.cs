@@ -58,8 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
             // Get the set of results the request said were previously reported.
