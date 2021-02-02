@@ -976,8 +976,8 @@ No editorconfig based code style option
 # IDE1008
 No editorconfig based code style option
 
-# IDE0130
-No editorconfig based code style option
+# IDE0130, PreferNamespaceMatchFolderStructure
+dotnet_style_namespace_match_folder = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
