@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamespaceMatchFolder\AbstractNamespaceMatchFolderDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamespaceMatchFolder\NamespaceMatchFolderConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\AbstractRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RedundantEqualityConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />

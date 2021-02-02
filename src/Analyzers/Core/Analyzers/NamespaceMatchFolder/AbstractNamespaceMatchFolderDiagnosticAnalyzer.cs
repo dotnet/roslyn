@@ -15,16 +15,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
+namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
 {
-    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer<TNamespaceSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TNamespaceSyntax : SyntaxNode
     {
-        public const string RootNamespaceOption = "build_property.RootNamespace";
-        public const string ProjectDirOption = "build_property.ProjectDir";
-        public const string TargetNamespace = "TargetNamespace";
-
         private static readonly LocalizableResourceString s_localizableTitle = new(
-          nameof(AnalyzersResources.Namespace_does_not_match_folder_structure), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+         nameof(AnalyzersResources.Namespace_does_not_match_folder_structure), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new(
             nameof(AnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
@@ -37,11 +34,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 s_localizableInsideMessage)
         {
         }
-    }
 
-    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer<TNamespaceSyntax> : AbstractNamespaceMatchFolderDiagnosticAnalyzer
-        where TNamespaceSyntax : SyntaxNode
-    {
         private static readonly SymbolDisplayFormat s_namespaceDisplayFormat = SymbolDisplayFormat
             .FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
@@ -62,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
-            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace);
+            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(NamespaceMatchFolderConstants.RootNamespaceOption, out var rootNamespace);
 
             // Project directory is a must to correctly get the relative path and construct a namespace
-            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
+            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(NamespaceMatchFolderConstants.ProjectDirOption, out var projectDir)
                 || string.IsNullOrEmpty(projectDir))
             {
                 return;
@@ -84,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                         Descriptor,
                         nameSyntax.GetLocation(),
                         additionalLocations: null,
-                        properties: ImmutableDictionary<string, string?>.Empty.Add(TargetNamespace, targetNamespace),
+                        properties: ImmutableDictionary<string, string?>.Empty.Add(NamespaceMatchFolderConstants.TargetNamespace, targetNamespace),
                         messageArgs: new[] { currentNamespace, targetNamespace }));
                 }
             }

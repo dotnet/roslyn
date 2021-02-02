@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Analyzers.NamespaceSync;
+using Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
         private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // All the target namespaces should be the same for a given document
-            Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[AbstractNamespaceMatchFolderDiagnosticAnalyzer.TargetNamespace]).Distinct().Count() == 1);
+            Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[NamespaceMatchFolderConstants.TargetNamespace]).Distinct().Count() == 1);
 
-            var targetNamespace = diagnostics.First().Properties[AbstractNamespaceMatchFolderDiagnosticAnalyzer.TargetNamespace];
+            var targetNamespace = diagnostics.First().Properties[NamespaceMatchFolderConstants.TargetNamespace];
             RoslynDebug.AssertNotNull(targetNamespace);
 
             // Use the Renamer.RenameDocumentAsync API to sync namespaces in the document. This allows
