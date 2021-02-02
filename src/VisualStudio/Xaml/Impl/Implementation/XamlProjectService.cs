@@ -16,8 +16,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -60,30 +62,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
 
-        public void TrackOpenDocument(string filePath)
+        public DocumentId? TrackOpenDocument(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 // Can't track anything without a path (can happen while diffing)
-                return;
+                return null;
             }
 
             if (_threadingContext.JoinableTaskContext.IsOnMainThread)
             {
-                EnsureDocument(filePath);
+                return EnsureDocument(filePath);
             }
             else
             {
-                _threadingContext.JoinableTaskFactory.Run(async () =>
+                return _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    EnsureDocument(filePath);
+                    return EnsureDocument(filePath);
                 });
             }
         }
 
-        private void EnsureDocument(string filePath)
+        private DocumentId? EnsureDocument(string filePath)
         {
             if (_rdt == null)
             {
@@ -107,23 +109,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             catch (ArgumentException)
             {
                 // We only support open documents that are in the RDT already
+                return null;
             }
 
             if (hierarchy == null || docCookie == 0)
             {
-                return;
+                return null;
             }
 
             if (!_xamlProjects.TryGetValue(hierarchy, out var project))
             {
                 if (!hierarchy.TryGetName(out var name))
                 {
-                    return;
+                    return null;
                 }
 
                 if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
                 {
-                    return;
+                    return null;
                 }
 
                 var projectInfo = new VisualStudioProjectCreationInfo
@@ -158,6 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     }
                 }
             }
+
+            if (_rdtDocumentIds.TryGetValue(docCookie, out var docId))
+            {
+                return docId;
+            }
+
+            return null;
         }
 
         private void OnProjectClosing(IVsHierarchy hierarchy)

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of LineChange),
+                                   expectedLineEdits As IEnumerable(Of SourceLineUpdate),
                                    expectedNodeUpdates As IEnumerable(Of String),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
             VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)

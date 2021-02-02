@@ -20589,8 +20589,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
 ");
 
                 Assert.Null(operation.Parent.Parent.Parent);
-                ControlFlowGraphVerifier.VerifyGraph(comp,
-@"
+                VerifyFlowGraph(comp, operation.Parent.Parent.Syntax, @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -20615,7 +20614,7 @@ Block[B1] - Block
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
-", ControlFlowGraph.Create((IConstructorBodyOperation)operation.Parent.Parent));
+");
 
                 var equalsValue = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
 
@@ -27271,6 +27270,50 @@ public class Outer
 
             CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }", verify: Verification.Skipped /* init-only */);
             compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(50040, "https://github.com/dotnet/roslyn/issues/50040")]
+        public void RaceConditionInAddMembers()
+        {
+            var src = @"
+#nullable enable
+using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+var collection = new Collection<Hamster>();
+Hamster h = null!;
+await collection.MethodAsync(entity => entity.Name! == ""bar"", h);
+
+public record Collection<T> where T : Document
+{
+    public Task MethodAsync<TDerived>(Expression<Func<TDerived, bool>> filter, TDerived td) where TDerived : T
+        => throw new NotImplementedException();
+
+    public Task MethodAsync<TDerived2>(Task<TDerived2> filterDefinition, TDerived2 td) where TDerived2 : T
+        => throw new NotImplementedException();
+}
+
+public sealed record HamsterCollection : Collection<Hamster>
+{
+}
+
+public abstract class Document
+{
+}
+
+public sealed class Hamster : Document
+{
+    public string? Name { get; private set; }
+}
+";
+
+            for (int i = 0; i < 100; i++)
+            {
+                var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+            }
         }
 
         [Fact]

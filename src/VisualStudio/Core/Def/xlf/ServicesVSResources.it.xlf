@@ -2178,16 +2178,6 @@ Informazioni aggiuntive: {1}</target>
         <target state="translated">il tipo è apparente rispetto all'espressione di assegnazione</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Visualizza la Guida per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Visualizza la Guida per '{0}' disponibile in Bing</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">Sposta giù</target>
