@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,
                 embeddedTexts: embeddedTexts,
+                pdbOptionsBlobReader: null,
                 testData: testData,
                 cancellationToken: default(CancellationToken));
 

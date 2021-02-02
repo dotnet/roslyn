@@ -232,7 +232,7 @@ namespace BuildValidator
             var reader = metadataReader.GetBlobReader(blob);
             return reader.ReadBytes(reader.Length);
         }
-        
+
         public unsafe ResourceDescription[]? GetManifestResources()
         {
             var metadataReader = _peReader.GetMetadataReader();
@@ -274,7 +274,7 @@ namespace BuildValidator
             {
                 var document = _pdbReader.GetDocument(documentHandle);
                 var name = _pdbReader.GetString(document.Name);
-                
+
                 var hashAlgorithmGuid = _pdbReader.GetGuid(document.HashAlgorithm);
                 var hashAlgorithm =
                     hashAlgorithmGuid == HashAlgorithmSha1 ? SourceHashAlgorithm.Sha1

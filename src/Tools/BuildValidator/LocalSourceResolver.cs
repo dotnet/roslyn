@@ -64,7 +64,7 @@ namespace BuildValidator
                     {
                         var webPath = link.Replace + sourceFileInfo.SourceFilePath.Substring(link.Prefix.Length);
                         // TODO: retry? handle 404s?
-                        var bytes = await _httpClient.GetByteArrayAsync(webPath);
+                        var bytes = await _httpClient.GetByteArrayAsync(webPath).ConfigureAwait(false);
                         // TODO: why don't we use the checksum algorithm from the SourceFileInfo
                         return (sourceFileInfo.SourceFilePath, SourceText.From(bytes, bytes.Length, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false));
                     }

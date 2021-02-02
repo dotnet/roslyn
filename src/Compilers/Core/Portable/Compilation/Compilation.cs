@@ -2453,7 +2453,7 @@ namespace Microsoft.CodeAnalysis
                 sourceLinkStream,
                 embeddedTexts,
                 metadataPEStream,
-                pdbOptionsBlobReader: default,
+                pdbOptionsBlobReader: null,
                 cancellationToken);
         }
 

@@ -45,7 +45,7 @@ namespace BuildValidator
                 PrintHelp();
                 return;
             }
-            
+
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
                 new LoggerFilterOptions()
@@ -75,8 +75,8 @@ namespace BuildValidator
                     .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                await ValidateFilesAsync(filesToValidate, buildConstructor, thisCompilerVersion, logger);
-                await Console.Out.FlushAsync();
+                await ValidateFilesAsync(filesToValidate, buildConstructor, thisCompilerVersion, logger).ConfigureAwait(false);
+                await Console.Out.FlushAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -92,7 +92,7 @@ namespace BuildValidator
 
             foreach (var file in originalBinaries)
             {
-                var compilationDiff = await ValidateFileAsync(file, buildConstructor, thisCompilerVersion, logger);
+                var compilationDiff = await ValidateFileAsync(file, buildConstructor, thisCompilerVersion, logger).ConfigureAwait(false);
 
                 if (compilationDiff is null)
                 {
@@ -175,7 +175,7 @@ namespace BuildValidator
                 var compilation = await buildConstructor.CreateCompilationAsync(
                     pdbReader,
                     originalPeReader,
-                    Path.GetFileNameWithoutExtension(originalBinary.Name));
+                    Path.GetFileNameWithoutExtension(originalBinary.Name)).ConfigureAwait(false);
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, originalPeReader, pdbReader, compilation, GetDebugEntryPoint());
                 logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
@@ -211,7 +211,6 @@ namespace BuildValidator
             {
                 pdbReaderProvider?.Dispose();
             }
-
         }
 
         private static void PrintHelp()
