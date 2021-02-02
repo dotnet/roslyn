@@ -12,6 +12,6 @@
     <CscToolExe>csc.cmd</CscToolExe>
     <UseSharedCompilation>false</UseSharedCompilation>
   -->
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- <EmbedUntrackedSources>true</EmbedUntrackedSources> -->
   </PropertyGroup>
 </Project>
