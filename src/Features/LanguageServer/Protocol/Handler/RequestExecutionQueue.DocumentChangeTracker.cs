@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             void StopTracking(Uri documentUri);
             bool IsTracking(Uri documentUri);
             IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments();
-            SourceText GetTrackedDocumentSource(Uri documentUri);
+            SourceText GetTrackedDocumentSourceText(Uri documentUri);
         }
 
         private class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => _tracker.GetTrackedDocuments();
 
-            public SourceText GetTrackedDocumentSource(Uri documentUri)
+            public SourceText GetTrackedDocumentSourceText(Uri documentUri)
             {
                 Contract.Fail("Mutating documents not allowed in a non-mutating request handler");
                 throw new NotImplementedException();
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _trackedDocuments[documentUri] = text;
             }
 
-            public SourceText GetTrackedDocumentSource(Uri documentUri)
+            public SourceText GetTrackedDocumentSourceText(Uri documentUri)
             {
                 Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didChange received for a document that isn't open.");
 
