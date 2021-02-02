@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="mutatesSolutionState">Whether or not handling this method results in changes to the current solution state.
         /// Mutating requests will block all subsequent requests from starting until after they have
         /// completed and mutations have been applied.</param>
-        /// <param name="skipBuildingLSPSolution">Whether or not to build a soluton that represents the LSP view of the world. If this
+        /// <param name="requiresLSPSolution">Whether or not to build a soluton that represents the LSP view of the world. If this
         /// is set to false, the default workspace's current solution will be used.</param>
         /// <param name="handler">The handler that will handle the request.</param>
         /// <param name="request">The request to handle.</param>
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
-            bool skipBuildingLSPSolution,
+            bool requiresLSPSolution,
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(mutatesSolutionState, skipBuildingLSPSolution, clientCapabilities, clientName, textDocument,
+            var item = new QueueItem(mutatesSolutionState, requiresLSPSolution, clientCapabilities, clientName, textDocument,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return RequestContext.Create(queueItem.SkipBuildingLSPSolution, queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
+            return RequestContext.Create(queueItem.RequiresLSPSolution, queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
         }
     }
 }

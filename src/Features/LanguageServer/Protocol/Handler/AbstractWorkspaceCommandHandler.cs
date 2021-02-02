@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public abstract string CommandName { get; }
         public abstract bool MutatesSolutionState { get; }
-        public abstract bool SkipBuildingLSPSolution { get; }
+        public abstract bool RequiresLSPSolution { get; }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request);
         public abstract Task<ResponseType> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken);

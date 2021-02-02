@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            return LSP.RequestContext.Create(skipBuildingLSPSolution: false, textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null);
+            return LSP.RequestContext.Create(requiresLSPSolution: true, textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null);
         }
     }
 }

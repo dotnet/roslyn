@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public abstract string Method { get; }
 
         public abstract bool MutatesSolutionState { get; }
-
-        public abstract bool SkipBuildingLSPSolution { get; }
+        public abstract bool RequiresLSPSolution { get; }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
