@@ -1079,9 +1079,7 @@ using System.Runtime.CompilerServices;
 public class C
 {
     [MethodImpl(MethodCodeType = MethodCodeType.Native)]
-    public void M()
-    {
-    }
+    public extern void M();
 }
 ";
             Action<ModuleSymbol> validator = module =>
