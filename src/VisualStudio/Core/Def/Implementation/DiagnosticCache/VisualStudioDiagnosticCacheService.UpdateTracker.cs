@@ -114,8 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
             public bool SupportGetDiagnostics => false;
 
-            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-                => ImmutableArray<DiagnosticData>.Empty;
+            public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+                => new(ImmutableArray<DiagnosticData>.Empty);
         }
 
         private class CachedDiagnosticsUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate

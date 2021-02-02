@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis
                                     result.AddIfNotNull(childNamespace);
                                 }
                             }
+
                             break;
                     }
                 }

@@ -126,11 +126,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                             var id = bucket.Id;
                             if (id is ISupportLiveUpdate && id is not CachedDiagnosticsUpdateArgsId)
                             {
-                                builder.AddRange(_diagnosticService.GetPushDiagnostics(
+                                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
                                     _workspace, document.Project.Id, document.Id, id,
                                     includeSuppressedDiagnostics: false,
                                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
-                                    cancellationToken));
+                                    cancellationToken).ConfigureAwait(false);
+                                builder.AddRange(diagnostics);
                             }
                         }
 

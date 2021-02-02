@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Newtonsoft.Json.Linq;
@@ -27,35 +24,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
-    [ExportExecuteWorkspaceCommand(CodeActionsHandler.RunCodeActionCommandName)]
-    internal class RunCodeActionHandler : IExecuteWorkspaceCommandHandler
+    [LspCommand(CodeActionsHandler.RunCodeActionCommandName, mutatesSolutionState: true)]
+    internal class RunCodeActionHandler : IRequestHandler<LSP.ExecuteCommandParams, object>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RunCodeActionHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider,
             IThreadingContext threadingContext)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
-            _solutionProvider = solutionProvider;
             _threadingContext = threadingContext;
+        }
+
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
+        {
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            return runRequest.TextDocument;
         }
 
         public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
-            var document = _solutionProvider.GetDocument(runRequest.TextDocument);
+            var document = context.Document;
 
             Contract.ThrowIfNull(document);
 

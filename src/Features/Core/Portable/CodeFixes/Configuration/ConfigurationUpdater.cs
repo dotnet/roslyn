@@ -353,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                             // Did not find a match, bail out.
                             return ImmutableArray<(string optionName, string currentOptionValue, bool isPerLanguage)>.Empty;
                         }
+
                         builder.Add((parts.optionName, parts.optionValue, isPerLanguage));
                     }
 
@@ -602,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         {
                             headerRegexStr += @"|(\." + splicedFileExtensions[i] + ")";
                         }
+
                         headerRegexStr += ")";
 
                         var headerRegex = new Regex(headerRegexStr);
@@ -644,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
                                 }
+
                                 lastValidHeader = mostRecentHeader;
                             }
                         }

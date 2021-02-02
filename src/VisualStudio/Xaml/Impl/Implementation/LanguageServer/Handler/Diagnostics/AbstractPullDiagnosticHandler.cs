@@ -25,13 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
-
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams request);
 
         /// <summary>
         /// Gets the progress object to stream results to.
@@ -54,13 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// </summary>
         protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
 
-        protected AbstractPullDiagnosticHandler(ILspSolutionProvider solutionProvider, IXamlPullDiagnosticService xamlDiagnosticService)
+        protected AbstractPullDiagnosticHandler(IXamlPullDiagnosticService xamlDiagnosticService)
         {
-            _solutionProvider = solutionProvider;
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
-        public async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
@@ -75,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = _solutionProvider.GetDocument(previousResult.TextDocument);
+                        var document = context.Solution.GetDocument(previousResult.TextDocument, context.ClientName);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId

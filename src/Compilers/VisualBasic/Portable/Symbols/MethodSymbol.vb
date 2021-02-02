@@ -111,10 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' https://github.com/dotnet/roslyn/issues/44870 VB will be able to consume 'init' set accessors
         Private ReadOnly Property IMethodSymbol_IsInitOnly As Boolean Implements IMethodSymbol.IsInitOnly
             Get
-                Return False
+                Return IsInitOnly
             End Get
         End Property
 
@@ -134,6 +133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
         Public MustOverride ReadOnly Property IsIterator As Boolean
+
+        ''' <summary>
+        ''' Indicates whether the accessor is marked with the 'init' modifier.
+        ''' </summary>
+        Public MustOverride ReadOnly Property IsInitOnly As Boolean
 
         ''' <summary>
         ''' Source: Returns False; methods from source cannot return by reference.
@@ -642,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return refModifiersErrorInfo
             End If
 
-            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers)
+            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers, allowIsExternalInit:=IsInitOnly)
 
             If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
                 Return typeModifiersErrorInfo

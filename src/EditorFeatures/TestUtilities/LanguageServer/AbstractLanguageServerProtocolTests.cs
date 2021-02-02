@@ -39,36 +39,33 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspSolutionProvider))
+            .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-        [Export(typeof(ILspSolutionProvider)), PartNotDiscoverable]
-        internal class TestLspSolutionProvider : ILspSolutionProvider
+        [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]
+        internal class TestLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
         {
-            [DisallowNull]
-            private TestWorkspace? _workspace;
+            private Workspace? _workspace;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLspSolutionProvider()
+            public TestLspWorkspaceRegistrationService()
             {
             }
 
-            public void SetTestWorkspace(TestWorkspace workspace)
+            public ImmutableArray<Workspace> GetAllRegistrations()
             {
+                Contract.ThrowIfNull(_workspace, "No workspace has been registered");
+
+                return ImmutableArray.Create(_workspace);
+            }
+
+            public void Register(Workspace workspace)
+            {
+                Contract.ThrowIfTrue(_workspace != null);
+
                 _workspace = workspace;
-            }
-
-            public Solution GetCurrentSolutionForMainWorkspace()
-            {
-                Contract.ThrowIfNull(_workspace);
-                return _workspace.CurrentSolution;
-            }
-
-            public ImmutableArray<Document> GetDocuments(Uri documentUri)
-            {
-                return GetCurrentSolutionForMainWorkspace().GetDocuments(documentUri);
             }
         }
 
@@ -275,25 +272,21 @@ namespace Roslyn.Test.Utilities
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
-        /// Creates a solution with a document.
+        /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
         /// </summary>
-        /// <returns>the solution and the annotated ranges in the document.</returns>
-        protected TestWorkspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.CSharp);
+        protected TestLspServer CreateTestLspServer(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(new string[] { markup }, out locations, LanguageNames.CSharp);
 
-        protected TestWorkspace CreateVisualBasicTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.VisualBasic);
+        protected TestLspServer CreateVisualBasicTestLspServer(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(new string[] { markup }, out locations, LanguageNames.VisualBasic);
 
         /// <summary>
-        /// Create a solution with multiple documents.
+        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
         /// </summary>
-        /// <returns>
-        /// the solution with the documents plus a list for each document of all annotated ranges in the document.
-        /// </returns>
-        protected TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(markups, out locations, LanguageNames.CSharp);
+        protected TestLspServer CreateTestLspServer(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(markups, out locations, LanguageNames.CSharp);
 
-        private TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
+        private TestLspServer CreateTestLspServer(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
         {
             var workspace = languageName switch
             {
@@ -302,7 +295,7 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            SetSolutionProviderWorkspace(workspace);
+            RegisterWorkspaceForLsp(workspace);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -314,15 +307,15 @@ namespace Roslyn.Test.Utilities
 
             locations = GetAnnotatedLocations(workspace, solution);
 
-            return workspace;
+            return new TestLspServer(workspace);
         }
 
-        protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestLspServer CreateXmlTestLspServer(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
-            SetSolutionProviderWorkspace(workspace);
+            RegisterWorkspaceForLsp(workspace);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
-            return workspace;
+            return new TestLspServer(workspace);
         }
 
         protected static void AddMappedDocument(Workspace workspace, string markup)
@@ -336,10 +329,10 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        private protected static void SetSolutionProviderWorkspace(TestWorkspace workspace)
+        private protected static void RegisterWorkspaceForLsp(TestWorkspace workspace)
         {
-            var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            provider.SetTestWorkspace(workspace);
+            var provider = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            provider.Register(workspace);
         }
 
         public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
@@ -374,21 +367,52 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        // Private protected because LanguageServerProtocol is internal
-        private protected static LanguageServerProtocol GetLanguageServer(Solution solution)
+        private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
-            var workspace = (TestWorkspace)solution.Workspace;
-            return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+            var factory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+            return factory.CreateRequestDispatcher();
         }
 
-        private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
+        private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
-            var workspace = (TestWorkspace)solution.Workspace;
-            var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            return new RequestExecutionQueue(solutionProvider, "Tests");
+            var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            return new RequestExecutionQueue(registrationService, "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
+
+        public sealed class TestLspServer : IDisposable
+        {
+            public readonly TestWorkspace TestWorkspace;
+            private readonly RequestDispatcher _requestDispatcher;
+            private readonly RequestExecutionQueue _executionQueue;
+
+            internal TestLspServer(TestWorkspace testWorkspace)
+            {
+                TestWorkspace = testWorkspace;
+                _requestDispatcher = CreateRequestDispatcher(testWorkspace);
+                _executionQueue = CreateRequestQueue(testWorkspace);
+            }
+
+            public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
+                string? clientName, CancellationToken cancellationToken) where RequestType : class
+            {
+                return _requestDispatcher.ExecuteRequestAsync<RequestType, ResponseType>(
+                    _executionQueue, methodName, request, clientCapabilities, clientName, cancellationToken);
+            }
+
+            public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
+
+            internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _executionQueue.GetTestAccessor();
+
+            internal RequestDispatcher.TestAccessor GetDispatcherAccessor() => _requestDispatcher.GetTestAccessor();
+
+            public void Dispose()
+            {
+                TestWorkspace.Dispose();
+                _executionQueue.Shutdown();
+            }
+        }
     }
 }

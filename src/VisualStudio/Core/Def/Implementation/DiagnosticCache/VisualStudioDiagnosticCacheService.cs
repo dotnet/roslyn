@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticCacheService, ImmutableArray<DiagnosticData>>(
-                (service, ct) => service.GetCachedDiagnosticsAsync(((DocumentKey)document).Dehydrate(), checksum, ct),
+                (service, ct) => service.GetCachedDiagnosticsAsync((DocumentKey.ToDocumentKey(document)).Dehydrate(), checksum, ct),
                 cancellationToken).ConfigureAwait(false);
 
             if (result.HasValue)

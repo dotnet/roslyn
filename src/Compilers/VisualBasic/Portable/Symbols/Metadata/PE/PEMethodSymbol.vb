@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Structure PackedFlags
             ' Flags are packed into a 32-bit int with the following layout:
-            ' |              h|g|f|e|d|c|b|aaaaa|
+            ' |              |j|i|h|g|f|e|d|c|b|aaaaa|
             '
             ' a = method kind. 5 bits
             ' b = method kind populated. 1 bit
@@ -59,6 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' f = custom attributes populated. 1 bit
             ' g = use site diagnostic populated. 1 bit
             ' h = conditional attributes populated. 1 bit
+            ' i = is init-only. 1 bit.
+            ' j = is init-only populated. 1 bit.
 
             Private _bits As Integer
 
@@ -71,6 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Private Const s_isCustomAttributesPopulatedBit As Integer = 1 << 9
             Private Const s_isUseSiteDiagnosticPopulatedBit As Integer = 1 << 10
             Private Const s_isConditionalAttributePopulatedBit As Integer = 1 << 11
+            Private Const s_isInitOnlyBit = 1 << 12
+            Private Const s_isInitOnlyPopulatedBit = 1 << 13
 
             Public Property MethodKind As MethodKind
                 Get
@@ -124,6 +128,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Get
             End Property
 
+            Public ReadOnly Property IsInitOnly As Boolean
+                Get
+                    Return (_bits And s_isInitOnlyBit) <> 0
+                End Get
+            End Property
+
+            Public ReadOnly Property IsInitOnlyPopulated As Boolean
+                Get
+                    Return (_bits And s_isInitOnlyPopulatedBit) <> 0
+                End Get
+            End Property
+
             Private Shared Function BitsAreUnsetOrSame(bits As Integer, mask As Integer) As Boolean
                 Return (bits And mask) = 0 OrElse (bits And mask) = mask
             End Function
@@ -155,6 +171,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Public Sub SetIsConditionalAttributePopulated()
                 ThreadSafeFlagOperations.Set(_bits, s_isConditionalAttributePopulatedBit)
+            End Sub
+
+            Public Sub InitializeIsInitOnly(isInitOnly As Boolean)
+                Dim bitsToSet = If(isInitOnly, s_isInitOnlyBit, 0) Or s_isInitOnlyPopulatedBit
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet))
+                ThreadSafeFlagOperations.Set(_bits, bitsToSet)
             End Sub
         End Structure
 
@@ -831,6 +853,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                If Not _packedFlags.IsInitOnlyPopulated Then
+
+                    Dim result As Boolean = Not Me.IsShared AndAlso
+                                            Me.MethodKind = MethodKind.PropertySet AndAlso
+                                            CustomModifierUtils.HasIsExternalInitModifier(ReturnTypeCustomModifiers)
+
+                    _packedFlags.InitializeIsInitOnly(result)
+                End If
+
+                Return _packedFlags.IsInitOnly
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
                 Return StaticCast(Of Location).From(_containingType.ContainingPEModule.MetadataLocation)
@@ -1099,11 +1136,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
                 EnsureTypeParametersAreLoaded(errorInfo)
+                CheckUnmanagedCallersOnly(errorInfo)
                 Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
             Return _uncommonFields?._lazyUseSiteErrorInfo
         End Function
+
+        Private Sub CheckUnmanagedCallersOnly(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo Is Nothing OrElse errorInfo.Code <> ERRID.ERR_UnsupportedMethod1 Then
+                Dim hasUnmanagedCallersOnly As Boolean =
+                    DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
+
+                If hasUnmanagedCallersOnly Then
+                    errorInfo = MergeUseSiteErrorInfo(errorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                End If
+            End If
+        End Sub
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
             If _packedFlags.IsUseSiteDiagnosticPopulated Then

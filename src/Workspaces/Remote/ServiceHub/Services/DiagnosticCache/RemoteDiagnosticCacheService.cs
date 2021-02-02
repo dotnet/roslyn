@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (workspace.Services.GetService<IPersistentStorageService>() is not IChecksummedPersistentStorageService persistenceService)
                 return;
 
-            using var storage = persistenceService.GetStorage(solution);
+            using var storage = await persistenceService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
             if (storage == null)
                 return;
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (workspace.Services.GetService<IPersistentStorageService>() is not IChecksummedPersistentStorageService persistenceService)
                 return ImmutableArray<DiagnosticData>.Empty;
 
-            using var storage = persistenceService.GetStorage(workspace, documentKey.Project.Solution, checkBranchId: false);
+            using var storage = await persistenceService.GetStorageAsync(workspace, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
             if (storage == null)
                 return ImmutableArray<DiagnosticData>.Empty;
 

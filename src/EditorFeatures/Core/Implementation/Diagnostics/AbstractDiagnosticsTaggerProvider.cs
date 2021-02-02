@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             foreach (var bucket in buckets)
             {
-                ProduceTags(
+                await ProduceTagsAsync(
                     context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, bucket, cancellationToken);
+                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private void ProduceTags(
+        private async Task ProduceTagsAsync(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var id = bucket.Id;
-                var diagnostics = _diagnosticService.GetPushDiagnostics(
+                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 

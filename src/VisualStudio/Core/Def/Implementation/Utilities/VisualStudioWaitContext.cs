@@ -129,10 +129,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             _dialog.EndWaitDialog(out var canceled);
 
+            // Let the global operation object know that we completed with/without user cancelling.  If the user
+            // canceled, we won't call 'Done', and so calling 'Dispose' will log that we didn't complete fully.
             if (canceled == 0)
-            {
                 _registration.Done();
-            }
 
             _registration.Dispose();
         }

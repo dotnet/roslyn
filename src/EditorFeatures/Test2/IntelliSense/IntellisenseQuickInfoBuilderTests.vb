@@ -1142,9 +1142,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     ContainerElementStyle.Wrapped,
                     New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),

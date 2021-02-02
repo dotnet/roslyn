@@ -47,6 +47,11 @@
         <target state="translated">문서 하이라이트</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
         <target state="translated">필드 리팩터링 캡슐화</target>

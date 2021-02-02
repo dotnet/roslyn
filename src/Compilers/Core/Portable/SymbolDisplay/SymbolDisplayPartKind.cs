@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>The name of a field or local constant.</summary>
         ConstantName = 30,
         /// <summary>The name of a record.</summary>
-        RecordName = 31,
+        RecordClassName = 31,
     }
 
     internal static class InternalSymbolDisplayPartKind
     {
-        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.RecordName + 1;
+        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.RecordClassName + 1;
         public const SymbolDisplayPartKind Arity = @base + 0;
         public const SymbolDisplayPartKind Other = @base + 1;
     }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsValid(this SymbolDisplayPartKind value)
         {
-            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.RecordName) ||
+            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.RecordClassName) ||
                 (value >= InternalSymbolDisplayPartKind.Arity && value <= InternalSymbolDisplayPartKind.Other);
         }
     }
