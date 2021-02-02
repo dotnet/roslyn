@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
                     cancellationToken => FixAllByDocumentAsync(
                         fixAllContext.Project.Solution,
                         diagnostics,
+                        fixAllContext.GetProgressTracker(),
                         cancellationToken));
 
                 static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
             private static async Task<Solution> FixAllByDocumentAsync(
                 Solution solution,
                 ImmutableArray<Diagnostic> diagnostics,
+                IProgressTracker progressTracker,
                 CancellationToken cancellationToken)
             {
                 // Use documentId instead of tree here because the
@@ -77,9 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
 
                 var newSolution = solution;
 
+                progressTracker.AddItems(documentIdToDiagnosticsMap.Count);
+
                 foreach (var (documentId, diagnosticsInTree) in documentIdToDiagnosticsMap)
                 {
                     var document = newSolution.GetRequiredDocument(documentId);
+                    using var _ = progressTracker.ItemCompletedScope(document.Name);
 
                     newSolution = await FixAllInDocumentAsync(document, diagnosticsInTree, cancellationToken).ConfigureAwait(false);
                 }
