@@ -14183,34 +14183,44 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
                              
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
-        public void ArrayAccessNInt()
+        public void ArrayAccessByteToInt64()
         {
+            // byte->long->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
             string source =
 @"class C
 {
     static void Main()
     {
-        int r1 = F1(new int[] { 1, 2 });
-        int r2 = F2(new int[] { 1, 2 }, 0);
-        System.Console.WriteLine(r1 + r2);
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
     }
     static int F1(int[] a)
     {
-        const nint index = 1;
-        return a[index];
+        const byte index = 2;
+        return a[(long)index];
     }
-    static int F2(int[] a, nint index)
+    static int F2(int[] a, byte index)
     {
-        return a[index];
+        return a[(long)index];
+    }
+    static int F3(int[] a, byte index)
+    {
+        return a[checked((long)index)];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
+  IL_0001:  ldc.i4.2
   IL_0002:  conv.i8
   IL_0003:  conv.i
   IL_0004:  ldelem.i4
@@ -14218,51 +14228,1038 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 }");
             verifier.VerifyIL("C.F2",
 @"{
-  // Code size        4 (0x4)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  ldelem.i4
-  IL_0003:  ret
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
 }");
         }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
-        public void ArrayAccessNUInt()
+        public void ArrayAccessByteToNInt()
         {
+            // byte->nint->long->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
             string source =
 @"class C
 {
     static void Main()
     {
-        int r1 = F1(new int[] { 1, 2 });
-        int r2 = F2(new int[] { 1, 2 }, 0);
-        System.Console.WriteLine(r1 + r2);
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
     }
     static int F1(int[] a)
     {
-        const nuint index = 1;
-        return a[index];
+        const byte index = 2;
+        return a[(nint)index];
     }
-    static int F2(int[] a, nuint index)
+    static int F2(int[] a, byte index)
     {
-        return a[index];
+        return a[(nint)index];
+    }
+    static int F3(int[] a, byte index)
+    {
+        return a[checked((nint)index)];
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "3", verify: Verification.Skipped);
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
+  IL_0001:  ldc.i4.2
   IL_0002:  conv.i8
   IL_0003:  conv.i
   IL_0004:  ldelem.i4
   IL_0005:  ret
 }");
             verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessByteToNUInt()
+        {
+            // byte->nuint->ulong->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const byte index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, byte index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, byte index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessByteToUInt64()
+        {
+            // byte->ulong->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const byte index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, byte index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, byte index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt16ToInt64()
+        {
+            // short->long->nint
+            //      checked:   short->nint
+            //      unchecked: short->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const short index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, short index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, short index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt16ToNInt()
+        {
+            // short->nint->long->nint
+            //      checked:   short->nint
+            //      unchecked: short->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const short index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, short index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, short index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt16ToNUInt()
+        {
+            // short->nuint->ulong->nint
+            //      checked:   short->nuint.ovf->nint
+            //      unchecked: short->nuint.ovf->nint
+
+            // This overflows for short->nuint when short is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const short index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, short index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, short index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt16ToUInt64()
+        {
+            // short->ulong->nint
+            //      checked:   short->nuint.ovf->nint
+            //      unchecked: short->nuint.ovf->nint
+
+            // This overflows for short->ulong when short is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const short index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, short index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, short index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt32ToInt64()
+        {
+            // int->long->nint
+            //      checked:   int->nint
+            //      unchecked: int->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const int index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, int index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, int index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt32ToNInt()
+        {
+            // int->nint->long->nint
+            //      checked:   int->nint
+            //      unchecked: int->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const int index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, int index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, int index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt32ToNUInt()
+        {
+            // int->nuint->ulong->nint
+            //      checked:   int->nuint.ovf->nint
+            //      unchecked: int->nuint.ovf->nint
+
+            // This overflows for int->nuint when int is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const int index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, int index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, int index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt32ToUInt64()
+        {
+            // int->ulong->nint
+            //      checked:   int->nuint.ovf->nint
+            //      unchecked: int->nuint.ovf->nint
+
+            // This overflows for int->ulong when int is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const int index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, int index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, int index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt64()
+        {
+            // long->nint
+            //      checked:   long->nint.ovf
+            //      unchecked: long->nint.ovf
+
+            // This overflows for long->nint when long is outside the range of int on 32-bit systems
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const long index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, long index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, long index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt64ToNInt()
+        {
+            // long->nint->long->nint
+            //      checked:   long->nint.ovf
+            //      unchecked: long->nint
+
+            // This overflows for long->nint when in a checked context, on a 32-bit system, and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const long index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, long index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, long index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt64ToNUInt()
+        {
+            // long->nuint->ulong->nint
+            //      checked:   long->ulong->nint.ovf
+            //      unchecked: long->ulong->nint.ovf
+
+            // This overflows for long->nuint when long is negative
+            // This overflows for ulong->nint when on a 32-bit system and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const long index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, long index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, long index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessInt64ToUInt64()
+        {
+            // long->ulong->nint
+            //      checked:   long->ulong->nint.ovf
+            //      unchecked: long->ulong->nint.ovf
+
+            // This overflows for long->ulong when long is negative
+            // This overflows for ulong->nint when on a 32-bit system and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const long index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, long index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, long index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
 @"{
   // Code size        5 (0x5)
   .maxstack  2
@@ -14301,6 +15298,1642 @@ class C
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
+        public void ArrayAccessNInt()
+        {
+            // nint->long->nint
+            //      checked:   nint
+            //      unchecked: nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nint index = 2;
+        return a[index];
+    }
+    static int F2(int[] a, nint index)
+    {
+        return a[index];
+    }
+    static int F3(int[] a, nint index)
+    {
+        return a[checked(index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNIntToInt64()
+        {
+            // nint->long->nint
+            //      checked:   nint
+            //      unchecked: nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nint index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, nint index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, nint index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNIntToNUInt()
+        {
+            // nint->nuint->ulong->nint
+            //      checked:   nint->nuint.ovf->nint
+            //      unchecked: nint->nuint.ovf->nint
+
+            // This overflows for nint->nuint when nint is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nint index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, nint index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, nint index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNIntToUInt64()
+        {
+            // nint->ulong->nint
+            //      checked:   nint->nuint.ovf->nint
+            //      unchecked: nint->nuint.ovf->nint
+
+            // This overflows for nint->nuint when nint is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nint index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, nint index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, nint index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNUInt()
+        {
+            // nuint->ulong->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nuint index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, nuint index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, nuint index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNUIntToInt64()
+        {
+            // nuint->long->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nuint index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, nuint index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, nuint index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNUIntToNInt()
+        {
+            // nuint->nint->long->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint
+
+            // This overflows for nuint->nint when in a checked context and nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nuint index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, nuint index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, nuint index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessNUIntToUInt64()
+        {
+            // nuint->ulong->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const nuint index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, nuint index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, nuint index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessSByteToInt64()
+        {
+            // sbyte->long->nint
+            //      checked:   sbyte->nint
+            //      unchecked: sbyte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const sbyte index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, sbyte index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, sbyte index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessSByteToNInt()
+        {
+            // sbyte->nint->long->nint
+            //      checked:   sbyte->nint
+            //      unchecked: sbyte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const sbyte index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, sbyte index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, sbyte index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessSByteToNUInt()
+        {
+            // sbyte->nuint->ulong->nint
+            //      checked:   sbyte->nuint.ovf->nint
+            //      unchecked: sbyte->nuint.ovf->nint
+
+            // This overflows for sbyte->nuint when sbyte is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const sbyte index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, sbyte index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, sbyte index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessSByteToUInt64()
+        {
+            // sbyte->ulong->nint
+            //      checked:   sbyte->nuint.ovf->nint
+            //      unchecked: sbyte->nuint->nint.ovf
+
+            // This overflows for sbyte->ulong when sbyte is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const sbyte index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, sbyte index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, sbyte index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt16ToInt64()
+        {
+            // ushort->long->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ushort index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, ushort index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, ushort index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt16ToNInt()
+        {
+            // ushort->nint->long->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ushort index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, ushort index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, ushort index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt16ToNUInt()
+        {
+            // ushort->nuint->ulong->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ushort index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, ushort index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, ushort index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt16ToUInt64()
+        {
+            // ushort->ulong->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ushort index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, ushort index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, ushort index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt32ToInt64()
+        {
+            // uint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const uint index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, uint index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, uint index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt32ToNInt()
+        {
+            // uint->nint->long->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint
+
+            // This overflows for uint->nint when in a checked context and uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const uint index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, uint index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, uint index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.u
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt32ToNUInt()
+        {
+            // uint->nuint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const uint index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, uint index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, uint index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt32ToUInt64()
+        {
+            // uint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const uint index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, uint index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, uint index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt64()
+        {
+            // ulong->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ulong index = 2;
+        return a[(ulong)index];
+    }
+    static int F2(int[] a, ulong index)
+    {
+        return a[(ulong)index];
+    }
+    static int F3(int[] a, ulong index)
+    {
+        return a[checked((ulong)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt64ToInt64()
+        {
+            // ulong->long->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ulong index = 2;
+        return a[(long)index];
+    }
+    static int F2(int[] a, ulong index)
+    {
+        return a[(long)index];
+    }
+    static int F3(int[] a, ulong index)
+    {
+        return a[checked((long)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt64ToNInt()
+        {
+            // ulong->nint->long->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint
+
+            // This overflows for ulong->nint when in a checked context and ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ulong index = 2;
+        return a[(nint)index];
+    }
+    static int F2(int[] a, ulong index)
+    {
+        return a[(nint)index];
+    }
+    static int F3(int[] a, ulong index)
+    {
+        return a[checked((nint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.i
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayAccessUInt64ToNUInt()
+        {
+            // ulong->nuint->ulong->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] a = new int[] { 1, 2, 3 };
+        int r1 = F1(a);
+        int r2 = F2(a, 1);
+        int r3 = F3(a, 0);
+        System.Console.WriteLine(r1 + r2 + r3);
+    }
+    static int F1(int[] a)
+    {
+        const ulong index = 2;
+        return a[(nuint)index];
+    }
+    static int F2(int[] a, ulong index)
+    {
+        return a[(nuint)index];
+    }
+    static int F3(int[] a, ulong index)
+    {
+        return a[checked((nuint)index)];
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "6", verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  conv.i8
+  IL_0003:  conv.i
+  IL_0004:  ldelem.i4
+  IL_0005:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  conv.ovf.i.un
+  IL_0003:  ldelem.i4
+  IL_0004:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
         public void ArrayAccessUIntPtr()
         {
             string source =
@@ -14326,24 +16959,33 @@ class C
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
-        public void ArrayCreationNInt()
+        public void ArrayCreationByteToInt64()
         {
+            // byte->long->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
             string source =
 @"class C
 {
     static void Main()
     {
-        int[] a1 = F1();
-        int[] a2 = F2(3);
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
     }
     static int[] F1()
     {
-        const nint length = 2;
-        return new int[length];
+        const byte length = 2;
+        return new int[(long)length];
     }
-    static int[] F2(nint length)
+    static int[] F2(byte length)
     {
-        return new int[length];
+        return new int[(long)length];
+    }
+    static int[] F3(byte length)
+    {
+        return new int[checked((long)length)];
     }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped);
@@ -14359,34 +17001,875 @@ class C
 }");
             verifier.VerifyIL("C.F2",
 @"{
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  newarr     ""int""
-  IL_0006:  ret
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
 }");
         }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
-        public void ArrayCreationNUInt()
+        public void ArrayCreationByteToNInt()
         {
+            // byte->nint->long->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
             string source =
 @"class C
 {
     static void Main()
     {
-        int[] a1 = F1();
-        int[] a2 = F2(3);
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
     }
     static int[] F1()
     {
-        const nuint length = 2;
-        return new int[length];
+        const byte length = 2;
+        return new int[(nint)length];
     }
-    static int[] F2(nuint length)
+    static int[] F2(byte length)
     {
-        return new int[length];
+        return new int[(nint)length];
+    }
+    static int[] F3(byte length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationByteToNUInt()
+        {
+            // byte->nuint->ulong->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const byte length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(byte length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(byte length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationByteToUInt64()
+        {
+            // byte->ulong->nint
+            //      checked:   byte->nint
+            //      unchecked: byte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const byte length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(byte length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(byte length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt16ToInt64()
+        {
+            // short->long->nint
+            //      checked:   short->nint
+            //      unchecked: short->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const short length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(short length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(short length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt16ToNInt()
+        {
+            // short->nint->long->nint
+            //      checked:   short->nint
+            //      unchecked: short->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const short length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(short length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(short length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt16ToNUInt()
+        {
+            // short->nuint->ulong->nint
+            //      checked:   short->nuint.ovf->nint
+            //      unchecked: short->nuint.ovf->nint
+
+            // This overflows for short->nuint when short is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const short length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(short length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(short length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt16ToUInt64()
+        {
+            // short->ulong->nint
+            //      checked:   short->nuint.ovf->nint
+            //      unchecked: short->nuint.ovf->nint
+
+            // This overflows for short->ulong when short is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const short length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(short length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(short length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt32ToInt64()
+        {
+            // int->long->nint
+            //      checked:   int->nint
+            //      unchecked: int->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const int length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(int length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(int length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt32ToNInt()
+        {
+            // int->nint->long->nint
+            //      checked:   int->nint
+            //      unchecked: int->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const int length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(int length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(int length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt32ToNUInt()
+        {
+            // int->nuint->ulong->nint
+            //      checked:   int->nuint.ovf->nint
+            //      unchecked: int->nuint.ovf->nint
+
+            // This overflows for int->nuint when int is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const int length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(int length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(int length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt32ToUInt64()
+        {
+            // int->ulong->nint
+            //      checked:   int->nuint.ovf->nint
+            //      unchecked: int->nuint.ovf->nint
+
+            // This overflows for int->ulong when int is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const int length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(int length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(int length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt64()
+        {
+            // long->nint
+            //      checked:   long->nint.ovf
+            //      unchecked: long->nint.ovf
+
+            // This overflows for long->nint when long is outside the range of int on 32-bit systems
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const long length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(long length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(long length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt64ToNInt()
+        {
+            // long->nint->long->nint
+            //      checked:   long->nint.ovf
+            //      unchecked: long->nint
+
+            // This overflows for long->nint when in a checked context, on a 32-bit system, and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const long length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(long length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(long length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt64ToNUInt()
+        {
+            // long->nuint->ulong->nint
+            //      checked:   long->ulong->nint.ovf
+            //      unchecked: long->ulong->nint.ovf
+
+            // This overflows for long->nuint when long is negative
+            // This overflows for ulong->nint when on a 32-bit system and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const long length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(long length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(long length)
+    {
+        return new int[checked((nuint)length)];
     }
 }";
             var verifier = CompileAndVerify(source, verify: Verification.Skipped);
@@ -14409,6 +17892,80 @@ class C
   IL_0002:  newarr     ""int""
   IL_0007:  ret
 }");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationInt64ToUInt64()
+        {
+            // long->ulong->nint
+            //      checked:   long->ulong->nint.ovf
+            //      unchecked: long->ulong->nint.ovf
+
+            // This overflows for long->ulong when long is negative
+            // This overflows for ulong->nint when on a 32-bit system and long is outside the range of int
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const long length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(long length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(long length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
         }
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
@@ -14421,7 +17978,7 @@ class C
 {
     static void Main()
     {
-        int[] a = F(IntPtr.Zero);
+        int[] r = F(IntPtr.Zero);
     }
     static int[] F(IntPtr length)
     {
@@ -14437,6 +17994,1522 @@ class C
 
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
+        public void ArrayCreationNInt()
+        {
+            // nint->long->nint
+            //      checked:   nint
+            //      unchecked: nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nint length = 2;
+        return new int[length];
+    }
+    static int[] F2(nint length)
+    {
+        return new int[length];
+    }
+    static int[] F3(nint length)
+    {
+        return new int[checked(length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNIntToInt64()
+        {
+            // nint->long->nint
+            //      checked:   nint
+            //      unchecked: nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nint length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(nint length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(nint length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNIntToNUInt()
+        {
+            // nint->nuint->ulong->nint
+            //      checked:   nint->nuint.ovf->nint
+            //      unchecked: nint->nuint.ovf->nint
+
+            // This overflows for nint->nuint when nint is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nint length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(nint length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(nint length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNIntToUInt64()
+        {
+            // nint->ulong->nint
+            //      checked:   nint->nuint.ovf->nint
+            //      unchecked: nint->nuint.ovf->nint
+
+            // This overflows for nint->nuint when nint is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nint length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(nint length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(nint length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNUInt()
+        {
+            // nuint->ulong->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nuint length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(nuint length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(nuint length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNUIntToInt64()
+        {
+            // nuint->long->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nuint length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(nuint length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(nuint length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNUIntToNInt()
+        {
+            // nuint->nint->long->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint
+
+            // This overflows for nuint->nint when in a checked context and nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nuint length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(nuint length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(nuint length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationNUIntToUInt64()
+        {
+            // nuint->ulong->nint
+            //      checked:   nuint->nint.ovf
+            //      unchecked: nuint->nint.ovf
+
+            // This overflows for ulong->nint when nuint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const nuint length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(nuint length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(nuint length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationSByteToInt64()
+        {
+            // sbyte->long->nint
+            //      checked:   sbyte->nint
+            //      unchecked: sbyte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const sbyte length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(sbyte length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(sbyte length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationSByteToNInt()
+        {
+            // sbyte->nint->long->nint
+            //      checked:   sbyte->nint
+            //      unchecked: sbyte->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const sbyte length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(sbyte length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(sbyte length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationSByteToNUInt()
+        {
+            // sbyte->nuint->ulong->nint
+            //      checked:   sbyte->nuint.ovf->nint
+            //      unchecked: sbyte->nuint.ovf->nint
+
+            // This overflows for sbyte->nuint when sbyte is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const sbyte length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(sbyte length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(sbyte length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationSByteToUInt64()
+        {
+            // sbyte->ulong->nint
+            //      checked:   sbyte->nuint.ovf->nint
+            //      unchecked: sbyte->nuint->nint.ovf
+
+            // This overflows for sbyte->ulong when sbyte is negative
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const sbyte length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(sbyte length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(sbyte length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt16ToInt64()
+        {
+            // ushort->long->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ushort length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(ushort length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(ushort length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt16ToNInt()
+        {
+            // ushort->nint->long->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ushort length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(ushort length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(ushort length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt16ToNUInt()
+        {
+            // ushort->nuint->ulong->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ushort length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(ushort length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(ushort length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt16ToUInt64()
+        {
+            // ushort->ulong->nint
+            //      checked:   ushort->nint
+            //      unchecked: ushort->nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ushort length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(ushort length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(ushort length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt32ToInt64()
+        {
+            // uint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const uint length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(uint length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(uint length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt32ToNInt()
+        {
+            // uint->nint->long->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint
+
+            // This overflows for uint->nint when in a checked context and uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const uint length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(uint length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(uint length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt32ToNUInt()
+        {
+            // uint->nuint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const uint length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(uint length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(uint length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt32ToUInt64()
+        {
+            // uint->ulong->nint
+            //      checked:   uint->nint.ovf
+            //      unchecked: uint->nint.ovf
+
+            // This overflows for ulong->nint when uint is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const uint length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(uint length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(uint length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt64()
+        {
+            // ulong->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ulong length = 2;
+        return new int[(ulong)length];
+    }
+    static int[] F2(ulong length)
+    {
+        return new int[(ulong)length];
+    }
+    static int[] F3(ulong length)
+    {
+        return new int[checked((ulong)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt64ToInt64()
+        {
+            // ulong->long->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ulong length = 2;
+        return new int[(long)length];
+    }
+    static int[] F2(ulong length)
+    {
+        return new int[(long)length];
+    }
+    static int[] F3(ulong length)
+    {
+        return new int[checked((long)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt64ToNInt()
+        {
+            // ulong->nint->long->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint
+
+            // This overflows for ulong->nint when in a checked context and ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ulong length = 2;
+        return new int[(nint)length];
+    }
+    static int[] F2(ulong length)
+    {
+        return new int[(nint)length];
+    }
+    static int[] F3(ulong length)
+    {
+        return new int[checked((nint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
+        public void ArrayCreationUInt64ToNUInt()
+        {
+            // ulong->nuint->ulong->nint
+            //      checked:   ulong->nint.ovf
+            //      unchecked: ulong->nint.ovf
+
+            // This overflows for ulong->nint when ulong is outside the range of nint
+
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        int[] r1 = F1();
+        int[] r2 = F2(1);
+        int[] r3 = F3(0);
+    }
+    static int[] F1()
+    {
+        const ulong length = 2;
+        return new int[(nuint)length];
+    }
+    static int[] F2(ulong length)
+    {
+        return new int[(nuint)length];
+    }
+    static int[] F3(ulong length)
+    {
+        return new int[checked((nuint)length)];
+    }
+}";
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped);
+            verifier.VerifyIL("C.F1",
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldc.i4.2
+  IL_0001:  conv.i8
+  IL_0002:  conv.i
+  IL_0003:  newarr     ""int""
+  IL_0008:  ret
+}");
+            verifier.VerifyIL("C.F2",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("C.F3",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.i.un
+  IL_0002:  newarr     ""int""
+  IL_0007:  ret
+}");
+        }
+
+        [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
+        [Fact]
         public void ArrayCreationUIntPtr()
         {
             string source =
@@ -14445,7 +19518,7 @@ class C
 {
     static void Main()
     {
-        int[] a = F(UIntPtr.Zero);
+        int[] r = F(UIntPtr.Zero);
     }
     static int[] F(UIntPtr length)
     {
@@ -14488,7 +19561,7 @@ class C
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        5 (0x5)
-  .maxstack  2
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.4
   IL_0002:  add
@@ -14541,7 +19614,7 @@ class C
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        5 (0x5)
-  .maxstack  2
+  .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.4
   IL_0002:  add
