@@ -8,13 +8,12 @@ using System;
 using System.Collections.Generic;
 using AppKit;
 using Foundation;
-using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Differencing;
 
 #pragma warning disable IDE0060 //Remove unused parameter
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal class PreviewPane : NSView
     {
@@ -97,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             NSLayoutConstraint.ActivateConstraints(constraints);
 
             _differenceViewerPreview.Viewer.InlineView.TryMoveCaretToAndEnsureVisible(
-                new Text.SnapshotPoint(_differenceViewerPreview.Viewer.InlineView.TextSnapshot, 0));
+                new Microsoft.VisualStudio.Text.SnapshotPoint(_differenceViewerPreview.Viewer.InlineView.TextSnapshot, 0));
         }
 
         public PreviewPane(IntPtr ptr)
