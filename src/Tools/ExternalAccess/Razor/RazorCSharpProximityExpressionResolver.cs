@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal static class RazorCSharpProximityExpressionResolverService
     {
-        public IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex)
-            => CSharpProximityExpressionsService.Do(syntaxTree, absoluteIndex);
+        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex)
+            => CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, absoluteIndex);
     }
 }
