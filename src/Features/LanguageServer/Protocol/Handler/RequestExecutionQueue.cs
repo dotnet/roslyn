@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="mutatesSolutionState">Whether or not handling this method results in changes to the current solution state.
         /// Mutating requests will block all subsequent requests from starting until after they have
         /// completed and mutations have been applied.</param>
-        /// <param name="requiresLSPSolution">Whether or not to build a soluton that represents the LSP view of the world. If this
+        /// <param name="requiresLSPSolution">Whether or not to build a solution that represents the LSP view of the world. If this
         /// is set to false, the default workspace's current solution will be used.</param>
         /// <param name="handler">The handler that will handle the request.</param>
         /// <param name="request">The request to handle.</param>
