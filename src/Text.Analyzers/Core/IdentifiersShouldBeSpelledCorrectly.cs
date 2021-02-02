@@ -47,184 +47,185 @@ namespace Text.Analyzers
         private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseDicDictionary);
         private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
-        internal static DiagnosticDescriptor FileParseRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor FileParseRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageFileParse,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            RuleLevel.BuildWarning,
+            description: s_localizableDescription,
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor AssemblyRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor AssemblyRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageAssembly,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor NamespaceRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NamespaceRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageNamespace,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageType,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor VariableRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor VariableRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageVariable,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMember,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberParameterRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberParameter,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor DelegateParameterRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageDelegateParameter,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeTypeParameterRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeTypeParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeTypeParameter,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MethodTypeParameterRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodTypeParameterRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMethodTypeParameter,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageAssemblyMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageNamespaceMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberParameterMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageDelegateParameterMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeTypeParameterMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
-        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = DiagnosticDescriptorHelper.Create(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMethodTypeParameterMoreMeaningfulName,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            RuleLevel.BuildWarning,
             description: s_localizableDescription,
-            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+            isPortedFxCopRule: true,
+            isDataflowRule: false);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             FileParseRule,
