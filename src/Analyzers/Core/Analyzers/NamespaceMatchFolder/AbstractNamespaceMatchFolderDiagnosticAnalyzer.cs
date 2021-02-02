@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -27,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
             nameof(AnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractNamespaceMatchFolderDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
-                EnforceOnBuildValues.NamespaceSync,
+            : base(IDEDiagnosticIds.NamespaceMatchFolderDiagnosticId,
+                EnforceOnBuildValues.NamespaceMatchFolder,
                 CodeStyleOptions2.PreferNamespaceMatchFolderStructure,
                 s_localizableTitle,
                 s_localizableInsideMessage)
@@ -39,15 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
             .FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
-        /// <summary>
-        /// Gets the language specific syntax facts
-        /// </summary>
         protected abstract ISyntaxFacts GetSyntaxFacts();
-
-        /// <summary>
-        /// Gets the syntax representing the name of a namespace declaration
-        /// </summary>
-        protected abstract SyntaxNode GetNameSyntax(TNamespaceSyntax namespaceDeclaration);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -66,12 +57,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
 
             if (context.Node is TNamespaceSyntax namespaceDecl)
             {
-                var currentNamespace = GetNamespaceName(context.SemanticModel, namespaceDecl);
+                var symbol = context.SemanticModel.GetDeclaredSymbol(namespaceDecl);
+                RoslynDebug.AssertNotNull(symbol);
+
+                var currentNamespace = symbol.ToDisplayString(s_namespaceDisplayFormat);
 
                 if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
                 {
-                    var nameSyntax = GetNameSyntax(namespaceDecl);
+                    var nameSyntax = GetSyntaxFacts().GetNameOfNamespaceDeclaration(namespaceDecl);
+                    RoslynDebug.AssertNotNull(nameSyntax);
 
                     context.ReportDiagnostic(Diagnostic.Create(
                         Descriptor,
@@ -80,14 +75,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
                         properties: ImmutableDictionary<string, string?>.Empty.Add(NamespaceMatchFolderConstants.TargetNamespace, targetNamespace),
                         messageArgs: new[] { currentNamespace, targetNamespace }));
                 }
-            }
-
-            static string GetNamespaceName(SemanticModel semanticModel, SyntaxNode namespaceSyntax)
-            {
-                var symbol = semanticModel.GetDeclaredSymbol(namespaceSyntax);
-                RoslynDebug.AssertNotNull(symbol);
-
-                return symbol.ToDisplayString(s_namespaceDisplayFormat);
             }
         }
 
@@ -111,8 +98,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
             }
 
             // The current namespace should be valid
-            var isCurrentNamespaceInvalid = GetNameSyntax(namespaceDeclaration)
-                .GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
+            var isCurrentNamespaceInvalid = GetSyntaxFacts()
+                .GetNameOfNamespaceDeclaration(namespaceDeclaration)
+                ?.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error)
+                ?? false;
+
             if (isCurrentNamespaceInvalid)
             {
                 return false;

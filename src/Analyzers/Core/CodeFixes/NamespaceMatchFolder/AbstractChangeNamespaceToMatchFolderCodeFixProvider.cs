@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
 {
     internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.NamespaceMatchFolderDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceMatchFolder
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpNamespaceMatchFolderDiagnosticAnalyzer : AbstractNamespaceMatchFolderDiagnosticAnalyzer<NamespaceDeclarationSyntax>
     {
-        protected override SyntaxNode GetNameSyntax(NamespaceDeclarationSyntax namespaceDeclaration) => namespaceDeclaration.Name;
-
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
         protected override void InitializeWorker(AnalysisContext context)
