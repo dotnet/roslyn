@@ -75,6 +75,9 @@ namespace Text.Analyzers
         /// <summary>
         /// Creates a new instance of this class with recognized words loaded from the specified DIC <paramref name="streamReader"/>.
         /// </summary>
+        /// <remarks>
+        /// A DIC file usually has an extension of ".dic". It consists of a list of newline-delimited words.
+        /// </remarks>
         /// <param name="streamReader">DIC stream of a code analysis dictionary.</param>
         /// <returns>A new instance of this class with recognized words loaded.</returns>
         public static CodeAnalysisDictionary CreateFromDic(StreamReader streamReader)
