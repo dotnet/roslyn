@@ -3390,13 +3390,13 @@ public class D
            long V_2) //tl
   IL_0000:  ldc.i4.4  
   IL_0001:  conv.i8   
-  IL_0002:  conv.ovf.i
+  IL_0002:  conv.i    
   IL_0003:  newarr     ""int""
   IL_0008:  stloc.0   
   IL_0009:  ldloc.0   
   IL_000a:  ldc.i4.0  
   IL_000b:  conv.i8   
-  IL_000c:  conv.ovf.i
+  IL_000c:  conv.i    
   IL_000d:  ldc.i4.s   111
   IL_000f:  stelem.i4 
   IL_0010:  ldc.i4.1  
@@ -3410,7 +3410,7 @@ public class D
   IL_001c:  ldloc.0   
   IL_001d:  ldc.i4.3  
   IL_001e:  conv.i8   
-  IL_001f:  conv.ovf.i
+  IL_001f:  conv.i    
   IL_0020:  ldc.i4     0x14d
   IL_0025:  stelem.i4 
   IL_0026:  ldloc.0   

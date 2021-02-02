@@ -14180,7 +14180,7 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
         }
-                             
+
         [WorkItem(47887, "https://github.com/dotnet/roslyn/issues/47887")]
         [Fact]
         public void ArrayAccessByteToInt64()
@@ -19561,7 +19561,7 @@ class C
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        5 (0x5)
-  .maxstack  1
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.4
   IL_0002:  add
@@ -19614,7 +19614,7 @@ class C
             verifier.VerifyIL("C.F1",
 @"{
   // Code size        5 (0x5)
-  .maxstack  1
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.4
   IL_0002:  add
