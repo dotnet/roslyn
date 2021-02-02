@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -114,40 +115,94 @@ namespace Text.Analyzers.UnitTests
             await VerifyCSharpAsync(source, dictionary);
         }
 
-        [Fact(Skip = "Adding additional files to specific projects is not yet supported")]
+        [Fact]
         public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnostic()
         {
             var source = "class {|#0:Clazz|} {}";
             var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalProjects =
+                    {
+                        ["OtherProject"] =
+                        {
+                            AdditionalFiles = { dictionary }
+                        },
+                    },
+                    AdditionalProjectReferences = { "OtherProject" }
+                },
+                ExpectedDiagnostics =
+                {
+                    VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
+                        .WithLocation(0)
+                        .WithArguments("Clazz", "Clazz")
+                }
+            };
 
-            await VerifyCSharpAsync(
-                source,
-                dictionary,
-                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
-                    .WithLocation(0)
-                    .WithArguments("Clazz", "Clazz"));
+            await test.RunAsync();
         }
 
-        [Fact(Skip = "Specifying assembly names is not yet supported")]
+        [Fact]
         public async Task AssemblyMisspelled_Verify_EmitsDiagnostic()
         {
-            var source = "class Program {}";
+            var source = "{|#0:class Program {}|}";
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                SolutionTransforms =
+                {
+                    (solution, projectId) => RenameProjectAssembly(solution, projectId),
+                },
+                ExpectedDiagnostics =
+                {
+                    VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyRule)
+                        .WithLocation(0)
+                        .WithArguments("Assambly", "MyAssambly")
+                }
+            };
 
-            await VerifyCSharpAsync(
-                source,
-                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyRule)
-                    .WithArguments("Assambly", "MyAssambly"));
+            await test.RunAsync();
+
+            static Solution RenameProjectAssembly(Solution solution, ProjectId projectId)
+            {
+                return solution.WithProjectAssemblyName(projectId, "MyAssambly");
+            }
         }
 
-        [Fact(Skip = "Specifying assembly names is not yet supported")]
+        [Fact]
         public async Task AssemblyUnmeaningful_Verify_EmitsDiagnostic()
         {
-            var source = "class Program {}";
+            var source = "{|#0:class Program {}|}";
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                },
+                SolutionTransforms =
+                {
+                    (solution, projectId) => RenameProjectAssembly(solution, projectId),
+                },
+                ExpectedDiagnostics =
+                {
+                    VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyMoreMeaningfulNameRule)
+                        .WithLocation(0)
+                        .WithArguments("A")
+                }
+            };
 
-            await VerifyCSharpAsync(
-                source,
-                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyMoreMeaningfulNameRule)
-                    .WithArguments("A"));
+            await test.RunAsync();
+
+            static Solution RenameProjectAssembly(Solution solution, ProjectId projectId)
+            {
+                return solution.WithProjectAssemblyName(projectId, "A");
+            }
         }
 
         [Fact]
