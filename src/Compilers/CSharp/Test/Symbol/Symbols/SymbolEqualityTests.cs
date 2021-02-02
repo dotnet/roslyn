@@ -44,9 +44,7 @@ class C
             var nullPlus = (IMethodSymbol)model.GetSymbolInfo(invocations[1]).Symbol;
 
             Assert.Equal(MethodImplAttributes.IL, nonNullPlus.ImplementationAttributes);
-            Assert.Equal(MethodImplAttributes.Managed, nonNullPlus.ImplementationAttributes);
             Assert.Equal(MethodImplAttributes.IL, nullPlus.ImplementationAttributes);
-            Assert.Equal(MethodImplAttributes.Managed, nullPlus.ImplementationAttributes);
 
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nonNullPlus.GetSymbol());
             Assert.IsType<SynthesizedIntrinsicOperatorSymbol>(nullPlus.GetSymbol());
@@ -95,9 +93,7 @@ class C
             Assert.NotNull(nullStringExt);
 
             Assert.Equal(MethodImplAttributes.IL, nonNullStringExt.ImplementationAttributes);
-            Assert.Equal(MethodImplAttributes.Managed, nonNullStringExt.ImplementationAttributes);
             Assert.Equal(MethodImplAttributes.IL, nullStringExt.ImplementationAttributes);
-            Assert.Equal(MethodImplAttributes.Managed, nullStringExt.ImplementationAttributes);
 
             Assert.IsType<ReducedExtensionMethodSymbol>(nonNullStringExt.GetSymbol());
             Assert.IsType<ReducedExtensionMethodSymbol>(nullStringExt.GetSymbol());
