@@ -984,6 +984,33 @@ C.Method6(string p1) -> void
                 GetCSharpResultAt(32, 17, DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicApiAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
         }
 
+        [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
+        public async Task TestObsoleteOverloadWithOptionalParameters_NoDiagnostic()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M(int p1 = 0) { }
+
+    [Obsolete]
+    public void M(char p1, int p2) { }
+}
+";
+
+            string shippedText = string.Empty;
+            string unshippedText = $@"
+C
+C.C() -> void
+
+C.M(char p1, int p2) -> void
+C.M(int p1 = 0) -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         [Fact]
         public async Task ObliviousMember_Simple()
         {
