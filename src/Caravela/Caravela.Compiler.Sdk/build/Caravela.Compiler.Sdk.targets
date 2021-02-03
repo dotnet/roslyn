@@ -4,12 +4,12 @@
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
-  <Target Name="CaravelaCompilerSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
+  <Target Name="CaravelaCompilerSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup" Condition="$(IsPackable) == 'true'">
     <ItemGroup>
       <!-- include assemblies from the current project -->
-      <None Include="@(BuiltProjectOutputGroupOutput)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="@(BuiltProjectOutputGroupOutput)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
       <!-- include assemblies from references -->
-      <None Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
     </ItemGroup>
   </Target>
 
@@ -17,21 +17,22 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CaravelaCompilerSetLibAssembliesInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="CaravelaCompilerSetLibAssembliesInPackage" DependsOnTargets="ResolveReferences">
+
+  <Target Name="CaravelaCompilerSetLibAssembliesInPackage" DependsOnTargets="ResolveReferences" Condition="$(IsPackable) == 'true'">
     <ItemGroup>
       <!-- include assemblies from references -->
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))"/>
       <!-- exclude assemblies from the current project -->
-      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)" />
+      <BuiltProjectOutputGroupOutput Remove="@(BuiltProjectOutputGroupOutput)"/>
     </ItemGroup>
   </Target>
 
   <UsingTask TaskName="CaravelaCompilerRewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
-      <NuspecFile />
+      <NuspecFile/>
     </ParameterGroup>
     <Task>
-      <Using Namespace="System.Xml.Linq" />
+      <Using Namespace="System.Xml.Linq"/>
       <Code Type="Fragment" Language="cs">
         <![CDATA[
             XNamespace ns = "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd";
@@ -120,19 +121,19 @@
               Deterministic="$(Deterministic)"
               PackageIcon="$(PackageIcon)"
               ContinueOnError="true"
-              />
+    />
   </Target>
 
-  <Target Name="CaravelaCompilerUpdateNuspec" DependsOnTargets="CaravelaCompilerGenerateNuspec">
+  <Target Name="CaravelaCompilerUpdateNuspec" DependsOnTargets="CaravelaCompilerGenerateNuspec" Condition="$(IsPackable) == 'true'">
     <ItemGroup>
-      <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'" />
+      <FilteredOutput Include="@(NuGetPackOutput)" Condition="%(Extension) == '.nuspec'"/>
     </ItemGroup>
 
     <PropertyGroup>
       <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
     </PropertyGroup>
 
-    <CaravelaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" />
+    <CaravelaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)"/>
 
   </Target>
 
