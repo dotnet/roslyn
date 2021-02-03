@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern);
                 RemoveIfConstantPatternHasValue(binaryPattern.RightPattern);
                 
-                HandleBinaryPattern(binaryPattern.LeftPattern as IBinaryPatternOperation);
-                HandleBinaryPattern(binaryPattern.RightPattern as IBinaryPatternOperation);
+                HandleBinaryPattern(binaryPattern.LeftPattern as IBinaryPatternOperation, enumMembers);
+                HandleBinaryPattern(binaryPattern.RightPattern as IBinaryPatternOperation, enumMembers);
             }
 
             void RemoveIfConstantPatternHasValue(IOperation operation)
             {
-                if (operation is IConstantPatternOperation { Value { ConstantValue { HasValue: true, Value: var value } } })
+                if (operation is IConstantPatternOperation { Value: { ConstantValue: { HasValue: true, Value: var value } } })
                         enumMembers.Remove(IntegerUtilities.ToInt64(value));
             }
         }
