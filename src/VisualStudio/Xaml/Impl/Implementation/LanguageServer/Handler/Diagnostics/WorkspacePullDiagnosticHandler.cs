@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,8 +18,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false)]
+    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false, StringConstants.XamlLanguageName), Shared]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
         [ImportingConstructor]

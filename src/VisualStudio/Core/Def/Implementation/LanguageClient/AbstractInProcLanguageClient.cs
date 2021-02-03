@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
+        private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         protected readonly Workspace Workspace;
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         public AbstractInProcLanguageClient(
-            AbstractRequestDispatcherFactory requestDispatcherFactory,
+            AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VSShell.IAsyncServiceProvider asyncServiceProvider,
             string? diagnosticsClientName)
         {
-            _requestDispatcherFactory = requestDispatcherFactory;
+            _requestHandlerProvider = requestHandlerProvider;
             Workspace = workspace;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 this,
                 serverStream,
                 serverStream,
-                _requestDispatcherFactory.CreateRequestDispatcher(),
+                _requestHandlerProvider,
                 Workspace,
                 _diagnosticService,
                 _listenerProvider,
