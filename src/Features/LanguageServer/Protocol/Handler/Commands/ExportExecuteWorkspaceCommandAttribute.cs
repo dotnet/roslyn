@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
 {
+    /// <summary>
+    /// Defines an attribute to export LSP handlers to handle a specific command from the 'workspace/executeCommand' method.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-    internal class LspCommandAttribute : LspMethodAttribute, ILspCommandMetadata
+    internal class ExportExecuteWorkspaceCommandAttribute : ExportAttribute, IExecuteWorkspaceCommandHandlerMetadata
     {
-        /// <summary>
-        /// The name of the command to execute for a <see cref="Methods.WorkspaceExecuteCommandName"/> request.
-        /// </summary>
         public string CommandName { get; }
 
-        public LspCommandAttribute(string commandName, bool mutatesSolutionState) : base(Methods.WorkspaceExecuteCommandName, mutatesSolutionState)
+        public ExportExecuteWorkspaceCommandAttribute(string commandName) : base(typeof(IExecuteWorkspaceCommandHandler))
         {
             if (string.IsNullOrEmpty(commandName))
             {
@@ -24,11 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
             }
 
             CommandName = commandName;
-        }
-
-        public static string GetRequestNameForCommand(string commandName)
-        {
-            return $"{Methods.WorkspaceExecuteCommandName}/{commandName}";
         }
     }
 }

@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
             var markup =
 @"using {|foldingRange:System;
 using System.Linq;|}";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(testLspServer);
+            var results = await RunGetFoldingRangeAsync(workspace.CurrentSolution);
             AssertJsonEquals(expected, results);
         }
 
@@ -38,12 +38,12 @@ using System.Linq;|}";
 @"{|foldingRange:// A comment|}
 {|foldingRange:/* A multiline
 comment */|}";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(testLspServer);
+            var results = await RunGetFoldingRangeAsync(workspace.CurrentSolution);
             AssertJsonEquals(expected, results);
         }
 
@@ -54,24 +54,25 @@ comment */|}";
 @"{|foldingRange:#region ARegion
 #endregion|}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = locations["foldingRange"]
                 .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range))
                 .ToArray();
 
-            var results = await RunGetFoldingRangeAsync(testLspServer);
+            var results = await RunGetFoldingRangeAsync(workspace.CurrentSolution);
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(TestLspServer testLspServer)
+        private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(Solution solution)
         {
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var document = solution.Projects.First().Documents.First();
             var request = new LSP.FoldingRangeParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(queue, LSP.Methods.TextDocumentFoldingRangeName,
                 request, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
