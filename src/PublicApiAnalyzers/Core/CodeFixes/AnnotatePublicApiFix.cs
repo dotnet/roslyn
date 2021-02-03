@@ -82,7 +82,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + DeclarePublicApiFix.GetEndOfFileText(sourceText));
+            var endOfLine = Environment.NewLine;
+            if (sourceText.Lines.Count > 1)
+            {
+                var firstLine = sourceText.Lines[0];
+                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
+            }
+
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, lines) + DeclarePublicApiFix.GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 

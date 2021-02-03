@@ -58,7 +58,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static SourceText AddNullableEnable(SourceText sourceText)
         {
-            string extraLine = "#nullable enable" + Environment.NewLine;
+            var endOfLine = Environment.NewLine;
+            if (sourceText.Lines.Count > 1)
+            {
+                var firstLine = sourceText.Lines[0];
+                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
+            }
+
+            string extraLine = "#nullable enable" + endOfLine;
             SourceText newSourceText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), extraLine));
             return newSourceText;
         }

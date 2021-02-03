@@ -107,7 +107,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 insertInList(lines, name);
             }
 
-            var newText = string.Join(Environment.NewLine, lines) + GetEndOfFileText(sourceText);
+            var endOfLine = Environment.NewLine;
+            if (sourceText is not null && sourceText.Lines.Count > 1)
+            {
+                var firstLine = sourceText.Lines[0];
+                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
+            }
+
+            var newText = string.Join(endOfLine, lines) + GetEndOfFileText(sourceText, endOfLine);
             return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
 
             // Insert name at the first suitable position
@@ -136,7 +143,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, newLines) + GetEndOfFileText(sourceText));
+            var endOfLine = Environment.NewLine;
+            if (sourceText.Lines.Count > 1)
+            {
+                var firstLine = sourceText.Lines[0];
+                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
+            }
+
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 
@@ -167,13 +181,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         /// <param name="sourceText">The source text.</param>
         /// <returns><see cref="Environment.NewLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
         /// otherwise, <see cref="string.Empty"/>.</returns>
-        public static string GetEndOfFileText(SourceText? sourceText)
+        public static string GetEndOfFileText(SourceText? sourceText, string endOfLine)
         {
             if (sourceText == null || sourceText.Length == 0)
                 return string.Empty;
 
             var lastLine = sourceText.Lines[^1];
-            return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
+            return lastLine.Span.IsEmpty ? endOfLine : string.Empty;
         }
 
         internal class AdditionalDocumentChangeAction : CodeAction
