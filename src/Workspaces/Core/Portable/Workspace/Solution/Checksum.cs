@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteTo(Span<byte> span)
             {
-                Contract.ThrowIfFalse(span.Length == HashSize);
+                Contract.ThrowIfFalse(span.Length >= HashSize);
                 unsafe
                 {
                     fixed (byte* bytes = span)
