@@ -150,7 +150,15 @@ namespace Microsoft.CodeAnalysis
             => _checksum.WriteTo(writer);
 
         public void WriteTo(Span<byte> span)
-            => Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
+        {
+            unsafe
+            {
+                fixed (byte* bytes = &span.GetPinnableReference())
+                {
+                    *(HashData*)bytes = _checksum;
+                }
+            }
+        }
 
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
@@ -196,6 +204,24 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
                 writer.WriteInt32(Data3);
+            }
+
+            public static unsafe bool FromSpan(Span<byte> bytes, out HashData result)
+            {
+                if (bytes.Length != HashSize)
+                {
+                    result = default;
+                    return false;
+                }
+
+                unsafe
+                {
+                    fixed (byte* ptr = &bytes.GetPinnableReference())
+                    {
+                        result = FromPointer((HashData*)ptr);
+                        return true;
+                    }
+                }
             }
 
             public static unsafe HashData FromPointer(HashData* hash)
