@@ -23,8 +23,10 @@
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
 
-    <!-- TODO: figure out a solution for this dependency in net472, or figure out how to "come along for the ride" in the bootstrap packages without needing to target net472. -->
+    <!-- TODO: figure out a solution for this dependency in net472 -->
+    <!-- it might be that we don't want to do any http networking in this tool and need to remove this -->
     <PackageReference Include="System.Net.Http" Version="4.0.0" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 </Project>

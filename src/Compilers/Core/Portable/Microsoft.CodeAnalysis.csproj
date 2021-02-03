@@ -11,7 +11,8 @@
     <NoStdLib>true</NoStdLib>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">partial</ApplyNgenOptimization>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
-    
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Common</PackageId>

@@ -4,14 +4,5 @@
   <Import Project="eng\targets\Settings.props" />
 
   <PropertyGroup>
-  <!-- TODO: introduce copying of PDB compilation options, --> 
-  <!-- or include BuildValidator in the bootstrap build somehow -->
-  <!-- so that we can rebuild things -->
-  <!--
-    <CscToolPath>$(RepoRoot)</CscToolPath>
-    <CscToolExe>csc.cmd</CscToolExe>
-    <UseSharedCompilation>false</UseSharedCompilation>
-  -->
-    <!-- <EmbedUntrackedSources>true</EmbedUntrackedSources> -->
   </PropertyGroup>
 </Project>

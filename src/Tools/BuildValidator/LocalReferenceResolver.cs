@@ -27,14 +27,14 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new HashSet<DirectoryInfo>();
         private readonly ILogger _logger;
 
-        public LocalReferenceResolver(ILoggerFactory loggerFactory)
+        public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
             foreach (var directoryInfo in GetRefAssembliesDirectories())
             {
                 _indexDirectories.Add(directoryInfo);
             }
-            _indexDirectories.Add(GetArtifactsDirectory());
+            _indexDirectories.Add(new DirectoryInfo(options.AssembliesPath));
             _indexDirectories.Add(GetNugetCacheDirectory());
         }
 
@@ -144,25 +144,6 @@ namespace BuildValidator
                     return null;
                 }
             }
-        }
-
-        public static DirectoryInfo GetArtifactsDirectory()
-        {
-            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            var binDir = Path.GetDirectoryName(assemblyLocation);
-
-            // todo: make this portable
-            while (binDir != null && !binDir.EndsWith(@"artifacts\bin", FileNameEqualityComparer.StringComparison))
-            {
-                binDir = Path.GetDirectoryName(binDir);
-            }
-
-            if (binDir == null)
-            {
-                throw new Exception(@"Tool was not launched from the artifacts\bin directory");
-            }
-
-            return new DirectoryInfo(Path.Combine(binDir, @"RunTests\Debug\netcoreapp3.1"));
         }
     }
 }

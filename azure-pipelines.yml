@@ -212,3 +212,18 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: Correctness_Rebuild
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - script: eng/test-rebuild.cmd -ci -configuration Debug
+      displayName: Build - Validate rebuild
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Rebuild
+        configuration: Debug

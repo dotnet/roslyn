@@ -51,7 +51,7 @@ namespace BuildValidator
             OriginalPath = originalPath;
         }
 
-        public static unsafe CompilationDiff Create(FileInfo originalBinaryPath, PEReader originalPeReader, MetadataReader originalPdbReader, Compilation producedCompilation, IMethodSymbol? debugEntryPoint)
+        public static unsafe CompilationDiff Create(FileInfo originalBinaryPath, PEReader originalPeReader, MetadataReader originalPdbReader, Compilation producedCompilation, IMethodSymbol? debugEntryPoint, Options options)
         {
             using var rebuildPeStream = new MemoryStream();
 
@@ -93,38 +93,47 @@ namespace BuildValidator
                 var bytesEqual = originalBytes.SequenceEqual(rebuildBytes);
                 if (!bytesEqual)
                 {
-                    // TODO: how do we select which tool to use for validation, since they both appear to be needed in different scenarios.
-                    var useMdv = true;
-                    if (useMdv)
+                    Console.WriteLine("The rebuild was not equivalent to the original.");
+                    if (!options.OpenDiff)
                     {
-                        var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
-                        string rebuildTempPath;
-                        fixed (byte* ptr = rebuildBytes)
+                        Console.WriteLine("Pass the --openDiff argument to open a visualization diff in VS Code.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Creating a diff...");
+                        // TODO: how do we select which tool to use for validation, since they both appear to be needed in different scenarios.
+                        var useMdv = true;
+                        if (useMdv)
                         {
-                            var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
-                            MetadataReader? rebuildPdbReader = null;
-                            if (rebuildPeReader.TryOpenAssociatedPortablePdb(
-                                rebuildOutputPath,
-                                path => File.Exists(path) ? File.OpenRead(path) : null,
-                                out var provider,
-                                out _) && provider is { })
+                            var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
+                            string rebuildTempPath;
+                            fixed (byte* ptr = rebuildBytes)
                             {
-                                rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                                var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
+                                MetadataReader? rebuildPdbReader = null;
+                                if (rebuildPeReader.TryOpenAssociatedPortablePdb(
+                                    rebuildOutputPath,
+                                    path => File.Exists(path) ? File.OpenRead(path) : null,
+                                    out var provider,
+                                    out _) && provider is { })
+                                {
+                                    rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                                }
+                                rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
                             }
-                            rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
+
+                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""") { UseShellExecute = true });
+                            return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
                         }
 
-                        Console.WriteLine("The rebuild was not equivalent to the original. Opening a diff...");
-                        Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""");
+                        var ildasmOriginalOutputPath = Path.GetTempFileName();
+                        var ildasmRebuildOutputPath = Path.GetTempFileName();
+
+                        // TODO: can we bundle ildasm in with the utility?
+                        Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /out={ildasmOriginalOutputPath}").WaitForExit();
+                        Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{rebuildOutputPath} /out={ildasmRebuildOutputPath}").WaitForExit();
+                        Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{ildasmOriginalOutputPath}"" ""{ildasmRebuildOutputPath}""");
                     }
-
-                    var ildasmOriginalOutputPath = Path.GetTempFileName();
-                    var ildasmRebuildOutputPath = Path.GetTempFileName();
-
-                    // TODO: can we bundle ildasm in with the utility?
-                    Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /out={ildasmOriginalOutputPath}").WaitForExit();
-                    Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{rebuildOutputPath} /out={ildasmRebuildOutputPath}").WaitForExit();
-                    Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{ildasmOriginalOutputPath}"" ""{ildasmRebuildOutputPath}""");
                 }
 
                 return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);

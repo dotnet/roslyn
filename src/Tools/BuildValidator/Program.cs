@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -33,18 +35,30 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static async Task Main(string[] args)
+        static Task Main(string[] args)
         {
-            Options options;
-            try
+            var rootCommand = new RootCommand
             {
-                options = Options.Create(args);
-            }
-            catch (InvalidDataException)
-            {
-                PrintHelp();
-                return;
-            }
+                new Option<string>(
+                    "--assembliesPath", "Path to assemblies to rebuild"
+                ),
+                new Option<bool>(
+                    "--verbose", "Output verbose log information"
+                ),
+                new Option<bool>(
+                    "--quiet", "Do not output log information to console"
+                ),
+                new Option<bool>(
+                    "--openDiff", "Open a diff tool when rebuild failures are found"
+                ),
+            };
+            rootCommand.Handler = CommandHandler.Create<string, bool, bool, bool>(HandleCommandAsync);
+            return rootCommand.InvokeAsync(args);
+        }
+
+        static async Task HandleCommandAsync(string assembliesPath, bool verbose, bool quiet, bool openDiff)
+        {
+            var options = new Options(assembliesPath, verbose, quiet, openDiff);
 
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
@@ -53,7 +67,7 @@ namespace BuildValidator
                     MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
                 });
 
-            if (options.ConsoleOutput)
+            if (!options.Quiet)
             {
                 loggerFactory.AddProvider(new DemoLoggerProvider());
             }
@@ -62,20 +76,17 @@ namespace BuildValidator
             {
                 var logger = loggerFactory.CreateLogger<Program>();
                 var sourceResolver = new LocalSourceResolver(loggerFactory);
-                var referenceResolver = new LocalReferenceResolver(loggerFactory);
+                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
                 var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
 
-                var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
-                var thisCompilerVersion = options.IgnoreCompilerVersion
-                    ? null
-                    : typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                var artifactsDir = new DirectoryInfo(options.AssembliesPath);
 
                 var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
                     .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                await ValidateFilesAsync(filesToValidate, buildConstructor, thisCompilerVersion, logger).ConfigureAwait(false);
+                await ValidateFilesAsync(filesToValidate, buildConstructor, logger, options).ConfigureAwait(false);
                 await Console.Out.FlushAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -85,14 +96,15 @@ namespace BuildValidator
             }
         }
 
-        private static async Task ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        // TODO: it feels like "logger" and "options" should be instance variables of something
+        private static async Task ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
 
             foreach (var file in originalBinaries)
             {
-                var compilationDiff = await ValidateFileAsync(file, buildConstructor, thisCompilerVersion, logger).ConfigureAwait(false);
+                var compilationDiff = await ValidateFileAsync(file, buildConstructor, logger, options).ConfigureAwait(false);
 
                 if (compilationDiff is null)
                 {
@@ -137,7 +149,7 @@ namespace BuildValidator
             logger.LogInformation(sb.ToString());
         }
 
-        private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo originalBinary, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
+        private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
@@ -170,14 +182,12 @@ namespace BuildValidator
 
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
 
-                // TODO: Check compilation version using the PEReader
-
                 var compilation = await buildConstructor.CreateCompilationAsync(
                     pdbReader,
                     originalPeReader,
                     Path.GetFileNameWithoutExtension(originalBinary.Name)).ConfigureAwait(false);
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, originalPeReader, pdbReader, compilation, GetDebugEntryPoint());
+                var compilationDiff = CompilationDiff.Create(originalBinary, originalPeReader, pdbReader, compilation, GetDebugEntryPoint(), options);
                 logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
                 return compilationDiff;
 
@@ -211,15 +221,6 @@ namespace BuildValidator
             {
                 pdbReaderProvider?.Dispose();
             }
-        }
-
-        private static void PrintHelp()
-        {
-            Console.WriteLine("Usage: BuildValidator [options]");
-            Console.WriteLine("Options:");
-            Console.WriteLine("/verbose                 Output verbose log information");
-            Console.WriteLine("/quiet                   Do not output log information to console");
-            Console.WriteLine("/ignorecompilerversion   Do not verify compiler version that assemblies were generated with");
         }
     }
 }
