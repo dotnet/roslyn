@@ -166,7 +166,7 @@ namespace BuildValidator
                     var writer = new StreamWriter(tempFile);
                     writer.WriteLine("======== PE VISUALIZATION =======");
                     var visualizer = new MetadataVisualizer(peReader.GetMetadataReader(), writer);
-                    visualizer.VisualizeHeaders();
+                    visualizer.Visualize();
 
                     if (pdbReader is object)
                     {
@@ -174,6 +174,7 @@ namespace BuildValidator
                         var pdbVisualizer = new MetadataVisualizer(pdbReader, writer);
                         pdbVisualizer.Visualize();
                     }
+                    writer.Flush();
                 }
             }
         }
