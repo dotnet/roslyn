@@ -200,9 +200,10 @@ namespace Microsoft.CodeAnalysis
 
             public void WriteTo(Span<byte> span)
             {
+                Contract.ThrowIfFalse(span.Length == HashSize);
                 unsafe
                 {
-                    fixed (byte* bytes = &span.GetPinnableReference())
+                    fixed (byte* bytes = span)
                     {
                         // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
                         //
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis
 
                 unsafe
                 {
-                    fixed (byte* ptr = &bytes.GetPinnableReference())
+                    fixed (byte* ptr = bytes)
                     {
                         result = FromPointer((HashData*)ptr);
                         return true;
