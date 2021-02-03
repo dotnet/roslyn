@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,11 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// The range handler is only invoked when a file is opened. When the first whole document request completes
     /// via <see cref="SemanticTokensHandler"/>, the range handler is not invoked again for the rest of the session.
     /// </remarks>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName, mutatesSolutionState: false)]
+    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName, mutatesSolutionState: false), Shared]
     internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly SemanticTokensCache _tokensCache;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensRangeHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;
