@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Type.GetRefKind(),
                 memberName,
                 syntax.AttributeLists,
-                location)
+                location,
+                diagnostics)
         {
             if (IsAutoProperty)
             {

@@ -936,6 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(instanceInitializers.All(g => !g.IsDefault));
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
+                Debug.Assert(haveIndexers == nonTypeMembers.Any(s => s.IsIndexer()));
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -1441,16 +1442,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return membersAndInitializers!;
         }
 
+        /// <summary>
+        /// The purpose of this function is to assert that the <paramref name="member"/> symbol
+        /// is actually among the symbols cached by this type symbol in a way that ensures
+        /// that any consumer of standard APIs to get to type's members is going to get the same 
+        /// symbol (same instance) for the member rather than an equvalent, but different instance.
+        /// </summary>
         [Conditional("DEBUG")]
-        internal void AssertMemberExposure(Symbol member)
+        internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
         {
-            var declared = _lazyDeclaredMembersAndInitializers;
+            if (member is NamedTypeSymbol type)
+            {
+                Debug.Assert(forDiagnostics);
+                Debug.Assert(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
+                return;
+            }
+            else if (member is TypeParameterSymbol || member is SynthesizedMethodBaseSymbol)
+            {
+                Debug.Assert(forDiagnostics);
+                return;
+            }
+            else if (member is FieldSymbol field && field.AssociatedSymbol is EventSymbol e)
+            {
+                Debug.Assert(forDiagnostics);
+                member = e;
+            }
+
+            var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             Debug.Assert(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
             if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
-                _lazyMembersAndInitializers?.NonTypeMembers.Contains(m => m == (object)member) == true)
+                Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
             {
                 return;
+            }
+
+            if (member is FieldSymbol && this.IsTupleType)
+            {
+                Debug.Assert(forDiagnostics);
+                return; // There are dangling tuple elements, probably related to https://github.com/dotnet/roslyn/issues/43597
+                        // and will be addressed by a pending PR https://github.com/dotnet/roslyn/pull/44231.
             }
 
             Debug.Assert(false, "Premature symbol exposure.");
@@ -3580,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     if (existingMember is null)
                     {
-                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false));
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3588,7 +3619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
                         else
                         {
@@ -3676,7 +3707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    equalityContract = new SynthesizedRecordEqualityContractProperty(this);
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
                     members.Add(equalityContract);
                     members.Add(equalityContract.GetMethod);
                 }
