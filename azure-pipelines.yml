@@ -220,7 +220,7 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
-    - script: eng/test-rebuild.cmd -ci -configuration Debug
+    - script: .\eng\test-rebuild.ps1 -ci -configuration Debug
       displayName: Build - Validate rebuild
 
     - template: eng/pipelines/publish-logs.yml
