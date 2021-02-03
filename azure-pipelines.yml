@@ -215,7 +215,7 @@ jobs:
 - job: Correctness_Rebuild
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
