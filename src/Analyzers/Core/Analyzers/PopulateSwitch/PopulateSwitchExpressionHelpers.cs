@@ -44,19 +44,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             foreach (var arm in operation.Arms)
             {
-                if (arm.Pattern is IConstantPatternOperation constantPattern)
-                {
-                    var constantValue = constantPattern.Value.ConstantValue;
-                    if (!constantValue.HasValue)
-                    {
-                        // We had a case which didn't resolve properly.
-                        // Assume the switch is complete.
-                        return false;
-                    }
-
-                    enumMembers.Remove(IntegerUtilities.ToInt64(constantValue.Value));
-                }
-                else if (arm.Pattern is IBinaryPatternOperation binaryPattern)
+                RemoveIfConstantPatternHasValue(arm.Pattern, enumMembers);
+                if (arm.Pattern is IBinaryPatternOperation binaryPattern)
                 {
                     HandleBinaryPattern(binaryPattern, enumMembers);
                 }
@@ -69,18 +58,18 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             if (binaryPattern?.OperatorKind == BinaryOperatorKind.Or)
             {
-                RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern);
-                RemoveIfConstantPatternHasValue(binaryPattern.RightPattern);
+                RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern, enumMembers);
+                RemoveIfConstantPatternHasValue(binaryPattern.RightPattern, enumMembers);
                 
                 HandleBinaryPattern(binaryPattern.LeftPattern as IBinaryPatternOperation, enumMembers);
                 HandleBinaryPattern(binaryPattern.RightPattern as IBinaryPatternOperation, enumMembers);
             }
+        }
 
-            void RemoveIfConstantPatternHasValue(IOperation operation)
-            {
-                if (operation is IConstantPatternOperation { Value: { ConstantValue: { HasValue: true, Value: var value } } })
-                        enumMembers.Remove(IntegerUtilities.ToInt64(value));
-            }
+        private static void RemoveIfConstantPatternHasValue(IOperation operation, Dictionary<long, ISymbol> enumMembers)
+        {
+            if (operation is IConstantPatternOperation { Value: { ConstantValue: { HasValue: true, Value: var value } } })
+                enumMembers.Remove(IntegerUtilities.ToInt64(value));
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)
