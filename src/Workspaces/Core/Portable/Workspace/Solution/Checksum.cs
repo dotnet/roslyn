@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
 
             public static unsafe bool FromSpan(Span<byte> bytes, out HashData result)
             {
-                if (bytes.Length != HashSize)
+                if (bytes.Length < HashSize)
                 {
                     result = default;
                     return false;
