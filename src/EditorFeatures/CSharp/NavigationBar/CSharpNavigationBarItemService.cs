@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             spans.Add(declaringNode.Span);
         }
 
-        protected internal override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
+        public override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
         {
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);

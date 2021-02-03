@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     {
         public abstract Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
 
-        protected internal abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken);
+        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken);
 
         public abstract void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 

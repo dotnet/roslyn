@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
         End Function
 
-        Protected Overrides Function GetSymbolItemNavigationPoint(document As Document, item As NavigationBarSymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As NavigationBarSymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim symbols = item.NavigationSymbolId.Resolve(compilation)
             Dim symbol = symbols.Symbol
