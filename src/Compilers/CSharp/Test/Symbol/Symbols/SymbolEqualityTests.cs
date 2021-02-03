@@ -1067,7 +1067,7 @@ public class C
                 Assert.Equal(MethodImplAttributes.PreserveSig | MethodImplAttributes.Runtime, method.ImplementationAttributes);
             };
 
-            CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1089,7 +1089,7 @@ public class C
                 Assert.Equal(MethodImplAttributes.Native, method.ImplementationAttributes);
             };
 
-            CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(src, sourceSymbolValidator: validator, symbolValidator: validator, verify: Verification.Skipped);
         }
 
         private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedIncludeNullability)
