@@ -5,7 +5,7 @@ pr: none
 jobs:
 - job: RichCodeNav_Indexing
   pool:
-    name: NetCorePublic-Pool
+    name: NetCorePublic-Int-Pool
     queue: BuildPool.Windows.10.Amd64.Open
   variables:
     EnableRichCodeNavigation: true

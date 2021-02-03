@@ -30,7 +30,7 @@ jobs:
   dependsOn: ${{ parameters.buildJobName }}
   pool:
     ${{ if ne(parameters.queueName, '') }}:
-      name: NetCorePublic-Pool
+      name: NetCorePublic-Int-Pool
       queue: ${{ parameters.queueName }}
 
     ${{ if ne(parameters.vmImageName, '') }}:

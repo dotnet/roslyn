@@ -56,7 +56,7 @@ stages:
         - visualstudio
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: NetCoreInternal-Pool
+        name: NetCoreInternal-Int-Pool
         queue: BuildPool.Windows.10.Amd64.VS2019.Pre
 
     steps:        
