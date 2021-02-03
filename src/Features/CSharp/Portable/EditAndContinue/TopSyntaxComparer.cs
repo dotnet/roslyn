@@ -20,12 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private readonly SyntaxNode? _newRoot;
         private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
         private readonly IEnumerable<SyntaxNode>? _newRootChildren;
+        private readonly bool _considerAllChildNodes;
 
         private TopSyntaxComparer()
         {
         }
 
-        public TopSyntaxComparer(SyntaxNode oldRoot, SyntaxNode newRoot, IEnumerable<SyntaxNode> oldRootChildren, IEnumerable<SyntaxNode> newRootChildren)
+        public TopSyntaxComparer(
+            SyntaxNode oldRoot,
+            SyntaxNode newRoot,
+            IEnumerable<SyntaxNode> oldRootChildren,
+            IEnumerable<SyntaxNode> newRootChildren,
+            bool considerAllChildNodes = false)
         {
             // explicitly listed roots and all their children must be labeled:
             Debug.Assert(HasLabel(oldRoot));
@@ -37,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             _newRoot = newRoot;
             _oldRootChildren = oldRootChildren;
             _newRootChildren = newRootChildren;
+
+            _considerAllChildNodes = considerAllChildNodes;
 
             // the virtual parent of root children must be the respective root:
             Debug.Assert(!TryGetParent(oldRoot, out var _));
@@ -81,17 +89,33 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return HasChildren(node) ? EnumerateChildren(node) : null;
         }
 
-        private static IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
+        private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
         {
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (var child in node.ChildNodes())
             {
-                var childNode = child.AsNode();
-                if (childNode != null && HasLabel(childNode))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(child))
                 {
-                    yield return childNode;
+                    continue;
+                }
+
+                if (HasLabel(child))
+                {
+                    yield return child;
+                }
+                else if (_considerAllChildNodes)
+                {
+                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
+                    {
+                        if (HasLabel(descendant))
+                        {
+                            yield return descendant;
+                        }
+                    }
                 }
             }
         }
+        private static bool DescendIntoChildren(SyntaxNode node)
+         => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
