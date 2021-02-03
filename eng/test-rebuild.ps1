@@ -26,8 +26,8 @@ try {
   Push-Location $RepoRoot
 
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
-  & "$ArtifactsDir\bin\BuildValidator\$configuration\net472\BuildValidator.exe" --assembliesPath (Join-Path $ArtifactsDir "obj" "Microsoft.CodeAnalysis")
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true}
+  & "artifacts\bin\BuildValidator\$configuration\net472\BuildValidator.exe" --assembliesPath "$ArtifactsDir/obj/Microsoft.CodeAnalysis"
 
   exit 0
 }

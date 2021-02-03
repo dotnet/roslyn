@@ -220,8 +220,11 @@ jobs:
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
 
-    - script: .\eng\test-rebuild.ps1 -ci -configuration Debug
-      displayName: Build - Validate rebuild
+    - pwsh: .\eng\build.ps1 -ci -build -restore -bootstrap -configuration Debug
+      displayName: Restore and build
+
+    - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe
+      displayName: Run BuildValidator
 
     - template: eng/pipelines/publish-logs.yml
       parameters:
