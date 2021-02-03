@@ -689,7 +689,8 @@ $$
         {
             Test(@"class TestClass
 {
-    public int A { get; set
+    public int A { 
+        get; set
         {
             $$
         }
@@ -1323,7 +1324,6 @@ public class Bar
         {
             $$
         }
-
         remove { }
     }
 }", @"
@@ -1527,7 +1527,7 @@ public class Bar
         var f = new Foo()
         {
             $$
-        }
+        };
     }
 }
 public class Foo
@@ -1560,7 +1560,7 @@ public class Bar
         var f = new Foo()
         {
             $$
-        }
+        };
     }
 }
 public class Foo
@@ -1625,7 +1625,6 @@ public class Bar
         {
             $$
         }
-
         var x = 1;
     }
 }", @"
