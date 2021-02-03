@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return location
         End Function
 
-        Public Overrides Sub NavigateToItem(document As Document, item As NavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
+        Protected Overrides Sub NavigateToItem(document As Document, item As RoslynNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
             Dim generateCodeItem = TryCast(item, AbstractGenerateCodeItem)
 
             If generateCodeItem IsNot Nothing Then

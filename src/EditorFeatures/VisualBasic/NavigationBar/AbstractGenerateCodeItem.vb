@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend MustInherit Class AbstractGenerateCodeItem
-        Inherits NavigationBarItem
+        Inherits RoslynNavigationBarItem
 
         Friend Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 

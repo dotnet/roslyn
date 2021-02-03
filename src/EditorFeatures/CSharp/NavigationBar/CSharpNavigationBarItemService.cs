@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        public override void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+        protected override void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
             => NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);
     }
 }
