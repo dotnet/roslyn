@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public AbstractGoToDefinitionHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
+        public override bool MutatesSolutionState => false;
+
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
         protected async Task<LSP.Location[]> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)

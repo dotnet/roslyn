@@ -18,10 +18,14 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentSignatureHelpName, mutatesSolutionState: false)]
+    [ProvidesMethod(LSP.Methods.TextDocumentSignatureHelpName)]
     internal class SignatureHelpHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp>
     {
         private readonly IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
+
+        public override string Method => LSP.Methods.TextDocumentSignatureHelpName;
+
+        public override bool MutatesSolutionState => false;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

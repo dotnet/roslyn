@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false)]
+    [ProvidesMethod(MSLSPMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
         [ImportingConstructor]
@@ -27,6 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             IXamlPullDiagnosticService xamlPullDiagnosticService)
             : base(xamlPullDiagnosticService)
         { }
+
+        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request) => null;
 

@@ -23,13 +23,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [LspMethod(LSP.Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
         private readonly CompletionListCache _completionListCache;
+
+        public string Method => LSP.Methods.TextDocumentCompletionName;
+
+        public bool MutatesSolutionState => false;
 
         public CompletionHandler(
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,

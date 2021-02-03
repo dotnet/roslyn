@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestDispatcherFactory(
-            [ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders,
+            [ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
             : base(requestHandlerProviders, languageName: StringConstants.XamlLanguageName)
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
             public XamlRequestDispatcher(
                 XamlProjectService projectService,
-                ImmutableArray<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders,
+                ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
                 IXamlLanguageServerFeedbackService? feedbackService,
                 string? languageName = null) : base(requestHandlerProviders, languageName)
             {

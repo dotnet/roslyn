@@ -22,30 +22,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     internal class RequestDispatcher
     {
-        private readonly ImmutableDictionary<string, (IRequestHandler RequestHandler, ILspMethodMetadata Metadata)> _requestHandlers;
+        private readonly ImmutableDictionary<string, Lazy<IRequestHandler>> _requestHandlers;
 
-        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders, string? languageName = null)
+        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, string? languageName = null)
         {
             _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => rh.Metadata.LanguageName == languageName));
         }
 
-        private static ImmutableDictionary<string, (IRequestHandler, ILspMethodMetadata)> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders)
+        private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
         {
-            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, (IRequestHandler, ILspMethodMetadata)>(StringComparer.OrdinalIgnoreCase);
-
-            // Create the actual request handlers from the providers.
-            var handlers = requestHandlerProviders.SelectMany(lazyProvider => lazyProvider.Value.CreateRequestHandlers());
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, Lazy<IRequestHandler>>(StringComparer.OrdinalIgnoreCase);
 
             // Store the request handlers in a dictionary from request name to handler instance.
-            foreach (var handler in handlers)
+            foreach (var handlerProvider in requestHandlerProviders)
             {
-                var requestName = handler.Metadata.MethodName;
-                if (handler.Metadata is ILspCommandMetadata commandMetadata)
-                {
-                    requestName = LspCommandAttribute.GetRequestNameForCommand(commandMetadata.CommandName);
-                }
+                var methods = handlerProvider.Metadata.Methods;
+                // Instantiate all the providers as one lazy object and re-use it for all methods that the provider provides handlers for.
+                // This ensures 2 things:
+                // 1.  That the handler provider is not instantiated (and therefore its dependencies are not) until a handler it provides is needed.
+                // 2.  That the handler provider's CreateRequestHandlers is only called once and always returns the same handler instances.
+                var lazyProviders = new Lazy<ImmutableDictionary<string, IRequestHandler>>(() => handlerProvider.Value.CreateRequestHandlers().ToImmutableDictionary(p => p.Method, p => p, StringComparer.OrdinalIgnoreCase));
 
-                requestHandlerDictionary.Add(requestName, handler);
+                foreach (var method in methods)
+                {
+                    // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
+                    // and then lookup the correct handler for the specified method.
+                    requestHandlerDictionary.Add(method, new Lazy<IRequestHandler>(() => lazyProviders.Value[method]));
+                }
             }
 
             return requestHandlerDictionary.ToImmutable();
@@ -66,15 +69,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 // If we have a workspace/executeCommand request, get the request name
                 // from the command name.
-                methodName = LspCommandAttribute.GetRequestNameForCommand(executeCommandRequest.Command);
+                methodName = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(executeCommandRequest.Command);
             }
 
             var handlerEntry = _requestHandlers[methodName];
             Contract.ThrowIfNull(handlerEntry, string.Format("Request handler entry not found for method {0}", methodName));
 
-            var mutatesSolutionState = handlerEntry.Metadata.MutatesSolutionState;
+            var mutatesSolutionState = handlerEntry.Value.MutatesSolutionState;
 
-            var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.RequestHandler;
+            var handler = (IRequestHandler<RequestType, ResponseType>?)handlerEntry.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
             return ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, handler, cancellationToken);
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 => _requestDispatcher = requestDispatcher;
 
             public IRequestHandler<RequestType, ResponseType> GetHandler<RequestType, ResponseType>(string methodName)
-                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers[methodName].RequestHandler;
+                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers[methodName].Value;
         }
     }
 }

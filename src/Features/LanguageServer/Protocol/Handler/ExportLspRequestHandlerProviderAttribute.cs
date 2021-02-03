@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Defines an attribute used to export instances of <see cref="AbstractRequestHandlerProvider"/>.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true), MetadataAttribute]
-    internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute, IRequestHandlerProviderMetadata
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
     {
         public string? LanguageName { get; }
 

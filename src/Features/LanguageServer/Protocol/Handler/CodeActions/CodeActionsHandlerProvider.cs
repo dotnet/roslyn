@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -18,6 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// share the same code actions cache state.
     /// </summary>
     [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
+    [ProvidesMethod(LSP.MSLSPMethods.TextDocumentCodeActionResolveName)]
+    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;
@@ -36,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             var codeActionsCache = new CodeActionsCache();
             return ImmutableArray.Create<IRequestHandler>(

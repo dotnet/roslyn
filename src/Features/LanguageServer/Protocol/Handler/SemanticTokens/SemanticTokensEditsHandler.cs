@@ -19,10 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
     /// or every time an edit is made by the user.
     /// </summary>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false)]
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
         private readonly SemanticTokensCache _tokensCache;
+
+        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName;
+
+        public bool MutatesSolutionState => false;
 
         public SemanticTokensEditsHandler(SemanticTokensCache tokensCache)
         {

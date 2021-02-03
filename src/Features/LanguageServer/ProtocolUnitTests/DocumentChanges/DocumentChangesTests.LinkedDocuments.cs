@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         }
 
         [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+        [ProvidesMethod(GetLSPSolutionHandler.MethodName)]
         private class GetLspSolutionHandlerProvider : AbstractRequestHandlerProvider
         {
             [ImportingConstructor]
@@ -121,12 +122,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
             }
 
-            protected override ImmutableArray<IRequestHandler> InitializeHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
+            public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
         }
 
-        [LspMethod(nameof(GetLSPSolutionHandler), mutatesSolutionState: false)]
         private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>
         {
+            public const string MethodName = nameof(GetLSPSolutionHandler);
+
+            public string Method => MethodName;
+
+            public bool MutatesSolutionState => false;
+
             public TextDocumentIdentifier? GetTextDocumentIdentifier(Uri request)
                 => new TextDocumentIdentifier { Uri = request };
 

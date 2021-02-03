@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// of the returned VSCodeActions blank, as these properties should be populated by the
     /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
-    [LspMethod(LSP.Methods.TextDocumentCodeActionName, mutatesSolutionState: false)]
     internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -26,6 +25,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ICodeRefactoringService _codeRefactoringService;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
+
+        public string Method => LSP.Methods.TextDocumentCodeActionName;
+
+        public bool MutatesSolutionState => false;
 
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,

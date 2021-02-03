@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
+    [ProvidesMethod(MSLSPMethods.ProjectContextsName)]
     internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public GetTextDocumentWithContextHandler()
         {
         }
+
+        public override string Method => MSLSPMethods.ProjectContextsName;
+
+        public override bool MutatesSolutionState => false;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 

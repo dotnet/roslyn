@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     internal abstract class AbstractRequestDispatcherFactory
     {
-        protected readonly ImmutableArray<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> _requestHandlerProviders;
+        protected readonly ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> _requestHandlerProviders;
         protected readonly string? _languageName;
 
-        protected AbstractRequestDispatcherFactory(IEnumerable<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders, string? languageName = null)
+        protected AbstractRequestDispatcherFactory(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, string? languageName = null)
         {
             _requestHandlerProviders = requestHandlerProviders.ToImmutableArray();
             _languageName = languageName;

@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// The range handler is only invoked when a file is opened. When the first whole document request completes
     /// via <see cref="SemanticTokensHandler"/>, the range handler is not invoked again for the rest of the session.
     /// </remarks>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName, mutatesSolutionState: false)]
     internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly SemanticTokensCache _tokensCache;
@@ -27,6 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             _tokensCache = tokensCache;
         }
+
+        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName;
+
+        public bool MutatesSolutionState => false;
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request) => request.TextDocument;
 

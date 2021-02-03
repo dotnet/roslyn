@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.WorkspaceSymbolName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
         }
+
+        public override string Method => Methods.WorkspaceSymbolName;
+
+        public override bool MutatesSolutionState => false;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceSymbolParams request) => null;
 

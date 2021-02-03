@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    [ProvidesMethod(FailingRequestHandler.MethodName)]
     internal class FailingRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
@@ -24,17 +25,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             return ImmutableArray.Create<IRequestHandler>(new FailingRequestHandler());
         }
     }
 
-    [LspMethod(MethodName, mutatesSolutionState: false)]
     internal class FailingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingRequestHandler);
         private const int Delay = 100;
+
+        public string Method => MethodName;
+
+        public bool MutatesSolutionState => false;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 

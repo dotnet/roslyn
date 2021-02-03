@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
+    [ProvidesMethod(LSP.Methods.TextDocumentDidChangeName)]
     internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object>
     {
         [ImportingConstructor]
@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public DidChangeHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentDidChangeName;
+
+        public override bool MutatesSolutionState => true;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
 

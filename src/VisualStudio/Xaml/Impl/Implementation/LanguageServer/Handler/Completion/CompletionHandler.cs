@@ -23,9 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Handle a completion request.
     /// </summary>
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
+        public override string Method => Methods.TextDocumentCompletionName;
+
+        public override bool MutatesSolutionState => false;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler()

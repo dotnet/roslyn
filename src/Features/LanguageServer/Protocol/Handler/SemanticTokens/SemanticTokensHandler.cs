@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// is difficult to correctly apply to their tags cache. This allows for reliable recovery from errors and accounts
     /// for limitations in the edits application logic.
     /// </remarks>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName, mutatesSolutionState: false)]
     internal class SemanticTokensHandler : IRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
     {
         private readonly SemanticTokensCache _tokensCache;
@@ -29,6 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             _tokensCache = tokensCache;
         }
+
+        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensName;
+
+        public bool MutatesSolutionState => false;
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensParams request) => request.TextDocument;
 

@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentDidCloseName, mutatesSolutionState: true)]
+    [ProvidesMethod(LSP.Methods.TextDocumentDidCloseName)]
     internal class DidCloseHandler : AbstractStatelessRequestHandler<LSP.DidCloseTextDocumentParams, object?>
     {
         [ImportingConstructor]
@@ -21,6 +21,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public DidCloseHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentDidCloseName;
+
+        public override bool MutatesSolutionState => true;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => null;
 

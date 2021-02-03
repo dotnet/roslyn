@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentDocumentHighlightName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentDocumentHighlightName)]
     internal class DocumentHighlightsHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
         [ImportingConstructor]
@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public DocumentHighlightsHandler()
         {
         }
+
+        public override string Method => Methods.TextDocumentDocumentHighlightName;
+
+        public override bool MutatesSolutionState => false;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 

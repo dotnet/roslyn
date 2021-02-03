@@ -17,9 +17,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
     internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
+        public override string Method => Methods.TextDocumentFoldingRangeName;
+
+        public override bool MutatesSolutionState => false;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FoldingRangesHandler()

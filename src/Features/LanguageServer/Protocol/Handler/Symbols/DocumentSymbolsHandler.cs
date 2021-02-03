@@ -25,9 +25,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
     {
+        public override string Method => Methods.TextDocumentDocumentSymbolName;
+
+        public override bool MutatesSolutionState => false;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentSymbolsHandler()

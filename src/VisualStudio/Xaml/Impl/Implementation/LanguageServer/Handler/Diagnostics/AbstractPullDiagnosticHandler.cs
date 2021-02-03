@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
+        public override bool MutatesSolutionState => false;
+
         /// <summary>
         /// Gets the progress object to stream results to.
         /// </summary>
