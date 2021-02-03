@@ -6,10 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -23,7 +21,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Storage;
-using Microsoft.VisualStudio.Cache;
 
 namespace IdeCoreBenchmarks
 {
