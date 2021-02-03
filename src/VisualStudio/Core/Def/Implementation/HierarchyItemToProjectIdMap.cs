@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -25,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public HierarchyItemToProjectIdMap(VisualStudioWorkspace workspace)
             => _workspace = workspace;
 
-        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string targetFrameworkMoniker, out ProjectId projectId)
+        public bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
         {
             // A project node is represented in two different hierarchies: the solution's IVsHierarchy (where it is a leaf node)
             // and the project's own IVsHierarchy (where it is the root node). The IVsHierarchyItem joins them together for the
