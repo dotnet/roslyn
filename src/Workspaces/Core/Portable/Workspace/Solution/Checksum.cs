@@ -150,15 +150,7 @@ namespace Microsoft.CodeAnalysis
             => _checksum.WriteTo(writer);
 
         public void WriteTo(Span<byte> span)
-        {
-            unsafe
-            {
-                fixed (byte* bytes = &span.GetPinnableReference())
-                {
-                    *(HashData*)bytes = _checksum;
-                }
-            }
-        }
+            => _checksum.WriteTo(span);
 
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
@@ -204,6 +196,24 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
                 writer.WriteInt32(Data3);
+            }
+
+            public void WriteTo(Span<byte> span)
+            {
+                unsafe
+                {
+                    fixed (byte* bytes = &span.GetPinnableReference())
+                    {
+                        // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
+                        //
+                        // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
+                        // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
+
+                        ((HashData*)bytes)->Data1 = this.Data1;
+                        ((HashData*)bytes)->Data2 = this.Data2;
+                        ((HashData*)bytes)->Data3 = this.Data3;
+                    }
+                }
             }
 
             public static unsafe bool FromSpan(Span<byte> bytes, out HashData result)
