@@ -51,14 +51,17 @@ namespace BuildValidator
                 new Option<bool>(
                     "--openDiff", "Open a diff tool when rebuild failures are found"
                 ),
+                new Option<string>(
+                    "--debugPath", "Path to output debug visualization of the rebuild"
+                )
             };
-            rootCommand.Handler = CommandHandler.Create<string, bool, bool, bool>(HandleCommandAsync);
+            rootCommand.Handler = CommandHandler.Create<string, bool, bool, bool, string>(HandleCommandAsync);
             return rootCommand.InvokeAsync(args);
         }
 
-        static async Task HandleCommandAsync(string assembliesPath, bool verbose, bool quiet, bool openDiff)
+        static async Task HandleCommandAsync(string assembliesPath, bool verbose, bool quiet, bool openDiff, string? debugPath)
         {
-            var options = new Options(assembliesPath, verbose, quiet, openDiff);
+            var options = new Options(assembliesPath, verbose, quiet, openDiff, debugPath);
 
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
@@ -108,7 +111,6 @@ namespace BuildValidator
 
                 if (compilationDiff is null)
                 {
-                    Console.WriteLine("ERROR!!!");
                     sb.AppendLine($"Ignoring {file.FullName}");
                     continue;
                 }

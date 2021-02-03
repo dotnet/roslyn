@@ -12,7 +12,8 @@
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/netcoreapp3.1/BuildValidator.dll",
       "args": [
-        "/verbose"
+        "--assembliesPath", "${workspaceFolder}/artifacts/obj/Microsoft.CodeAnalysis",
+        "--debugPath", "${workspaceFolder}/artifacts/BuildValidator"
       ],
       "cwd": "${workspaceFolder}/artifacts/bin/BuildValidator",
       "stopAtEntry": false,

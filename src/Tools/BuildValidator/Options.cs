@@ -13,5 +13,6 @@ namespace BuildValidator
         string AssembliesPath,
         bool Verbose,
         bool Quiet,
-        bool OpenDiff);
+        bool OpenDiff,
+        string? DebugPath);
 }

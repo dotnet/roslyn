@@ -93,46 +93,55 @@ namespace BuildValidator
                 var bytesEqual = originalBytes.SequenceEqual(rebuildBytes);
                 if (!bytesEqual)
                 {
-                    Console.WriteLine("The rebuild was not equivalent to the original.");
-                    if (!options.OpenDiff)
+                    Console.WriteLine($"Rebuild of {originalBinaryPath.Name} was not equivalent to the original.");
+                    if (!options.OpenDiff && options.DebugPath is null)
                     {
                         Console.WriteLine("Pass the --openDiff argument to open a visualization diff in VS Code.");
+                        Console.WriteLine("Alternatively pass --debugPath to write a visualization to disk.");
                     }
                     else
                     {
                         Console.WriteLine("Creating a diff...");
-                        // TODO: how do we select which tool to use for validation, since they both appear to be needed in different scenarios.
-                        var useMdv = true;
-                        if (useMdv)
+                        if (options.DebugPath is string debugPath)
                         {
-                            var originalTempPath = writeVisualizationToTempFile(originalPeReader, originalPdbReader);
-                            string rebuildTempPath;
-                            fixed (byte* ptr = rebuildBytes)
-                            {
-                                var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
-                                MetadataReader? rebuildPdbReader = null;
-                                if (rebuildPeReader.TryOpenAssociatedPortablePdb(
-                                    rebuildOutputPath,
-                                    path => File.Exists(path) ? File.OpenRead(path) : null,
-                                    out var provider,
-                                    out _) && provider is { })
-                                {
-                                    rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
-                                }
-                                rebuildTempPath = writeVisualizationToTempFile(rebuildPeReader, rebuildPdbReader);
-                            }
+                            Directory.CreateDirectory(debugPath);
+                            Console.WriteLine($@"Writing diffs to ""{debugPath}""");
+                        }
+                        var originalTempPath = getDebugFileName(".original.mdv");
+                        writeVisualizationToTempFile(originalTempPath, originalPeReader, originalPdbReader);
 
-                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""") { UseShellExecute = true });
-                            return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
+                        var rebuildTempPath = getDebugFileName(".rebuild.mdv");
+                        fixed (byte* ptr = rebuildBytes)
+                        {
+                            var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
+                            MetadataReader? rebuildPdbReader = null;
+                            if (rebuildPeReader.TryOpenAssociatedPortablePdb(
+                                rebuildOutputPath,
+                                path => File.Exists(path) ? File.OpenRead(path) : null,
+                                out var provider,
+                                out _) && provider is { })
+                            {
+                                rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                            }
+                            writeVisualizationToTempFile(rebuildTempPath, rebuildPeReader, rebuildPdbReader);
                         }
 
-                        var ildasmOriginalOutputPath = Path.GetTempFileName();
-                        var ildasmRebuildOutputPath = Path.GetTempFileName();
+                        if (options.OpenDiff)
+                        {
+                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""") { UseShellExecute = true });
+                        }
+
+                        var ildasmOriginalOutputPath = getDebugFileName(".original.il");
+                        var ildasmRebuildOutputPath = getDebugFileName(".rebuild.il");
 
                         // TODO: can we bundle ildasm in with the utility?
                         Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /out={ildasmOriginalOutputPath}").WaitForExit();
                         Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{rebuildOutputPath} /out={ildasmRebuildOutputPath}").WaitForExit();
-                        Process.Start(@"C:\Program Files\Microsoft VS Code\bin\code.cmd", $@"--diff ""{ildasmOriginalOutputPath}"" ""{ildasmRebuildOutputPath}""");
+                        if (options.OpenDiff)
+                        {
+                            // TODO: ideally we can avoid opening diffs when we already know files are equal
+                            Process.Start(new ProcessStartInfo("code", $@"--diff ""{ildasmOriginalOutputPath}"" ""{ildasmRebuildOutputPath}""") { UseShellExecute = true });
+                        }
                     }
                 }
 
@@ -143,10 +152,16 @@ namespace BuildValidator
                 return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
             }
 
-            string writeVisualizationToTempFile(PEReader peReader, MetadataReader? pdbReader)
+            string getDebugFileName(string suffix)
             {
-                var tempPath = Path.GetTempFileName();
-                using (var tempFile = File.OpenWrite(tempPath))
+                return options.DebugPath is string debugPath
+                    ? Path.Combine(debugPath, originalBinaryPath.Name + suffix)
+                    : Path.GetTempFileName();
+            }
+
+            void writeVisualizationToTempFile(string outPath, PEReader peReader, MetadataReader? pdbReader)
+            {
+                using (var tempFile = File.OpenWrite(outPath))
                 {
                     var writer = new StreamWriter(tempFile);
                     writer.WriteLine("======== PE VISUALIZATION =======");
@@ -160,8 +175,6 @@ namespace BuildValidator
                         pdbVisualizer.Visualize();
                     }
                 }
-
-                return tempPath;
             }
         }
 

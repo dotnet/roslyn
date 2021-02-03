@@ -225,6 +225,15 @@ jobs:
     - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe --assembliesPath .\artifacts\obj\Microsoft.CodeAnalysis
       displayName: Run BuildValidator
 
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BuildValidator debug outputs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeededOrFailed()
+
     - template: eng/pipelines/publish-logs.yml
       parameters:
         jobName: Correctness_Rebuild
