@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             int indent = 0,
             bool bolded = false,
             bool grayed = false)
-            : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            : base(RoslynNavigationBarItemKind.Symbol, text, glyph, spans, childItems, indent, bolded, grayed)
         {
             this.NavigationSymbolId = navigationSymbolId;
             this.NavigationSymbolIndex = navigationSymbolIndex;

@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _destinationTypeSymbolKey As SymbolKey
 
         Public Sub New(eventName As String, glyph As Glyph, containerName As String, eventSymbolKey As SymbolKey, destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(eventName, glyph)
+            MyBase.New(RoslynNavigationBarItemKind.GenerateEventHandler, eventName, glyph)
 
             _containerName = containerName
             _eventSymbolKey = eventSymbolKey

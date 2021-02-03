@@ -14,7 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     /// </summary>
     internal abstract class RoslynNavigationBarItem : NavigationBarItem
     {
+        public readonly RoslynNavigationBarItemKind Kind;
+
         protected RoslynNavigationBarItem(
+            RoslynNavigationBarItemKind kind,
             string text,
             Glyph glyph,
             IList<TextSpan> spans,
@@ -24,6 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             bool grayed = false)
             : base(text, glyph, spans, childItems, indent, bolded, grayed)
         {
+            Kind = kind;
         }
+    }
+
+    internal enum RoslynNavigationBarItemKind
+    {
+        Symbol,
+        GenerateDefaultConstructor,
+        GenerateEventHandler,
+        GenerateFinalizer,
+        GenerateMethod,
     }
 }

@@ -7,6 +7,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.PooledObjects
 
@@ -17,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _destinationTypeSymbolKey As SymbolKey
 
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(VBEditorResources.New_,
-                       Glyph.MethodPublic)
+            MyBase.New(RoslynNavigationBarItemKind.GenerateDefaultConstructor, VBEditorResources.New_, Glyph.MethodPublic)
 
             _destinationTypeSymbolKey = destinationTypeSymbolKey
         End Sub

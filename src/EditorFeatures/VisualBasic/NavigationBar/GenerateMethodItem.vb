@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateMethodItem
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _methodToReplicateSymbolKey As SymbolKey
 
         Public Sub New(text As String, glyph As Glyph, destinationTypeSymbolId As SymbolKey, methodToReplicateSymbolId As SymbolKey)
-            MyBase.New(text, glyph)
+            MyBase.New(RoslynNavigationBarItemKind.GenerateMethod, text, glyph)
 
             _destinationTypeSymbolKey = destinationTypeSymbolId
             _methodToReplicateSymbolKey = methodToReplicateSymbolId

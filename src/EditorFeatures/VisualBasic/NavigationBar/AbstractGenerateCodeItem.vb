@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Friend Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
-        Public Sub New(text As String, glyph As Glyph)
-            MyBase.New(text, glyph, SpecializedCollections.EmptyList(Of TextSpan))
+        Public Sub New(kind As RoslynNavigationBarItemKind, text As String, glyph As Glyph)
+            MyBase.New(kind, text, glyph, SpecializedCollections.EmptyList(Of TextSpan))
         End Sub
 
         Protected Overridable ReadOnly Property ApplyLineAdjustmentFormattingRule As Boolean
