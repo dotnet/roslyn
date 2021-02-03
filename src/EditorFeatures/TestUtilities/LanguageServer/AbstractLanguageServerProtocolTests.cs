@@ -253,7 +253,7 @@ namespace Roslyn.Test.Utilities
                     DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
+                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTriggerAsync(requestParameters.Context),
                     ResultId = resultId,
                 }),
                 Preselect = preselect

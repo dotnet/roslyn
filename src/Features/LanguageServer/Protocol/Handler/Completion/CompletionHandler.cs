@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
             // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-            var completionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(request.Context);
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
 
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
