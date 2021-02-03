@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -19,11 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
     /// or every time an edit is made by the user.
     /// </summary>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false)]
+    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false), Shared]
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
         private readonly SemanticTokensCache _tokensCache;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensEditsHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;

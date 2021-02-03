@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(initialMarkup, out var locations);
+            using var workspace = CreateTestWorkspace(initialMarkup, out var locations);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: CSharpAnalyzersResources.Use_implicit_type,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 edit: GenerateWorkspaceEdit(locations, expectedTextEdits));
 
-            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         int {|caret:|}i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(initialMarkup, out var locations);
+            using var workspace = CreateTestWorkspace(initialMarkup, out var locations);
 
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
                 title: string.Format(FeaturesResources.Introduce_constant_for_0, "1"),
@@ -126,17 +126,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 edit: GenerateWorkspaceEdit(
                     locations, expectedTextEdits));
 
-            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(workspace.CurrentSolution, unresolvedCodeAction);
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
         private static async Task<LSP.VSCodeAction> RunGetCodeActionResolveAsync(
-            TestLspServer testLspServer,
+            Solution solution,
             VSCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(
-                LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            var result = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(queue,
+                LSP.MSLSPMethods.TextDocumentCodeActionResolveName, unresolvedCodeAction,
+                clientCapabilities, null, CancellationToken.None);
             return result;
         }
 
