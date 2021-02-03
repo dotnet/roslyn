@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.9.0-4.21076.10</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.10.0-1.21101.2</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->

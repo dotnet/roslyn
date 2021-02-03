@@ -427,6 +427,11 @@
         <target state="translated">'{0}' 與函式指標 '{1}' 之間的參考不符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">無法以具名引數呼叫函式指標。</target>

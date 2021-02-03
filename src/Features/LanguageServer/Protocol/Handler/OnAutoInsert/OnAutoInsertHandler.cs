@@ -3,27 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
+    [Shared]
+    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
+    internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
@@ -38,9 +41,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
 

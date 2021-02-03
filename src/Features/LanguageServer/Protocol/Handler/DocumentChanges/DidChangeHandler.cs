@@ -13,9 +13,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
-    internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object>
+    [Shared]
+    [ExportLspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
+    internal class DidChangeHandler : IRequestHandler<LSP.DidChangeTextDocumentParams, object>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
 
-        public override async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Document);
 

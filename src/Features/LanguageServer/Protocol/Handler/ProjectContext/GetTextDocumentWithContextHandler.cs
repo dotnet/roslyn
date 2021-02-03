@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
-    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [Shared]
+    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
+    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // We specifically don't use context.Document here because we want multiple
             var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
