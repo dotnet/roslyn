@@ -56,9 +56,50 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
                     enumMembers.Remove(IntegerUtilities.ToInt64(constantValue.Value));
                 }
+                else if (arm.Pattern is IBinaryPatternOperation binaryPattern)
+                {
+                    HandleBinaryPattern(binaryPattern, enumMembers);
+                }
             }
 
             return true;
+        }
+
+        private static void HandleBinaryPattern(IBinaryPatternOperation binaryPattern, Dictionary<long, ISymbol> enumMembers)
+        {
+            if (binaryPattern.OperatorKind == BinaryOperatorKind.Or)
+            {
+                if (!RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern))
+                {
+                    if (binaryPattern.LeftPattern is IBinaryPatternOperation leftBinaryPattern)
+                    {
+                        HandleBinaryPattern(leftBinaryPattern, enumMembers);
+                    }
+                }
+
+                if (!RemoveIfConstantPatternHasValue(binaryPattern.RightPattern))
+                {
+                    if (binaryPattern.RightPattern is IBinaryPatternOperation rightBinaryPattern)
+                    {
+                        HandleBinaryPattern(rightBinaryPattern, enumMembers);
+                    }
+                }
+            }
+
+            bool RemoveIfConstantPatternHasValue(IOperation operation)
+            {
+                if (operation is IConstantPatternOperation constantPattern)
+                {
+                    var constantValue = constantPattern.Value.ConstantValue;
+                    if (constantValue.HasValue)
+                    {
+                        enumMembers.Remove(IntegerUtilities.ToInt64(constantValue.Value));
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static bool HasDefaultCase(ISwitchExpressionOperation operation)
