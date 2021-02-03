@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,26 +14,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
-    internal class FailingRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FailingRequestHandlerProvider()
-        {
-        }
-
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
-        {
-            return ImmutableArray.Create<IRequestHandler>(new FailingRequestHandler());
-        }
-    }
-
-    [LspMethod(MethodName, mutatesSolutionState: false)]
+    [Shared, ExportLspMethod(MethodName, mutatesSolutionState: false), PartNotDiscoverable]
     internal class FailingRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingRequestHandler);
         private const int Delay = 100;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FailingRequestHandler()
+        {
+        }
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
