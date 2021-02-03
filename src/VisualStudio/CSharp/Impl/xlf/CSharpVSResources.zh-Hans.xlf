@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpVSResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpVSResources.resx">
     <body>
       <trans-unit id="Add_missing_using_directives_on_paste">
         <source>Add missing using directives on paste</source>
-        <target state="new">Add missing using directives on paste</target>
+        <target state="translated">粘贴时添加缺少的 using 指令</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">自动显示参数列表中的完成列表(实验性)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">自动显示参数列表中的完成列表(实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

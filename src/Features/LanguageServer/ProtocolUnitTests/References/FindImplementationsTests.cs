@@ -81,7 +81,6 @@ class A : IA
     }
 }";
             using var workspace = CreateTestWorkspace(string.Empty, out var _);
-            SetSolutionProviderWorkspace(workspace);
 
             AddMappedDocument(workspace, markup);
 
