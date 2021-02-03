@@ -67,6 +67,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
+        /// <summary>
+        /// Set to <see langword="true"/> when the snippet client registers an event listener for
+        /// <see cref="Controller.ModelUpdated"/>.
+        /// </summary>
+        /// <remarks>
+        /// This field should only be used from the main thread.
+        /// </remarks>
+        private bool _registeredForSignatureHelpEvents;
+
         // Writes to this state only occur on the main thread.
         private readonly State _state = new();
 
@@ -523,12 +532,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                         if (_signatureHelpControllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
                         {
-                            // Register a handler for ModelUpdated. To avoid the possibility of more than one
-                            // handler being in the list, remove any current one before adding the new one. This
-                            // handler is only changed on the main thread, and the event is only invoked on the main
-                            // thread, so additional synchronization is not necessary to prevent lost events.
-                            controller.ModelUpdated -= OnModelUpdated;
-                            controller.ModelUpdated += OnModelUpdated;
+                            EnsureRegisteredForModelUpdatedEvents(this, controller);
                         }
 
                         // Trigger signature help after starting the snippet session
@@ -548,6 +552,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             return false;
+
+            // Local function
+            static void EnsureRegisteredForModelUpdatedEvents(AbstractSnippetExpansionClient client, Controller controller)
+            {
+                // Access to _registeredForSignatureHelpEvents is synchronized on the main thread
+                client.ThreadingContext.ThrowIfNotOnUIThread();
+
+                if (!client._registeredForSignatureHelpEvents)
+                {
+                    client._registeredForSignatureHelpEvents = true;
+                    controller.ModelUpdated += client.OnModelUpdated;
+                    client.TextView.Closed += delegate { controller.ModelUpdated -= client.OnModelUpdated; };
+                }
+            }
         }
 
         /// <summary>
