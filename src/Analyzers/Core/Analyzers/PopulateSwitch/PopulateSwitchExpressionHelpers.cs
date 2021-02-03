@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 RemoveIfConstantPatternHasValue(binaryPattern.LeftPattern, enumMembers);
                 RemoveIfConstantPatternHasValue(binaryPattern.RightPattern, enumMembers);
-                
+
                 HandleBinaryPattern(binaryPattern.LeftPattern as IBinaryPatternOperation, enumMembers);
                 HandleBinaryPattern(binaryPattern.RightPattern as IBinaryPatternOperation, enumMembers);
             }
