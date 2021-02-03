@@ -18,13 +18,16 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;
+#endif
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
+#if !LIGHTWEIGHT
         public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         protected override IDocumentationCommentService DocumentationCommentService
@@ -1736,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
-
+#endif
         public override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())
@@ -2026,6 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         internal static bool ParentIsLocalDeclarationStatement(SyntaxNode node)
             => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
 
+#if !LIGHTWEIGHT
         public bool IsIsPatternExpression(SyntaxNode node)
             => node.IsKind(SyntaxKind.IsPatternExpression);
 
@@ -2132,5 +2137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsLocalFunction(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
+#endif
     }
 }

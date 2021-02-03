@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -14,16 +13,25 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
+#if !LIGHTWEIGHT
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
+#if !LIGHTWEIGHT
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxGenerator : SyntaxGenerator
+#endif
+#if LIGHTWEIGHT
+    public
+#endif
+    class CSharpSyntaxGenerator : SyntaxGenerator
     {
         // A bit hacky, but we need to actually run ParseToken on the "nameof" text as there's no
         // other way to get a token back that has the appropriate internal bit set that indicates
@@ -31,7 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static readonly IdentifierNameSyntax s_nameOfIdentifier =
             SyntaxFactory.IdentifierName(SyntaxFactory.ParseToken("nameof"));
 
+#if !LIGHTWEIGHT
         [ImportingConstructor]
+#endif
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpSyntaxGenerator()
         {

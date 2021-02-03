@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageDescription>
+      .NET Compiler Platform ("Roslyn") support for analyzing C# projects and solutions.
+    </PackageDescription>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <DefineConstants>$(DefineConstants);LIGHTWEIGHT</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Extensions\MemberDeclarationSyntaxExtensions.cs" Link="Extensions\MemberDeclarationSyntaxExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Extensions\SyntaxListExtensions.cs" Link="Extensions\SyntaxListExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Extensions\SyntaxTriviaExtensions.cs" Link="Extensions\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Extensions\SyntaxTriviaListExtensions.cs" Link="Extensions\SyntaxTriviaListExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Extensions\SyntaxNodeExtensions.cs" Link="Extensions\CompilerSyntaxNodeExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\CSharp\Services\SyntaxFacts\CSharpSyntaxFacts.cs" Link="Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\CSharp\Extensions\ExpressionSyntaxExtensions.cs" Link="Extensions\ExpressionSyntaxExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\CSharp\Extensions\ITypeSymbolExtensions*.cs" Link="Extensions\%(FileName)%(Extension)" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\CSharp\Extensions\StringExtensions.cs" Link="Extensions\StringExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\CSharp\LanguageServices\CSharpSyntaxGeneratorInternal.cs" Link="LanguageServices\CSharpSyntaxGeneratorInternal.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\CSharp\Lightup\NullableSyntaxAnnotationEx.cs" Link="Lightup\NullableSyntaxAnnotationEx.cs" />
+    <Compile Include="CodeGeneration\CSharpFlagsEnumGenerator.cs" />
+    <Compile Include="CodeGeneration\CSharpSyntaxGenerator.cs" />
+    <Compile Include="CodeGeneration\ExpressionGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Caravela.CodeAnalysis.Workspaces.Lightweight.csproj" />
+  </ItemGroup>
+</Project>

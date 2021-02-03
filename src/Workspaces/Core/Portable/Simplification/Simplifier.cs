@@ -8,11 +8,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// </summary>
         public static SyntaxAnnotation AddImportsAnnotation { get; } = new SyntaxAnnotation();
 
+#if !LIGHTWEIGHT
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
@@ -209,5 +213,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                 .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet,
                              reducers, cancellationToken).ConfigureAwait(false);
         }
+#endif
     }
 }

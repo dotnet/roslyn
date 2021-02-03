@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);WORKSPACE;LIGHTWEIGHT</DefineConstants>
+    <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Caravela.CodeAnalysis.Workspaces.Lightweight.Common</PackageId>
+    <PackageDescription>
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+    </PackageDescription>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs" Link="InternalUtilities\DecimalUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs" Link="InternalUtilities\EnumUtilties.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="InternalUtilities\FatalError.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="InternalUtilities\NonCopyableAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="InternalUtilities\NullableAttributes.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="InternalUtilities\Hash.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="InternalUtilities\Index.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="InternalUtilities\Range.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections*.cs" Link="InternalUtilities\%(FileName)%(Extension)" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="Extensions\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\INamedTypeSymbolExtensions.cs" Link="Extensions\INamedTypeSymbolExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ITypeSymbolExtensions.cs" Link="Extensions\ITypeSymbolExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ISymbolExtensions.cs" Link="Extensions\ISymbolExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ISymbolExtensions.RequiresUnsafeModifierVisitor.cs" Link="Extensions\ISymbolExtensions.RequiresUnsafeModifierVisitor.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\SemanticModelExtensions.cs" Link="Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\SyntaxNodeExtensions.cs" Link="Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\SyntaxTriviaExtensions.cs" Link="Extensions\SyntaxTriviaExtensions.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\ArrayBuilder.cs" Link="ObjectPools\ArrayBuilder.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\IPooled.cs" Link="ObjectPools\IPooled.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledDisposer.cs" Link="ObjectPools\PooledDisposer.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Services\SyntaxFacts\AbstractSyntaxFacts.cs" Link="Services\SyntaxFacts\AbstractSyntaxFacts.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Services\SyntaxFacts\ISyntaxFacts.cs" Link="Services\SyntaxFacts\ISyntaxFacts.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Services\SyntaxFacts\ISyntaxKinds.cs" Link="Services\SyntaxFacts\ISyntaxKinds.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Services\SyntaxFacts\ExternalSourceInfo.cs" Link="Services\SyntaxFacts\ExternalSourceInfo.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Simplification\DoNotAddImportsAnnotation.cs" Link="Simplification\DoNotAddImportsAnnotation.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Simplification\DoNotAllowVarAnnotation.cs" Link="Simplification\DoNotAllowVarAnnotation.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Simplification\SpecialTypeAnnotation.cs" Link="Simplification\SpecialTypeAnnotation.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Simplification\SymbolAnnotation.cs" Link="Simplification\SymbolAnnotation.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\PredefinedOperator.cs" Link="Utilities\PredefinedOperator.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\PredefinedType.cs" Link="Utilities\PredefinedType.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\SymbolVisibility.cs" Link="Utilities\SymbolVisibility.cs" />
+    <Compile Include="..\..\SharedUtilitiesAndExtensions\Workspace\Core\LanguageServices\SyntaxGeneratorInternalExtensions\SyntaxGeneratorInternal.cs" Link="LanguageServices\SyntaxGeneratorInternalExtensions\SyntaxGeneratorInternal.cs" />
+    <Compile Include="CodeGeneration\AbstractFlagsEnumGenerator.cs" />
+    <Compile Include="CodeGeneration\CodeGenerationHelpers.cs" />
+    <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
+    <Compile Include="CodeGeneration\NullableSyntaxAnnotation.cs" />
+    <Compile Include="Editing\DeclarationKind.cs" />
+    <Compile Include="Editing\DeclarationModifiers.cs" />
+    <Compile Include="Editing\OperatorKind.cs" />
+    <Compile Include="Editing\TypeConstraintKind.cs" />
+    <Compile Include="Editing\SyntaxGenerator.cs" />
+    <Compile Include="Simplification\Simplifier.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight" />
+  </ItemGroup>
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+</Project>

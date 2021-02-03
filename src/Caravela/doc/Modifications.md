@@ -72,3 +72,7 @@ Also, loading transformers from assemblies, using the same approach as loading s
 ## Microsoft.CodeAnalysis.CSharp.Workspaces
 
 Changes required to make try.postsharp.net work, since it uses the Roslyn Workspace API and not the command-line compiler.
+
+## Caravela.CodeAnalysis.Workspaces.Lightweight
+
+Trimmed down versions of Workspaces projects, used in Caravela.Framework.Impl. Trimming is performed by including only the necessary files from the Workspaces projects and their shared source parts and also sometimes (mostly for Extensions files) by trimming parts of files using `#if !LIGHTWEIGHT`.

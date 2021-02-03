@@ -12,13 +12,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.Shared.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
+#if !LIGHTWEIGHT
         private const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
 
@@ -49,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsAbstractClass([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
+#endif
 
         public static bool IsSystemVoid([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.SpecialType == SpecialType.System_Void;
@@ -85,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol)
             => symbol?.IsAnonymousType == true;
 
+#if !LIGHTWEIGHT
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
             this ITypeSymbol type,
             HashSet<INamedTypeSymbol>? symbols = null)
@@ -296,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
             => typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
+#endif
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
@@ -326,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
+#if !LIGHTWEIGHT
         public static string CreateParameterName(this ITypeSymbol type, bool capitalize = false)
         {
             while (true)
@@ -728,5 +736,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol;
         }
+#endif
     }
 }

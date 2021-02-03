@@ -5,11 +5,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
+#endif
 
 #pragma warning disable IDE0060 // Remove unused parameter - Majority of extension methods in this file have an unused 'SyntaxTree' this parameter for consistency with other Context related extension methods.
 
@@ -17,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static partial class SyntaxTreeExtensions
     {
+#if !LIGHTWEIGHT
         public static bool IsAttributeNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -1917,6 +1921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsExpressionContext(position, tokenOnLeftOfPosition, attributes: true, cancellationToken: cancellationToken) &&
                 !syntaxTree.IsConstantExpressionContext(position, tokenOnLeftOfPosition);
         }
+#endif
 
         public static bool IsPreProcessorDirectiveContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -1924,6 +1929,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             return syntaxTree.IsPreProcessorDirectiveContext(position, leftToken, cancellationToken);
         }
+
+#if !LIGHTWEIGHT
 
         public static bool IsPreProcessorKeywordContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -3023,5 +3030,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    targetToken.Parent is FunctionPointerTypeSyntax functionPointerType &&
                    targetToken == functionPointerType.AsteriskToken;
         }
+#endif
     }
 }

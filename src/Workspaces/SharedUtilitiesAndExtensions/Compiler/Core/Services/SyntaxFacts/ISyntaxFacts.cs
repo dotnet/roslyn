@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
+#if !LIGHTWEIGHT
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
@@ -498,6 +499,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsParameterNameXmlElementSyntax(SyntaxNode node);
 
         SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+#endif
 
         bool CanHaveAccessibility(SyntaxNode declaration);
 
@@ -515,10 +517,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
 
+#if !LIGHTWEIGHT
         bool IsImplicitObjectCreation(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
         bool IsThrowStatement(SyntaxNode node);
         bool IsLocalFunction(SyntaxNode node);
+#endif
     }
 
     [Flags]

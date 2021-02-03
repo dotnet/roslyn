@@ -12,12 +12,15 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
+#if !LIGHTWEIGHT
         public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind)
             => CodeAnalysis.CSharpExtensions.IsKind(node?.Parent, kind);
 
@@ -247,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 WhileStatementSyntax n => n.Statement,
                 _ => null,
             };
+#endif
 
         public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
             => declaration.Kind() switch
@@ -274,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => default,
             };
 
+#if !LIGHTWEIGHT
         public static ConditionalAccessExpressionSyntax? GetParentConditionalAccessExpression(this SyntaxNode? node)
         {
             // Walk upwards based on the grammar/parser rules around ?. expressions (can be seen in
@@ -1151,5 +1157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => node
             .WithTrailingTrivia(node.GetTrailingTrivia().FilterComments(addElasticMarker: true))
             .WithLeadingTrivia(node.GetLeadingTrivia().FilterComments(addElasticMarker: true));
+#endif
     }
 }

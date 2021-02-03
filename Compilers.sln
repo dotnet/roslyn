@@ -183,6 +183,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "doc", "doc", "{2172506A-BA2
 		src\Caravela\doc\Properties.md = src\Caravela\doc\Properties.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Caravela.CodeAnalysis.Workspaces.Lightweight", "src\Workspaces\Core\Portable\Caravela.CodeAnalysis.Workspaces.Lightweight.csproj", "{DB043A59-0312-4B2A-889B-0B556B0E0E96}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight", "src\Workspaces\CSharp\Portable\Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight.csproj", "{2945E490-79AD-41EB-A66C-178FDD46F5CD}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -223,6 +227,7 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{db043a59-0312-4b2a-889b-0b556b0e0e96}*SharedItemsImports = 5
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{e8f0baa5-7327-43d1-9a51-644e81ae55f1}*SharedItemsImports = 13
 	EndGlobalSection
@@ -483,6 +488,14 @@ Global
 		{C9118397-1556-40DA-A66E-005EE2980E79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9118397-1556-40DA-A66E-005EE2980E79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9118397-1556-40DA-A66E-005EE2980E79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB043A59-0312-4B2A-889B-0B556B0E0E96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB043A59-0312-4B2A-889B-0B556B0E0E96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB043A59-0312-4B2A-889B-0B556B0E0E96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB043A59-0312-4B2A-889B-0B556B0E0E96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2945E490-79AD-41EB-A66C-178FDD46F5CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2945E490-79AD-41EB-A66C-178FDD46F5CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2945E490-79AD-41EB-A66C-178FDD46F5CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2945E490-79AD-41EB-A66C-178FDD46F5CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -560,6 +573,8 @@ Global
 		{694A15AF-5944-4EE5-A8BE-AD2C19BB27F8} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
 		{C9118397-1556-40DA-A66E-005EE2980E79} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
 		{2172506A-BA20-43E3-910F-50769D2B4AA9} = {803F2227-6BA8-4593-96B7-37D1CC9F01AC}
+		{DB043A59-0312-4B2A-889B-0B556B0E0E96} = {D9591377-7868-4D64-9314-83E0C92A871B}
+		{2945E490-79AD-41EB-A66C-178FDD46F5CD} = {D9591377-7868-4D64-9314-83E0C92A871B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

@@ -8,13 +8,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.Formatting;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal static class CodeGenerationHelpers
     {
+#if !LIGHTWEIGHT
         public static SyntaxNode GenerateThrowStatement(
             SyntaxGenerator factory,
             SemanticDocument document,
@@ -98,10 +102,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 innermostNamespace = @namespace;
             }
         }
+#endif
 
         public static bool IsSpecialType(ITypeSymbol type, SpecialType specialType)
             => type != null && type.SpecialType == specialType;
 
+#if !LIGHTWEIGHT
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
         {
             if (availableIndices == null)
@@ -436,5 +442,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             // Couldn't find anything with our name.  Just place us at the end of this group.
             return desiredGroupIndex;
         }
+#endif
     }
 }

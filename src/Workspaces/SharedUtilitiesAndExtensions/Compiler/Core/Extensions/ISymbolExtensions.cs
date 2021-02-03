@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ISymbolExtensions
     {
+#if !LIGHTWEIGHT
         public static string ToNameDisplayString(this ISymbol symbol)
             => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
 
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return symbol.ContainingType;
         }
+#endif
 
         public static bool IsPointerType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IPointerTypeSymbol;
@@ -165,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsErrorType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.TypeKind == TypeKind.Error;
 
+#if !LIGHTWEIGHT
         public static bool IsModuleType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.IsModuleType() == true;
 
@@ -419,6 +422,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsAttribute([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => (symbol as ITypeSymbol)?.IsAttribute() == true;
+#endif
 
         /// <summary>
         /// Returns <see langword="true"/> if the signature of this symbol requires the <see
@@ -432,6 +436,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return member?.Accept(new RequiresUnsafeModifierVisitor()) == true;
         }
 
+#if !LIGHTWEIGHT
         public static ITypeSymbol ConvertToType(
             this ISymbol? symbol,
             Compilation compilation,
@@ -742,5 +747,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             result = (TSymbol)symbol;
             return true;
         }
+#endif
     }
 }

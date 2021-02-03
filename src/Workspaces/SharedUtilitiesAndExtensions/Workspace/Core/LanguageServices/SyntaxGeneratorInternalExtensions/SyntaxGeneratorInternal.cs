@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.Host;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -15,7 +18,10 @@ namespace Microsoft.CodeAnalysis.Editing
     /// sharing internal generator methods between them. Once the methods are ready to be
     /// made public APIs, they can be moved to <see cref="SyntaxGenerator"/>.
     /// </summary>
-    internal abstract class SyntaxGeneratorInternal : ILanguageService
+    internal abstract class SyntaxGeneratorInternal
+#if !LIGHTWEIGHT
+        : ILanguageService
+#endif
     {
         internal abstract ISyntaxFacts SyntaxFacts { get; }
 
