@@ -210,9 +210,9 @@ namespace Microsoft.CodeAnalysis
                         // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
                         // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
 
-                        ((HashData*)bytes)->Data1 = this.Data1;
-                        ((HashData*)bytes)->Data2 = this.Data2;
-                        ((HashData*)bytes)->Data3 = this.Data3;
+                        *(long*)bytes = this.Data1;
+                        *(long*)(bytes + sizeof(long)) = this.Data2;
+                        *(int*)(bytes + sizeof(long) + sizeof(long)) = this.Data3;
                     }
                 }
             }
