@@ -321,6 +321,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 continue;
                             }
 
+                            // Don't flag obsolete overloads
+                            if (overload.HasAttribute(obsoleteAttribute))
+                            {
+                                continue;
+                            }
+
                             // RS0026: Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.
                             var overloadHasOptionalParams = overload.HasOptionalParameters();
                             if (overloadHasOptionalParams)
@@ -335,7 +341,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             }
 
                             // RS0027: Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.
-                            if (method.Parameters.Length <= overload.Parameters.Length && !overload.HasAttribute(obsoleteAttribute))
+                            if (method.Parameters.Length <= overload.Parameters.Length)
                             {
                                 // 'method' is unshipped: Flag regardless of whether the overload is shipped/unshipped.
                                 // 'method' is shipped:   Flag only if overload is unshipped and has no optional parameters (overload will already be flagged with RS0026)
