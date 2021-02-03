@@ -129,8 +129,7 @@ namespace Text.Analyzers
                 return;
             }
 
-            bool hasFlagsAttribute = symbol.GetAttributes().Any(a => flagsAttribute.Equals(a.AttributeClass));
-            if (hasFlagsAttribute)
+            if (symbol.HasAttribute(flagsAttribute))
             {
                 if (reportCA1714 && !IsPlural(symbol.Name)) // Checking Rule CA1714
                 {
