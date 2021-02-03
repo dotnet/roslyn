@@ -12,7 +12,7 @@ namespace Caravela.Build.RenamePackage
         {
             Console.WriteLine("Processing " + inputPath);
 
-            string outputPath = Path.Combine(Path.GetDirectoryName(inputPath), Path.GetFileName(inputPath).Replace("Microsoft", "Caravela"));
+            string outputPath = Path.Combine(Path.GetDirectoryName(inputPath), Path.GetFileName(inputPath).Replace("Microsoft", "Caravela.Roslyn"));
 
             File.Copy(inputPath, outputPath, true);
 
@@ -35,7 +35,7 @@ namespace Caravela.Build.RenamePackage
             var ns = nuspecXml.Root.Name.Namespace.NamespaceName;
             var packageIdElement = nuspecXml.Root.Element( XName.Get("metadata", ns)).Element(XName.Get("id", ns));
             var oldPackageId = packageIdElement.Value;
-            var newPackageId = oldPackageId.Replace("Microsoft", "Caravela");
+            var newPackageId = oldPackageId.Replace("Microsoft", "Caravela.Roslyn");
             packageIdElement.Value = newPackageId;
 
             oldNuspecEntry.Delete();
