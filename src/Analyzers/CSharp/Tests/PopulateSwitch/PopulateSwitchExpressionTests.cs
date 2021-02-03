@@ -1110,5 +1110,36 @@ class MyClass
 }
 ");
         }
+
+        [Fact]
+        [WorkItem(50982, "https://github.com/dotnet/roslyn/issues/50982")]
+        public async Task TestOrPatternIsHandled_AllEnumValuesAreHandled_NoDiagnostic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public static class C
+{
+    static bool IsValidValue(E e) 
+    {
+        return e [||]switch
+        {
+            (E.A or E.B) or (E.C or E.D) => true,
+            (E.E or E.F) or (E.G) => true,
+            _ = false
+        };
+    }
+
+    public enum E
+    {
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+    }
+}
+");
+        }
     }
 }
