@@ -222,7 +222,7 @@ jobs:
     - pwsh: .\eng\build.ps1 -ci -build -restore -bootstrap -configuration Debug
       displayName: Restore and build
 
-    - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe --assembliesPath .\artifacts\obj\Microsoft.CodeAnalysis
+    - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe --assembliesPath .\artifacts\obj\Microsoft.CodeAnalysis --debugPath .\artifacts\BuildValidator
       displayName: Run BuildValidator
 
     - task: PublishBuildArtifacts@1

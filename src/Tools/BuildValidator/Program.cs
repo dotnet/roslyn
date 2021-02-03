@@ -28,6 +28,9 @@ namespace BuildValidator
     /// </summary>
     class Program
     {
+        const int ExitSuccess = 0;
+        const int ExitFailure = 1;
+
         private static readonly Regex[] s_ignorePatterns = new Regex[]
         {
             new Regex(@"\\runtimes?\\"),
@@ -35,7 +38,7 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static Task Main(string[] args)
+        static Task<int> Main(string[] args)
         {
             var rootCommand = new RootCommand
             {
@@ -59,7 +62,7 @@ namespace BuildValidator
             return rootCommand.InvokeAsync(args);
         }
 
-        static async Task HandleCommandAsync(string assembliesPath, bool verbose, bool quiet, bool openDiff, string? debugPath)
+        static async Task<int> HandleCommandAsync(string assembliesPath, bool verbose, bool quiet, bool openDiff, string? debugPath)
         {
             var options = new Options(assembliesPath, verbose, quiet, openDiff, debugPath);
 
@@ -89,8 +92,9 @@ namespace BuildValidator
                     .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                await ValidateFilesAsync(filesToValidate, buildConstructor, logger, options).ConfigureAwait(false);
+                var success = await ValidateFilesAsync(filesToValidate, buildConstructor, logger, options).ConfigureAwait(false);
                 await Console.Out.FlushAsync().ConfigureAwait(false);
+                return success ? ExitSuccess : ExitFailure;
             }
             catch (Exception ex)
             {
@@ -100,7 +104,7 @@ namespace BuildValidator
         }
 
         // TODO: it feels like "logger" and "options" should be instance variables of something
-        private static async Task ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static async Task<bool> ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
@@ -118,6 +122,8 @@ namespace BuildValidator
                 assembliesCompiled.Add(compilationDiff);
             }
 
+            bool success = true;
+
             sb.AppendLine("====================");
             sb.AppendLine("Summary:");
             sb.AppendLine();
@@ -134,8 +140,10 @@ namespace BuildValidator
             foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
             {
                 sb.AppendLine($"\t{diff.OriginalPath}");
+                success = false;
             }
 
+            // TODO: do we need the tool to continue if an exception was thrown during rebuild?
             sb.AppendLine();
             sb.AppendLine("Error Cases:");
             foreach (var diff in assembliesCompiled.Where(a => !a.AreEqual.HasValue))
@@ -145,10 +153,13 @@ namespace BuildValidator
                 {
                     sb.AppendLine($"\tException: {diff.Exception.Message}");
                 }
+                success = false;
             }
             sb.AppendLine("====================");
 
             logger.LogInformation(sb.ToString());
+
+            return success;
         }
 
         private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
