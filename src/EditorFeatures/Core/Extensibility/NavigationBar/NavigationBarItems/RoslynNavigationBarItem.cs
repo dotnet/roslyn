@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
@@ -27,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
             Kind = kind;
         }
-    }
 
-    internal enum RoslynNavigationBarItemKind
-    {
-        Symbol,
-        GenerateDefaultConstructor,
-        GenerateEventHandler,
-        GenerateFinalizer,
-        GenerateMethod,
+        internal enum RoslynNavigationBarItemKind
+        {
+            Symbol,
+            GenerateDefaultConstructor,
+            GenerateEventHandler,
+            GenerateFinalizer,
+            GenerateMethod,
+        }
     }
 }
