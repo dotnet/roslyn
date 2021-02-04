@@ -2766,17 +2766,17 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(x86)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        public void DisposeMSBuildWorkspaceAndServicesCollected()
+        public async Task DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var sol = await MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln"));
             var workspace = sol.Workspace;
             var project = sol.Projects.First();
             var document = project.Documents.First();
-            var tree = document.GetSyntaxTreeAsync().Result;
+            var tree = await document.GetSyntaxTreeAsync();
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
-            var compilation = document.GetSemanticModelAsync().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+            var compilation = await document.GetSemanticModelAsync();
             Assert.NotNull(type);
             Assert.StartsWith("public class CSharpClass", type.ToString(), StringComparison.Ordinal);
             Assert.NotNull(compilation);
