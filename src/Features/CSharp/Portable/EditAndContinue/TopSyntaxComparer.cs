@@ -164,14 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     yield return node;
                 }
-                else
+
+                foreach (var descendant in EnumerateDescendants(node))
                 {
-                    foreach (var descendant in EnumerateDescendants(node))
+                    if (HasLabel(descendant))
                     {
-                        if (HasLabel(node))
-                        {
-                            yield return descendant;
-                        }
+                        yield return descendant;
                     }
                 }
             }
@@ -196,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             bool ShouldEnumerateChildren(SyntaxNode child)
             {
                 // if we don't want to consider this nodes children, then don't
-                if (!_compareStatementSyntax && !HasChildren(child))
+                if (!HasChildren(child))
                 {
                     return false;
                 }

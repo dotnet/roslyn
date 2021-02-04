@@ -581,7 +581,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
                 }
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
+                Debug.Assert(oldBody.Parent is not null);
+                Debug.Assert(newBody.Parent is not null);
+                return new TopSyntaxComparer(oldBody.Parent, newBody.Parent, new[] { oldBody }, new[] { newBody }, compareStatementSyntax: true).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
