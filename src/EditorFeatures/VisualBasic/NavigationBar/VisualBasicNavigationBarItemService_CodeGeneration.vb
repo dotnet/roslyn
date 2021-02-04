@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End Using
         End Sub
 
-        Private Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, cancellationToken As CancellationToken) As Task(Of Document)
+        Public Shared Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, cancellationToken As CancellationToken) As Task(Of Document)
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim contextLocation = syntaxTree.GetLocation(New TextSpan(0, 0))
             Dim codeGenerationOptions As New CodeGenerationOptions(contextLocation, generateMethodBodies:=True)
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return generateCodeItem.Kind <> RoslynNavigationBarItemKind.GenerateFinalizer
         End Function
 
-        Private Function GetGeneratedDocumentCoreAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Function GetGeneratedDocumentCoreAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Select Case generateCodeItem.Kind
                 Case RoslynNavigationBarItemKind.GenerateDefaultConstructor
                     Return GenerateDefaultConstructorAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken)

@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
 
                 Dim contextLocation = (Await document.GetSyntaxTreeAsync()).GetLocation(New TextSpan(0, 0))
-                Dim generateCodeItem = DirectCast(rightItem, AbstractGenerateCodeItem)
-                Dim newDocument = Await generateCodeItem.GetGeneratedDocumentAsync(document, CancellationToken.None)
+                Dim generateCodeItem = DirectCast(rightItem, RoslynNavigationBarItem.AbstractGenerateCodeItem)
+                Dim newDocument = Await VisualBasicNavigationBarItemService.GetGeneratedDocumentAsync(document, generateCodeItem, CancellationToken.None)
 
                 Dim actual = (Await newDocument.GetSyntaxRootAsync()).ToFullString().TrimEnd()
                 Dim expected = expectedText.NormalizedValue.TrimEnd()
@@ -86,11 +86,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        Public Async Function AssertNavigationPointAsync(workspaceElement As XElement,
-                                         startingDocumentFilePath As String,
-                                         leftItemToSelectText As String,
-                                         rightItemToSelectText As String,
-                                         Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
+        Public Async Function AssertNavigationPointAsync(
+                workspaceElement As XElement,
+                startingDocumentFilePath As String,
+                leftItemToSelectText As String,
+                rightItemToSelectText As String,
+                Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
             Using workspace = TestWorkspace.Create(workspaceElement)
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
