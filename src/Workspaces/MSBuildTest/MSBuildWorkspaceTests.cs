@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2785,7 +2785,7 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        public DisposeMSBuildWorkspaceAndServicesCollected()
+        public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
@@ -2803,6 +2803,48 @@ class C1
 
             // MSBuildWorkspace doesn't have a cache service
             Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.CacheService));
+
+            document.ReleaseStrongReference();
+            project.ReleaseStrongReference();
+            workspace.UseReference(static w => w.Dispose());
+
+            compilation.AssertReleased();
+            sol.AssertReleased();
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
+        public async Task MSBuildWorkspacePreservesEncoding()
+        {
+            var encoding = Encoding.BigEndianUnicode;
+            var fileContent = @"//“
+class C { }";
+            var files = new FileSet(
+                ("Encoding.csproj", Resources.ProjectFiles.CSharp.Encoding.Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
+                ("class1.cs", encoding.GetBytesWithPreamble(fileContent)));
+
+            CreateFiles(files);
+            var projPath = GetSolutionFileName("Encoding.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(projPath);
+
+            var document = project.Documents.First(d => d.Name == "class1.cs");
+
+            // update root without first looking at text (no encoding is known)
+            var gen = Editing.SyntaxGenerator.GetGenerator(document);
+            var doc2 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
+            var doc2text = await doc2.GetTextAsync();
+            Assert.Null(doc2text.Encoding);
+            var doc2tree = await doc2.GetSyntaxTreeAsync();
+            Assert.Null(doc2tree.Encoding);
+            Assert.Null(doc2tree.GetText().Encoding);
+
+            // observe original text to discover encoding
+            var text = await document.GetTextAsync();
+            Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
+            Assert.Equal(fileContent, text.ToString());
+
             // update root blindly again, after observing encoding, see that now encoding is known
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();
