@@ -2839,4 +2839,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
+  <data name="Introduce_parameter" xml:space="preserve">
+    <value>Introduce parameter</value>
+  </data>
+  <data name="Introduce_parameter_for_0" xml:space="preserve">
+    <value>Introduce parameter for '{0}'</value>
+  </data>
+  <data name="Introduce_parameter_for_all_occurrences_of_0" xml:space="preserve">
+    <value>Introduce parameter for all occurrences of '{0}'</value>
+  </data>
 </root>
