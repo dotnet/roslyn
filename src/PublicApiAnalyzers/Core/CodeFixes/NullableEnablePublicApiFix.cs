@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
-                TextDocument? document = DeclarePublicApiFix.GetShippedDocument(project);
+                TextDocument? document = PublicApiFixHelpers.GetShippedDocument(project);
 
                 if (document != null)
                 {
@@ -58,14 +58,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static SourceText AddNullableEnable(SourceText sourceText)
         {
-            var endOfLine = Environment.NewLine;
-            if (sourceText.Lines.Count > 1)
-            {
-                var firstLine = sourceText.Lines[0];
-                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
-            }
-
-            string extraLine = "#nullable enable" + endOfLine;
+            string extraLine = "#nullable enable" + PublicApiFixHelpers.GetEndOfLine(sourceText);
             SourceText newSourceText = sourceText.WithChanges(new TextChange(new TextSpan(0, 0), extraLine));
             return newSourceText;
         }
@@ -91,7 +84,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
                 foreach (var project in _projectsToFix)
                 {
-                    TextDocument? shippedDocument = DeclarePublicApiFix.GetShippedDocument(project);
+                    TextDocument? shippedDocument = PublicApiFixHelpers.GetShippedDocument(project);
                     if (shippedDocument == null ||
                         shippedDocument.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
                     {

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
-            var publicSurfaceAreaDocument = GetUnshippedDocument(project);
+            var publicSurfaceAreaDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
 
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
@@ -49,16 +49,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             return Task.CompletedTask;
-        }
-
-        internal static TextDocument? GetUnshippedDocument(Project project)
-        {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.UnshippedFileName, StringComparison.Ordinal));
-        }
-
-        internal static TextDocument? GetShippedDocument(Project project)
-        {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.ShippedFileName, StringComparison.Ordinal));
         }
 
         private static async Task<Solution> GetFixAsync(TextDocument? publicSurfaceAreaDocument, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
@@ -107,14 +97,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 insertInList(lines, name);
             }
 
-            var endOfLine = Environment.NewLine;
-            if (sourceText is not null && sourceText.Lines.Count > 1)
-            {
-                var firstLine = sourceText.Lines[0];
-                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
-            }
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
 
-            var newText = string.Join(endOfLine, lines) + GetEndOfFileText(sourceText, endOfLine);
+            var newText = string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine);
             return sourceText?.Replace(new TextSpan(0, sourceText.Length), newText) ?? SourceText.From(newText);
 
             // Insert name at the first suitable position
@@ -143,14 +128,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             List<string> lines = GetLinesFromSourceText(sourceText);
             IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            var endOfLine = Environment.NewLine;
-            if (sourceText.Lines.Count > 1)
-            {
-                var firstLine = sourceText.Lines[0];
-                endOfLine = sourceText.ToString(new TextSpan(firstLine.End, firstLine.EndIncludingLineBreak - firstLine.End));
-            }
-
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + GetEndOfFileText(sourceText, endOfLine));
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, newLines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 
@@ -173,21 +152,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             return lines;
-        }
-
-        /// <summary>
-        /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.
-        /// </summary>
-        /// <param name="sourceText">The source text.</param>
-        /// <returns><see cref="Environment.NewLine"/> if <paramref name="sourceText"/> ends with a trailing newline;
-        /// otherwise, <see cref="string.Empty"/>.</returns>
-        public static string GetEndOfFileText(SourceText? sourceText, string endOfLine)
-        {
-            if (sourceText == null || sourceText.Length == 0)
-                return string.Empty;
-
-            var lastLine = sourceText.Lines[^1];
-            return lastLine.Span.IsEmpty ? endOfLine : string.Empty;
         }
 
         internal class AdditionalDocumentChangeAction : CodeAction
@@ -234,7 +198,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    var publicSurfaceAreaAdditionalDocument = GetUnshippedDocument(project);
+                    var publicSurfaceAreaAdditionalDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
 
                     var sourceText = publicSurfaceAreaAdditionalDocument != null ?
                         await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) :
