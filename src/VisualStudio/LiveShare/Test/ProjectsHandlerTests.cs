@@ -17,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         [Fact]
         public async Task TestProjectsAsync()
         {
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
-            var solution = testLspServer.GetCurrentSolution();
+            using var workspace = CreateTestWorkspace(string.Empty, out var _);
+            var solution = workspace.CurrentSolution;
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
             var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null, CustomProtocol.RoslynMethods.ProjectsName);

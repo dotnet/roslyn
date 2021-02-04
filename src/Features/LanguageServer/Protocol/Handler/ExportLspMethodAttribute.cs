@@ -3,21 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
+using System.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Defines a metadata attribute for <see cref="IRequestHandler{RequestType, ResponseType}"/>
-    /// to use to specify the kind of LSP request the handler accepts.
+    /// Defines an attribute for LSP request handlers to map to LSP methods.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class LspMethodAttribute : Attribute, ILspMethodMetadata
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportLspMethodAttribute : ExportAttribute, IRequestHandlerMetadata
     {
-        /// <summary>
-        /// Name of the LSP method to handle.
-        /// </summary>
         public string MethodName { get; }
+
+        public string? LanguageName { get; }
 
         /// <summary>
         /// Whether or not handling this method results in changes to the current solution state.
@@ -26,17 +24,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public bool MutatesSolutionState { get; }
 
-        public LspMethodAttribute(string methodName, bool mutatesSolutionState)
+        public ExportLspMethodAttribute(string methodName, bool mutatesSolutionState, string? languageName = null) : base(typeof(IRequestHandler))
         {
+            if (string.IsNullOrEmpty(methodName))
+            {
+                throw new ArgumentException(nameof(methodName));
+            }
+
             MethodName = methodName;
             MutatesSolutionState = mutatesSolutionState;
-        }
-
-        public static ILspMethodMetadata GetLspMethodMetadata(Type instance)
-        {
-            var attribute = (ILspMethodMetadata?)Attribute.GetCustomAttribute(instance, typeof(LspMethodAttribute));
-            Contract.ThrowIfNull(attribute, $"Handler {instance} does not declare an [LspMethod] attribute");
-            return attribute;
+            LanguageName = languageName;
         }
     }
 }

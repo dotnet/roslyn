@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 @"{|caret:|}// Comment
 static class C { }";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -56,12 +56,12 @@ static class C { }";
 static class C { }
 ";
 
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var caretLocation = locations["caret"].First();
 
             // 1. Range handler
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
-            var rangeResults = await RunGetSemanticTokensRangeAsync(testLspServer, caretLocation, range);
+            var rangeResults = await RunGetSemanticTokensRangeAsync(workspace.CurrentSolution, caretLocation, range);
             var expectedRangeResults = new LSP.SemanticTokens
             {
                 Data = new int[]
@@ -80,7 +80,7 @@ static class C { }
             Assert.Equal(expectedRangeResults.ResultId, rangeResults.ResultId);
 
             // 2. Whole document handler
-            var wholeDocResults = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
+            var wholeDocResults = await RunGetSemanticTokensAsync(workspace.CurrentSolution, caretLocation);
             var expectedWholeDocResults = new LSP.SemanticTokens
             {
                 Data = new int[]
@@ -105,8 +105,8 @@ static class C { }
 static class C { }
 ";
 
-            UpdateDocumentText(newMarkup, testLspServer.TestWorkspace);
-            var editResults = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "2");
+            UpdateDocumentText(newMarkup, workspace);
+            var editResults = await RunGetSemanticTokensEditsAsync(workspace.CurrentSolution, caretLocation, previousResultId: "2");
 
             var expectedEdit = SemanticTokensEditsHandler.GenerateEdit(0, 1, new int[] { 1 });
 
@@ -114,7 +114,7 @@ static class C { }
             Assert.Equal("3", ((LSP.SemanticTokensEdits)editResults).ResultId);
 
             // 4. Re-request whole document handler (may happen if LSP runs into an error)
-            var wholeDocResults2 = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
+            var wholeDocResults2 = await RunGetSemanticTokensAsync(workspace.CurrentSolution, caretLocation);
             var expectedWholeDocResults2 = new LSP.SemanticTokens
             {
                 Data = new int[]
