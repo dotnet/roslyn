@@ -28,14 +28,5 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
             Kind = kind;
         }
-
-        internal enum RoslynNavigationBarItemKind
-        {
-            Symbol,
-            GenerateDefaultConstructor,
-            GenerateEventHandler,
-            GenerateFinalizer,
-            GenerateMethod,
-        }
     }
 }
