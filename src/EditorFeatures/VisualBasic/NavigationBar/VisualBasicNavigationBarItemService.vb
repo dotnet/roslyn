@@ -133,7 +133,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         eventContainer:=Nothing,
                         semanticModel:=semanticModel,
                         workspaceSupportsDocumentChanges:=workspaceSupportsDocumentChanges,
-                        symbolDeclarationService:=symbolDeclarationService)
+                        symbolDeclarationService:=symbolDeclarationService,
+                        cancellationToken)
 
                     ' Add the (<ClassName> Events) item only if it actually has things within it
                     If typeEvents.ChildItems.Count > 0 Then
@@ -144,15 +145,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         ' If this is a WithEvents property, then we should also add items for it
                         Dim propertySymbol = TryCast(member, IPropertySymbol)
                         If propertySymbol IsNot Nothing AndAlso propertySymbol.IsWithEvents Then
-                            items.Add(
-                                CreateItemForEvents(
-                                    type,
-                                    position,
-                                    propertySymbol.Type,
-                                    propertySymbol,
-                                    semanticModel,
-                                    workspaceSupportsDocumentChanges,
-                                    symbolDeclarationService))
+                            items.Add(CreateItemForEvents(
+                                type,
+                                position,
+                                propertySymbol.Type,
+                                propertySymbol,
+                                semanticModel,
+                                workspaceSupportsDocumentChanges,
+                                symbolDeclarationService,
+                                cancellationToken))
                         End If
                     Next
                 End If
@@ -175,8 +176,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
-                              member.GetSymbolKey(),
-                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey())), NavigationBarItem)
+                              member.GetSymbolKey(cancellationToken),
+                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), NavigationBarItem)
                           Into ToList()
 
             Return New SymbolItem(
@@ -300,7 +301,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 eventContainer As IPropertySymbol,
                 semanticModel As SemanticModel,
                 workspaceSupportsDocumentChanges As Boolean,
-                symbolDeclarationService As ISymbolDeclarationService) As NavigationBarItem
+                symbolDeclarationService As ISymbolDeclarationService,
+                cancellationToken As CancellationToken) As NavigationBarItem
 
             Dim rightHandMemberItems As New List(Of NavigationBarItem)
 
@@ -334,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                     ' Dev11 arbitrarily will navigate to the last method that implements the event
                     ' if more than one exists
-                    Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey()
+                    Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey(cancellationToken)
 
                     rightHandMemberItems.Add(
                         New SymbolItem(
@@ -359,8 +361,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                 e.Name,
                                 e.GetGlyph(),
                                 eventContainerName,
-                                e.GetSymbolKey(),
-                                containingType.GetSymbolKey()))
+                                e.GetSymbolKey(cancellationToken),
+                                containingType.GetSymbolKey(cancellationToken)))
                     End If
                 End If
             Next
