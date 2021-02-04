@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class StatementSyntaxComparer : SyntaxComparer
     {
-        internal static readonly SyntaxComparer Default = new TopSyntaxComparer(compareStatementSyntax: true);
+        internal static readonly TopSyntaxComparer Default = new TopSyntaxComparer(compareStatementSyntax: true);
         //internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
 
         private readonly SyntaxNode? _oldRootChild;

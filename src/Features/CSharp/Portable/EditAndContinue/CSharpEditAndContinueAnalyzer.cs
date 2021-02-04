@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
-                if (isBody || StatementSyntaxComparer.HasLabel(node))
+                if (isBody || StatementSyntaxComparer.Default.HasLabel(node))
                 {
                     switch (node.Kind())
                     {
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-            => StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
+            => StatementSyntaxComparer.Default.GetLabel(node1) == StatementSyntaxComparer.Default.GetLabel(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
             => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
@@ -950,8 +950,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<SyntaxToken>? oldTokens = null;
             List<SyntaxToken>? newTokens = null;
 
-            StatementSyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
-            StatementSyntaxComparer.GetLocalNames(newNode, ref newTokens);
+            TopSyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
+            TopSyntaxComparer.GetLocalNames(newNode, ref newTokens);
 
             // A valid foreach statement declares at least one variable.
             RoslynDebug.Assert(oldTokens != null);
