@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -14,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class StatementSyntaxComparer : SyntaxComparer
     {
-        internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
+        internal static readonly SyntaxComparer Default = new TopSyntaxComparer(compareStatementSyntax: true);
+        //internal static readonly StatementSyntaxComparer Default = new StatementSyntaxComparer();
 
         private readonly SyntaxNode? _oldRootChild;
         private readonly SyntaxNode? _newRootChild;
@@ -49,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 #pragma warning restore 8610
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
+        {
+            var results = GetChildrenImpl(node).ToList();
+            return results;
+        }
+        private IEnumerable<SyntaxNode>? GetChildrenImpl(SyntaxNode node)
         {
             Debug.Assert(HasLabel(node));
 
@@ -115,6 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
+        {
+            var results = GetDescendantsImpl(node).ToList();
+            return results;
+        }
+
+        private IEnumerable<SyntaxNode> GetDescendantsImpl(SyntaxNode node)
         {
             if (node == _oldRoot || node == _newRoot)
             {
