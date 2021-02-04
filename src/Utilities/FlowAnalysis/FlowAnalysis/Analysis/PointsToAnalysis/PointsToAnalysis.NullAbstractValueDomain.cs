@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private sealed class NullAbstractValueDomain : AbstractValueDomain<NullAbstractValue>
         {
-            public static NullAbstractValueDomain Default = new NullAbstractValueDomain();
+            public static NullAbstractValueDomain Default = new();
 
             private NullAbstractValueDomain() { }
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public override NullAbstractValue UnknownOrMayBeValue => NullAbstractValue.MaybeNull;
 
-            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue, bool assertMonotonicitye)
+            public override int Compare(NullAbstractValue oldValue, NullAbstractValue newValue, bool assertMonotonicity)
             {
                 return Comparer<NullAbstractValue>.Default.Compare(oldValue, newValue);
             }

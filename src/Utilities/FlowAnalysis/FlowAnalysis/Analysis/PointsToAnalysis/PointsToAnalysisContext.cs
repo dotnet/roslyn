@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public override PointsToAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
-            ControlFlowGraph invokedControlFlowGraph,
+            ControlFlowGraph invokedCfg,
             PointsToAnalysisResult? pointsToAnalysisResult,
             CopyAnalysisResult? copyAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(pointsToAnalysisResult == null);
             Debug.Assert(valueContentAnalysisResult == null);
 
-            return new PointsToAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, PointsToAnalysisKind, InterproceduralAnalysisConfiguration,
+            return new PointsToAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, AnalyzerOptions, PointsToAnalysisKind, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, ExceptionPathsAnalysis, copyAnalysisResult, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicate);
         }

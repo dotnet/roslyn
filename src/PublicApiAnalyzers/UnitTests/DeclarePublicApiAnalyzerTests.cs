@@ -21,22 +21,28 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Helpers
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(path, line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
@@ -652,9 +658,13 @@ C.Property.get -> int
 
             var unshippedText = @"";
 
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
             var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.DuplicateSymbolInApiFiles)
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 6, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 4, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
@@ -682,9 +692,13 @@ C.Property.set -> void
             var unshippedText = @"
 C.Property.get -> int";
 
+#pragma warning disable RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
             var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.DuplicateSymbolInApiFiles)
                 .WithLocation(DeclarePublicApiAnalyzer.UnshippedFileName, 2, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithLocation(DeclarePublicApiAnalyzer.ShippedFileName, 5, 1)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
         }
@@ -1288,6 +1302,71 @@ C<T>.Nested.Nested() -> void
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                 GetCSharpResultAt(11, 22, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
                 );
+        }
+
+        [Fact]
+        public async Task ImplicitContainingType_TClass()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class
+{
+    public struct Nested { }
+
+    public Nested field;
+    public C<T>.Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+~C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T!>.Nested";
+
+            var unshippedText = @"";
+
+            // Note: although the code is entirely nullable-enabled, the compiler uses a containing type that is
+            // `C<T~>` so there is an oblivious symbol. This only happens when the type parameter is constrained
+            // such that it could be annotated in C# 8 (`T?` would have been allowed).
+            //
+            // One recourse is to use a suppression around such APIs:
+            // #pragma warning disable RS0041 // uses oblivious reference types
+            //
+            // Another recourse is to make the containing type explicit: `C<T>.Nested`
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(7,19): warning RS0041: Symbol 'field' uses some oblivious reference types.
+                GetCSharpResultAt(7, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
+                );
+        }
+
+        [Fact]
+        public async Task ImplicitContainingType_TOpen()
+        {
+            var source = @"
+#nullable enable
+public class C<T>
+{
+    public struct Nested { }
+
+    public Nested field;
+    public Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T>.Nested";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         #endregion
@@ -2088,7 +2167,7 @@ C2.C2() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
@@ -2112,7 +2191,11 @@ C.C() -> void
 C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(
+                source.NormalizeLineEndings(),
+                shippedText,
+                unshippedText.NormalizeLineEndings(),
+                fixedUnshippedText.NormalizeLineEndings());
         }
 
         [Fact]

@@ -779,32 +779,44 @@ Class C1
 
         private static DiagnosticResult GetCSharpOverrideCodeActionEquivalenceKeyExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments(customCodeActionName, nameof(CodeAction.EquivalenceKey));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         private static DiagnosticResult GetBasicOverrideCodeActionEquivalenceKeyExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments(customCodeActionName, nameof(CodeAction.EquivalenceKey));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         private static DiagnosticResult GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(int line, int column)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments("equivalenceKey");
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         private static DiagnosticResult GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(int line, int column)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments("equivalenceKey");
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         private static DiagnosticResult GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(int line, int column, string codeFixProviderTypeName)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule).WithLocation(line, column).WithArguments(codeFixProviderTypeName);
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         private static DiagnosticResult GetBasicOverrideGetFixAllProviderExpectedDiagnostic(int line, int column, string codeFixProviderTypeName)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule).WithLocation(line, column).WithArguments(codeFixProviderTypeName);
+#pragma warning restore RS0030 // Do not used banned APIs
         }
     }
 }

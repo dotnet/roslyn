@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1007 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
             s_localizableUseLocalizableStringsTitle,
             s_localizableUseLocalizableStringsMessage,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1015 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new(
             DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
             s_localizableProvideHelpUriTitle,
             s_localizableProvideHelpUriMessage,
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1017 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new(
             DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
             s_localizableDiagnosticIdMustBeAConstantTitle,
             s_localizableDiagnosticIdMustBeAConstantMessage,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1019 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new(
             DiagnosticIds.UseUniqueDiagnosticIdRuleId,
             s_localizableUseUniqueDiagnosticIdTitle,
             s_localizableUseUniqueDiagnosticIdMessage,
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1028 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new(
             DiagnosticIds.ProvideCustomTagsInDescriptorRuleId,
             s_localizableProvideCustomTagsTitle,
             s_localizableProvideCustomTagsMessage,
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1029 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new(
             DiagnosticIds.DoNotUseReservedDiagnosticIdRuleId,
             s_localizableDoNotUseReservedDiagnosticIdTitle,
             s_localizableDoNotUseReservedDiagnosticIdMessage,
@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         // Factory methods to track declaration locations for every analyzer rule ID.
                         ConcurrentBag<Location> AddLocationFactory(string analyzerName)
-                            => new ConcurrentBag<Location> { location };
+                            => new() { location };
 
                         ConcurrentBag<Location> UpdateLocationsFactory(string analyzerName, ConcurrentBag<Location> bag)
                         {

@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="needs-review-translation">シンボル '{0}' では、宣言された API に NULL 許容の注釈がありません。</target>
+        <target state="translated">シンボル '{0}' では、宣言された API に NULL 許容の注釈がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="needs-review-translation">シンボル '{0}' は宣言された API の一部ではありません。</target>
+        <target state="translated">シンボル '{0}' は宣言された API の一部ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="needs-review-translation">シンボル '{0}' が、パブリック API ファイルに複数含まれています。</target>
+        <target state="translated">シンボル '{0}' が、パブリック API ファイルに複数含まれています</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="needs-review-translation">コンストラクターは、その継承不可能な基底クラスを継承可能にすることで、保護されたメンバーを公開します。</target>
+        <target state="translated">コンストラクターは、その継承不可能な基底クラスを継承可能にすることで、保護されたメンバーを公開します</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="needs-review-translation">シンボル '{0}' はいくつかの oblivious 参照型を使用しています。</target>
+        <target state="translated">シンボル '{0}' ではいくつかの oblivious 参照型が使用されています</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="needs-review-translation">省略可能なパラメーターを持つパブリック API は、そのパブリック オーバーロード内のほとんどのパラメーターを持つ必要があります。</target>
+        <target state="translated">省略可能なパラメーターを持つパブリック API は、そのパブリック オーバーロード内のほとんどのパラメーターを持つ必要がある</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">

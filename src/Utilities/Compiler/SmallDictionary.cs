@@ -11,8 +11,8 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Copied from https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
     /// Dictionary designed to hold small number of items.
-    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
-    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require 
+    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but
+    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require
     /// rehashing when items are added.
     /// It does require rebalancing, but that is allocation-free.
     ///
@@ -27,7 +27,7 @@ namespace Analyzer.Utilities
     ///
     /// Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
     ///
-    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
+    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements,
     /// then regular Dictionary is a better choice.
     /// </summary>
 #pragma warning disable CA1051, CA1716 // Do not declare visible instance fields
@@ -39,7 +39,7 @@ namespace Analyzer.Utilities
         public readonly IEqualityComparer<K> Comparer;
 
         // https://github.com/dotnet/roslyn/issues/40344
-        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null!);
+        public static readonly SmallDictionary<K, V> Empty = new(null!);
 
         public SmallDictionary() : this(EqualityComparer<K>.Default) { }
 
@@ -66,6 +66,114 @@ namespace Analyzer.Utilities
         private int GetHashCode(K k)
         {
             return Comparer.GetHashCode(k);
+        }
+
+        public bool IsEmpty => _root == null;
+
+        public void Remove(K key)
+        {
+            _root = Remove(_root, GetHashCode(key));
+        }
+
+        private AvlNode? Remove(AvlNode? currentNode, int hashCode)
+        {
+            if (currentNode == null)
+            {
+                return null;
+            }
+
+            var hc = currentNode.HashCode;
+
+            if (hc > hashCode)
+            {
+                currentNode.Left = Remove(currentNode.Left, hashCode);
+            }
+            else if (hc < hashCode)
+            {
+                currentNode.Right = Remove(currentNode.Right, hashCode);
+            }
+            else
+            {
+                // node with only one child or no child  
+                if ((currentNode.Left == null) || (currentNode.Right == null))
+                {
+                    AvlNode? temp = null;
+                    if (temp == currentNode.Left)
+                        temp = currentNode.Right;
+                    else
+                        temp = currentNode.Left;
+
+                    // No child case  
+                    if (temp == null)
+                    {
+                        currentNode = null;
+                    }
+                    else // One child case  
+                    {
+                        currentNode = temp;
+                    }
+                }
+                else
+                {
+                    // node with two children; get the smallest in the right subtree  
+                    AvlNode temp = MinValueNode(currentNode.Right);
+
+                    // Copy the smallest in the right successor's data to this node  
+                    currentNode.HashCode = temp.HashCode;
+                    currentNode.Value = temp.Value;
+                    currentNode.Key = temp.Key;
+
+                    // Delete the smallest in the right successor  
+                    currentNode.Right = Remove(currentNode.Right, temp.HashCode);
+                }
+            }
+
+            if (currentNode == null)
+                return null;
+
+            currentNode.Balance = (sbyte)(Height(currentNode.Left) - Height(currentNode.Right));
+
+            AvlNode rotated;
+            var balance = currentNode.Balance;
+
+            if (balance == -2)
+            {
+                rotated = currentNode.Right!.Balance < 0 ?
+                    LeftSimple(currentNode) :
+                    LeftComplex(currentNode);
+            }
+            else if (balance == 2)
+            {
+                rotated = currentNode.Left!.Balance > 0 ?
+                    RightSimple(currentNode) :
+                    RightComplex(currentNode);
+            }
+            else
+            {
+                return currentNode;
+            }
+
+            return rotated;
+        }
+
+        private static AvlNode MinValueNode(AvlNode node)
+        {
+            AvlNode current = node;
+
+            while (current.Left != null)
+                current = current.Left;
+
+            return current;
+        }
+
+        private static int Height(AvlNode? node)
+        {
+            if (node == null) return 0;
+
+            int a = Height(node.Left);
+            int b = Height(node.Right);
+
+            return 1 + Math.Max(a, b);
         }
 
         public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
@@ -97,10 +205,7 @@ namespace Analyzer.Utilities
                 return value;
             }
 
-            set
-            {
-                this.Insert(GetHashCode(key), key, value, add: false);
-            }
+            set => this.Insert(GetHashCode(key), key, value, add: false);
         }
 
         public bool ContainsKey(K key)
@@ -119,7 +224,7 @@ namespace Analyzer.Utilities
 #pragma warning restore CA1822
         private abstract class Node
         {
-            public readonly K Key;
+            public K Key;
             public V Value;
 
             protected Node(K key, V value)
@@ -157,12 +262,12 @@ namespace Analyzer.Utilities
             public override Node Next => next;
         }
 
-        // separate class to ensure that HashCode field 
+        // separate class to ensure that HashCode field
         // is located before other AvlNode fields
         // Balance is also here for better packing of AvlNode on 64bit
         private abstract class HashedNode : Node
         {
-            public readonly int HashCode;
+            public int HashCode;
             public sbyte Balance;
 
             protected HashedNode(int hashCode, K key, V value)
@@ -274,7 +379,7 @@ namespace Analyzer.Utilities
             // either way nodes above unbalanced do not change their balance
             for (; ; )
             {
-                // schedule hk read 
+                // schedule hk read
                 var hc = currentNode.HashCode;
 
                 if (currentNode.Balance != 0)
@@ -504,7 +609,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public KeyCollection Keys => new KeyCollection(this);
+        public KeyCollection Keys => new(this);
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
         internal struct KeyCollection : IEnumerable<K>
@@ -582,11 +687,11 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable CA1063, CA1816 // Implement IDisposable Correctly
-            public class EnumerableImpl : IEnumerator<K>
+            public class EnumerableCore : IEnumerator<K>
             {
                 private Enumerator _e;
 
-                public EnumerableImpl(Enumerator e)
+                public EnumerableCore(Enumerator e)
                 {
                     _e = e;
                 }
@@ -612,7 +717,7 @@ namespace Analyzer.Utilities
 
             IEnumerator<K> IEnumerable<K>.GetEnumerator()
             {
-                return new EnumerableImpl(GetEnumerator());
+                return new EnumerableCore(GetEnumerator());
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -621,7 +726,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public ValueCollection Values => new ValueCollection(this);
+        public ValueCollection Values => new(this);
 
         internal struct ValueCollection : IEnumerable<V>
         {
@@ -699,11 +804,11 @@ namespace Analyzer.Utilities
                 return new Enumerator(_dict);
             }
 
-            public class EnumerableImpl : IEnumerator<V>
+            public class EnumerableCore : IEnumerator<V>
             {
                 private Enumerator _e;
 
-                public EnumerableImpl(Enumerator e)
+                public EnumerableCore(Enumerator e)
                 {
                     _e = e;
                 }
@@ -729,7 +834,7 @@ namespace Analyzer.Utilities
 
             IEnumerator<V> IEnumerable<V>.GetEnumerator()
             {
-                return new EnumerableImpl(GetEnumerator());
+                return new EnumerableCore(GetEnumerator());
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -765,7 +870,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current => new(_current.Key, _current.Value);
 
             public bool MoveNext()
             {
@@ -805,11 +910,11 @@ namespace Analyzer.Utilities
             return new Enumerator(this);
         }
 
-        public class EnumerableImpl : IEnumerator<KeyValuePair<K, V>>
+        public class EnumerableCore : IEnumerator<KeyValuePair<K, V>>
         {
             private Enumerator _e;
 
-            public EnumerableImpl(Enumerator e)
+            public EnumerableCore(Enumerator e)
             {
                 _e = e;
             }
@@ -837,7 +942,7 @@ namespace Analyzer.Utilities
 
         IEnumerator<KeyValuePair<K, V>> IEnumerable<KeyValuePair<K, V>>.GetEnumerator()
         {
-            return new EnumerableImpl(GetEnumerator());
+            return new EnumerableCore(GetEnumerator());
         }
 
         IEnumerator IEnumerable.GetEnumerator()

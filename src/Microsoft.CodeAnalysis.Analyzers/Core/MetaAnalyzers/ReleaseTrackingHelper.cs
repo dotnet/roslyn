@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                     continue;
                 }
 
-                //  New or Removed rule entry: 
+                //  New or Removed rule entry:
                 //      "Rule ID | Category | Severity | Notes"
                 //      "   0    |     1    |    2     |        3           "
                 //
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
     internal sealed class ReleaseTrackingData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        public static readonly ReleaseTrackingData Default = new ReleaseTrackingData();
+        public static readonly ReleaseTrackingData Default = new();
         public ImmutableSortedDictionary<string, ReleaseTrackingDataForRule> ReleaseTrackingDataByRuleIdMap { get; }
         public ImmutableHashSet<Version> Versions { get; }
 

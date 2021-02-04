@@ -335,13 +335,17 @@ namespace MyNamespace
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(violatingTypeName);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic()
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(violatingTypeName);
     }
 }

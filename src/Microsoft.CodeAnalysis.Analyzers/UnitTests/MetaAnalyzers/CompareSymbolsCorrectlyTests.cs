@@ -1,20 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CompareSymbolsCorrectlyAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.CompareSymbolsCorrectlyFix>;
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpCompareSymbolsCorrectlyFix>;
 using VerifyVB = Test.Utilities.VisualBasicSecurityCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CompareSymbolsCorrectlyAnalyzer,
-    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.CompareSymbolsCorrectlyFix>;
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.Fixers.BasicCompareSymbolsCorrectlyFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -581,6 +575,228 @@ class TestClass
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithConditionalAccess_VisualBasic()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If x?[|.Equals(y)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Sub Method1(x As ISymbol, y As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(x, y) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithNullConditionalAccess_CSharp()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x, ISymbol y)
+    {
+        if (x?[|.Equals(y)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+class TestClass
+{
+    void Method1(ISymbol x, ISymbol y)
+    {
+        if (SymbolEqualityComparer.Default.Equals(x, y) == true) return;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainConditionalAccess_VisualBasic()
+        {
+            var source = @"
+Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
+Class TestClass
+    Sub Method1(a As A, b As B, s As ISymbol)
+        If a?.b?.s?[|.Equals(s)|] Then Exit Sub
+        If b?.s?[|.Equals(s)|] Then Exit Sub
+    End Sub
+End Class
+";
+
+            var fixedSource = @"
+Imports Microsoft.CodeAnalysis
+
+Class A
+    Public b As B
+End Class
+
+Class B
+    Public s As ISymbol
+End Class
+
+Class TestClass
+    Sub Method1(a As A, b As B, s As ISymbol)
+        If SymbolEqualityComparer.Default.Equals(a?.b?.s, s) Then Exit Sub
+        If SymbolEqualityComparer.Default.Equals(b?.s, s) Then Exit Sub
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubVisualBasic } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubVisualBasic } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChainNullConditionalAccess_CSharp()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
+class TestClass
+{
+    void Method1(A a, B b, ISymbol s)
+    {
+        if (a?.b?.s?[|.Equals(s)|] == true) return;
+        if (b?.s?[|.Equals(s)|] == true) return;
+    }
+}
+";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public ISymbol s;
+}
+
+class TestClass
+{
+    void Method1(A a, B b, ISymbol s)
+    {
+        if (SymbolEqualityComparer.Default.Equals(a?.b?.s, s) == true) return;
+        if (SymbolEqualityComparer.Default.Equals(b?.s, s) == true) return;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task CompareSymbolFromInstanceEqualsWithChain_CSharp()
+        {
+            var source = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+    public B GetB() => null;
+}
+
+class B
+{
+    public ISymbol s;
+    public ISymbol GetS() => null;
+}
+
+class TestClass
+{
+    void Method1(A a, ISymbol symbol)
+    {
+        if ([|a.b.s.Equals(symbol)|] == true) return;
+        if ([|a.GetB().GetS().Equals(symbol)|] == true) return;
+    }
+}";
+
+            var fixedSource = @"
+using Microsoft.CodeAnalysis;
+
+class A
+{
+    public B b;
+    public B GetB() => null;
+}
+
+class B
+{
+    public ISymbol s;
+    public ISymbol GetS() => null;
+}
+
+class TestClass
+{
+    void Method1(A a, ISymbol symbol)
+    {
+        if (SymbolEqualityComparer.Default.Equals(a.b.s, symbol) == true) return;
+        if (SymbolEqualityComparer.Default.Equals(a.GetB().GetS(), symbol) == true) return;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
+
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
@@ -866,7 +1082,9 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        [Fact]
+        [WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        [WorkItem(4568, "https://github.com/dotnet/roslyn-analyzers/issues/4568")]
         public async Task RS1024_InvocationArgumentTypeIsNull()
         {
             await new VerifyCS.Test
@@ -883,7 +1101,7 @@ using Microsoft.CodeAnalysis;
 
 public class C
 {
-    private readonly HashSet<ITypeSymbol> _types = [|new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)|];
+    private readonly HashSet<ITypeSymbol> _types = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 }",
                         SymbolEqualityComparerStubCSharp,
                     },

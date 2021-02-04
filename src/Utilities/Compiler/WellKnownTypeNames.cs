@@ -32,6 +32,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
         public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+        public const string MicrosoftCodeAnalysisCSharpCSharpExtensions = "Microsoft.CodeAnalysis.CSharp.CSharpExtensions";
+        public const string MicrosoftCodeAnalysisCSharpExtensions = "Microsoft.CodeAnalysis.CSharpExtensions";
         public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
         public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
         public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
@@ -55,6 +57,8 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisSharedCollectionsTemporaryArrayExtensions = "Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions";
         public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
         public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+        public const string MicrosoftCodeAnalysisVisualBasicVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions";
+        public const string MicrosoftCodeAnalysisVisualBasicExtensions = "Microsoft.CodeAnalysis.VisualBasicExtensions";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
@@ -214,6 +218,7 @@ namespace Analyzer.Utilities
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
+        public const string SystemLinqExpressionsExpression1 = "System.Linq.Expressions.Expression`1";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
@@ -233,6 +238,7 @@ namespace Analyzer.Utilities
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOperatingSystem = "System.OperatingSystem";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
+        public const string SystemPlatformNotSupportedException = "System.PlatformNotSupportedException";
         public const string SystemRandom = "System.Random";
         public const string SystemRange = "System.Range";
         public const string SystemReadOnlyMemory1 = "System.ReadOnlyMemory`1";
@@ -249,6 +255,8 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
+        public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
+        public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";

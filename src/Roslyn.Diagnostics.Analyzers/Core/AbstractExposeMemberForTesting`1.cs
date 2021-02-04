@@ -62,8 +62,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 switch (member)
                 {
-                    case IFieldSymbol _:
-                    case IPropertySymbol _:
+                    case IFieldSymbol:
+                    case IPropertySymbol:
                         context.RegisterRefactoring(
                             CodeAction.Create(
                                 memberName,

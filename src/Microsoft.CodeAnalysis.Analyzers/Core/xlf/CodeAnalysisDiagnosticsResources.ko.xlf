@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
-        <target state="needs-review-translation">기호는 ID가 아니라 같은지 비교해야 합니다.</target>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'IEqualityComparer'를 허용하는 오버로드를 사용하고 'SymbolEqualityComparer'를 전달하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
         <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
-        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'GetHashCode'를 명시적으로 호출하면 잘못된 동작이 수행될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' is not part of any analyzer release</source>
-        <target state="needs-review-translation">'{0}' 규칙은 분석기 릴리스에 포함되지 않습니다.</target>
+        <target state="translated">'{0}' 규칙은 분석기 릴리스에 포함되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
         <source>Add analyzer diagnostic IDs to analyzer release</source>
-        <target state="needs-review-translation">분석기 진단 ID를 분석기 릴리스에 추가합니다.</target>
+        <target state="translated">분석기 릴리스에 분석기 진단 ID 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
@@ -169,17 +169,17 @@
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
-        <target state="needs-review-translation">분석기 릴리스 파일 '{0}'에 잘못된 항목 '{1}'이(가) 있습니다.</target>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 잘못된 항목 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
         <source>Invalid entry in analyzer release file</source>
-        <target state="needs-review-translation">분석기 릴리스 파일에 잘못된 항목이 있습니다.</target>
+        <target state="translated">분석기 릴리스 파일에 잘못된 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
-        <target state="needs-review-translation">분석기 릴리스 파일 '{0}'에 누락되거나 잘못된 릴리스 헤더 '{1}'이(가) 있습니다.</target>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 누락되거나 잘못된 릴리스 헤더 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
-        <target state="needs-review-translation">분석기 릴리스 파일 '{0}'에서 '{1}'에 수동으로 채워야 하는 하나 이상의 '검색되지 않은' 필드가 있는 항목이 있습니다.</target>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 '{1}'에 수동으로 채워야 하는 하나 이상의 '검색되지 않은' 필드가 있는 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -257,6 +257,26 @@
         <target state="translated">구문, 기호 또는 작업 분석기 작업을 각각 등록할 때 하나 이상의 구문, 기호 또는 작업 종류를 지정해야 합니다. 지정하지 않으면 등록된 작업이 분석하는 동안 호출되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">'customTags' 값은 특정 태그 값을 기준으로 진단 설명자에서 특정 작업 및 필터를 사용하도록 설정하는 방법으로 사용됩니다. 모든 Roslyn 분석기에는 'WellKnownDiagnosticTags' 클래스의 태그가 하나 이상 있어야 합니다.</target>
@@ -279,12 +299,12 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
         <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
-        <target state="needs-review-translation">'{0}' 규칙에서 '{1}' 릴리스 및 '{2}' 릴리스 간에 중복 항목이 있습니다.</target>
+        <target state="translated">'{0}' 규칙에서 '{1}' 릴리스 및 '{2}' 릴리스 간에 중복 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
-        <target state="needs-review-translation">분석기 릴리스 간에 진단 ID의 중복 항목을 제거합니다.</target>
+        <target state="translated">분석기 릴리스 간에 진단 ID의 중복 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
@@ -294,12 +314,12 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
         <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
-        <target state="needs-review-translation">'{0}' 규칙에 분석기 릴리스 파일 '{2}'의 '{1}' 릴리스 항목이 둘 이상 있습니다.</target>
+        <target state="translated">'{0}' 규칙에 분석기 릴리스 파일 '{2}'의 '{1}' 릴리스에 대한 항목이 둘 이상 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
-        <target state="needs-review-translation">동일한 분석기 릴리스에서 진단 ID의 중복 항목을 제거합니다.</target>
+        <target state="translated">동일한 분석기 릴리스에서 진단 ID의 중복 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
@@ -314,7 +334,7 @@
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
-        <target state="needs-review-translation">더 이상 보고되지 않는 제공된 진단 ID는 제공되지 않은 파일의 '제거된 규칙' 테이블에 항목이 있어야 합니다.</target>
+        <target state="translated">더 이상 보고되지 않는 제공된 진단 ID는 제공되지 않은 파일의 '제거된 규칙' 테이블에 항목이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
@@ -324,12 +344,12 @@
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
-        <target state="needs-review-translation">'{0}' 규칙은 제공되지 않은 다음 분석기 릴리스에 포함되지만 모든 분석기를 지원하는 진단이 아닙니다.</target>
+        <target state="translated">'{0}' 규칙은 제공되지 않은 다음 분석기 릴리스에 포함되지만 모든 분석기를 지원하는 진단이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
-        <target state="needs-review-translation">제거된 분석기 진단 ID를 제공되지 않은 분석기 릴리스에 추가하면 안 됩니다.</target>
+        <target state="translated">제거된 분석기 진단 ID를 제공되지 않은 분석기 릴리스에 추가하면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
@@ -339,12 +359,12 @@
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
         <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
-        <target state="needs-review-translation">'{0}' 규칙이 최신 분석기 릴리스에서 제거된 것으로 표시되었지만 계속 보고됩니다.</target>
+        <target state="translated">'{0}' 규칙이 최신 분석기 릴리스에서 제거된 것으로 표시되었지만 계속 보고됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
-        <target state="needs-review-translation">분석기 릴리스 파일에서 제거된 것으로 표시된 진단 ID는 분석기에서 보고되면 안 됩니다.</target>
+        <target state="translated">분석기 릴리스 파일에서 제거된 것으로 표시된 진단 ID는 분석기에서 보고되면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -432,7 +452,7 @@
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
-        <target state="needs-review-translation">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인합니다.</target>
+        <target state="translated">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -537,7 +557,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="needs-review-translation">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md에 있는 문서를 참조하세요.</target>
+        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md의 설명서를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
