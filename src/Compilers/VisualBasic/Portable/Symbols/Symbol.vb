@@ -1021,7 +1021,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function DeriveUseSiteInfoFromCustomModifiers(
-            customModifiers As ImmutableArray(Of CustomModifier)
+            customModifiers As ImmutableArray(Of CustomModifier),
+            Optional allowIsExternalInit As Boolean = False
         ) As UseSiteInfo(Of AssemblySymbol)
             Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
@@ -1029,12 +1030,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each modifier As CustomModifier In customModifiers
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
 
-                If modifier.IsOptional Then
-                    useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
-                Else
+                If Not modifier.IsOptional AndAlso
+                   (Not allowIsExternalInit OrElse Not DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol.IsWellKnownTypeIsExternalInit()) Then
+
                     useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, String.Empty))
                     GetSymbolSpecificUnsupportedMetadataUseSiteErrorInfo(useSiteInfo)
+
+                    If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
+                        Exit For
+                    End If
                 End If
+
+                useSiteInfo = DeriveUseSiteInfoFromType(DirectCast(modifier, VisualBasicCustomModifier).ModifierSymbol)
+
 
                 If MergeUseSiteInfo(modifiersUseSiteInfo, useSiteInfo, highestPriorityUseSiteError) Then
                     Exit For

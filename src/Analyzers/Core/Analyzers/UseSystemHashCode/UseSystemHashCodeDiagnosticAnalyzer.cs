@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     {
         public UseSystemHashCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSystemHashCode,
+                   EnforceOnBuildValues.UseSystemHashCode,
                    CodeStyleOptions2.PreferSystemHashCode,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_System_HashCode), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.GetHashCode_implementation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

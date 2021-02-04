@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal abstract override bool IsNullableAnalysisEnabled();
+
         protected abstract CSharpSyntaxNode GetInitializer();
 
         protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);

@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var buffer = textBufferScope.SubjectBuffer;
 
             // Let LSP handle code cleanup in the cloud scenario
-            if (buffer.IsInCloudEnvironmentClientContext())
+            if (buffer.IsInLspEditorContext())
             {
                 return SpecializedTasks.False;
             }

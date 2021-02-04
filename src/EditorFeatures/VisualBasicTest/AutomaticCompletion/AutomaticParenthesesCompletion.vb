@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticParenthesesCompletionTests
@@ -357,8 +358,8 @@ End Class</code>
 
         Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return CreateSession(
-TestWorkspace.CreateVisualBasic(code),
-BraceCompletionSessionProvider.Parenthesis.OpenCharacter, BraceCompletionSessionProvider.Parenthesis.CloseCharacter)
+                TestWorkspace.CreateVisualBasic(code),
+                Parenthesis.OpenCharacter, Parenthesis.CloseCharacter)
         End Function
     End Class
 End Namespace

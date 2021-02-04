@@ -23,11 +23,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         protected override string LanguageName => LanguageNames.CSharp;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-        public void VerifyMissingByDefault()
+        public void VerifyDisabled()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
-public class Foo
+            VisualStudio.SolutionExplorer.AddFile(project, "Example.cs", contents: @"
+public class Example
 {
 }
 ");
@@ -42,6 +42,44 @@ class Program
 
     $$
 }");
+            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "False");
+
+            VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
+
+            VisualStudio.Editor.Verify.TextContains(@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    Task DoThingAsync() => Task.CompletedTask;
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
+        public void VerifyDisabledWithNull()
+        {
+            var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "Example.cs", contents: @"
+public class Example
+{
+}
+");
+            SetUpEditor(@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    $$
+}");
+            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, valueString: null);
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
@@ -62,8 +100,8 @@ class Program
         public void VerifyAddImportsOnPaste()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
-public class Foo
+            VisualStudio.SolutionExplorer.AddFile(project, "Example.cs", contents: @"
+public class Example
 {
 }
 ");

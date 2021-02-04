@@ -895,6 +895,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToReturn2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverridingPropertyKind2, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.ERR_OverridingInitOnlyProperty, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverrideWithArrayVsParamArray2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
@@ -261,7 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 : SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>();
 
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService,
                 logger,
                 fixers,
@@ -571,7 +568,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
             var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
             var fixService = new CodeFixService(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService, logger, vsixFixers, SpecializedCollections.EmptyEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>>());
 
             var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;

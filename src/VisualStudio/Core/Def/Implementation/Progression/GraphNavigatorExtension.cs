@@ -122,11 +122,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var editorWorkspace = document.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+
+                    // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                     navigationService.TryNavigateToLineAndOffset(
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
-                        sourceLocation.StartPosition.Character);
+                        sourceLocation.StartPosition.Character,
+                        CancellationToken.None);
                 }
             }
         }

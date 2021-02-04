@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 OutputFilePath,
                 CompilationOptions,
                 ParseOptions,
-                Documents.Select(d => d.ToDocumentInfo()),
+                Documents.Where(d => !d.IsSourceGenerated).Select(d => d.ToDocumentInfo()),
                 ProjectReferences,
                 MetadataReferences,
                 AnalyzerReferences,

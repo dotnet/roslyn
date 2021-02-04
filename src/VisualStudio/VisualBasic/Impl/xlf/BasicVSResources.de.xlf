@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
-        <target state="new">Add missing imports on paste</target>
+        <target state="translated">Beim Einfügen fehlende import-Anweisungen hinzufügen</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">

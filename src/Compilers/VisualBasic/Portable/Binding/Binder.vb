@@ -683,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _basesBeingResolved
         End Function
 
-        Friend Overridable ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+        Friend Overridable ReadOnly Property ConstantFieldsInProgress As ConstantFieldsInProgress
             Get
                 Return m_containingBinder.ConstantFieldsInProgress
             End Get

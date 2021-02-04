@@ -27,23 +27,28 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes)
         {
-            var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
+            // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
+            // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
+            // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
+            // We also need double quotes when building an arguments string for Process.Start in .NET Core so that splitting/unquoting works as expected.
+            var sep = useSingleQuotes ? "'" : @"""";
 
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" ""{assemblyInfo.AssemblyPath}""");
+            builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                builder.Append(" --filter ");
+                builder.Append($@" --filter {sep}");
                 var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
                     builder.Append(typeInfo.FullName);
                 }
+                builder.Append(sep);
 
                 if (Options.Trait is object)
                 {
@@ -75,11 +80,11 @@ namespace RunTests
             }
 
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
-            builder.Append($@" --logger ""xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}""");
+            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger ""html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}""");
+                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
             return builder.ToString();
@@ -87,7 +92,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -108,7 +113,7 @@ namespace RunTests
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
@@ -121,7 +126,6 @@ namespace RunTests
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
-                MaybeAddStressEnvironmentVariables();
 
                 if (retry && File.Exists(resultsFilePath))
                 {
@@ -157,6 +161,7 @@ namespace RunTests
                     ProcessRunner.CreateProcessStartInfo(
                         Options.DotnetFilePath,
                         commandLineArguments,
+                        workingDirectory: Path.GetDirectoryName(assemblyInfo.AssemblyPath),
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),
@@ -218,23 +223,6 @@ namespace RunTests
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
-
-                void MaybeAddStressEnvironmentVariables()
-                {
-#if NETCOREAPP
-                    // These environment variables will generate better dump information for the runtime team
-                    // that will help them track down a GC issue that is impacting ConcurrentDictionary
-                    // https://github.com/dotnet/runtime/issues/45557
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        environmentVariables.Add("COMPlus_StressLog", "1");
-                        environmentVariables.Add("COMPlus_LogLevel", "6");
-                        environmentVariables.Add("COMPlus_LogFacility", "0x00080001");
-                        environmentVariables.Add("COMPlus_StressLogSize", "2000000");
-                        environmentVariables.Add("COMPlus_TotalStressLogSize", "40000000");
-                    }
-                }
-#endif
             }
             catch (Exception ex)
             {

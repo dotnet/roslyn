@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Property
 
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            For Each documentWithSpans In _workspace.Documents
+            For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
                 Dim oldSyntaxTree = _workspace.CurrentSolution.GetDocument(documentWithSpans.Id).GetSyntaxTreeAsync().Result
 
                 For Each span In documentWithSpans.SelectedSpans

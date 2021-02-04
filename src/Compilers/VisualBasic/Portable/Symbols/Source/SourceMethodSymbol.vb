@@ -93,17 +93,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim handledEvents As ImmutableArray(Of HandledEvent)
 
             If syntax.HandlesClause IsNot Nothing Then
-                If container.TypeKind = TypeKind.Structure Then
+                If container.TypeKind = TYPEKIND.Structure Then
                     ' Structures cannot handle events
-                    Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_StructsCannotHandleEvents)
+                    binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_StructsCannotHandleEvents)
 
                 ElseIf container.IsInterface Then
                     ' Methods in interfaces cannot have an handles clause
-                    Binder.ReportDiagnostic(diagBag, syntax.HandlesClause, ERRID.ERR_BadInterfaceMethodFlags1, syntax.HandlesClause.HandlesKeyword.ToString)
+                    binder.ReportDiagnostic(diagBag, syntax.HandlesClause, ERRID.ERR_BadInterfaceMethodFlags1, syntax.HandlesClause.HandlesKeyword.ToString)
 
                 ElseIf GetTypeParameterListSyntax(syntax) IsNot Nothing Then
                     ' Generic methods cannot have 'handles' clause
-                    Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_HandlesInvalidOnGenericMethod)
+                    binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_HandlesInvalidOnGenericMethod)
                 End If
 
                 ' Operators methods cannot have Handles regardless of container. 
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If methodSym.IsPartial AndAlso methodSym.IsSub Then
                 If methodSym.IsAsync Then
-                    Binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_PartialMethodsMustNotBeAsync1, name)
+                    binder.ReportDiagnostic(diagBag, syntax.Identifier, ERRID.ERR_PartialMethodsMustNotBeAsync1, name)
                 End If
 
                 ReportPartialMethodErrors(syntax.Modifiers, binder, diagBag)
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 lReportErrorOnSingleToken:
                         ' Report [Partial methods must be declared 'Private' instead of '...']
-                        Binder.ReportDiagnostic(diagBag, token,
+                        binder.ReportDiagnostic(diagBag, token,
                                                 ERRID.ERR_OnlyPrivatePartialMethods1,
                                                 SyntaxFacts.GetText(token.Kind))
                         reportPartialMethodsMustBePrivate = False
@@ -180,7 +180,7 @@ lReportErrorOnTwoTokens:
                         Dim location = binder.SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
 
                         ' Report [Partial methods must be declared 'Private' instead of '...']
-                        Binder.ReportDiagnostic(diagBag, location,
+                        binder.ReportDiagnostic(diagBag, location,
                                                 ERRID.ERR_OnlyPrivatePartialMethods1,
                                                 token.Kind.GetText() & " " & nextToken.Kind.GetText())
 
@@ -207,7 +207,7 @@ lReportErrorOnTwoTokens:
             If reportPartialMethodsMustBePrivate Then
                 ' Report [Partial methods must be declared 'Private']
                 Debug.Assert(partialToken.Kind = SyntaxKind.PartialKeyword)
-                Binder.ReportDiagnostic(diagBag, partialToken, ERRID.ERR_PartialMethodsMustBePrivate)
+                binder.ReportDiagnostic(diagBag, partialToken, ERRID.ERR_PartialMethodsMustBePrivate)
             End If
         End Sub
 
@@ -227,7 +227,7 @@ lReportErrorOnTwoTokens:
                 diagBag)
 
             ' modifiers: Protected and Overloads in Modules and Structures:
-            If container.TypeKind = TypeKind.Module Then
+            If container.TypeKind = TYPEKIND.Module Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Overloads) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.OverloadsKeyword)
                     diagBag.Add(ERRID.ERR_OverloadsModifierInModule, keyword.GetLocation(), keyword.ValueText)
@@ -235,7 +235,7 @@ lReportErrorOnTwoTokens:
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_ModuleCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
-            ElseIf container.TypeKind = TypeKind.Structure Then
+            ElseIf container.TypeKind = TYPEKIND.Structure Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
                     Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_StructCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
@@ -363,7 +363,7 @@ lReportErrorOnTwoTokens:
             End Select
 
             If paramCountMismatchERRID <> 0 Then
-                Binder.ReportDiagnostic(diagBag, syntax.OperatorToken, paramCountMismatchERRID, SyntaxFacts.GetText(syntax.OperatorToken.Kind))
+                binder.ReportDiagnostic(diagBag, syntax.OperatorToken, paramCountMismatchERRID, SyntaxFacts.GetText(syntax.OperatorToken.Kind))
             End If
 
             ' ERRID.ERR_OperatorDeclaredInModule is reported by the parser.
@@ -393,7 +393,7 @@ lReportErrorOnTwoTokens:
 
                 If (syntax.ParameterList IsNot Nothing AndAlso syntax.ParameterList.Parameters.Count > 0) Then
                     ' shared constructor cannot have parameters.
-                    Binder.ReportDiagnostic(diagBag, syntax.ParameterList, ERRID.ERR_SharedConstructorWithParams)
+                    binder.ReportDiagnostic(diagBag, syntax.ParameterList, ERRID.ERR_SharedConstructorWithParams)
                 End If
             Else
                 name = WellKnownMemberNames.InstanceConstructorName
@@ -403,9 +403,9 @@ lReportErrorOnTwoTokens:
             Dim methodSym As New SourceMemberMethodSymbol(container, name, flags, binder, syntax, arity:=0)
 
             If (flags And SourceMemberFlags.Shared) = 0 Then
-                If container.TypeKind = TypeKind.Structure AndAlso methodSym.ParameterCount = 0 Then
+                If container.TypeKind = TYPEKIND.Structure AndAlso methodSym.ParameterCount = 0 Then
                     ' Instance constructor must have parameters.
-                    Binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
+                    binder.ReportDiagnostic(diagBag, syntax.NewKeyword, ERRID.ERR_NewInStruct)
                 End If
             End If
 
@@ -468,14 +468,14 @@ lReportErrorOnTwoTokens:
             End If
 
             If (foundFlags And SourceMemberFlags.Shared) = 0 Then
-                Binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_OperatorMustBeShared)
+                binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_OperatorMustBeShared)
                 computedFlags = computedFlags Or SourceMemberFlags.Shared
             End If
 
 
             If syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword Then
                 If (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) = 0 Then
-                    Binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
+                    binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
                     computedFlags = computedFlags Or SourceMemberFlags.Narrowing
                 End If
             ElseIf (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) <> 0 Then
@@ -900,7 +900,7 @@ lReportErrorOnTwoTokens:
 
             ' Handle type parameter variance.
             If syntax.VarianceKeyword.Kind <> SyntaxKind.None Then
-                Binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
+                binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
             End If
 
             ' Wrap constraints binder in a location-specific binder to
@@ -1293,6 +1293,12 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend NotOverridable Overrides Function TryGetMeParameter(<Out> ByRef meParameter As ParameterSymbol) As Boolean
             If IsShared Then
                 meParameter = Nothing
@@ -1570,6 +1576,9 @@ lReportErrorOnTwoTokens:
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.UnmanagedCallersOnlyAttribute) Then
+                ' VB does not support UnmanagedCallersOnly attributes on methods at all
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_UnmanagedCallersOnlyNotSupported, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
@@ -2261,7 +2270,7 @@ lReportErrorOnTwoTokens:
                             SyntaxKind.DeclareSubStatement
 
                             Debug.Assert(Me.IsSub)
-                            Binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
+                            binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
                             retType = binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
                             errorLocation = methodStatement.DeclarationKeyword
 
@@ -2295,13 +2304,13 @@ lReportErrorOnTwoTokens:
 
                         Dim restrictedType As TypeSymbol = Nothing
                         If retType.IsRestrictedArrayType(restrictedType) Then
-                            Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
+                            binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
                         End If
 
                         If Not (Me.IsAsync AndAlso Me.IsIterator) Then
                             If Me.IsSub Then
                                 If Me.IsIterator Then
-                                    Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                    binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                 End If
 
                             Else
@@ -2310,7 +2319,7 @@ lReportErrorOnTwoTokens:
 
                                     If Not retType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)) AndAlso
                                        Not retType.Equals(compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)) Then
-                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
+                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadAsyncReturn)
                                     End If
                                 End If
 
@@ -2321,7 +2330,7 @@ lReportErrorOnTwoTokens:
                                         originalRetTypeDef.SpecialType <> SpecialType.System_Collections_Generic_IEnumerator_T AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerable AndAlso
                                         retType.SpecialType <> SpecialType.System_Collections_IEnumerator Then
-                                        Binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
+                                        binder.ReportDiagnostic(diagBag, errorLocation, ERRID.ERR_BadIteratorReturn)
                                     End If
                                 End If
                             End If

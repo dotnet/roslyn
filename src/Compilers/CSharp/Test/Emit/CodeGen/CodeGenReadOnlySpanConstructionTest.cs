@@ -421,7 +421,7 @@ class Test
 
         [Fact]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
-        public void EnumArrayCtorPEverify()
+        public void EnumArrayCtorPEVerify()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;

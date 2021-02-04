@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
     {
         private partial class Editor
         {
-            private INamedTypeSymbol GenerateNamedType()
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync()
             {
                 return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                     DetermineAttributes(),
@@ -34,10 +35,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers());
+                    members: await DetermineMembersAsync().ConfigureAwait(false));
             }
 
-            private INamedTypeSymbol GenerateNamedType(GenerateTypeOptionsResult options)
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync(GenerateTypeOptionsResult options)
             {
                 if (options.TypeKind == TypeKind.Delegate)
                 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers(options));
+                    members: await DetermineMembersAsync(options).ConfigureAwait(false));
             }
 
             private ITypeSymbol DetermineReturnType()
@@ -100,10 +101,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return default;
             }
 
-            private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
+            private async Task<ImmutableArray<ISymbol>> DetermineMembersAsync(GenerateTypeOptionsResult options = null)
             {
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
-                AddMembers(members, options);
+                await AddMembersAsync(members, options).ConfigureAwait(false);
 
                 if (_state.IsException)
                     AddExceptionConstructors(members);
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return members.ToImmutable();
             }
 
-            private void AddMembers(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
+            private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 AddProperties(members);
                 if (!_service.TryGetArgumentList(_state.ObjectCreationExpressionOpt, out var argumentList))
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                AddFieldDelegatingConstructor(argumentList, members, options);
+                await AddFieldDelegatingConstructorAsync(argumentList, members, options).ConfigureAwait(false);
             }
 
             private void AddProperties(ArrayBuilder<ISymbol> members)
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            private void AddFieldDelegatingConstructor(
+            private async Task AddFieldDelegatingConstructorAsync(
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     parameterType = parameterType.RemoveUnavailableTypeParameters(
                         _semanticDocument.SemanticModel.Compilation, availableTypeParameters);
 
-                    FindExistingOrCreateNewMember(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap);
+                    await FindExistingOrCreateNewMemberAsync(parameterName, parameterType, parameterToExistingFieldMap, parameterToNewFieldMap).ConfigureAwait(false);
 
                     parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                         attributes: default,

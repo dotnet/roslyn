@@ -136,9 +136,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Overrides ReadOnly Property ConstantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+        Friend Overrides ReadOnly Property ConstantFieldsInProgress As ConstantFieldsInProgress
             Get
-                Return SymbolsInProgress(Of FieldSymbol).Empty
+                Return ConstantFieldsInProgress.Empty
             End Get
         End Property
 

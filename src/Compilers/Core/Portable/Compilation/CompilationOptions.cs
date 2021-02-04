@@ -161,17 +161,12 @@ namespace Microsoft.CodeAnalysis
         /// Used for time-based version generation when <see cref="System.Reflection.AssemblyVersionAttribute"/> contains a wildcard.
         /// If equal to default(<see cref="DateTime"/>) the actual current local time will be used.
         /// </summary>
-        internal DateTime CurrentLocalTime { get; private set; }
-
-        internal DateTime CurrentLocalTime_internal_protected_set { set { CurrentLocalTime = value; } }
+        internal DateTime CurrentLocalTime { get; private protected set; }
 
         /// <summary>
         /// Emit mode that favors debuggability. 
         /// </summary>
-        internal bool DebugPlusMode { get; private set; }
-
-        // TODO: change visibility of the DebugPlusMode setter to internal & protected
-        internal bool DebugPlusMode_internal_protected_set { set { DebugPlusMode = value; } }
+        internal bool DebugPlusMode { get; private protected set; }
 
         /// <summary>
         /// Specifies whether to import members with accessibility other than public or protected by default. 
@@ -185,10 +180,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Apply additional disambiguation rules during resolution of referenced assemblies.
         /// </summary>
-        internal bool ReferencesSupersedeLowerVersions { get; private set; }
-
-        // TODO: change visibility of the ReferencesSupersedeLowerVersions setter to internal & protected
-        internal bool ReferencesSupersedeLowerVersions_internal_protected_set { set { ReferencesSupersedeLowerVersions = value; } }
+        internal bool ReferencesSupersedeLowerVersions { get; private protected set; }
 
         /// <summary>
         /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.

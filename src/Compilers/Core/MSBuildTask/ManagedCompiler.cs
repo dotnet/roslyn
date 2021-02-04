@@ -642,27 +642,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    logError("Roslyn compiler server reports different protocol version than build task.");
+                    logMessage("Roslyn compiler server reports different protocol version than build task.", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    logError("Roslyn compiler server reports different hash version than build task.");
+                    logMessage("Roslyn compiler server reports different hash version than build task.", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
+                    var rejectedResponse = (RejectedBuildResponse)response;
+                    logMessage($"Request rejected: {rejectedResponse.Reason}", isError: false);
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
-                    logger.LogError($"Server rejected request {response.Type}");
+                    logMessage($"Server rejected request due to analyzer inconsistency", isError: false);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    logError($"Received an unrecognized response from the server: {response.Type}");
+                    logMessage($"Received an unrecognized response from the server: {response.Type}", isError: true);
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
-            void logError(string message)
+            void logMessage(string message, bool isError)
             {
                 logger.LogError(message);
-                Log.LogError(message);
+                if (isError)
+                {
+                    Log.LogError(message);
+                }
+                else
+                {
+                    Log.LogMessage(MessageImportance.Low, message);
+                }
             }
         }
 

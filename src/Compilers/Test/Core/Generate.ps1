@@ -144,7 +144,7 @@ Add-TargetFramework "Net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "NetCoreApp31" '$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1' @(
+Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0' @(
   'mscorlib.dll',
   'System.dll',
   'System.Core.dll',
@@ -154,7 +154,6 @@ Add-TargetFramework "NetCoreApp31" '$(PkgMicrosoft_NETCore_App_Ref)\ref\netcorea
   'System.Linq.Expressions.dll',
   'System.Runtime.dll',
   'System.Runtime.InteropServices.dll',
-  'System.Runtime.InteropServices.WindowsRuntime.dll',
   'System.Threading.Tasks.dll',
   'netstandard.dll',
   'Microsoft.CSharp.dll',
