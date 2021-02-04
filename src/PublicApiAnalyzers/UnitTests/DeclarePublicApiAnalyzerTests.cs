@@ -1484,7 +1484,6 @@ C.Property.set -> void";
         [Theory]
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
         [InlineData("\r\n")] // Windows line ending.
-        [InlineData("\n\r")] // Windows line ending swapped.
         [InlineData("\n")] // Linux line ending.
         [InlineData("\r")] // macOS line ending.
         public async Task TestUseExistingLineEndings(string lineEnding)
@@ -1492,6 +1491,7 @@ C.Property.set -> void";
             var source = @"
 public class C
 {
+    private C() { }
     public int Field1;
     public int Field2;
     public int {|RS0016:Field3|}; // Newly added field, not in current public API.
@@ -1511,6 +1511,7 @@ public class C
             var source = @"
 public class C
 {
+    private C() { }
     public int {|RS0016:Field1|}; // Newly added field, not in current public API.
 }
 ";
