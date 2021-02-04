@@ -293,13 +293,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         ''' type of the eventContainer.</param>
         ''' <param name="eventContainer">If this is an entry for a WithEvents member, the WithEvents
         ''' property itself.</param>
-        Private Shared Function CreateItemForEvents(containingType As INamedTypeSymbol,
-                                             position As Integer,
-                                             eventType As ITypeSymbol,
-                                             eventContainer As IPropertySymbol,
-                                             semanticModel As SemanticModel,
-                                             workspaceSupportsDocumentChanges As Boolean,
-                                             symbolDeclarationService As ISymbolDeclarationService) As NavigationBarItem
+        Private Shared Function CreateItemForEvents(
+                containingType As INamedTypeSymbol,
+                position As Integer,
+                eventType As ITypeSymbol,
+                eventContainer As IPropertySymbol,
+                semanticModel As SemanticModel,
+                workspaceSupportsDocumentChanges As Boolean,
+                symbolDeclarationService As ISymbolDeclarationService) As NavigationBarItem
 
             Dim rightHandMemberItems As New List(Of NavigationBarItem)
 

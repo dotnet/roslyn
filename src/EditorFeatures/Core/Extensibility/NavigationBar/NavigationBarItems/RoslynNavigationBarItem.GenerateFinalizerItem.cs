@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public class GenerateFinalizer : AbstractGenerateCodeItem
         {
             public GenerateFinalizer(string text, SymbolKey destinationTypeSymbolKey)
-                : base(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodPublic, destinationTypeSymbolKey)
+                : base(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodProtected, destinationTypeSymbolKey)
             {
             }
         }
