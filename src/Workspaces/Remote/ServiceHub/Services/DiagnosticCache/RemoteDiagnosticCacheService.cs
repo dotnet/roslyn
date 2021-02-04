@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Remote
             stream.Position = 0;
 
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-            await storage.WriteStreamAsync(document, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
+            await storage.WriteStreamAsync(DocumentKey.ToDocumentKey(document), PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
 
-            static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
+            static async ValueTask<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
             {
                 var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return checksums.Text;

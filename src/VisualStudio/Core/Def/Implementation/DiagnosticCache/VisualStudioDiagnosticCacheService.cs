@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
             var globalOperationNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
             _cacheUpdater = new(_workspace, diagnosticService, globalOperationNotificationService, CancellationToken.None);
+
+            Log("CreateService", nameof(VisualStudioDiagnosticCacheService));
         }
 
         public async Task<bool> TryLoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
@@ -56,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             }
 
             var cachedDiagnostics = await GetCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-            if (!cachedDiagnostics.IsDefault)
+            if (!cachedDiagnostics.IsDefaultOrEmpty)
             {
                 _updateTracker.TryUpdateDiagnosticsLoadedFromCache(document, cachedDiagnostics);
             }
@@ -110,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                     helpLink: d.HelpLink, isSuppressed: d.IsSuppressed);
         }
 
-        private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
+        private static async ValueTask<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
         {
             // We only checksum off of the contents of the file.  During load, we can't really compute any other
             // information since we don't necessarily know about other files, metadata, or dependencies.  So during
@@ -118,5 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             return checksums.Text;
         }
+
+        public static void Log(string operation, string message)
+            => Logger.Log(FunctionId.Diagnostics_CacheService, KeyValueLogMessage.Create(m => m[operation] = message));
     }
 }

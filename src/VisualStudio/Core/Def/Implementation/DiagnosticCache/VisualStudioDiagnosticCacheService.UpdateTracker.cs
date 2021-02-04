@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
             public void TryUpdateDiagnosticsLoadedFromCache(Document document, ImmutableArray<DiagnosticData> diagnostics)
             {
-                Debug.Assert(!diagnostics.IsDefault);
+                Debug.Assert(!diagnostics.IsDefaultOrEmpty);
+
                 var solutionPath = document.Project.Solution.FilePath;
                 if (solutionPath == null)
                 {
@@ -70,8 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                             var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                                 new CachedDiagnosticsUpdateArgsId(document.Id), document.Project.Solution.Workspace, document.Project.Solution, document.Project.Id, document.Id, diagnostics);
                             DiagnosticsUpdated?.Invoke(this, args);
-
+                            Log("PushCachedDiagnostics", diagnostics.Length.ToString());
                         }, CancellationToken.None);
+
                     }
                 }
             }
@@ -88,7 +90,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                         _requestedDocuments.Clear();
 
                         // Schedule update to clear all cached diagnostics from DiagnosticService
-                        _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () => DiagnosticsCleared?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+                        _ = _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
+                        {
+                            DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+                            Log("ClearCachedDiags", "LiveAnalysis");
+                        }, CancellationToken.None);
                     }
 
                     return _analyzedDocuments.Add(document.Id);
@@ -104,7 +110,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                         _currentSolutionPath = e.NewSolution.FilePath;
                         _requestedDocuments.Clear();
                         _analyzedDocuments.Clear();
-                        _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () => DiagnosticsCleared?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+                        _ = _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
+                        {
+                            DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+                            Log("ClearCachedDiags", "NewSolution");
+                        }, CancellationToken.None);
                     }
                 }
             }

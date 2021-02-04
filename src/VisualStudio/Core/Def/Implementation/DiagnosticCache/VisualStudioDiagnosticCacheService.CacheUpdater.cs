@@ -113,6 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                 }
 
                 var solution = _workspace.CurrentSolution;
+                var diagnosticsCount = 0;
                 foreach (var documentId in documentIds)
                 {
                     var document = solution.GetDocument(documentId);
@@ -135,11 +136,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                             }
                         }
 
+                        diagnosticsCount += builder.Count;
                         await client.TryInvokeAsync<IRemoteDiagnosticCacheService>(
                             solution,
                             (service, solutionInfo, cancellationToken) => service.CacheDiagnosticsAsync(solutionInfo, document.Id, builder.ToImmutable(), cancellationToken),
                             cancellationToken).ConfigureAwait(false);
                     }
+                }
+
+                if (documentIds.Length > 0)
+                {
+                    Log("UpdateCache", $"{diagnosticsCount}/{documentIds.Length}");
                 }
             }
         }

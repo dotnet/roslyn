@@ -8,10 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 {
@@ -34,15 +38,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             _listenerProvider = listenerProvider;
         }
 
-        public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
+        public static readonly Option2<bool> DiagnosticCache = new(
+            nameof(InternalFeatureOnOffOptions), nameof(DiagnosticCache), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(StorageOptions.LocalRegistryPath + nameof(DiagnosticCache)));
+
+        private static bool IsDiagnosticCacheEnabled(HostWorkspaceServices services)
+            => services.GetRequiredService<IOptionService>().GetOption(DiagnosticCache) ||
+               services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.DiagnosticCache);
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices.Workspace is not VisualStudioWorkspace vsWorkspace)
             {
                 return new NoOpDiagnosticCacheService();
             }
 
-            var experimentationService = workspaceServices.GetRequiredService<IExperimentationService>();
-            if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.DiagnosticCache))
+            if (!IsDiagnosticCacheEnabled(workspaceServices))
             {
                 return new NoOpDiagnosticCacheService();
             }
@@ -53,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
         private class NoOpDiagnosticCacheService : IDiagnosticCacheService
         {
             public Task<bool> TryLoadCachedDiagnosticsAsync(Document document, CancellationToken cancellation)
-                => Task.FromResult(false);
+                => SpecializedTasks.False;
         }
     }
 }

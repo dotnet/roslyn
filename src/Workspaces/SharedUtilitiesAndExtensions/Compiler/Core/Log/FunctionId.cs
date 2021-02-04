@@ -507,5 +507,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RegisterWorkspace = 481,
 
         LSP_RequestCounter = 482,
+
+        Diagnostics_CacheService = 483,
     }
 }
