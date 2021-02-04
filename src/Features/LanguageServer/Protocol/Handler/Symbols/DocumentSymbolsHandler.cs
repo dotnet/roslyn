@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (item is not WrappedNavigationBarItem { UnderlyingItem: { Kind: RoslynNavigationBarItemKind.Symbol } symbolItem })
                 return null;
 
-            var symbols = symbolItem.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
+            var symbols = symbolItem.NavigationSymbolId.Value.Resolve(compilation, cancellationToken: cancellationToken);
             var symbol = symbols.Symbol;
 
             if (symbol == null)

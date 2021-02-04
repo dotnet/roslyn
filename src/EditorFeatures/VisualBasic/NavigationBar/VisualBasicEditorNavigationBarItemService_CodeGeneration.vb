@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Shared Async Function GenerateDefaultConstructorAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
             If destinationType Is Nothing Then
                 Return Nothing
@@ -126,8 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Shared Async Function GenerateEventHandlerAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim eventSymbol = TryCast(generateCodeItem.EventSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), IEventSymbol)
-            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), INamedTypeSymbol)
+            Dim eventSymbol = TryCast(generateCodeItem.EventSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), IEventSymbol)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), INamedTypeSymbol)
 
             If eventSymbol Is Nothing OrElse destinationType Is Nothing Then
                 Return Nothing
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Shared Async Function GenerateFinalizerAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
             If destinationType Is Nothing Then
                 Return Nothing
@@ -211,8 +211,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private Shared Async Function GenerateMethodAsync(document As Document, generateCodeItem As RoslynNavigationBarItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
-            Dim methodToReplicate = TryCast(generateCodeItem.MethodToReplicateSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, IMethodSymbol)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+            Dim methodToReplicate = TryCast(generateCodeItem.MethodToReplicateSymbolKey.Value.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, IMethodSymbol)
 
             If destinationType Is Nothing OrElse methodToReplicate Is Nothing Then
                 Return Nothing

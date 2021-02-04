@@ -163,11 +163,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Sub
 
             Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem, y As RoslynNavigationBarItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem).Equals
-                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
+                Return _symbolIdComparer.Equals(x.NavigationSymbolId.Value, y.NavigationSymbolId.Value) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
             End Function
 
             Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem).GetHashCode
-                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex.Value
+                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId.Value) Xor obj.NavigationSymbolIndex.Value
             End Function
         End Class
 

@@ -34,7 +34,10 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function GetItemsInCurrentProcessAsync(document As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of RoslynNavigationBarItem))
+        Protected Overrides Async Function GetItemsInCurrentProcessAsync(
+                document As Document,
+                workspaceSupportsDocumentChanges As Boolean,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of RoslynNavigationBarItem))
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Contract.ThrowIfNull(semanticModel)
 
@@ -44,7 +47,6 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             Dim typeSymbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
             Dim symbolDeclarationService = document.GetLanguageService(Of ISymbolDeclarationService)
-            Dim workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument)
 
             For Each typeAndDeclaration In typesAndDeclarations
                 Dim type = typeAndDeclaration.Item1

@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract class AbstractNavigationBarItemService : INavigationBarItemService
     {
-        protected abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 
                 var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<RoslynNavigationBarItem>>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, cancellationToken),
+                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, supportsCodeGeneration, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
                     return result.Value;
             }
 
-            var items = await GetItemsInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            var items = await GetItemsInCurrentProcessAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
             return items;
         }
     }

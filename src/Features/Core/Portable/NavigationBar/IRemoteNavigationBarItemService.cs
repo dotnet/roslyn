@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     internal interface IRemoteNavigationBarItemService
     {
         ValueTask<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool supportsCodeGeneration, CancellationToken cancellationToken);
     }
 }

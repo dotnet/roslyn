@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
         {
         }
 
-        protected override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(
+            Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
         {
             var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

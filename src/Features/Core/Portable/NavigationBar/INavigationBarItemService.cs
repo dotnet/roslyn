@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
+        Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, CancellationToken cancellationToken);
     }
 }

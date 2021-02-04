@@ -785,7 +785,7 @@ End Class
                 </Result>)
         End Function
 
-        <ConditionalWpfTheory(GetType(IsEnglishLocal))>
+        <ConditionalWpfTheory(GetType(IsEnglishLocal)), CombinatorialData>
         <WorkItem(25763, "https://github.com/dotnet/roslyn/issues/25763")>
         <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
         <Trait(Traits.Feature, Traits.Features.NavigationBar)>

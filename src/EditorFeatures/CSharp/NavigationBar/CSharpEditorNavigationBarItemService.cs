@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
+            var symbols = item.NavigationSymbolId.Value.Resolve(compilation, cancellationToken: cancellationToken);
 
             var symbol = symbols.Symbol;
 

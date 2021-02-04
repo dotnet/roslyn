@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool supportsCodeGeneration, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
                 var document = solution.GetRequiredDocument(documentId);
-                var navigationBarService = (AbstractNavigationBarItemService)document.GetRequiredLanguageService<INavigationBarItemService>();
-                var result = await navigationBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+                var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
+                var result = await navigationBarService.GetItemsAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }, cancellationToken);

@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem, cancellationToken As CancellationToken) As VirtualTreePoint?
             Contract.ThrowIfFalse(item.Kind = RoslynNavigationBarItemKind.Symbol)
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
+            Dim symbols = item.NavigationSymbolId.Value.Resolve(compilation, cancellationToken:=cancellationToken)
             Dim symbol = symbols.Symbol
 
             If symbol Is Nothing Then
