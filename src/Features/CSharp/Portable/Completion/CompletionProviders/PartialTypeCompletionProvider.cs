@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private const string InsertionTextOnLessThan = nameof(InsertionTextOnLessThan);
 
         private static readonly SymbolDisplayFormat _symbolFormatWithGenerics =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions:
                     SymbolDisplayGenericsOptions.IncludeTypeParameters |
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
             return ch == ' ' ||
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
             => tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
 
-        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create(
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
             '\\', // any escape
             '[', // character class
             '(', // any group

@@ -3510,7 +3510,7 @@ class C
                 Await checkpoint.Task.ConfigureAwait(False)
             End Function
 
-            Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
                 Return True
             End Function
         End Class
@@ -4548,11 +4548,11 @@ class C
                         Sub()
                             Thread.Sleep(250)
                             Try
-                                ' 3. Check that the other task is running/hanging.
+                                ' 3. Check that the other task is running/deadlocked.
                                 Assert.Equal(TaskStatus.Running, task1.Status)
                                 Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                                 Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                ' Need the Finally to avoid deadlocks if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                             Finally
                                 ' 4. Unblock the first task and the main thread.
                                 provider.completionSource.SetResult(True)
@@ -4562,7 +4562,7 @@ class C
                         task1 = Task.Run(
                         Sub()
                             task2.Start()
-                            ' 2. Hang here as well: getting items is waiting provider to respond.
+                            ' 2. Deadlock here as well: getting items is waiting provider to respond.
                             state.CalculateItemsIfSessionExists()
                         End Sub)
 
@@ -4571,9 +4571,9 @@ class C
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
-                ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                ' 1. Hang here.
+                ' 1. Deadlock here.
                 Await state.SendCommitUniqueCompletionListItemAsync()
 
                 Assert.NotNull(task1)
@@ -4626,11 +4626,11 @@ class C
                             Sub()
                                 Thread.Sleep(250)
                                 Try
-                                    ' 3. Check that the other task is running/hanging.
+                                    ' 3. Check that the other task is running/deadlocked.
                                     Assert.Equal(TaskStatus.Running, task1.Status)
                                     Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                                     Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                    ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                    ' Need the Finally to avoid deadlocks if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                                 Finally
                                     ' 4. Unblock the first task and the main thread.
                                     provider.completionSource.SetResult(True)
@@ -4640,7 +4640,7 @@ class C
                         task1 = Task.Run(
                         Sub()
                             task2.Start()
-                            ' 2. Hang here as well: getting items is waiting provider to respond.
+                            ' 2. Deadlock here as well: getting items is waiting provider to respond.
                             state.CalculateItemsIfSessionExists()
                         End Sub)
                     End Sub
@@ -4648,9 +4648,9 @@ class C
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
-                ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                ' 1. Hang here.
+                ' 1. Deadlock here.
                 Await state.SendCommitUniqueCompletionListItemAsync()
 
                 ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
@@ -8081,6 +8081,184 @@ public class AA
                 state.SendTypeChars("Ba")
                 state.SendSelectCompletionItem("Bar")
                 state.SendTypeChars(commitChar)
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof($$)
+    }
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof(CC);
+    }
+}"
+                state.SendTypeChars("CC")
+                state.SendSelectCompletionItem("CC")
+                state.SendTypeChars(";")
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForGenericMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+using System;
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof($$)
+    }
+
+    private static T GetSomething&lt;T&gt;() => (T)Activator.GetInstance(typeof(T));
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+using System;
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof(GetSomething);
+    }
+
+    private static T GetSomething<T>() => (T)Activator.GetInstance(typeof(T));
+}"
+                state.SendTypeChars("Get")
+                state.SendSelectCompletionItem("GetSomething<>")
+                state.SendTypeChars(";")
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForFullMethodUnderNameofContext(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof($$)
+    }
+}
+namespace Bar1
+{
+    public class Bar2
+    {
+        public void Bar3() { }
+    }
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+public class AA
+{
+    private static void CC()
+    {
+        var x = nameof(Bar1.Bar2.Bar3);
+    }
+}
+namespace Bar1
+{
+    public class Bar2
+    {
+        public void Bar3() { }
+    }
+}"
+                state.SendTypeChars("Bar1.Bar2.Ba")
+                state.SendSelectCompletionItem("Bar3")
+                state.SendTypeChars(";")
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompleteParenthesisForFunctionPointer(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+using System;
+public unsafe class AA
+{
+    private static void CC()
+    {
+        delegate*&lt;void&gt; p = $$
+    }
+
+    public static void Bar() {}
+}</Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                Dim expectedText = "
+using System;
+public unsafe class AA
+{
+    private static void CC()
+    {
+        delegate*<void> p = Bar;
+    }
+
+    public static void Bar() {}
+}"
+                state.SendTypeChars("Ba")
+                state.SendSelectCompletionItem("Bar")
+                state.SendTypeChars(";")
                 Assert.Equal(expectedText, state.GetDocumentText())
             End Using
         End Function

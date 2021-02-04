@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var knownMissingTypes = new HashSet<SpecialType>()
             {
-                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
             };
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)

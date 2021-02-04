@@ -5,7 +5,10 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -43587,7 +43590,7 @@ namespace System
 }
 ";
 
-            AssertRuntimeFeatureTrue(source);
+            AssertRuntimeFeatureFalse(source);
         }
 
         [Fact]
@@ -54945,31 +54948,44 @@ class Test : C0, I1
             Version version = assemblyIdentity.Version;
             var publicKeyToken = assemblyIdentity.PublicKeyToken;
 
-            return @"
-.assembly extern " + assemblyIdentity.Name + @"
-{
-  .publickeytoken = (" +
-  publicKeyToken[0].ToString("X2") +
-  publicKeyToken[1].ToString("X2") +
-  publicKeyToken[2].ToString("X2") +
-  publicKeyToken[3].ToString("X2") +
-  publicKeyToken[4].ToString("X2") +
-  publicKeyToken[5].ToString("X2") +
-  publicKeyToken[6].ToString("X2") +
-  publicKeyToken[7].ToString("X2") +
-@" )
-  .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
-}
+            if (publicKeyToken.Length > 0)
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
+    {
+      .publickeytoken = (" +
+      publicKeyToken[0].ToString("X2") +
+      publicKeyToken[1].ToString("X2") +
+      publicKeyToken[2].ToString("X2") +
+      publicKeyToken[3].ToString("X2") +
+      publicKeyToken[4].ToString("X2") +
+      publicKeyToken[5].ToString("X2") +
+      publicKeyToken[6].ToString("X2") +
+      publicKeyToken[7].ToString("X2") +
+    @" )
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+    }
 ";
+            }
+            else
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
+    {
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+    }
+";
+            }
         }
 
         [Fact]
         [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_01()
         {
+            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
 BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntimeInteropServicesWindowsRuntime) +
+BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
        extends [System.Runtime]System.MulticastDelegate
@@ -55052,7 +55068,7 @@ class C1 : I1, Interface<int>
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
             {
-                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp);
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });
 
                 void Validate(ModuleSymbol m)
                 {
@@ -55125,7 +55141,7 @@ class C1 : I1
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -55178,7 +55194,7 @@ interface I1 : Interface
 class C1 : I1, Interface
 {}
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -60122,6 +60138,97 @@ interface IC
                 //     sealed ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)
                 );
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_01()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public static partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+
+    }
+}
+";
+            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics(
+                // (4,37): error CS0106: The modifier 'static' is not valid for this item
+                //     public static partial interface RuntimeFeature
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "RuntimeFeature").WithArguments("static").WithLocation(4, 37),
+                // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
+                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_02()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+
+    }
+}
+";
+            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics(
+                // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
+                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_03()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = ""Test"";
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(System.Runtime.CompilerServices.RuntimeFeature.DefaultImplementationsOfInterfaces);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test",
+                verify: VerifyOnMonoOrCoreClr);
         }
     }
 }

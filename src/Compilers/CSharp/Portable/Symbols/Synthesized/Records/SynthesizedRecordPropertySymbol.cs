@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => BackingParameter.AttributeDeclarationList;
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
