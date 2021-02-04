@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         generator.Initialize(context);
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                     {
                         ex = e;
                     }
@@ -179,18 +179,23 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // create the syntax receiver if requested
-                if (generatorState.Info.SyntaxReceiverCreator is object)
+                if (generatorState.Info.SyntaxContextReceiverCreator is object)
                 {
+                    ISyntaxContextReceiver? rx = null;
                     try
                     {
-                        var rx = generatorState.Info.SyntaxReceiverCreator();
-                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
-                        generatorState = generatorState.WithReceiver(rx);
-                        receiverCount++;
+                        rx = generatorState.Info.SyntaxContextReceiverCreator();
                     }
                     catch (Exception e)
                     {
                         generatorState = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
+                    }
+
+                    if (rx is object)
+                    {
+                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
+                        generatorState = generatorState.WithReceiver(rx);
+                        receiverCount++;
                     }
                 }
 
@@ -204,6 +209,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var tree in compilation.SyntaxTrees)
                 {
                     var root = tree.GetRoot(cancellationToken);
+                    var semanticModel = compilation.GetSemanticModel(tree);
 
                     // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
                     for (int i = 0; i < walkerBuilder.Count; i++)
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             try
                             {
-                                walker.Visit(root);
+                                walker.VisitWithModel(semanticModel, root);
                             }
                             catch (Exception e)
                             {
@@ -240,12 +246,12 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection());
+                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection(), cancellationToken);
                 try
                 {
                     generator.Execute(context);
                 }
-                catch (Exception e)
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, generator, e, diagnosticsBag);
                     continue;

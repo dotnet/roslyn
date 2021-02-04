@@ -136,6 +136,12 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(Checksum left, Checksum right)
             => !(left == right);
 
+        public static bool operator ==(Checksum left, HashData right)
+            => left._checksum == right;
+
+        public static bool operator !=(Checksum left, HashData right)
+            => !(left == right);
+
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
