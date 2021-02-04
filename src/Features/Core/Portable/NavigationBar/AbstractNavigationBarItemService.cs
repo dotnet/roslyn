@@ -1,0 +1,36 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
+
+namespace Microsoft.CodeAnalysis.NavigationBar
+{
+    internal abstract class AbstractNavigationBarItemService : INavigationBarItemService
+    {
+        protected abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, CancellationToken cancellationToken);
+
+        public async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var solution = document.Project.Solution;
+
+                var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<RoslynNavigationBarItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (result.HasValue)
+                    return result.Value;
+            }
+
+            var items = await GetItemsInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            return items;
+        }
+    }
+}

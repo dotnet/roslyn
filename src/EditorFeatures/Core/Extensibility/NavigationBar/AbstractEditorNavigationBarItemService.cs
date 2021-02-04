@@ -5,50 +5,35 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractNavigationBarItemService : INavigationBarItemService
+    internal abstract class AbstractEditorNavigationBarItemService :
+        CodeAnalysis.NavigationBar.AbstractNavigationBarItemService, INavigationBarItemService
     {
-        public abstract Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, CancellationToken cancellationToken);
-        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
-        protected abstract void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
+        protected abstract void NavigateToItem(Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client != null)
-            {
-                var solution = document.Project.Solution;
-
-                var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<RoslynNavigationBarItem>>(
-                    solution,
-                    (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                if (result.HasValue)
-                    return result.Value.SelectAsArray(v => (NavigationBarItem)v);
-            }
-
-            var items = await GetItemsInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
+            var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items.SelectAsArray(v => (NavigationBarItem)v);
         }
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToItem(document, (RoslynNavigationBarItem)item, textView, cancellationToken);
+            => NavigateToItem(document, (CodeAnalysis.NavigationBar.RoslynNavigationBarItem)item, textView, cancellationToken);
 
         public void NavigateToSymbolItem(
-            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+            Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 

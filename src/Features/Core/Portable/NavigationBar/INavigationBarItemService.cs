@@ -5,13 +5,13 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
-    internal interface IRemoteNavigationBarItemService
+    internal interface INavigationBarItemService : ILanguageService
     {
-        ValueTask<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+        Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
     }
 }
