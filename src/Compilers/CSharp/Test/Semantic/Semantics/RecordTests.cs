@@ -228,6 +228,66 @@ class E
             comp.VerifyDiagnostics();
         }
 
+        [CombinatorialData]
+        [Theory, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers(bool useCompilationReference)
+        {
+            var lib_src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+";
+            var lib_comp = CreateCompilation(lib_src);
+
+            var src = @"
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src, references: new[] { AsReference(lib_comp, useCompilationReference) });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_SingleCompilation()
+        {
+            var src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)",
+                model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_DirectApiCheck()
+        {
+            var src = @"
+public record RecordB();
+";
+            var comp = CreateCompilation(src);
+            var b = comp.GlobalNamespace.GetTypeMember("RecordB");
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)" },
+                b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
+        }
+
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor()
         {
@@ -5296,7 +5356,7 @@ record C2: Error;
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(49263, "https://github.com/dotnet/roslyn/issues/49263")]
         public void ToString_SelfReferentialBase()
         {
             var src = @"

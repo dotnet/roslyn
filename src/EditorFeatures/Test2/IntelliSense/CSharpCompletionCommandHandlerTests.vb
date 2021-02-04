@@ -4548,11 +4548,11 @@ class C
                         Sub()
                             Thread.Sleep(250)
                             Try
-                                ' 3. Check that the other task is running/hanging.
+                                ' 3. Check that the other task is running/deadlocked.
                                 Assert.Equal(TaskStatus.Running, task1.Status)
                                 Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                                 Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                ' Need the Finally to avoid deadlocks if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                             Finally
                                 ' 4. Unblock the first task and the main thread.
                                 provider.completionSource.SetResult(True)
@@ -4562,7 +4562,7 @@ class C
                         task1 = Task.Run(
                         Sub()
                             task2.Start()
-                            ' 2. Hang here as well: getting items is waiting provider to respond.
+                            ' 2. Deadlock here as well: getting items is waiting provider to respond.
                             state.CalculateItemsIfSessionExists()
                         End Sub)
 
@@ -4571,9 +4571,9 @@ class C
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
-                ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                ' 1. Hang here.
+                ' 1. Deadlock here.
                 Await state.SendCommitUniqueCompletionListItemAsync()
 
                 Assert.NotNull(task1)
@@ -4626,11 +4626,11 @@ class C
                             Sub()
                                 Thread.Sleep(250)
                                 Try
-                                    ' 3. Check that the other task is running/hanging.
+                                    ' 3. Check that the other task is running/deadlocked.
                                     Assert.Equal(TaskStatus.Running, task1.Status)
                                     Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
                                     Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
-                                    ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
+                                    ' Need the Finally to avoid deadlocks if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                                 Finally
                                     ' 4. Unblock the first task and the main thread.
                                     provider.completionSource.SetResult(True)
@@ -4640,7 +4640,7 @@ class C
                         task1 = Task.Run(
                         Sub()
                             task2.Start()
-                            ' 2. Hang here as well: getting items is waiting provider to respond.
+                            ' 2. Deadlock here as well: getting items is waiting provider to respond.
                             state.CalculateItemsIfSessionExists()
                         End Sub)
                     End Sub
@@ -4648,9 +4648,9 @@ class C
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
-                ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
+                ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
-                ' 1. Hang here.
+                ' 1. Deadlock here.
                 Await state.SendCommitUniqueCompletionListItemAsync()
 
                 ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only

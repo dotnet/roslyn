@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// of the returned VSCodeActions blank, as these properties should be populated by the
     /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
-    [LspMethod(LSP.Methods.TextDocumentCodeActionName, mutatesSolutionState: false)]
+    [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName, mutatesSolutionState: false), Shared]
     internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
@@ -51,20 +55,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 request, _codeActionsCache, document, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly CodeActionsHandler _codeActionsHandler;
-
-            public TestAccessor(CodeActionsHandler codeActionsHandler)
-                => _codeActionsHandler = codeActionsHandler;
-
-            public CodeActionsCache GetCache()
-                => _codeActionsHandler._codeActionsCache;
         }
     }
 }

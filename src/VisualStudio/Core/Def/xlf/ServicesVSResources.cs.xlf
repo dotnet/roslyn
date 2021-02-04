@@ -2178,16 +2178,6 @@ Další informace: {1}</target>
         <target state="translated">typ je zřejmý z výrazu přiřazení</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Získat nápovědu pro: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Získat nápovědu pro: {0} z Bingu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">Přesunout dolů</target>

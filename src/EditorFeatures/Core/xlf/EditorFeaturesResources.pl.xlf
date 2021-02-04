@@ -62,6 +62,16 @@
         <target state="translated">Funkcja formatowania dokumentu wykonała dodatkowe czyszczenie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="new">Get help for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="new">Get help for '{0}' from Bing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Przejdź do podstawy</target>

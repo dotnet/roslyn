@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : AbstractStatelessRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType>
     {
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {
@@ -39,5 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         protected virtual Task<IList<TextChange>> GetFormattingChangesAsync(IEditorFormattingService formattingService, Document document, TextSpan? textSpan, CancellationToken cancellationToken)
             => formattingService.GetFormattingChangesAsync(document, textSpan, cancellationToken);
+        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
+        public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
     }
 }
