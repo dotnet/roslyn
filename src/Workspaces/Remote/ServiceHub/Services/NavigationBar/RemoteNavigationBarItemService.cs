@@ -5,8 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
+using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var document = solution.GetRequiredDocument(documentId);
                 var navigationBarService = (AbstractNavigationBarItemService)document.GetRequiredLanguageService<INavigationBarItemService>();
-                var result = await navigationBarService.GetItemsInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                var result = await navigationBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }, cancellationToken);

@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
+    /// <summary>
+    /// Base type of all navigation bar items, regardless of language.
+    /// </summary>
     [DataContract]
     internal abstract class NavigationBarItem
     {
@@ -45,14 +48,5 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             this.Grayed = grayed;
         }
 
-        //internal void InitializeTrackingSpans(ITextSnapshot textSnapshot)
-        //{
-        //    this.TrackingSpans = this.Spans.Select(s => textSnapshot.CreateTrackingSpan(s.ToSpan(), SpanTrackingMode.EdgeExclusive)).ToList();
-
-        //    if (this.ChildItems != null)
-        //    {
-        //        this.ChildItems.Do(i => i.InitializeTrackingSpans(textSnapshot));
-        //    }
-        //}
     }
 }
