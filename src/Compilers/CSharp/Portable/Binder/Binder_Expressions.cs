@@ -5975,7 +5975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// It is assumed that CheckValue has not been called on the LHS.
         /// </summary>
         /// <remarks>
-        /// If new checks are added to this method, they will also need to be added to <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, DiagnosticBag)"/>.
+        /// If new checks are added to this method, they will also need to be added to <see cref="MakeQueryInvocation(CSharpSyntaxNode, BoundExpression, string, TypeSyntax, TypeWithAnnotations, BindingDiagnosticBag)"/>.
         /// </remarks>
         private BoundExpression BindMemberAccessWithBoundLeft(
             ExpressionSyntax node,

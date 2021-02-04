@@ -178,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Derived types utilizing this helper should provide storage for the lazily calculated
         ''' <see cref="EvaluatedConstant"/> value and should implement the following APIs:
         ''' <see cref="GetLazyConstantTuple()"/>,
-        ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, DiagnosticBag)"/>,
-        ''' <see cref="MakeConstantTuple(ConstantFieldsInProgress.Dependencies, DiagnosticBag)"/>.
+        ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, BindingDiagnosticBag)"/>,
+        ''' <see cref="MakeConstantTuple(ConstantFieldsInProgress.Dependencies, BindingDiagnosticBag)"/>.
         ''' </summary>
         Protected Function GetConstantValueImpl(inProgress As ConstantFieldsInProgress) As ConstantValue
             Dim constantTuple As EvaluatedConstant = GetLazyConstantTuple()
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If GetLazyConstantTuple() Is Nothing Then
                 Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
                 Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim constantTuple As EvaluatedConstant = MakeConstantTuple(dependencies, diagnostics)
                 dependencies.Freeze()
 
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim builder = PooledHashSet(Of SourceFieldSymbol).GetInstance()
             Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance()
             valueTuple = MakeConstantTuple(dependencies, diagnostics)
             dependencies.Freeze()
 
@@ -561,14 +561,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
         ''' </summary>
-        Protected Overridable Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+        Protected Overridable Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
         ''' <summary>
         ''' Should be overridden by types utilizing <see cref="GetConstantValueImpl(ConstantFieldsInProgress)"/> helper.
         ''' </summary>
-        Protected Overridable Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+        Protected Overridable Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
             Throw ExceptionUtilities.Unreachable
         End Function
 

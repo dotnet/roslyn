@@ -2713,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual MembersAndInitializers? BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected virtual MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             var declaredMembersAndInitializers = getDeclaredMembersAndInitializers();
             if (declaredMembersAndInitializers is null)
@@ -2749,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 declaredMembersAndInitializers = buildDeclaredMembersAndInitializers(diagnostics);
 
                 var alreadyKnown = Interlocked.CompareExchange(ref _lazyDeclaredMembersAndInitializers, declaredMembersAndInitializers, DeclaredMembersAndInitializers.UninitializedSentinel);
@@ -2811,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
             switch (TypeKind)
             {

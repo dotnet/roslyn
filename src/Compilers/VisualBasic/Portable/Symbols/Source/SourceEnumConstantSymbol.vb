@@ -74,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetConstantValueImpl(inProgress)
         End Function
 
-        Protected NotOverridable Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+        Protected NotOverridable Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+            sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
         End Sub
 
         Friend Overrides ReadOnly Property MeParameter As ParameterSymbol

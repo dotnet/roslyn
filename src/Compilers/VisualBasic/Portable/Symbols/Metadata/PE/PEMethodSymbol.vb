@@ -1154,7 +1154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     DirectCast(ContainingModule, PEModuleSymbol).Module.FindTargetAttribute(_handle, AttributeDescription.UnmanagedCallersOnlyAttribute).HasValue
 
                 If hasUnmanagedCallersOnly Then
-                    errorInfo = MergeUseSiteErrorInfo(errorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                    errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
                 End If
             End If
         End Sub

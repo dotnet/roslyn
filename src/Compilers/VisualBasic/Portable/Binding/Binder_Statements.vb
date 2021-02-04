@@ -1957,7 +1957,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             diagnostics.Add(node, useSiteInfo)
                         End If
                     End If
-                    End If
 
                     WarnOnRecursiveAccess(propertyAccess, PropertyAccessKind.Set, diagnostics)
                     Return propertyAccess.SetAccessKind(PropertyAccessKind.Set)

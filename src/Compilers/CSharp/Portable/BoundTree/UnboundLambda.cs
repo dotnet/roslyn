@@ -158,15 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly TypeSymbol NoReturnExpression = new UnsupportedMetadataTypeSymbol();
 
         internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
-            BoundLambda node, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
+            BoundLambda node, Binder binder, TypeSymbol delegateType, bool isAsync, ConversionsBase conversions)
         {
-            return InferReturnTypeImpl(returnTypes, node, compilation, conversions, delegateType, isAsync, node.UnboundLambda.WithDependencies);
+            return InferReturnTypeImpl(returnTypes, node, binder, delegateType, isAsync, conversions, node.UnboundLambda.WithDependencies);
         }
 
         internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
-            UnboundLambda node, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
+            UnboundLambda node, Binder binder, TypeSymbol delegateType, bool isAsync, ConversionsBase conversions)
         {
-            return InferReturnTypeImpl(returnTypes, node, compilation, conversions, delegateType, isAsync, node.WithDependencies);
+            return InferReturnTypeImpl(returnTypes, node, binder, delegateType, isAsync, conversions, node.WithDependencies);
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var useSiteInfo = withDependencies ? new CompoundUseSiteInfo<AssemblySymbol>(compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+            var useSiteInfo = withDependencies ? new CompoundUseSiteInfo<AssemblySymbol>(binder.Compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
             var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo);
             int numExpressions = types.Count;
             types.Free();

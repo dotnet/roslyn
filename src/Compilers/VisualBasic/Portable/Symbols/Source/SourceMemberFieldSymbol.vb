@@ -325,14 +325,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return GetConstantValueImpl(inProgress)
             End Function
 
-            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
                 Return ConstantValueUtils.EvaluateFieldConstant(Me, _equalsValueOrAsNewInit, dependencies, diagnostics)
             End Function
 
-            Protected Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+            Protected Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
                 Debug.Assert(constantTuple IsNot Nothing)
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
             End Sub
 
             Protected Overrides Function GetInferredConstantType(inProgress As ConstantFieldsInProgress) As TypeSymbol
