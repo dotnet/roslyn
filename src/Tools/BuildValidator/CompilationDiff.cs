@@ -102,18 +102,34 @@ namespace BuildValidator
                     else
                     {
                         Console.WriteLine("Creating a diff...");
-                        if (options.DebugPath is string debugPath)
+
+                        var debugPath = options.DebugPath ?? Path.Combine(Path.GetTempPath(), "BuildValidator");
+
+                        // TODO: do this once at the beginning
+                        try
                         {
-                            Directory.CreateDirectory(debugPath);
-                            Console.WriteLine($@"Writing diffs to ""{debugPath}""");
+                            Directory.Delete(debugPath, recursive: true);
                         }
-                        var originalPeMdvPath = getDebugFileName(".original.pe.mdv");
-                        var originalPdbMdvPath = getDebugFileName(".original.pdb.mdv");
+                        catch (IOException)
+                        {
+                            // no-op
+                        }
+                        Console.WriteLine($@"Writing diffs to ""{debugPath}""");
+
+                        var assemblyName = Path.GetFileNameWithoutExtension(originalBinaryPath.Name);
+                        var originalPath = Path.Combine(debugPath, assemblyName, "original");
+                        var rebuildPath = Path.Combine(debugPath, assemblyName, "rebuild");
+
+                        Directory.CreateDirectory(originalPath);
+                        Directory.CreateDirectory(rebuildPath);
+
+                        var originalPeMdvPath = Path.Combine(originalPath, assemblyName + ".pe.mdv");
+                        var originalPdbMdvPath = Path.Combine(originalPath, assemblyName + ".pdb.mdv");
                         writeVisualizationToTempFile(originalPeMdvPath, originalPeReader.GetMetadataReader());
                         writeVisualizationToTempFile(originalPdbMdvPath, originalPdbReader);
 
-                        var rebuildPeMdvPath = getDebugFileName(".rebuild.pe.mdv");
-                        var rebuildPdbMdvPath = getDebugFileName(".rebuild.pdb.mdv");
+                        var rebuildPeMdvPath = Path.Combine(rebuildPath, assemblyName + ".pe.mdv");
+                        var rebuildPdbMdvPath = Path.Combine(rebuildPath, assemblyName + ".pdb.mdv");
                         fixed (byte* ptr = rebuildBytes)
                         {
                             var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
@@ -136,8 +152,8 @@ namespace BuildValidator
                             Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalPdbMdvPath}"" ""{rebuildPdbMdvPath}""") { UseShellExecute = true });
                         }
 
-                        var ildasmOriginalOutputPath = getDebugFileName(".original.il");
-                        var ildasmRebuildOutputPath = getDebugFileName(".rebuild.il");
+                        var ildasmOriginalOutputPath = Path.Combine(originalPath, assemblyName + ".il");
+                        var ildasmRebuildOutputPath = Path.Combine(rebuildPath, assemblyName + ".il");
 
                         // TODO: can we bundle ildasm in with the utility?
                         Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /out={ildasmOriginalOutputPath}").WaitForExit();
@@ -155,13 +171,6 @@ namespace BuildValidator
             else
             {
                 return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
-            }
-
-            string getDebugFileName(string suffix)
-            {
-                return options.DebugPath is string debugPath
-                    ? Path.Combine(debugPath, originalBinaryPath.Name + suffix)
-                    : Path.GetTempFileName();
             }
 
             void writeVisualizationToTempFile(string outPath, MetadataReader pdbReader)
