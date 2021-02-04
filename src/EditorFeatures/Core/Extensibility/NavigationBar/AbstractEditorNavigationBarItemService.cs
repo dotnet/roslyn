@@ -16,21 +16,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService :
-        CodeAnalysis.NavigationBar.AbstractNavigationBarItemService, INavigationBarItemService
+    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
     {
         public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
-        protected abstract void NavigateToItem(Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        protected abstract void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(v => (NavigationBarItem)v);
+            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
         }
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToItem(document, (CodeAnalysis.NavigationBar.RoslynNavigationBarItem)item, textView, cancellationToken);
+            => NavigateToItem(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
         public void NavigateToSymbolItem(
             Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)

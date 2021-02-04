@@ -20,8 +20,6 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
     Partial Friend Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
-        Private Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
-
         Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance)
 

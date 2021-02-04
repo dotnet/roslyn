@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -14,23 +13,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [DataContract]
     internal abstract class NavigationBarItem
     {
-        [DataMember(Order = 0)]
-        public string Text { get; private set; }
-        [DataMember(Order = 1)]
-        public Glyph Glyph { get; private set; }
-        [DataMember(Order = 2)]
-        public bool Bolded { get; private set; }
-        [DataMember(Order = 3)]
-        public bool Grayed { get; private set; }
-        [DataMember(Order = 4)]
-        public int Indent { get; private set; }
-        [DataMember(Order = 5)]
-        public IList<NavigationBarItem> ChildItems { get; private set; }
+        public string Text { get; }
+        public Glyph Glyph { get; }
+        public bool Bolded { get; }
+        public bool Grayed { get; }
+        public int Indent { get; }
+        public IList<NavigationBarItem> ChildItems { get; }
 
-        [DataMember(Order = 6)]
         public IList<TextSpan> Spans { get; internal set; }
         internal IList<ITrackingSpan> TrackingSpans { get; set; }
 
