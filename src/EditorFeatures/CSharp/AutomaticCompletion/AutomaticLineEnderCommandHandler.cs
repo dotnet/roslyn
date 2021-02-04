@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -346,6 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // Add braces for the selected node
             if (ShouldAddBraces(selectedNode, caretPosition))
             {
+                // For these syntax node, braces pair could be easily added by modify the syntax tree
                 if (selectedNode is BaseTypeDeclarationSyntax
                     or BaseMethodDeclarationSyntax
                     or LocalFunctionStatementSyntax
@@ -372,6 +372,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 }
                 else
                 {
+                    // For the rest of the syntax node,
+                    // like try statement
+                    // class Bar
+                    // {
+                    //      void Main()
+                    //      {
+                    //          tr$$y
+                    //      }
+                    // }
+                    // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
+                    // and the last
+                    //
                     // 1. Find the position to insert braces.
                     var insertionPosition = GetBraceInsertionPosition(selectedNode);
 
@@ -539,7 +551,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var statement = selectedNode.GetEmbeddedStatement();
             if (statement == null || statement.IsMissing)
             {
-                var newRoot =  ReplaceNodeAndFormat(document, root, selectedNode, WithBraces(selectedNode), cancellationToken);
+                var newRoot = ReplaceNodeAndFormat(
+                    document,
+                    root,
+                    selectedNode,
+                    WithBraces(selectedNode), cancellationToken);
                 var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
                 return (newRoot, nextCaretPosition);
             }
@@ -564,10 +580,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 {
                     if (selectedNode is DoStatementSyntax
                         {
-                        WhileKeyword: { IsMissing: true },
-                        SemicolonToken: { IsMissing: true },
-                        OpenParenToken: { IsMissing: true },
-                        CloseParenToken: { IsMissing: true }
+                            WhileKeyword: { IsMissing: true },
+                            SemicolonToken: { IsMissing: true },
+                            OpenParenToken: { IsMissing: true },
+                            CloseParenToken: { IsMissing: true }
                         })
                     {
                         return ReplaceStatementOwnerAndInsertStatement(
@@ -734,7 +750,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 _ => node,
             };
 
-
         private static SyntaxNode WithBraces(SyntaxNode node)
             => node switch
             {
@@ -881,11 +896,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // event EventHandler Bar {add; remove;}
             if (node is AccessorDeclarationSyntax { Body: not null, ExpressionBody: null, Parent: not null } accessorDeclarationNode
                 && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration)
-                && accessorDeclarationNode.Body.Span.Contains(caretPosition))
+                && accessorDeclarationNode.Body!.Span.Contains(caretPosition))
             {
                 return true;
             }
 
+            // If a property just has an empty accessorList, like
+            // int i $${ }
+            // then remove the braces and change it to a field
+            // int i;
             if (node is PropertyDeclarationSyntax propertyDeclarationNode
                 && propertyDeclarationNode.AccessorList != null
                 && propertyDeclarationNode.ExpressionBody == null)
@@ -894,6 +913,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return accessorList.Span.Contains(caretPosition) && accessorList.Accessors.IsEmpty();
             }
 
+            // If an event declaration just has an empty accessorList,
+            // like
+            // event EventHandler e$$  { }
+            // then change it to a event field declaration
+            // event EventHandler e;
             if (node is EventDeclarationSyntax eventDeclarationNode
                 && eventDeclarationNode.AccessorList != null)
             {
@@ -927,9 +951,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // For method, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
-            if (node is BaseMethodDeclarationSyntax
-                { ExpressionBody: null, Body: null, ParameterList: { IsMissing: false }, SemicolonToken: { IsMissing: true } } baseMethodNode
-                && !WithinAttributeLists(node, caretPosition) && !WithinMethodBody(node, caretPosition))
+            if (node is BaseMethodDeclarationSyntax { ExpressionBody: null, Body: null, ParameterList: { IsMissing: false }, SemicolonToken: { IsMissing: true } } baseMethodNode
+                && !WithinAttributeLists(node, caretPosition)
+                && !WithinMethodBody(node, caretPosition))
             {
                 // Make sure we don't insert braces for method in Interface.
                 return !baseMethodNode.IsParentKind(SyntaxKind.InterfaceDeclaration);
@@ -964,7 +988,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return true;
             }
 
-            if (node is AccessorDeclarationSyntax {Body: null, ExpressionBody: null, SemicolonToken: {IsMissing: true}})
+            if (node is AccessorDeclarationSyntax { Body: null, ExpressionBody: null, SemicolonToken: { IsMissing: true } })
             {
                 return true;
             }
@@ -983,40 +1007,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return true;
             }
 
-            if (node is SwitchStatementSyntax
-                {
-                    OpenParenToken: { IsMissing: false },
-                    CloseParenToken: { IsMissing: false },
-                    OpenBraceToken: { IsMissing: true}
-                } switchStatementNode
+            if (node is SwitchStatementSyntax { OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false }, OpenBraceToken: { IsMissing: true } } switchStatementNode
                 && !WithinBraces(switchStatementNode, caretPosition))
             {
                 return true;
             }
 
-            if (node is TryStatementSyntax
-                {
-                    TryKeyword: {IsMissing: false},
-                    Block: {OpenBraceToken: {IsMissing: true}}
-                } tryStatementNode
+            if (node is TryStatementSyntax { TryKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } tryStatementNode
                 && !tryStatementNode.Block.Span.Contains(caretPosition))
             {
                 return true;
             }
 
-            if (node is CatchClauseSyntax
-                {
-                    CatchKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true }}
-                } catchClauseNode
+            if (node is CatchClauseSyntax { CatchKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } catchClauseNode
                 && !catchClauseNode.Block.Span.Contains(caretPosition))
             {
                 return true;
             }
 
-            if (node is FinallyClauseSyntax
-                {
-                    FinallyKeyword: {IsMissing: false}, Block: {OpenBraceToken: {IsMissing: true}}
-                } finallyClauseNode
+            if (node is FinallyClauseSyntax { FinallyKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } finallyClauseNode
                 && !finallyClauseNode.Block.Span.Contains(caretPosition))
             {
                 return true;
@@ -1030,19 +1039,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return true;
             }
 
-            if (node is CommonForEachStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is CommonForEachStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
             }
 
-            if (node is ForStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is ForStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
             }
 
-            if (node is IfStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is IfStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
@@ -1072,19 +1081,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 }
             }
 
-            if (node is LockStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is LockStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
             }
 
-            if (node is UsingStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is UsingStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
             }
 
-            if (node is WhileStatementSyntax {Statement: not BlockSyntax, OpenParenToken: {IsMissing: false}, CloseParenToken: {IsMissing: false}}
+            if (node is WhileStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
                 && !WithinEmbeddedStatement(node, caretPosition))
             {
                 return true;
@@ -1101,13 +1110,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return false;
             }
 
+            // Make sure it has brackets
             var (openBracket, closeBracket) = indexerNode.ParameterList.GetBrackets();
             if (openBracket.IsMissing || closeBracket.IsMissing)
             {
                 return false;
             }
 
-            // 1. If there is no AccessorList and Expression Body.
+            // If both accessorList and body is empty
             if ((indexerNode.AccessorList == null || indexerNode.AccessorList.IsMissing)
                 && indexerNode.ExpressionBody == null)
             {
