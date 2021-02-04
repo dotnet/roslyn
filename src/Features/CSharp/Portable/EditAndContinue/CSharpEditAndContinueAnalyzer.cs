@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
-                if (isBody || StatementSyntaxComparer.Default.HasLabel(node))
+                if (isBody || TopSyntaxComparer.Statement.HasLabel(node))
                 {
                     switch (node.Kind())
                     {
@@ -593,10 +593,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 RoslynDebug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
                 RoslynDebug.Assert(newBody.Parent is object);
 
-                return StatementSyntaxComparer.Default.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                return TopSyntaxComparer.Statement.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
-            return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches);
+            return TopSyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
         }
 
         protected override bool TryMatchActiveStatement(
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-            => StatementSyntaxComparer.Default.GetLabel(node1) == StatementSyntaxComparer.Default.GetLabel(node2);
+            => TopSyntaxComparer.Statement.GetLabel(node1) == TopSyntaxComparer.Statement.GetLabel(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
             => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
