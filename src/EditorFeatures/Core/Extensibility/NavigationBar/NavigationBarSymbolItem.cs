@@ -9,26 +9,4 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-
-    internal class NavigationBarSymbolItem : RoslynNavigationBarItem
-    {
-        public SymbolKey NavigationSymbolId { get; }
-        public int? NavigationSymbolIndex { get; }
-
-        public NavigationBarSymbolItem(
-            string text,
-            Glyph glyph,
-            IList<TextSpan> spans,
-            SymbolKey navigationSymbolId,
-            int? navigationSymbolIndex,
-            IList<NavigationBarItem> childItems = null,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-            : base(RoslynNavigationBarItemKind.Symbol, text, glyph, spans, childItems, indent, bolded, grayed)
-        {
-            this.NavigationSymbolId = navigationSymbolId;
-            this.NavigationSymbolIndex = navigationSymbolIndex;
-        }
-    }
 }

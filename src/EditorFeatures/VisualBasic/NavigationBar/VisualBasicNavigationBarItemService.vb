@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim members = Aggregate member In type.GetMembers()
                           Where member.IsShared AndAlso member.Kind = SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(New NavigationBarSymbolItem(
+                          Select DirectCast(RoslynNavigationBarItem.CreateSymbolItem(
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey())), NavigationBarItem)
                           Into ToList()
 
-            Return New NavigationBarSymbolItem(
+            Return RoslynNavigationBarItem.CreateSymbolItem(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Return New NavigationBarSymbolItem(
+            Return RoslynNavigationBarItem.CreateSymbolItem(
                 name,
                 type.GetGlyph(),
                 indent:=0,
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey()
 
                     rightHandMemberItems.Add(
-                        New NavigationBarSymbolItem(
+                        RoslynNavigationBarItem.CreateSymbolItem(
                             e.Name,
                             e.GetGlyph(),
                             methodSpans,
@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Dim method = TryCast(member, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
-                    items.Add(New NavigationBarSymbolItem(
+                    items.Add(RoslynNavigationBarItem.CreateSymbolItem(
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
@@ -440,14 +440,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         member.GetSymbolKey()))
                     End If
                 Else
-                    items.Add(New NavigationBarSymbolItem(
-                    member.ToDisplayString(displayFormat),
-                    member.GetGlyph(),
-                    spans,
-                    member.GetSymbolKey(),
-                    symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
-                    bolded:=spans.Count > 0,
-                    grayed:=spans.Count = 0))
+                    items.Add(RoslynNavigationBarItem.CreateSymbolItem(
+                        member.ToDisplayString(displayFormat),
+                        member.GetGlyph(),
+                        spans,
+                        member.GetSymbolKey(),
+                        symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
+                        bolded:=spans.Count > 0,
+                        grayed:=spans.Count = 0))
                 End If
             Next
 
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As NavigationBarSymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem.SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim symbols = item.NavigationSymbolId.Resolve(compilation)
             Dim symbol = symbols.Symbol
@@ -508,8 +508,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If generateCodeItem IsNot Nothing Then
                 GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
-            ElseIf TypeOf item Is NavigationBarSymbolItem Then
-                NavigateToSymbolItem(document, DirectCast(item, NavigationBarSymbolItem), cancellationToken)
+            ElseIf TypeOf item Is RoslynNavigationBarItem.SymbolItem Then
+                NavigateToSymbolItem(document, DirectCast(item, RoslynNavigationBarItem.SymbolItem), cancellationToken)
             End If
         End Sub
 
