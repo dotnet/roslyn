@@ -54,6 +54,7 @@
   <PropertyGroup>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile> <!-- Enable deterministic restore -->
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation> <!-- Enable faster restore times -->
+    <RestoreLockedMode Condition="'$(OfficialBuild)' == 'true'">true</RestoreLockedMode>
   </PropertyGroup>
 
   <!-- 
