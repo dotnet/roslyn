@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             Document document, RoslynNavigationBarItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var symbolNavigationService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
 
-            var symbolInfo = item.NavigationSymbolId.Value.Resolve(document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+            var symbolInfo = item.NavigationSymbolId!.Value.Resolve(document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             var symbol = symbolInfo.GetAnySymbol();
 
             // Do not allow third party navigation to types or constructors
@@ -61,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
         {
-            var documentToNavigate = solution.GetDocument(navigationPoint.Tree);
+            var documentToNavigate = solution.GetRequiredDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
             {
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
             else
             {
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }
         }

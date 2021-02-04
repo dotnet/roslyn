@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -30,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             Document document, RoslynNavigationBarItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId.Value.Resolve(compilation, cancellationToken: cancellationToken);
+            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = item.NavigationSymbolId!.Value.Resolve(compilation, cancellationToken: cancellationToken);
 
             var symbol = symbols.Symbol;
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
 
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(syntaxTree));
+            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree!.Equals(syntaxTree));
 
             if (location == null)
             {
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 return null;
             }
 
-            return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
+            return new VirtualTreePoint(location.SourceTree!, location.SourceTree!.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
         protected override void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
