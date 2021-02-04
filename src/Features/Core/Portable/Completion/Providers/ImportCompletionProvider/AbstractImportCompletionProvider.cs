@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // This only formats the annotated import we just added, not the entire document.
             var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var builder = ArrayBuilder<TextChange>.GetInstance();
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
             // Get text change for add import
             var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
@@ -171,8 +171,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-            var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
-            return CompletionChange.Create(change);
+
+            var changes = builder.ToImmutable();
+            var change = Utilities.Collapse(newText, changes);
+            return CompletionChange.Create(change, changes);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

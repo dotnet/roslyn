@@ -4,11 +4,9 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
+namespace Microsoft.CodeAnalysis.Editor.Shared
 {
     internal static class BrowserHelper
     {
@@ -100,16 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             var strUri = uri.ToString();
 
             var resourceName = strUri.StartsWith(BingGetApiUrl, StringComparison.Ordinal) ?
-                ServicesVSResources.Get_help_for_0_from_Bing : ServicesVSResources.Get_help_for_0;
+                EditorFeaturesResources.Get_help_for_0_from_Bing : EditorFeaturesResources.Get_help_for_0;
 
             // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             return string.Format(resourceName, diagnosticId) + "\r\n" + strUri;
         }
-
-        public static void StartBrowser(string uri)
-            => VsShellUtilities.OpenSystemBrowser(uri);
-
-        public static void StartBrowser(Uri uri)
-            => VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
     }
 }

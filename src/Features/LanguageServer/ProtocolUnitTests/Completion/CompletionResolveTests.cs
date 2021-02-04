@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
             var completionParams = CreateCompletionParams(locations["caret"].Single(), "\0", LSP.CompletionTriggerKind.Invoked);
 
@@ -41,13 +41,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var expected = CreateResolvedCompletionItem(
                 "A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null, CompletionRules.Default.DefaultCommitCharacters);
 
-            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(testLspServer, completionItem, clientCapabilities);
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<object> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
+        private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(queue, LSP.Methods.TextDocumentCompletionResolveName,
                            completionItem, clientCapabilities, null, CancellationToken.None);
         }
 
