@@ -1339,18 +1339,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, ManagedKind managedKind, Location location, DiagnosticBag diagnostics)
         {
-            switch (managedKind)
+            switch (managedKind & (ManagedKind.Managed | ManagedKind.Unmanaged | ManagedKind.WithGenerics))
             {
                 case ManagedKind.Managed:
                     diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
                     return true;
-                case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
+                case (ManagedKind.Unmanaged | ManagedKind.WithGenerics) when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
                     diagnostics.Add(diagnosticInfo, location);
                     return true;
-                case ManagedKind.Unknown:
-                    throw ExceptionUtilities.UnexpectedValue(managedKind);
-                default:
+                case ManagedKind.Unmanaged:
                     return false;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(managedKind);
             }
         }
 #nullable disable

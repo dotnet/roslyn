@@ -3215,14 +3215,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // PROTOTYPE: What about cyclic fields?
-            switch (type.ManagedKindNoUseSiteDiagnostics)
+            var managedKind = type.ManagedKindNoUseSiteDiagnostics;
+            if ((managedKind & ManagedKind.Unmanaged) != 0)
             {
-                case ManagedKind.Unmanaged:
-                    return true;
-                case ManagedKind.UnmanagedWithGenerics:
-                    // Type containing Nullable<> should be considered not empty.
-                    return type.VisitType(static (type, arg, _) => type.OriginalDefinition.IsNullableType(), (object?)null, canDigThroughNullable: true) is null;
+                // Type containing Nullable<> should be considered not empty.
+                return (managedKind & ManagedKind.WithNullableOfT) == 0;
             }
 
             // EmptyStructTypeCache.IsEmptyStructType() returns false

@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We current pack everything into one 32-bit int; layout is given below.
             //
-            // |               |vvv|zzzz|f|d|yy|wwwwww|
+            // |             |vvv|zzzz|f|d|yyyy|wwwwww|
             //
             // w = special type.  6 bits.
-            // y = IsManagedType.  2 bits.
+            // y = IsManagedType.  4 bits. // PROTOTYPE: Shouldn't require 4 bits.
             // d = FieldDefinitionsNoted. 1 bit
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int SpecialTypeSize = 6;
 
             private const int ManagedKindOffset = SpecialTypeOffset + SpecialTypeSize;
-            private const int ManagedKindSize = 2;
+            private const int ManagedKindSize = 4;
 
             private const int FieldDefinitionsNotedOffset = ManagedKindOffset + ManagedKindSize;
             private const int FieldDefinitionsNotedSize = 1;

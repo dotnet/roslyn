@@ -2632,7 +2632,7 @@ class C
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedTypeNoUseSiteDiagnostics));
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetField("f16").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2719,7 +2719,7 @@ struct R<T>
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
             Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKindNoUseSiteDiagnostics);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
@@ -2749,9 +2749,9 @@ struct S<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKindNoUseSiteDiagnostics);
             Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
 
             // these are managed due to S`1.R being ErrorType due to protection level (CS0169)
             Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedTypeNoUseSiteDiagnostics);
@@ -2760,9 +2760,9 @@ struct S<T>
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKindNoUseSiteDiagnostics);
 
             Assert.False(type.GetMember<FieldSymbol>("f5").Type.IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKindNoUseSiteDiagnostics);
             Assert.False(type.GetMember<FieldSymbol>("f6").Type.IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2785,7 +2785,7 @@ struct S<T>
             Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedTypeNoUseSiteDiagnostics);
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.ManagedKindNoUseSiteDiagnostics);
             Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3004,7 +3004,7 @@ struct W<T> { X<W<W<T>>> x; }
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedTypeNoUseSiteDiagnostics); // because of X.t
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedTypeNoUseSiteDiagnostics);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKindNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged | ManagedKind.WithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]

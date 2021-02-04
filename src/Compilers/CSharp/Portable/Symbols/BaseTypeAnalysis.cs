@@ -122,14 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static ManagedKind GetManagedKind(NamedTypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var (isManaged, hasGenerics) = IsManagedTypeHelper(type);
+            bool hasNullableOfT = false;
             var definitelyManaged = isManaged == ThreeState.True;
             if (isManaged == ThreeState.Unknown)
             {
+                hasNullableOfT = type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
                 // Otherwise, we have to build and inspect the closure of depended-upon types.
                 var hs = PooledHashSet<Symbol>.GetInstance();
                 var result = DependsOnDefinitelyManagedType(type, hs, ref useSiteDiagnostics);
                 definitelyManaged = result.definitelyManaged;
                 hasGenerics = hasGenerics || result.hasGenerics;
+                hasNullableOfT = hasNullableOfT || result.hasNullableOfT;
                 hs.Free();
             }
 
@@ -137,14 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ManagedKind.Managed;
             }
-            else if (hasGenerics)
+
+            var kind = ManagedKind.Unmanaged;
+            if (hasGenerics)
             {
-                return ManagedKind.UnmanagedWithGenerics;
+                kind |= ManagedKind.WithGenerics;
             }
-            else
+            if (hasNullableOfT)
             {
-                return ManagedKind.Unmanaged;
+                kind |= ManagedKind.WithNullableOfT;
             }
+            return kind;
         }
 
         // NOTE: If we do not check HasPointerType, we will unconditionally
@@ -153,11 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
             field.HasPointerType ? null : field.Type;
 
-        private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static (bool definitelyManaged, bool hasGenerics, bool hasNullableOfT) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)type != null);
 
-            var hasGenerics = false;
+            bool hasGenerics = false;
+            bool hasNullableOfT = false;
             if (partialClosure.Add(type))
             {
                 foreach (var member in type.GetInstanceFieldsAndEvents())
@@ -196,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (fieldType.IsManagedType(ref useSiteDiagnostics))
                         {
-                            return (true, hasGenerics);
+                            return (true, hasGenerics, hasNullableOfT);
                         }
                     }
                     else
@@ -208,19 +215,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         switch (result.isManaged)
                         {
                             case ThreeState.True:
-                                return (true, hasGenerics);
+                                return (true, hasGenerics, hasNullableOfT);
 
                             case ThreeState.False:
                                 continue;
 
                             case ThreeState.Unknown:
-                                if (!fieldNamedType.OriginalDefinition.KnownCircularStruct)
+                                var originalDefinition = fieldNamedType.OriginalDefinition;
+                                if (originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                                 {
-                                    var (definitelyManaged, childHasGenerics) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteDiagnostics);
+                                    hasNullableOfT = true;
+                                }
+                                if (!originalDefinition.KnownCircularStruct)
+                                {
+                                    var (definitelyManaged, childHasGenerics, childHasNullableOfT) = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, ref useSiteDiagnostics);
                                     hasGenerics = hasGenerics || childHasGenerics;
+                                    hasNullableOfT = hasNullableOfT || childHasNullableOfT;
                                     if (definitelyManaged)
                                     {
-                                        return (true, hasGenerics);
+                                        return (true, hasGenerics, hasNullableOfT);
                                     }
                                 }
                                 continue;
@@ -229,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return (false, hasGenerics);
+            return (false, hasGenerics, hasNullableOfT);
         }
 
         /// <summary>

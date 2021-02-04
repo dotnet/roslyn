@@ -946,7 +946,7 @@ hasRelatedInterfaces:
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type)));
                     return false;
                 }
-                else if (managedKind == ManagedKind.UnmanagedWithGenerics)
+                else if ((managedKind & (ManagedKind.Unmanaged | ManagedKind.WithGenerics)) == (ManagedKind.Unmanaged | ManagedKind.WithGenerics))
                 {
                     // When there is no compilation, we are being invoked through the API IMethodSymbol.ReduceExtensionMethod(...).
                     // In that case we consider the unmanaged constraint to be satisfied as if we were compiling with the latest

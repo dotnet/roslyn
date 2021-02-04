@@ -914,10 +914,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
                 // in reporting managed types being used
-                switch (type.ManagedKindNoUseSiteDiagnostics)
+                switch (type.ManagedKindNoUseSiteDiagnostics & (ManagedKind.Managed | ManagedKind.Unmanaged))
                 {
                     case ManagedKind.Unmanaged:
-                    case ManagedKind.UnmanagedWithGenerics:
                         // Note that this will let through some things that are technically unmanaged, but not
                         // actually blittable. However, we don't have a formal concept of blittable in C#
                         // itself, so checking for purely unmanaged types is the best we can do here.
