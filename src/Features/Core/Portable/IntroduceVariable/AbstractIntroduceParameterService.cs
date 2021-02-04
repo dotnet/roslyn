@@ -58,17 +58,27 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return null;
             }
 
-            var expression = syntaxFacts.GetExpressionOfExpressionStatement(Expression);
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (type == null ||
-                type.SpecialType == SpecialType.System_Void)
+            var expressionType = semanticDocument.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
+            if (expressionType is IErrorTypeSymbol)
             {
                 return null;
             }
 
-            if (expression != null)
+            var containingType = Expression.AncestorsAndSelf()
+                .Select(n => semanticDocument.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
+                .OfType<INamedTypeSymbol>()
+                .FirstOrDefault();
+
+            containingType ??= semanticDocument.SemanticModel.Compilation.ScriptClass;
+
+            if (containingType == null || containingType.TypeKind == TypeKind.Interface)
+            {
+                return null;
+            }
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            if (Expression != null)
             {
                 var (title, actions) = AddActions(semanticDocument, cancellationToken);
 
@@ -109,19 +119,56 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (FeaturesResources.Introduce_parameter, actionsBuilder.ToImmutable());
         }
 
+        protected static ITypeSymbol GetTypeSymbol(
+            SemanticDocument document,
+            TExpressionSyntax expression,
+            CancellationToken cancellationToken,
+            bool objectAsDefault = true)
+        {
+            var semanticModel = document.SemanticModel;
+            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
+            if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
+                typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() == true)
+            {
+                return typeInfo.ConvertedType;
+            }
+
+            if (typeInfo.Type != null)
+            {
+                return typeInfo.Type;
+            }
+
+            if (typeInfo.ConvertedType != null)
+            {
+                return typeInfo.ConvertedType;
+            }
+
+            if (objectAsDefault)
+            {
+                return semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+            }
+
+            return null;
+        }
 
         private bool IsInBlockContext(SemanticDocument semanticDocument,
                 CancellationToken cancellationToken)
         {
-           /* if (!IsInTypeDeclarationOrValidCompilationUnit())
-            {
-                return false;
-            }*/
+            /* if (!IsInTypeDeclarationOrValidCompilationUnit())
+             {
+                 return false;
+             }*/
 
             // If refer to a query property, then we use the query context instead.
             var bindingMap = GetSemanticMap(semanticDocument, cancellationToken);
             if (bindingMap.AllReferencedSymbols.Any(s => s is IRangeVariableSymbol))
+            {
+                return false;
+            }
+
+            var type = GetTypeSymbol(semanticDocument, Expression, cancellationToken, objectAsDefault: false);
+            if (type == null || type.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
