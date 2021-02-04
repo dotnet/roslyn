@@ -812,27 +812,6 @@ class C1
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
-        public async Task TestOpenProject_AssemblyNameIsPath()
-        {
-            // prove that even if assembly name is specified as a path instead of just a name, workspace still succeeds at opening project.
-            CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.AssemblyNameIsPath));
-
-            var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
-
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-                var project = solution.Projects.First();
-                var comp = await project.GetCompilationAsync();
-                Assert.Equal("ReproApp", comp.AssemblyName);
-                var expectedOutputPath = Path.GetDirectoryName(project.FilePath);
-                Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
-            }
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath2()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
