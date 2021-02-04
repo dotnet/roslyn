@@ -1290,7 +1290,7 @@ class C1
             Assert.Empty(project.AllProjectReferences);
 
             var metaRefs = project.MetadataReferences.ToList();
-            Assert.Contains(metaRefs, r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll"));
+            Assert.Contains(metaRefs, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1312,7 +1312,7 @@ class C1
             Assert.Single(project.Solution.ProjectIds);
             Assert.Empty(project.ProjectReferences);
             Assert.Empty(project.AllProjectReferences);
-            Assert.Contains(project.MetadataReferences, r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll"));
+            Assert.Contains(project.MetadataReferences, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1358,7 +1358,7 @@ class C1
             var projRefs = project.ProjectReferences.ToList();
             var metaRefs = project.MetadataReferences.ToList();
             Assert.Empty(projRefs);
-            Assert.Contains(metaRefs, r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll"));
+            Assert.Contains(metaRefs, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1399,7 +1399,7 @@ class C1
 
             // prove vb project references c# project as a metadata reference
             Assert.Empty(vbProject.ProjectReferences);
-            Assert.Contains(vbProject.MetadataReferences, r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll"));
+            Assert.Contains(vbProject.MetadataReferences, r => r is PortableExecutableReference reference && reference.Display.Contains("CSharpProject.dll"));
 
             // now explicitly open the c# project that got referenced as metadata
             var csProject = await workspace.OpenProjectAsync(csProjectFilePath);
