@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 }
 
                 items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-                return items.ToImmutableAndFree();
+                return items.ToImmutable();
             }
         }
 

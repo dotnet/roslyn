@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,15 +11,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteNavigationBarItemSearchService : BrokeredServiceBase, IRemoteNavigationBarItemService
+    internal sealed class RemoteNavigationBarItemService : BrokeredServiceBase, IRemoteNavigationBarItemService
     {
         internal sealed class Factory : FactoryBase<IRemoteNavigationBarItemService>
         {
             protected override IRemoteNavigationBarItemService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteNavigationBarItemSearchService(arguments);
+                => new RemoteNavigationBarItemService(arguments);
         }
 
-        public RemoteNavigationBarItemSearchService(in ServiceConstructionArguments arguments)
+        public RemoteNavigationBarItemService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
         }
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetRequiredDocument(documentId);
                 var navigationBarService = (AbstractNavigationBarItemService)document.GetRequiredLanguageService<INavigationBarItemService>();
                 var result = await navigationBarService.GetItemsInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
 
