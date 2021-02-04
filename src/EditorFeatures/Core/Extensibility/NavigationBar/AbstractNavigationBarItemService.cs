@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     internal abstract class AbstractNavigationBarItemService : INavigationBarItemService
     {
         public abstract Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
-        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.Symbol item, CancellationToken cancellationToken);
+        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
         protected abstract void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
             => NavigateToItem(document, (RoslynNavigationBarItem)item, textView, cancellationToken);
 
         public void NavigateToSymbolItem(
-            Document document, RoslynNavigationBarItem.Symbol item, CancellationToken cancellationToken)
+            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 

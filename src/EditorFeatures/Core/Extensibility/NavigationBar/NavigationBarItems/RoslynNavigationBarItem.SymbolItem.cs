@@ -9,12 +9,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class Symbol : RoslynNavigationBarItem
+        public class SymbolItem : RoslynNavigationBarItem
         {
             public SymbolKey NavigationSymbolId { get; }
             public int? NavigationSymbolIndex { get; }
 
-            public Symbol(
+            public SymbolItem(
                 string text,
                 Glyph glyph,
                 IList<TextSpan> spans,

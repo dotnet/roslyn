@@ -2,10 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -15,6 +18,8 @@ Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,6 +30,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
+
+        Private Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
         Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance)
@@ -60,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             For Each typeAndDeclaration In typesAndDeclarations
                 Dim type = typeAndDeclaration.Item1
                 Dim position = typeAndDeclaration.Item2.SpanStart
-                typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey()), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey(cancellationToken)), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             Next
 
             Return typeItems
@@ -170,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim members = Aggregate member In type.GetMembers()
                           Where member.IsShared AndAlso member.Kind = SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(New RoslynNavigationBarItem.Symbol(
+                          Select DirectCast(New SymbolItem(
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
@@ -178,11 +185,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey())), NavigationBarItem)
                           Into ToList()
 
-            Return New RoslynNavigationBarItem.Symbol(
+            Return New SymbolItem(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
-                type.GetSymbolKey(),
+                type.GetSymbolKey(cancellationToken),
                 typeSymbolIdIndex,
                 members,
                 bolded:=True)
@@ -203,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New RoslynNavigationBarItem.GenerateDefaultConstructor(VBEditorResources.New_, type.GetSymbolKey()))
+                    childItems.Add(New GenerateDefaultConstructor(VBEditorResources.New_, type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -216,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If Not finalizeMethods.Any() Then
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New RoslynNavigationBarItem.GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey()))
+                    childItems.Add(New GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -241,12 +248,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Return New RoslynNavigationBarItem.Symbol(
+            Return New SymbolItem(
                 name,
                 type.GetGlyph(),
                 indent:=0,
                 spans:=GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
-                navigationSymbolId:=type.GetSymbolKey(),
+                navigationSymbolId:=type.GetSymbolKey(cancellationToken),
                 navigationSymbolIndex:=typeSymbolIdIndex,
                 childItems:=childItems,
                 bolded:=True)
@@ -335,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey()
 
                     rightHandMemberItems.Add(
-                        New RoslynNavigationBarItem.Symbol(
+                        New SymbolItem(
                             e.Name,
                             e.GetGlyph(),
                             methodSpans,
@@ -350,9 +357,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                        e.Type.IsDelegateType() AndAlso
                        DirectCast(e.Type, INamedTypeSymbol).DelegateInvokeMethod IsNot Nothing Then
 
-                        Dim eventContainerName = If(eventContainer IsNot Nothing,
-                                                    eventContainer.Name,
-                                                    Nothing)
+                        Dim eventContainerName = eventContainer?.Name
 
                         rightHandMemberItems.Add(
                             New GenerateEventHandler(
@@ -424,29 +429,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Dim method = TryCast(member, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
-                    items.Add(New RoslynNavigationBarItem.Symbol(
+                    items.Add(New SymbolItem(
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
-                        method.GetSymbolKey(),
-                        symbolIdIndexProvider.GetIndexForSymbolId(method.GetSymbolKey()),
+                        method.GetSymbolKey(cancellationToken),
+                        symbolIdIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(cancellationToken)),
                         bolded:=spans.Count > 0,
                         grayed:=spans.Count = 0))
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
-                        items.Add(New RoslynNavigationBarItem.GenerateMethod(
+                        items.Add(New GenerateMethod(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
-                        member.ContainingType.GetSymbolKey(),
-                        member.GetSymbolKey()))
+                        member.ContainingType.GetSymbolKey(cancellationToken),
+                        member.GetSymbolKey(cancellationToken)))
                     End If
                 Else
-                    items.Add(New RoslynNavigationBarItem.Symbol(
+                    items.Add(New SymbolItem(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         spans,
-                        member.GetSymbolKey(),
-                        symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
+                        member.GetSymbolKey(cancellationToken),
+                        symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken)),
                         bolded:=spans.Count > 0,
                         grayed:=spans.Count = 0))
                 End If
@@ -463,9 +468,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem.Symbol, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim symbols = item.NavigationSymbolId.Resolve(compilation)
+            Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
             Dim symbol = symbols.Symbol
 
             If symbol Is Nothing Then
@@ -509,17 +514,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If generateCodeItem IsNot Nothing Then
                 GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
-            ElseIf TypeOf item Is RoslynNavigationBarItem.Symbol Then
-                NavigateToSymbolItem(document, DirectCast(item, RoslynNavigationBarItem.Symbol), cancellationToken)
+            ElseIf TypeOf item Is SymbolItem Then
+                NavigateToSymbolItem(document, DirectCast(item, SymbolItem), cancellationToken)
             End If
         End Sub
 
-        Private Sub GenerateCodeForItem(document As Document, generateCodeItem As RoslynNavigationBarItem.AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
+        Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
             ' We'll compute everything up front before we go mutate state
             Dim text = document.GetTextSynchronously(cancellationToken)
-            Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim newDocument = GetGeneratedDocumentAsync(document, generateCodeItem, cancellationToken).WaitAndGetResult(cancellationToken)
             Dim generatedTree = newDocument.GetSyntaxRootSynchronously(cancellationToken)
-            Dim generatedNode = generatedTree.GetAnnotatedNodes(AbstractGenerateCodeItem.GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
+            Dim generatedNode = generatedTree.GetAnnotatedNodes(GeneratedSymbolAnnotation).Single().FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
             Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim indentSize = documentOptions.GetOption(FormattingOptions.IndentationSize)
             Dim navigationPoint = NavigationPointHelpers.GetNavigationPoint(generatedTree.GetText(text.Encoding), indentSize, generatedNode)
@@ -532,5 +537,195 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 transaction.Complete()
             End Using
         End Sub
+
+        Private Async Function GetGeneratedDocumentAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim contextLocation = syntaxTree.GetLocation(New TextSpan(0, 0))
+            Dim codeGenerationOptions As New CodeGenerationOptions(contextLocation, generateMethodBodies:=True)
+
+            Dim newDocument = Await GetGeneratedDocumentCoreAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken).ConfigureAwait(False)
+            If newDocument Is Nothing Then
+                Return document
+            End If
+
+            newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, Nothing, cancellationToken).WaitAndGetResult(cancellationToken)
+
+            Dim formatterRules = Formatter.GetDefaultFormattingRules(newDocument)
+            If ShouldApplyLineAdjustmentFormattingRule(generateCodeItem) Then
+                formatterRules = LineAdjustmentFormattingRule.Instance.Concat(formatterRules)
+            End If
+
+            Dim documentOptions = Await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Return Formatter.FormatAsync(newDocument,
+                                         Formatter.Annotation,
+                                         options:=documentOptions,
+                                         cancellationToken:=cancellationToken,
+                                         rules:=formatterRules).WaitAndGetResult(cancellationToken)
+        End Function
+
+        Private Shared Function ShouldApplyLineAdjustmentFormattingRule(generateCodeItem As AbstractGenerateCodeItem) As Boolean
+            Return generateCodeItem.Kind <> RoslynNavigationBarItemKind.GenerateFinalizer
+        End Function
+
+        Private Function GetGeneratedDocumentCoreAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+            Select Case generateCodeItem.Kind
+                Case RoslynNavigationBarItemKind.GenerateDefaultConstructor
+                    Return GenerateDefaultConstructorAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken)
+
+                Case RoslynNavigationBarItemKind.GenerateEventHandler
+                    Return GenerateEventHandlerAsync(document, DirectCast(generateCodeItem, GenerateEventHandler), codeGenerationOptions, cancellationToken)
+
+                Case RoslynNavigationBarItemKind.GenerateFinalizer
+                    Return GenerateFinalizerAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken)
+
+                Case RoslynNavigationBarItemKind.GenerateMethod
+                    Return GenerateMethodAsync(document, DirectCast(generateCodeItem, GenerateMethod), codeGenerationOptions, cancellationToken)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(generateCodeItem.Kind)
+            End Select
+        End Function
+
+        Private Shared Async Function GenerateDefaultConstructorAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+
+            If destinationType Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim statements As New ArrayBuilder(Of SyntaxNode)
+
+            If destinationType.IsDesignerGeneratedTypeWithInitializeComponent(compilation) Then
+                Dim statement = SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName("InitializeComponent"), SyntaxFactory.ArgumentList()))
+                Dim endOfLineTrivia = SyntaxFactory.EndOfLineTrivia(vbCrLf)
+
+                ' When sticking on the comments, we don't want the ' in the localized string
+                ' lest we try localizing the comment character itself
+                statement = statement.WithLeadingTrivia(endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.This_call_is_required_by_the_designer), endOfLineTrivia)
+                statement = statement.WithTrailingTrivia(endOfLineTrivia, endOfLineTrivia, SyntaxFactory.CommentTrivia("' " & VBEditorResources.Add_any_initialization_after_the_InitializeComponent_call), endOfLineTrivia, endOfLineTrivia)
+                statements.Add(statement)
+            End If
+
+            Dim methodSymbol = CodeGenerationSymbolFactory.CreateConstructorSymbol(
+                attributes:=Nothing,
+                accessibility:=Accessibility.Public,
+                modifiers:=New DeclarationModifiers(),
+                typeName:=destinationType.Name,
+                parameters:=ImmutableArray(Of IParameterSymbol).Empty,
+                statements:=statements.ToImmutableAndFree())
+            methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
+
+            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
+                                                                 destinationType,
+                                                                 methodSymbol,
+                                                                 codeGenerationOptions,
+                                                                 cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function GenerateEventHandlerAsync(document As Document, generateCodeItem As GenerateEventHandler, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim eventSymbol = TryCast(generateCodeItem.EventSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), IEventSymbol)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).GetAnySymbol(), INamedTypeSymbol)
+
+            If eventSymbol Is Nothing OrElse destinationType Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim delegateInvokeMethod = DirectCast(eventSymbol.Type, INamedTypeSymbol).DelegateInvokeMethod
+
+            If delegateInvokeMethod Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim containerSyntax As ExpressionSyntax
+            Dim methodName As String
+
+            If generateCodeItem.ContainerName IsNot Nothing Then
+                containerSyntax = SyntaxFactory.IdentifierName(generateCodeItem.ContainerName)
+                methodName = generateCodeItem.ContainerName + "_" + eventSymbol.Name
+            Else
+                containerSyntax = SyntaxFactory.KeywordEventContainer(SyntaxFactory.Token(SyntaxKind.MeKeyword))
+                methodName = destinationType.Name + "_" + eventSymbol.Name
+            End If
+
+            Dim handlesSyntax = SyntaxFactory.SimpleMemberAccessExpression(containerSyntax, SyntaxFactory.Token(SyntaxKind.DotToken), eventSymbol.Name.ToIdentifierName())
+
+            Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                attributes:=Nothing,
+                accessibility:=Accessibility.Private,
+                modifiers:=New DeclarationModifiers(),
+                returnType:=delegateInvokeMethod.ReturnType,
+                refKind:=delegateInvokeMethod.RefKind,
+                explicitInterfaceImplementations:=Nothing,
+                name:=methodName,
+                typeParameters:=Nothing,
+                parameters:=delegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType).Parameters,
+                handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
+            methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
+
+            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
+                                                                 destinationType,
+                                                                 methodSymbol,
+                                                                 codeGenerationOptions,
+                                                                 cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function GenerateFinalizerAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+
+            If destinationType Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim syntaxFactory = document.GetLanguageService(Of SyntaxGenerator)()
+            Dim finalizeCall =
+                syntaxFactory.ExpressionStatement(
+                    syntaxFactory.InvocationExpression(
+                        syntaxFactory.MemberAccessExpression(
+                            syntaxFactory.BaseExpression(),
+                            syntaxFactory.IdentifierName(WellKnownMemberNames.DestructorName))))
+
+            Dim finalizerMethodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                attributes:=Nothing,
+                accessibility:=Accessibility.Protected,
+                modifiers:=New DeclarationModifiers(isOverride:=True),
+                returnType:=compilation.GetSpecialType(SpecialType.System_Void),
+                refKind:=RefKind.None,
+                explicitInterfaceImplementations:=Nothing,
+                name:=WellKnownMemberNames.DestructorName,
+                typeParameters:=Nothing,
+                parameters:=ImmutableArray(Of IParameterSymbol).Empty,
+                statements:=ImmutableArray.Create(finalizeCall))
+
+            finalizerMethodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(finalizerMethodSymbol)
+
+            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
+                                                                 destinationType,
+                                                                 finalizerMethodSymbol,
+                                                                 codeGenerationOptions,
+                                                                 cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Private Shared Async Function GenerateMethodAsync(document As Document, generateCodeItem As GenerateMethod, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
+            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim destinationType = TryCast(generateCodeItem.DestinationTypeSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
+            Dim methodToReplicate = TryCast(generateCodeItem.MethodToReplicateSymbolKey.Resolve(compilation, cancellationToken:=cancellationToken).Symbol, IMethodSymbol)
+
+            If destinationType Is Nothing OrElse methodToReplicate Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim codeGenerationSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(
+                CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodToReplicate.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType)))
+
+            Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
+                                                                 destinationType,
+                                                                 codeGenerationSymbol,
+                                                                 codeGenerationOptions,
+                                                                 cancellationToken).ConfigureAwait(False)
+        End Function
     End Class
 End Namespace

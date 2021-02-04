@@ -11,14 +11,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     {
         public abstract class AbstractGenerateCodeItem : RoslynNavigationBarItem
         {
-            public static readonly SyntaxAnnotation GeneratedSymbolAnnotation = new();
-
-            protected readonly SymbolKey _destinationTypeSymbolKey;
+            public readonly SymbolKey DestinationTypeSymbolKey;
 
             protected AbstractGenerateCodeItem(RoslynNavigationBarItemKind kind, string text, Glyph glyph, SymbolKey destinationTypeSymbolKey)
                 : base(kind, text, glyph, SpecializedCollections.EmptyList<TextSpan>())
             {
-                _destinationTypeSymbolKey = destinationTypeSymbolKey;
+                DestinationTypeSymbolKey = destinationTypeSymbolKey;
             }
         }
     }
