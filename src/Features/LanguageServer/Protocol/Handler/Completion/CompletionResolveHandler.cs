@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = completionItem.Detail,
                 Documentation = completionItem.Documentation,
                 FilterText = completionItem.FilterText,
+                Icon = completionItem is LSP.VSCompletionItem vsCompletionItem ? vsCompletionItem.Icon : null,
                 InsertText = completionItem.InsertText,
                 InsertTextFormat = completionItem.InsertTextFormat,
                 Kind = completionItem.Kind,
