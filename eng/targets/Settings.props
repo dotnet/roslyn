@@ -50,6 +50,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- Nuget Settings -->  
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile> <!-- Enable deterministic restore -->
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation> <!-- Enable faster restore times -->
+  </PropertyGroup>
+
   <!-- 
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
     The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
