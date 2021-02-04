@@ -30,6 +30,5 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 this.NavigationSymbolIndex = navigationSymbolIndex;
             }
         }
-
     }
 }
