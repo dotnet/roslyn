@@ -2254,7 +2254,7 @@ class C1
 
                 var proj = await workspace.OpenProjectAsync(projectFullPath);
                 Assert.Equal(1, proj.AnalyzerReferences.Count);
-                var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
+                var analyzerReference = proj.AnalyzerReferences[0] as AnalyzerFileReference;
                 Assert.NotNull(analyzerReference);
                 Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll", StringComparison.OrdinalIgnoreCase));
             }
