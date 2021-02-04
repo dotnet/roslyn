@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchExpression = operation.Value;
             var switchExpressionType = switchExpression?.Type;
 
-            var enumMembers = new Dictionary<long, ISymbol>();
-
             // Check if the type of the expression is a nullable INamedTypeSymbol
             // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
             // and check if it is of enum type
@@ -29,17 +27,18 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
-                if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
-                    !TryRemoveExistingEnumMembers(operation, enumMembers))
+                var enumMembers = new Dictionary<long, ISymbol>();
+                if (PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers))
                 {
-                    return SpecializedCollections.EmptyCollection<ISymbol>();
+                    RemoveExistingEnumMembers(operation, enumMembers);
+                    return enumMembers.Values;
                 }
             }
 
-            return enumMembers.Values;
+            return SpecializedCollections.EmptyCollection<ISymbol>();
         }
 
-        private static bool TryRemoveExistingEnumMembers(
+        private static void RemoveExistingEnumMembers(
             ISwitchExpressionOperation operation, Dictionary<long, ISymbol> enumMembers)
         {
             foreach (var arm in operation.Arms)
@@ -50,8 +49,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                     HandleBinaryPattern(binaryPattern, enumMembers);
                 }
             }
-
-            return true;
         }
 
         private static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)

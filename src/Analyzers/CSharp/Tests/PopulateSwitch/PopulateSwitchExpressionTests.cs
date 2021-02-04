@@ -962,7 +962,7 @@ class MyClass
             (MyEnum)0 => 1,
             (MyEnum)1 => 2,
             ""Mismatching constant"" => 3,
-            _ => throw new System.NotImplementedException(),
+            MyEnum.FizzBuzz => throw new System.NotImplementedException(),
         }
     }
 }");
@@ -1040,7 +1040,7 @@ class MyClass
             Bar.Option1 => 1,
             Bar.Option2 => 2,
             null => null,
-            _ => throw new System.NotImplementedException(),
+            Bar.Option3 => throw new System.NotImplementedException(),
         };
     }
 
