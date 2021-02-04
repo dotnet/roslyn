@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
@@ -11,13 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateMethodItem
         Inherits AbstractGenerateCodeItem
 
-        Private ReadOnly _destinationTypeSymbolKey As SymbolKey
         Private ReadOnly _methodToReplicateSymbolKey As SymbolKey
 
         Public Sub New(text As String, glyph As Glyph, destinationTypeSymbolId As SymbolKey, methodToReplicateSymbolId As SymbolKey)
-            MyBase.New(RoslynNavigationBarItemKind.GenerateMethod, text, glyph)
+            MyBase.New(RoslynNavigationBarItemKind.GenerateMethod, text, glyph, destinationTypeSymbolId)
 
-            _destinationTypeSymbolKey = destinationTypeSymbolId
             _methodToReplicateSymbolKey = methodToReplicateSymbolId
         End Sub
 

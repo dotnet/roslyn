@@ -15,14 +15,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private ReadOnly _containerName As String
         Private ReadOnly _eventSymbolKey As SymbolKey
-        Private ReadOnly _destinationTypeSymbolKey As SymbolKey
 
         Public Sub New(eventName As String, glyph As Glyph, containerName As String, eventSymbolKey As SymbolKey, destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(RoslynNavigationBarItemKind.GenerateEventHandler, eventName, glyph)
+            MyBase.New(RoslynNavigationBarItemKind.GenerateEventHandler, eventName, glyph, destinationTypeSymbolKey)
 
             _containerName = containerName
             _eventSymbolKey = eventSymbolKey
-            _destinationTypeSymbolKey = destinationTypeSymbolKey
         End Sub
 
         Protected Overrides Async Function GetGeneratedDocumentCoreAsync(document As Document, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)

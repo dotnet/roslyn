@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -15,12 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateDefaultConstructorItem
         Inherits AbstractGenerateCodeItem
 
-        Private ReadOnly _destinationTypeSymbolKey As SymbolKey
-
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(RoslynNavigationBarItemKind.GenerateDefaultConstructor, VBEditorResources.New_, Glyph.MethodPublic)
-
-            _destinationTypeSymbolKey = destinationTypeSymbolKey
+            MyBase.New(RoslynNavigationBarItemKind.GenerateDefaultConstructor, VBEditorResources.New_, Glyph.MethodPublic, destinationTypeSymbolKey)
         End Sub
 
         Protected Overrides Async Function GetGeneratedDocumentCoreAsync(document As Document, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)

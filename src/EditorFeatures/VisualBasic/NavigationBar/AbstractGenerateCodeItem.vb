@@ -16,8 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Friend Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
-        Public Sub New(kind As RoslynNavigationBarItemKind, text As String, glyph As Glyph)
+        Protected ReadOnly _destinationTypeSymbolKey As SymbolKey
+
+        Public Sub New(kind As RoslynNavigationBarItemKind, text As String, glyph As Glyph, destinationTypeSymbolKey As SymbolKey)
             MyBase.New(kind, text, glyph, SpecializedCollections.EmptyList(Of TextSpan))
+            _destinationTypeSymbolKey = destinationTypeSymbolKey
         End Sub
 
         Protected Overridable ReadOnly Property ApplyLineAdjustmentFormattingRule As Boolean

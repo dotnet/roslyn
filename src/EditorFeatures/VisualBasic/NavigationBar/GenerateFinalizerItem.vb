@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -13,12 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Friend Class GenerateFinalizerItem
         Inherits AbstractGenerateCodeItem
 
-        Private ReadOnly _destinationTypeSymbolKey As SymbolKey
-
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
-            MyBase.New(RoslynNavigationBarItemKind.GenerateFinalizer, WellKnownMemberNames.DestructorName, Glyph.MethodProtected)
-
-            _destinationTypeSymbolKey = destinationTypeSymbolKey
+            MyBase.New(RoslynNavigationBarItemKind.GenerateFinalizer, WellKnownMemberNames.DestructorName, Glyph.MethodProtected, destinationTypeSymbolKey)
         End Sub
 
         Protected Overrides ReadOnly Property ApplyLineAdjustmentFormattingRule As Boolean
