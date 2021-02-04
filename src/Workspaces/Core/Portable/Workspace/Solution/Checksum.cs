@@ -73,27 +73,30 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => _checksum.GetHashCode();
 
-        public unsafe string ToBase64String()
+        public string ToBase64String()
         {
 #if NETCOREAPP
             Span<byte> bytes = stackalloc byte[sizeof(HashData)];
             Contract.ThrowIfFalse(this.TryWriteTo(bytes));
             return Convert.ToBase64String(bytes);
 #else
-            var data = new byte[sizeof(HashData)];
-            fixed (byte* dataPtr = data)
+            unsafe
             {
-                *(HashData*)dataPtr = _checksum;
-            }
+                var data = new byte[sizeof(HashData)];
+                fixed (byte* dataPtr = data)
+                {
+                    *(HashData*)dataPtr = _checksum;
+                }
 
-            return Convert.ToBase64String(data, 0, HashSize);
+                return Convert.ToBase64String(data, 0, HashSize);
+            }
 #endif
         }
 
         public static Checksum FromBase64String(string value)
             => value == null ? null : From(Convert.FromBase64String(value));
 
-        public override unsafe string ToString()
+        public override string ToString()
             => ToBase64String();
 
         public static bool operator ==(Checksum left, Checksum right)
