@@ -776,17 +776,17 @@ class C1
         public void TestOpenProject_WithInvalidFileExtension()
         {
             // make sure the file does in fact exist, but with an unrecognized extension
-            const string projFileName = @"CSharpProject\CSharpProject.csproj.nyi";
+            const string ProjFileName = @"CSharpProject\CSharpProject.csproj.nyi";
             CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(projFileName, Resources.ProjectFiles.CSharp.CSharpProject));
+                .WithFile(ProjFileName, Resources.ProjectFiles.CSharp.CSharpProject));
 
             AssertEx.Throws<InvalidOperationException>(delegate
             {
-                MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(projFileName)).Wait();
+                MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(ProjFileName)).Wait();
             },
             (e) =>
             {
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, GetSolutionFileName(projFileName), ".nyi");
+                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, GetSolutionFileName(ProjFileName), ".nyi");
                 Assert.Equal(expected, e.Message);
             });
         }
@@ -1057,10 +1057,10 @@ class C1
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_Fails()
         {
             // proves that if both project type guid and file extension are unrecognized, then open project fails.
-            const string noProjFileName = @"CSharpProject\CSharpProject.noproj";
+            const string NoProjFileName = @"CSharpProject\CSharpProject.noproj";
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"TestSolution.sln", Resources.SolutionFiles.CSharp_UnknownProjectTypeGuidAndUnknownExtension)
-                .WithFile(noProjFileName, Resources.ProjectFiles.CSharp.CSharpProject));
+                .WithFile(NoProjFileName, Resources.ProjectFiles.CSharp.CSharpProject));
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
@@ -1072,7 +1072,7 @@ class C1
             },
             e =>
             {
-                var noProjFullFileName = GetSolutionFileName(noProjFileName);
+                var noProjFullFileName = GetSolutionFileName(NoProjFileName);
                 var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, noProjFullFileName, ".noproj");
                 Assert.Equal(expected, e.Message);
             });
