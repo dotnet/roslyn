@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
                 RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());

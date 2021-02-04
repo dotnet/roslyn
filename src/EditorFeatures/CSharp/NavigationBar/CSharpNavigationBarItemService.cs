@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -51,20 +53,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
         {
             var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return GetMembersInTypes(tree, typesInFile, cancellationToken);
         }
 
-        private static IList<NavigationBarItem> GetMembersInTypes(
+        private static ImmutableArray<RoslynNavigationBarItem> GetMembersInTypes(
             SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
             {
                 var typeSymbolIndexProvider = new NavigationBarSymbolIdIndexProvider(caseSensitive: true);
-                var items = new List<NavigationBarItem>();
+                using var _ = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var items);
 
                 foreach (var type in types)
                 {
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 }
 
                 items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-                return items;
+                return items.ToImmutableAndFree();
             }
         }
 

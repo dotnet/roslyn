@@ -3,36 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
-    {
-        public class SymbolItem : RoslynNavigationBarItem
+    {    /// <summary>
+         /// An item that is displayed and can be chosen but which has no action.
+         /// </summary>
+        internal class ActionlessItem : RoslynNavigationBarItem
         {
-            [DataMember(Order = 8)]
-            public readonly SymbolKey NavigationSymbolId;
-            [DataMember(Order = 9)]
-            public readonly int? NavigationSymbolIndex;
-
-            public SymbolItem(
+            public ActionlessItem(
                 string text,
                 Glyph glyph,
                 IList<TextSpan> spans,
-                SymbolKey navigationSymbolId,
-                int? navigationSymbolIndex,
                 IList<NavigationBarItem>? childItems = null,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, spans, childItems, indent, bolded, grayed)
+                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, spans, childItems, indent, bolded, grayed)
             {
-                this.NavigationSymbolId = navigationSymbolId;
-                this.NavigationSymbolIndex = navigationSymbolIndex;
             }
         }
-
     }
 }

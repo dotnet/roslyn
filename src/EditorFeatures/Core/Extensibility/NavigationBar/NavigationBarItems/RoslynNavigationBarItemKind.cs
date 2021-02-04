@@ -11,5 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         GenerateEventHandler,
         GenerateFinalizer,
         GenerateMethod,
+        Actionless,
     }
 }

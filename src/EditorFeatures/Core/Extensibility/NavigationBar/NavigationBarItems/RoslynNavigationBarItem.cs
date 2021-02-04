@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     /// </summary>
     internal abstract partial class RoslynNavigationBarItem : NavigationBarItem
     {
+        [DataMember(Order = 7)]
         public readonly RoslynNavigationBarItemKind Kind;
 
         protected RoslynNavigationBarItem(
