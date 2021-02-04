@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -2770,7 +2770,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var sol = await ObjectReference.CreateFromFactory(() => MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result);
+            var sol = ObjectReference.CreateFromFactory(() => MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result);
             var workspace = sol.GetObjectReference(static s => s.Workspace);
             var project = sol.GetObjectReference(static s => s.Projects.First());
             var document = project.GetObjectReference(static p => p.Documents.First());
