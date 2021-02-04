@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         public static Checksum FromBase64String(string value)
             => value == null ? null : From(Convert.FromBase64String(value));
 
-        public override unsafe string ToString()
+        public override string ToString()
             => ToBase64String();
 
         public static bool operator ==(Checksum left, Checksum right)
