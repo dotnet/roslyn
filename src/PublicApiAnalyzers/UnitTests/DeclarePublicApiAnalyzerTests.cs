@@ -1485,7 +1485,6 @@ C.Property.set -> void";
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
         [InlineData("\r\n")] // Windows line ending.
         [InlineData("\n")] // Linux line ending.
-        [InlineData("\r")] // macOS line ending.
         public async Task TestUseExistingLineEndings(string lineEnding)
         {
             var source = @"
