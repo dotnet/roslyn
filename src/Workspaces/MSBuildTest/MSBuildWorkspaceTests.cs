@@ -976,10 +976,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace();
             workspace.SkipUnrecognizedProjects = false;
 
-            AssertEx.Throws<InvalidOperationException>(() =>
-            {
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
-            });
+            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1009,10 +1006,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace();
             workspace.SkipUnrecognizedProjects = false;
 
-            AssertEx.Throws<FileNotFoundException>(() =>
-            {
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
-            });
+            AssertEx.Throws<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -2368,10 +2362,9 @@ class C1
         public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse()
         {
             var files = GetProjectReferenceSolutionFiles();
-            files = VisitProjectReferences(files, r =>
-            {
-                r.Add(new XElement(XName.Get("ReferenceOutputAssembly", MSBuildNamespace), "false"));
-            });
+            files = VisitProjectReferences(
+                files,
+                r => r.Add(new XElement(XName.Get("ReferenceOutputAssembly", MSBuildNamespace), "false")));
 
             CreateFiles(files);
 
@@ -2418,10 +2411,9 @@ class C1
         public async Task TestProjectReferenceWithNoGuid()
         {
             var files = GetProjectReferenceSolutionFiles();
-            files = VisitProjectReferences(files, r =>
-            {
-                r.Elements(XName.Get("Project", MSBuildNamespace)).Remove();
-            });
+            files = VisitProjectReferences(
+                files,
+                r => r.Elements(XName.Get("Project", MSBuildNamespace)).Remove());
 
             CreateFiles(files);
 
