@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     or IfStatementSyntax
                     or ElseClauseSyntax)
                 {
+                    // Add the braces and get the next caretPosition
                     var (newRoot, nextCaretPosition) = AddBraceToSelectedNode(document, root, selectedNode, cancellationToken);
                     if (document.Project.Solution.Workspace.TryApplyChanges(document.WithSyntaxRoot(newRoot).Project.Solution))
                     {
@@ -382,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     //      }
                     // }
                     // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
-                    // and the last
-                    //
+                    // and the last close brace of 'Bar' would be thought as a part of Main()
+                    // So for these case, just find the missing open brace position and directly insert '()' to the document
                     // 1. Find the position to insert braces.
                     var insertionPosition = GetBraceInsertionPosition(selectedNode);
 
@@ -396,6 +397,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // Check if we need to remove braces for the node
             if (ShouldRemoveBraces(selectedNode, caretPosition))
             {
+                // Remove the braces and get the next caretPosition
                 var (newRoot, nextCaretPosition) = RemoveBraceFromSelectedNode(
                     document,
                     root,
@@ -439,6 +441,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
             {
+                // For ObjectCreationExpression, like new List<int>()
+                // make sure it has '()' after the type, and if its next token is a missing semicolon, add that semicolon. e.g
+                // var c = new Obje$$ct() => var c = new Object();
                 var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: true);
                 var newRoot = ReplaceNodeAndFormat(
                     document,
@@ -548,6 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode selectedNode,
             CancellationToken cancellationToken)
         {
+            // If there is no statement, just add a block to it.
             var statement = selectedNode.GetEmbeddedStatement();
             if (statement == null || statement.IsMissing)
             {
@@ -559,13 +565,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
                 return (newRoot, nextCaretPosition);
             }
-            else
+
+            // If there is an statement in the embeddedStatementOwner,
+            // move the old statement next to the statementOwner,
+            // and insert a empty block into the statementOwner,
+            // e.g.
+            // before:
+            // whi$$le(true)
+            // var i = 1;
+            // for this case 'var i = 1;' is thought as the inner statement,
+            //
+            // after:
+            // while(true)
+            // {
+            //      $$
+            // }
+            // var i = 1;
+            if (selectedNode is WhileStatementSyntax
+                or ForEachStatementSyntax
+                or ForStatementSyntax
+                or LockStatementSyntax
+                or UsingStatementSyntax)
             {
-                if (selectedNode is WhileStatementSyntax
-                    or ForEachStatementSyntax
-                    or ForStatementSyntax
-                    or LockStatementSyntax
-                    or UsingStatementSyntax)
+                return ReplaceStatementOwnerAndInsertStatement(
+                    document,
+                    root,
+                    selectedNode,
+                    WithBracesForEmbeddedStatementOwner(selectedNode),
+                    ImmutableArray<SyntaxNode>.Empty.Add(statement),
+                    cancellationToken);
+            }
+
+            if (selectedNode is DoStatementSyntax)
+            {
+                // If this do statement doesn't end with the 'while' parts
+                // e.g:
+                // before:
+                // d$$o
+                // Print("hello");
+                // after:
+                // do
+                // {
+                //     $$
+                // }
+                // Print("hello");
+                if (selectedNode is DoStatementSyntax
+                {
+                    WhileKeyword: { IsMissing: true },
+                    SemicolonToken: { IsMissing: true },
+                    OpenParenToken: { IsMissing: true },
+                    CloseParenToken: { IsMissing: true }
+                })
                 {
                     return ReplaceStatementOwnerAndInsertStatement(
                         document,
@@ -576,71 +626,103 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                         cancellationToken);
                 }
 
-                if (selectedNode is DoStatementSyntax)
+                // if the do statement has 'while' as an end
+                // e.g:
+                // before:
+                // d$$o
+                // Print("hello");
+                // while (true);
+                // after:
+                // do
+                // {
+                //     $$
+                //      Print("hello");
+                // } while(true);
+                var newRoot = ReplaceNodeAndFormat(
+                    document,
+                    root,
+                    selectedNode,
+                    WithBracesForEmbeddedStatementOwner(selectedNode, statement),
+                    cancellationToken);
+                var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
+                return (newRoot, nextCaretPosition);
+            }
+
+            if (selectedNode is IfStatementSyntax ifStatementNode)
+            {
+                // If this is just an if without else
+                // e.g.
+                // before:
+                // if$$ (true)
+                //   Print("Hello");
+                // after:
+                // if (true)
+                // {
+                //      $$
+                // }
+                //   Print("Hello");
+                if (ifStatementNode.Else == null)
                 {
-                    if (selectedNode is DoStatementSyntax
-                        {
-                            WhileKeyword: { IsMissing: true },
-                            SemicolonToken: { IsMissing: true },
-                            OpenParenToken: { IsMissing: true },
-                            CloseParenToken: { IsMissing: true }
-                        })
-                    {
-                        return ReplaceStatementOwnerAndInsertStatement(
-                            document,
-                            root,
-                            selectedNode,
-                            WithBracesForEmbeddedStatementOwner(selectedNode),
-                            ImmutableArray<SyntaxNode>.Empty.Add(statement),
-                            cancellationToken);
-                    }
-
-                    var newRoot = ReplaceNodeAndFormat(
-                        document,
-                        root,
-                        selectedNode,
-                        WithBracesForEmbeddedStatementOwner(selectedNode, statement),
-                        cancellationToken);
-                    var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
-                    return (newRoot, nextCaretPosition);
-                }
-
-                if (selectedNode is IfStatementSyntax ifStatementNode)
-                {
-                    if (ifStatementNode.Else == null)
-                    {
-                        return ReplaceStatementOwnerAndInsertStatement(document,
-                            root,
-                            selectedNode,
-                            WithBracesForEmbeddedStatementOwner(selectedNode),
-                            ImmutableArray<SyntaxNode>.Empty.Add(statement),
-                            cancellationToken);
-                    }
-
-                    var newRoot = ReplaceNodeAndFormat(
-                        document,
-                        root,
-                        selectedNode,
-                        WithBracesForEmbeddedStatementOwner(selectedNode, statement),
-                        cancellationToken);
-                    var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
-                    return (newRoot, nextCaretPosition);
-                }
-
-                if (selectedNode is ElseClauseSyntax elseClauseNode)
-                {
-                    if (elseClauseNode.Statement is IfStatementSyntax)
-                    {
-                        return AddBraceToEmbeddedStatementOwner(document, root, elseClauseNode.Statement, cancellationToken);
-                    }
-
                     return ReplaceStatementOwnerAndInsertStatement(document,
                         root,
                         selectedNode,
-                        WithBraces(selectedNode),
+                        WithBracesForEmbeddedStatementOwner(selectedNode),
                         ImmutableArray<SyntaxNode>.Empty.Add(statement),
                         cancellationToken);
                 }
+
+                // If this IfStatement has else statement after
+                // e.g.
+                // before:
+                // if (true)
+                //     print("Hello");
+                // else {}
+                // after:
+                // if (true)
+                // {
+                //     $$
+                //     print("Hello");
+                // }
+                // else {}
+                var newRoot = ReplaceNodeAndFormat(
+                    document,
+                    root,
+                    selectedNode,
+                    WithBracesForEmbeddedStatementOwner(selectedNode, statement),
+                    cancellationToken);
+                var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
+                return (newRoot, nextCaretPosition);
+            }
+
+            if (selectedNode is ElseClauseSyntax elseClauseNode)
+            {
+                // If this is an 'els$$e if(true)' statement,
+                // then treat it as the selected node is the nested if statement
+                if (elseClauseNode.Statement is IfStatementSyntax)
+                {
+                    return AddBraceToEmbeddedStatementOwner(document, root, elseClauseNode.Statement, cancellationToken);
+                }
+
+                // Otherwise, it is just an ending else clause
+                // e.g. before:
+                // if (true)
+                // {
+                // } els$$e
+                // var i = 10;
+                // after:
+                // if (true)
+                // {
+                // } els$$e
+                // {
+                //      $$
+                // }
+                // var i = 10;
+                return ReplaceStatementOwnerAndInsertStatement(document,
+                    root,
+                    selectedNode,
+                    WithBraces(selectedNode),
+                    ImmutableArray<SyntaxNode>.Empty.Add(statement),
+                    cancellationToken);
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -660,30 +742,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             ImmutableArray<SyntaxNode> nodesToInsert,
             CancellationToken cancellationToken)
         {
-            var annotation = new SyntaxAnnotation();
             var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             rootEditor.InsertAfter(selectedNode, nodesToInsert);
-            rootEditor.ReplaceNode(selectedNode, newNode.WithAdditionalAnnotations(annotation));
+            rootEditor.ReplaceNode(selectedNode, newNode.WithAdditionalAnnotations(s_replacementNodeAnnotation));
             var newRoot = rootEditor.GetChangedRoot();
 
-            var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(annotation).Single();
-            var formatSpan = GetFormattedTextSpan(root, newNodeAfterInsertion.GetLastToken());
-            if (formatSpan != null)
-            {
-                var formattedNewRoot = Formatter.Format(
-                    newRoot,
-                    formatSpan.Value,
-                    document.Project.Solution.Workspace,
-                    cancellationToken: cancellationToken);
-                var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
-                return (formattedNewRoot, nextCaretPosition);
-            }
-            else
-            {
-                var nextCaretPosition = newRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
-                return (newRoot, nextCaretPosition);
-            }
+            var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
+            var formattingNode = newNodeAfterInsertion.FirstAncestorOrSelf<MemberDeclarationSyntax>() ?? newNodeAfterInsertion;
+            var formattedNewRoot = Formatter.Format(
+                newRoot,
+                formattingNode.Span,
+                document.Project.Solution.Workspace,
+                cancellationToken: cancellationToken);
+            var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
+            return (formattedNewRoot, nextCaretPosition);
         }
 
         private static SyntaxNode ReplaceNodeAndFormat(
@@ -716,6 +789,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var hasArgumentList = argumentList != null && !argumentList.IsMissing;
             if (!hasArgumentList)
             {
+                // Make sure the trailing trivia is passed to the argument list
+                // like var l = new List\r\n =>
+                // var l = new List()\r\r
                 var typeNode = objectCreationExpressionNode.Type;
                 var newArgumentList = SyntaxFactory.ArgumentList().WithTriviaFrom(typeNode);
                 var newTypeNode = typeNode.WithoutTrivia();

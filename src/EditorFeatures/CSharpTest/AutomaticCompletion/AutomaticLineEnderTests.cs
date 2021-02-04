@@ -1615,7 +1615,7 @@ public class Foo
         }
 
         [WpfFact]
-        public void TestIfStatement()
+        public void TestIfStatement1()
         {
             Test(@"
 public class Bar
