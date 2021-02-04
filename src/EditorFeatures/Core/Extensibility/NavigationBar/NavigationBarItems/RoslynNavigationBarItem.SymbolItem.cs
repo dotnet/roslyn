@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             IList<TextSpan> spans,
             SymbolKey navigationSymbolId,
             int? navigationSymbolIndex,
-            IList<NavigationBarItem> childItems = null,
+            IList<NavigationBarItem>? childItems = null,
             int indent = 0,
             bool bolded = false,
             bool grayed = false)
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 IList<TextSpan> spans,
                 SymbolKey navigationSymbolId,
                 int? navigationSymbolIndex,
-                IList<NavigationBarItem> childItems = null,
+                IList<NavigationBarItem>? childItems = null,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
