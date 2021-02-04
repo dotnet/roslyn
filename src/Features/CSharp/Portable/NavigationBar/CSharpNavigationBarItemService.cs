@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                 {
                     var memberSymbolIndexProvider = new NavigationBarSymbolIdIndexProvider(caseSensitive: true);
 
-                    using var _2 = ArrayBuilder<NavigationBarItem>.GetInstance(out var memberItems);
+                    using var _2 = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var memberItems);
                     foreach (var member in type.GetMembers())
                     {
                         if (member.IsImplicitlyDeclared ||
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                     });
 
                     var symbolId = type.GetSymbolKey(cancellationToken);
-                    items.Add(new RoslynNavigationBarItem.SymbolItem(
+                    items.Add(RoslynNavigationBarItem.SymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
                         indent: 0,
@@ -196,11 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
             return false;
         }
 
-        private static RoslynNavigationBarItem.SymbolItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private static RoslynNavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
-            return new RoslynNavigationBarItem.SymbolItem(
+            return RoslynNavigationBarItem.SymbolItem(
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,

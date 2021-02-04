@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
@@ -36,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return DirectCast(DirectCast(item, WrappedNavigationBarItem).UnderlyingItem, CodeAnalysis.NavigationBar.RoslynNavigationBarItem).Kind = CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.Symbol
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+            Contract.ThrowIfFalse(item.Kind = RoslynNavigationBarItemKind.Symbol)
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
             Dim symbol = symbols.Symbol
@@ -78,12 +80,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         End Function
 
         Protected Overrides Sub NavigateToItem(document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
-            Dim generateCodeItem = TryCast(item.UnderlyingItem, AbstractGenerateCodeItem)
+            Dim underlying = item.UnderlyingItem
 
-            If generateCodeItem IsNot Nothing Then
-                GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
-            ElseIf TypeOf item.UnderlyingItem Is SymbolItem Then
-                NavigateToSymbolItem(document, DirectCast(item.UnderlyingItem, SymbolItem), cancellationToken)
+            If underlying.Kind = RoslynNavigationBarItemKind.GenerateDefaultConstructor OrElse
+               underlying.Kind = RoslynNavigationBarItemKind.GenerateEventHandler OrElse
+               underlying.Kind = RoslynNavigationBarItemKind.GenerateFinalizer OrElse
+               underlying.Kind = RoslynNavigationBarItemKind.GenerateMethod Then
+
+                GenerateCodeForItem(document, underlying, textView, cancellationToken)
+            ElseIf item.UnderlyingItem.Kind = RoslynNavigationBarItemKind.Symbol Then
+                NavigateToSymbolItem(document, underlying, cancellationToken)
             End If
         End Sub
     End Class

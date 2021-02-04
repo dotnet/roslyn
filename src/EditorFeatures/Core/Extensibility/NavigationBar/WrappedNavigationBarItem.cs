@@ -3,17 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.NavigationBar;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
-    /// Implementation of the editor layer <see cref="NavigationBarItem"/> that wraps a feature layer <see cref="NavigationBar.NavigationBarItem"/>
+    /// Implementation of the editor layer <see cref="NavigationBarItem"/> that wraps a feature layer <see cref="RoslynNavigationBarItem"/>
     /// </summary>
     internal class WrappedNavigationBarItem : NavigationBarItem
     {
-        public readonly NavigationBar.NavigationBarItem UnderlyingItem;
+        public readonly RoslynNavigationBarItem UnderlyingItem;
 
-        internal WrappedNavigationBarItem(NavigationBar.NavigationBarItem underlyingItem)
+        internal WrappedNavigationBarItem(RoslynNavigationBarItem underlyingItem)
             : base(
                   underlyingItem.Text,
                   underlyingItem.Glyph,

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
     {
-        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
+        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem symbolItem, CancellationToken cancellationToken);
         protected abstract void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
@@ -32,8 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             => NavigateToItem(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
         public void NavigateToSymbolItem(
-            Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+            Document document, RoslynNavigationBarItem item, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
             var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);

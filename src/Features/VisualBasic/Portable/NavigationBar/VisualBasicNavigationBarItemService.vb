@@ -159,15 +159,15 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             Dim members = Aggregate member In type.GetMembers()
                           Where member.IsShared AndAlso member.Kind = SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(New SymbolItem(
+                          Select DirectCast(SymbolItem(
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
                               member.GetSymbolKey(cancellationToken),
-                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), NavigationBarItem)
+                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), RoslynNavigationBarItem)
                           Into ToImmutableArray()
 
-            Return New SymbolItem(
+            Return SymbolItem(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 symbolDeclarationService As ISymbolDeclarationService,
                 cancellationToken As CancellationToken) As RoslynNavigationBarItem
 
-            Dim childItems As New List(Of NavigationBarItem)
+            Dim childItems As New List(Of RoslynNavigationBarItem)
 
             ' First, we always list the constructors
             Dim constructors = type.Constructors
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateDefaultConstructor("New", type.GetSymbolKey(cancellationToken)))
+                    childItems.Add(GenerateDefaultConstructor("New", type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
             If Not finalizeMethods.Any() Then
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey(cancellationToken)))
+                    childItems.Add(GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Return New SymbolItem(
+            Return SymbolItem(
                 name,
                 type.GetGlyph(),
                 indent:=0,
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 symbolDeclarationService As ISymbolDeclarationService,
                 cancellationToken As CancellationToken) As RoslynNavigationBarItem
 
-            Dim rightHandMemberItems As New List(Of NavigationBarItem)
+            Dim rightHandMemberItems As New List(Of RoslynNavigationBarItem)
 
             Dim accessibleEvents = semanticModel.LookupSymbols(position, eventType).OfType(Of IEventSymbol).OrderBy(Function(e) e.Name)
 
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey(cancellationToken)
 
                     rightHandMemberItems.Add(
-                        New SymbolItem(
+                        SymbolItem(
                             e.Name,
                             e.GetGlyph(),
                             methodSpans,
@@ -345,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                         Dim eventContainerName = eventContainer?.Name
 
                         rightHandMemberItems.Add(
-                            New GenerateEventHandler(
+                            GenerateEventHandler(
                                 e.Name,
                                 e.GetGlyph(),
                                 eventContainerName,
@@ -356,14 +356,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             Next
 
             If eventContainer IsNot Nothing Then
-                Return New ActionlessItem(
+                Return ActionlessItem(
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
                     spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             Else
-                Return New ActionlessItem(
+                Return ActionlessItem(
                     String.Format(VBFeaturesResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                                                    tree As SyntaxTree,
                                                    workspaceSupportsDocumentChanges As Boolean,
                                                    symbolDeclarationService As ISymbolDeclarationService,
-                                                   cancellationToken As CancellationToken) As IEnumerable(Of NavigationBarItem)
+                                                   cancellationToken As CancellationToken) As IEnumerable(Of RoslynNavigationBarItem)
             Dim firstMember = members.First()
 
             ' If there is exactly one member that has no type arguments, we will skip showing the
@@ -403,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 displayFormat = displayFormat.WithKindOptions(displayFormat.KindOptions Or SymbolDisplayKindOptions.IncludeMemberKeyword)
             End If
 
-            Dim items As New List(Of NavigationBarItem)
+            Dim items As New List(Of RoslynNavigationBarItem)
             Dim symbolIdIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
             For Each member In members
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 Dim method = TryCast(member, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
-                    items.Add(New SymbolItem(
+                    items.Add(SymbolItem(
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
@@ -424,14 +424,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                         grayed:=spans.Count = 0))
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
-                        items.Add(New GenerateMethod(
+                        items.Add(GenerateMethod(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         member.ContainingType.GetSymbolKey(cancellationToken),
                         member.GetSymbolKey(cancellationToken)))
                     End If
                 Else
-                    items.Add(New SymbolItem(
+                    items.Add(SymbolItem(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         spans,
