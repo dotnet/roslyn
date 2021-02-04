@@ -31,23 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return Task.FromResult<Entry>(referenceEntry);
             }
 
-            private Document TryGetDocument()
-                => DefinitionBucket.DefinitionItem.SourceSpans.FirstOrDefault().Document;
-
             protected override object? GetValueWorker(string keyName)
-            {
-                switch (keyName)
-                {
-                    case StandardTableKeyNames.DocumentName:
-                        return this.TryGetDocument()?.FilePath;
-                    case StandardTableKeyNames.ProjectName:
-                        return this.TryGetDocument()?.Project.Name;
-                    case StandardTableKeyNames.Text:
-                        return _message;
-                }
-
-                return null;
-            }
+                => keyName == StandardTableKeyNames.Text
+                    ? _message
+                    : null;
         }
     }
 }
