@@ -23,7 +23,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicNavigationBarItemService
+    Partial Friend Class VisualBasicEditorNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
         Private Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()

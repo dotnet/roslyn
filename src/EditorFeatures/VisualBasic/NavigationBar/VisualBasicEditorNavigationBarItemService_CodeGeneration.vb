@@ -19,7 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Partial Friend Class VisualBasicNavigationBarItemService
+    Partial Friend Class VisualBasicEditorNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
         Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
