@@ -107,28 +107,33 @@ namespace BuildValidator
                             Directory.CreateDirectory(debugPath);
                             Console.WriteLine($@"Writing diffs to ""{debugPath}""");
                         }
-                        var originalTempPath = getDebugFileName(".original.mdv");
-                        writeVisualizationToTempFile(originalTempPath, originalPeReader, originalPdbReader);
+                        var originalPeMdvPath = getDebugFileName(".original.pe.mdv");
+                        var originalPdbMdvPath = getDebugFileName(".original.pdb.mdv");
+                        writeVisualizationToTempFile(originalPeMdvPath, originalPeReader.GetMetadataReader());
+                        writeVisualizationToTempFile(originalPdbMdvPath, originalPdbReader);
 
-                        var rebuildTempPath = getDebugFileName(".rebuild.mdv");
+                        var rebuildPeMdvPath = getDebugFileName(".rebuild.pe.mdv");
+                        var rebuildPdbMdvPath = getDebugFileName(".rebuild.pdb.mdv");
                         fixed (byte* ptr = rebuildBytes)
                         {
                             var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
-                            MetadataReader? rebuildPdbReader = null;
+                            writeVisualizationToTempFile(rebuildPeMdvPath, rebuildPeReader.GetMetadataReader());
+
                             if (rebuildPeReader.TryOpenAssociatedPortablePdb(
                                 rebuildOutputPath,
                                 path => File.Exists(path) ? File.OpenRead(path) : null,
                                 out var provider,
                                 out _) && provider is { })
                             {
-                                rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                                var rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
+                                writeVisualizationToTempFile(rebuildPdbMdvPath, rebuildPdbReader);
                             }
-                            writeVisualizationToTempFile(rebuildTempPath, rebuildPeReader, rebuildPdbReader);
                         }
 
                         if (options.OpenDiff)
                         {
-                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalTempPath}"" ""{rebuildTempPath}""") { UseShellExecute = true });
+                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalPeMdvPath}"" ""{rebuildPeMdvPath}""") { UseShellExecute = true });
+                            Process.Start(new ProcessStartInfo(@"code", $@"--diff ""{originalPdbMdvPath}"" ""{rebuildPdbMdvPath}""") { UseShellExecute = true });
                         }
 
                         var ildasmOriginalOutputPath = getDebugFileName(".original.il");
@@ -159,21 +164,13 @@ namespace BuildValidator
                     : Path.GetTempFileName();
             }
 
-            void writeVisualizationToTempFile(string outPath, PEReader peReader, MetadataReader? pdbReader)
+            void writeVisualizationToTempFile(string outPath, MetadataReader pdbReader)
             {
                 using (var tempFile = File.OpenWrite(outPath))
                 {
                     var writer = new StreamWriter(tempFile);
-                    writer.WriteLine("======== PE VISUALIZATION =======");
-                    var visualizer = new MetadataVisualizer(peReader.GetMetadataReader(), writer);
+                    var visualizer = new MetadataVisualizer(pdbReader, writer);
                     visualizer.Visualize();
-
-                    if (pdbReader is object)
-                    {
-                        writer.WriteLine("======== PDB VISUALIZATION =======");
-                        var pdbVisualizer = new MetadataVisualizer(pdbReader, writer);
-                        pdbVisualizer.Visualize();
-                    }
                     writer.Flush();
                 }
             }
