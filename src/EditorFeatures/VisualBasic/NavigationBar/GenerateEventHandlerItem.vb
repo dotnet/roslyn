@@ -10,8 +10,8 @@ Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Friend Class GenerateEventHandlerItem
-        Inherits AbstractGenerateCodeItem
+    Friend Class GenerateEventHandlerItem2
+        Inherits AbstractGenerateCodeItem2
 
         Private ReadOnly _containerName As String
         Private ReadOnly _eventSymbolKey As SymbolKey

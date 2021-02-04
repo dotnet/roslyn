@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Friend Class GenerateMethodItem
-        Inherits AbstractGenerateCodeItem
+    Friend Class GenerateMethodItem2
+        Inherits AbstractGenerateCodeItem2
 
         Private ReadOnly _methodToReplicateSymbolKey As SymbolKey
 

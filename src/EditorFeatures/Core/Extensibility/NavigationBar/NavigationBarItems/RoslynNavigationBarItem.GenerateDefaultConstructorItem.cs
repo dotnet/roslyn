@@ -1,0 +1,25 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+{
+    internal abstract partial class RoslynNavigationBarItem
+    {
+        public class GenerateDefaultConstructorItem : AbstractGenerateCodeItem
+        {
+            public GenerateDefaultConstructorItem(string text, SymbolKey destinationTypeSymbolKey)
+                : base(RoslynNavigationBarItemKind.GenerateDefaultConstructor, text, Glyph.MethodPublic, destinationTypeSymbolKey)
+            {
+            }
+        }
+
+        public class GenerateFinalizerItem : AbstractGenerateCodeItem
+        {
+            public GenerateFinalizerItem(string text, SymbolKey destinationTypeSymbolKey)
+                : base(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodPublic, destinationTypeSymbolKey)
+            {
+            }
+        }
+    }
+}

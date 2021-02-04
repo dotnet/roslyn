@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Friend MustInherit Class AbstractGenerateCodeItem
+    Friend MustInherit Class AbstractGenerateCodeItem2
         Inherits RoslynNavigationBarItem
 
         Friend Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()

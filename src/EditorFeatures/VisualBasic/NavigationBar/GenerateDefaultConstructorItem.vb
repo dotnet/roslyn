@@ -11,8 +11,8 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Friend Class GenerateDefaultConstructorItem
-        Inherits AbstractGenerateCodeItem
+    Friend Class GenerateDefaultConstructorItem2
+        Inherits AbstractGenerateCodeItem2
 
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
             MyBase.New(RoslynNavigationBarItemKind.GenerateDefaultConstructor, VBEditorResources.New_, Glyph.MethodPublic, destinationTypeSymbolKey)

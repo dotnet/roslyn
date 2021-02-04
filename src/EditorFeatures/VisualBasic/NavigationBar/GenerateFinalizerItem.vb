@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    Friend Class GenerateFinalizerItem
-        Inherits AbstractGenerateCodeItem
+    Friend Class GenerateFinalizerItem2
+        Inherits AbstractGenerateCodeItem2
 
         Public Sub New(destinationTypeSymbolKey As SymbolKey)
             MyBase.New(RoslynNavigationBarItemKind.GenerateFinalizer, WellKnownMemberNames.DestructorName, Glyph.MethodProtected, destinationTypeSymbolKey)
