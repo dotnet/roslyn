@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -462,6 +463,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     newNode,
                     cancellationToken);
 
+                var replacementNode = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
+                if (replacementNode is ObjectCreationExpressionSyntax)
+                {
+                    var nextToken = replacementNode.GetLastToken().GetNextToken();
+                    if (nextToken.IsKind(SyntaxKind.SemicolonToken)
+                        && !nextToken.IsMissing)
+                    {
+                        return (newRoot, nextToken.Span.End);
+                    }
+                }
+
                 var nextCaretPosition = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single().GetLastToken().Span.End;
                 return (newRoot, nextCaretPosition);
             }
@@ -686,10 +698,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         {
             var argumentList = objectCreationExpressionNode.ArgumentList;
             var hasArgumentList = argumentList != null && !argumentList.IsMissing;
+            if (!hasArgumentList)
+            {
+                var typeNode = objectCreationExpressionNode.Type;
+                var newArgumentList = SyntaxFactory.ArgumentList().WithTriviaFrom(typeNode);
+                var newTypeNode = typeNode.WithoutTrivia();
+                return objectCreationExpressionNode.WithType(newTypeNode).WithArgumentList(newArgumentList);
+            }
 
-            return hasArgumentList
-                ? objectCreationExpressionNode
-                : objectCreationExpressionNode.WithArgumentList(SyntaxFactory.ArgumentList());
+            return objectCreationExpressionNode;
         }
 
         private static SyntaxNode WithoutBraces(SyntaxNode node)
