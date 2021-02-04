@@ -689,7 +689,8 @@ $$
         {
             Test(@"class TestClass
 {
-    public int A { 
+    public int A
+    {
         get; set
         {
             $$
@@ -841,7 +842,7 @@ $$
     void Method()
     {
         var pet = new List<int>();
-            $$
+        $$
     }
 }", @"class TestClass
 {
