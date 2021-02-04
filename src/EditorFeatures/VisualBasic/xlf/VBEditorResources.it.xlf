@@ -22,11 +22,6 @@
         <target state="translated">Correzione dell'uso delle maiuscole/minuscole per le parole...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">Nuovo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">La chiamata è richiesta dalla finestra di progettazione.</target>

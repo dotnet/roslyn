@@ -22,11 +22,6 @@
         <target state="translated">Wortschreibweise wird korrigiert...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">Neu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">Dieser Aufruf ist für den Designer erforderlich.</target>

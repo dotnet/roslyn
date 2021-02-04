@@ -81,7 +81,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Operator +(C, C) As C", Glyph.Operator, bolded:=True),
                     Item("Operator +(C, Integer) As C", Glyph.Operator, bolded:=True),
@@ -104,7 +104,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Narrowing Operator CType", Glyph.Operator, bolded:=True)}))
         End Function
@@ -129,7 +129,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Narrowing Operator CType(C) As Integer", Glyph.Operator, bolded:=True),
                     Item("Narrowing Operator CType(C) As String", Glyph.Operator, bolded:=True)}))
@@ -202,7 +202,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                      Item("S()", Glyph.MethodPublic, bolded:=True),
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
@@ -223,7 +223,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Function
@@ -243,7 +243,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                      Item("S(Of T)() As Integer", Glyph.MethodPublic, bolded:=True)}))
         End Function
@@ -263,7 +263,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                      Item("S", Glyph.MethodPublic, bolded:=True)}))
         End Function
@@ -319,7 +319,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=True)}))
         End Function
 
@@ -338,7 +338,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                     Item("Co", Glyph.ConstantPrivate, bolded:=True),
                     Item("F", Glyph.FieldPrivate, bolded:=True)}))
@@ -378,7 +378,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                "C", VBEditorResources.New_,
+                "C", "New",
                 <Result>
 Class C
     Public Sub New()
@@ -404,7 +404,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                "C", VBEditorResources.New_,
+                "C", "New",
                 <Result>
 &lt;Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute&gt;
 Class C
@@ -470,7 +470,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("Goo", Glyph.MethodPublic, grayed:=True)}))
         End Function
@@ -489,7 +489,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item("goo", Glyph.FieldPrivate, bolded:=False, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
@@ -528,7 +528,7 @@ End Class
                 Item("I3", Glyph.InterfaceInternal, bolded:=True, children:={
                      Item("I3Event", Glyph.EventPublic, bolded:=True)}),
                 Item("Test", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item("i3", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("I1Event", Glyph.EventPublic, hasNavigationSymbolId:=False),
@@ -560,19 +560,19 @@ End Class
                 </Workspace>,
                 host,
                 Item("B", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("E", Glyph.EventPublic, bolded:=True)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "B"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}),
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("E", Glyph.EventPublic, bolded:=True)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}), ' Only one E under the "(C Events)" node
                 Item("Test", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item("c", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)})) ' Only one E for WithEvents handling
@@ -596,13 +596,13 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("E", Glyph.EventPublic, bolded:=True)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}),
                 Item("D", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "D"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
@@ -627,13 +627,13 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("E", Glyph.EventPrivate, bolded:=True)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "C"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
                 Item("D", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}))
         End Function
 
@@ -669,7 +669,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("E0", Glyph.EventPublic, bolded:=True),
                      Item("E1", Glyph.EventProtected, bolded:=True),
@@ -679,23 +679,23 @@ End Class
                      Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False),
                      Item("E2", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
                 Item("D2", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "D2"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False),
                      Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False)}),
                 Item("N1 (C)", Glyph.ClassPublic, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item("N2 (C.N1)", Glyph.ClassPublic, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item(String.Format(VBFeaturesResources._0_Events, "N2"), Glyph.EventPublic, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False),
                      Item("E1", Glyph.EventProtected, hasNavigationSymbolId:=False),
                      Item("E2", Glyph.EventPrivate, hasNavigationSymbolId:=False)}),
                 Item("T", Glyph.ClassInternal, bolded:=True, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
                 Item("c", Glyph.FieldPrivate, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
@@ -830,7 +830,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                     Item("BindingError", Glyph.EventPublic, hasNavigationSymbolId:=True, bolded:=True)},
                     bolded:=True))
@@ -908,7 +908,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("Base", Glyph.ClassPublic, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)},
                     bolded:=True),
                 Item("o1", Glyph.FieldPublic, children:={
@@ -922,7 +922,7 @@ End Class
                      hasNavigationSymbolId:=False,
                      indent:=1),
                 Item("Class1 (Base)", Glyph.ClassPublic, children:={
-                     Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                     Item("New", Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
                      Item("Ev_Event", Glyph.EventPublic, bolded:=True)},
                      bolded:=True),
@@ -1147,7 +1147,7 @@ End Class
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
-                    Item(VBEditorResources.New_, Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
+                    Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Get_P", Glyph.MethodPublic, bolded:=True),
                     Item("P", Glyph.PropertyPublic, bolded:=True)}))
