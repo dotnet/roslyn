@@ -7,6 +7,7 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Public Overrides Function ShowItemGrayedIfNear(item As NavigationBarItem) As Boolean
             ' We won't show gray things that don't actually exist
-            Return TypeOf item IsNot AbstractGenerateCodeItem
+            Return DirectCast(item, RoslynNavigationBarItem).Kind = RoslynNavigationBarItemKind.Symbol
         End Function
 
         Private Shared Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
@@ -169,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim members = Aggregate member In type.GetMembers()
                           Where member.IsShared AndAlso member.Kind = SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(RoslynNavigationBarItem.CreateSymbolItem(
+                          Select DirectCast(New RoslynNavigationBarItem.Symbol(
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
@@ -177,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey())), NavigationBarItem)
                           Into ToList()
 
-            Return RoslynNavigationBarItem.CreateSymbolItem(
+            Return New RoslynNavigationBarItem.Symbol(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
@@ -202,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateDefaultConstructorItem(type.GetSymbolKey()))
+                    childItems.Add(New RoslynNavigationBarItem.GenerateDefaultConstructor(VBEditorResources.New_, type.GetSymbolKey()))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -215,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If Not finalizeMethods.Any() Then
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateFinalizerItem(type.GetSymbolKey()))
+                    childItems.Add(New RoslynNavigationBarItem.GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey()))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -240,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Return RoslynNavigationBarItem.CreateSymbolItem(
+            Return New RoslynNavigationBarItem.Symbol(
                 name,
                 type.GetGlyph(),
                 indent:=0,
@@ -334,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey()
 
                     rightHandMemberItems.Add(
-                        RoslynNavigationBarItem.CreateSymbolItem(
+                        New RoslynNavigationBarItem.Symbol(
                             e.Name,
                             e.GetGlyph(),
                             methodSpans,
@@ -354,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                                     Nothing)
 
                         rightHandMemberItems.Add(
-                            New GenerateEventHandlerItem(
+                            New GenerateEventHandler(
                                 e.Name,
                                 e.GetGlyph(),
                                 eventContainerName,
@@ -423,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Dim method = TryCast(member, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
-                    items.Add(RoslynNavigationBarItem.CreateSymbolItem(
+                    items.Add(New RoslynNavigationBarItem.Symbol(
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
@@ -433,14 +434,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         grayed:=spans.Count = 0))
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
-                        items.Add(New GenerateMethodItem(
+                        items.Add(New RoslynNavigationBarItem.GenerateMethod(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         member.ContainingType.GetSymbolKey(),
                         member.GetSymbolKey()))
                     End If
                 Else
-                    items.Add(RoslynNavigationBarItem.CreateSymbolItem(
+                    items.Add(New RoslynNavigationBarItem.Symbol(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         spans,
@@ -462,7 +463,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem.SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem.Symbol, cancellationToken As CancellationToken) As VirtualTreePoint?
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim symbols = item.NavigationSymbolId.Resolve(compilation)
             Dim symbol = symbols.Symbol
@@ -508,12 +509,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If generateCodeItem IsNot Nothing Then
                 GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
-            ElseIf TypeOf item Is RoslynNavigationBarItem.SymbolItem Then
-                NavigateToSymbolItem(document, DirectCast(item, RoslynNavigationBarItem.SymbolItem), cancellationToken)
+            ElseIf TypeOf item Is RoslynNavigationBarItem.Symbol Then
+                NavigateToSymbolItem(document, DirectCast(item, RoslynNavigationBarItem.Symbol), cancellationToken)
             End If
         End Sub
 
-        Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
+        Private Sub GenerateCodeForItem(document As Document, generateCodeItem As RoslynNavigationBarItem.AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
             ' We'll compute everything up front before we go mutate state
             Dim text = document.GetTextSynchronously(cancellationToken)
             Dim newDocument = generateCodeItem.GetGeneratedDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)

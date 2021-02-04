@@ -6,12 +6,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateEventHandlerItem : AbstractGenerateCodeItem
+        public class GenerateEventHandler : AbstractGenerateCodeItem
         {
             public readonly string ContainerName;
             public readonly SymbolKey EventSymbolKey;
 
-            public GenerateEventHandlerItem(string eventName, Glyph glyph, string containerName, SymbolKey eventSymbolKey, SymbolKey destinationTypeSymbolKey)
+            public GenerateEventHandler(string eventName, Glyph glyph, string containerName, SymbolKey eventSymbolKey, SymbolKey destinationTypeSymbolKey)
                 : base(RoslynNavigationBarItemKind.GenerateEventHandler, eventName, glyph, destinationTypeSymbolKey)
             {
                 ContainerName = containerName;

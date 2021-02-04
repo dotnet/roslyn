@@ -6,10 +6,10 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public class GenerateDefaultConstructor : AbstractGenerateCodeItem
+        public class GenerateFinalizer : AbstractGenerateCodeItem
         {
-            public GenerateDefaultConstructor(string text, SymbolKey destinationTypeSymbolKey)
-                : base(RoslynNavigationBarItemKind.GenerateDefaultConstructor, text, Glyph.MethodPublic, destinationTypeSymbolKey)
+            public GenerateFinalizer(string text, SymbolKey destinationTypeSymbolKey)
+                : base(RoslynNavigationBarItemKind.GenerateFinalizer, text, Glyph.MethodPublic, destinationTypeSymbolKey)
             {
             }
         }

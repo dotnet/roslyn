@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                     });
 
                     var symbolId = type.GetSymbolKey(cancellationToken);
-                    items.Add(RoslynNavigationBarItem.CreateSymbolItem(
+                    items.Add(new RoslynNavigationBarItem.Symbol(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
                         indent: 0,
@@ -200,11 +200,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return false;
         }
 
-        private static RoslynNavigationBarItem.SymbolItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private static RoslynNavigationBarItem.Symbol CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
-            return RoslynNavigationBarItem.CreateSymbolItem(
+            return new RoslynNavigationBarItem.Symbol(
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             spans.Add(declaringNode.Span);
         }
 
-        public override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        public override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.Symbol item, CancellationToken cancellationToken)
         {
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
@@ -350,6 +350,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         }
 
         protected override void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.SymbolItem)item, cancellationToken);
+            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.Symbol)item, cancellationToken);
     }
 }

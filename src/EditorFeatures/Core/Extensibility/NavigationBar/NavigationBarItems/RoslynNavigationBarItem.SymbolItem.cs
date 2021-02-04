@@ -9,26 +9,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public static SymbolItem CreateSymbolItem(
-            string text,
-            Glyph glyph,
-            IList<TextSpan> spans,
-            SymbolKey navigationSymbolId,
-            int? navigationSymbolIndex,
-            IList<NavigationBarItem>? childItems = null,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-        {
-            return new SymbolItem(text, glyph, spans, navigationSymbolId, navigationSymbolIndex, childItems, indent, bolded, grayed);
-        }
-
-        public class SymbolItem : RoslynNavigationBarItem
+        public class Symbol : RoslynNavigationBarItem
         {
             public SymbolKey NavigationSymbolId { get; }
             public int? NavigationSymbolIndex { get; }
 
-            internal SymbolItem(
+            public Symbol(
                 string text,
                 Glyph glyph,
                 IList<TextSpan> spans,
