@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             public readonly SymbolKey DestinationTypeSymbolKey;
 
             protected AbstractGenerateCodeItem(RoslynNavigationBarItemKind kind, string text, Glyph glyph, SymbolKey destinationTypeSymbolKey)
-                : base(kind, text, glyph, ImmutableArray<TextSpan>.Empty)
+                : base(text, glyph, bolded: false, grayed: false, indent: 0, ImmutableArray<TextSpan>.Empty, default, kind)
             {
                 DestinationTypeSymbolKey = destinationTypeSymbolKey;
             }

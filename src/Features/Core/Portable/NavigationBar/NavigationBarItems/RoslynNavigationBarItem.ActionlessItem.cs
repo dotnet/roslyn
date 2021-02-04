@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     {    /// <summary>
          /// An item that is displayed and can be chosen but which has no action.
          /// </summary>
+        [DataContract]
         internal class ActionlessItem : RoslynNavigationBarItem
         {
             public ActionlessItem(
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Actionless, text, glyph, spans, childItems, indent, bolded, grayed)
+                : base(text, glyph, bolded, grayed, indent, spans, childItems, RoslynNavigationBarItemKind.Actionless)
             {
             }
         }

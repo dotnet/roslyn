@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
+        [DataContract]
         public class GenerateMethod : AbstractGenerateCodeItem
         {
             [DataMember(Order = 9)]

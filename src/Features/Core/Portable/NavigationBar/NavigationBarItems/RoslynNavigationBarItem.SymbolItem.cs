@@ -27,7 +27,23 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, spans, childItems, indent, bolded, grayed)
+                : this(text, glyph, bolded, grayed, indent, spans, childItems, RoslynNavigationBarItemKind.Symbol, navigationSymbolId, navigationSymbolIndex)
+            {
+            }
+
+            // For serialization system.
+            public SymbolItem(
+                string text,
+                Glyph glyph,
+                bool bolded,
+                bool grayed,
+                int indent,
+                ImmutableArray<TextSpan> spans,
+                ImmutableArray<NavigationBarItem> childItems,
+                RoslynNavigationBarItemKind kind,
+                SymbolKey navigationSymbolId,
+                int? navigationSymbolIndex)
+                : base(text, glyph, bolded, grayed, indent, spans, childItems, kind)
             {
                 this.NavigationSymbolId = navigationSymbolId;
                 this.NavigationSymbolIndex = navigationSymbolIndex;

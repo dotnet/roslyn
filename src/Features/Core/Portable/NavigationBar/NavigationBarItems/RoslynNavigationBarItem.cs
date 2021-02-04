@@ -11,21 +11,22 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     /// <summary>
     /// Base type of all C#/VB navigation bar items.  Only for use internally to roslyn.
     /// </summary>
+    [DataContract]
     internal abstract partial class RoslynNavigationBarItem : NavigationBarItem
     {
         [DataMember(Order = 7)]
         public readonly RoslynNavigationBarItemKind Kind;
 
         protected RoslynNavigationBarItem(
-            RoslynNavigationBarItemKind kind,
             string text,
             Glyph glyph,
+            bool bolded,
+            bool grayed,
+            int indent,
             ImmutableArray<TextSpan> spans,
-            ImmutableArray<NavigationBarItem> childItems = default,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
-            : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            ImmutableArray<NavigationBarItem> childItems,
+            RoslynNavigationBarItemKind kind)
+            : base(text, glyph, bolded, grayed, indent, childItems, spans)
         {
             Kind = kind;
         }

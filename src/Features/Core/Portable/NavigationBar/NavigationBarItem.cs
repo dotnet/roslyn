@@ -26,18 +26,17 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public readonly int Indent;
         [DataMember(Order = 5)]
         public readonly ImmutableArray<NavigationBarItem> ChildItems;
-
         [DataMember(Order = 6)]
-        public ImmutableArray<TextSpan> Spans { get; internal set; }
+        public readonly ImmutableArray<TextSpan> Spans;
 
-        public NavigationBarItem(
+        protected NavigationBarItem(
             string text,
             Glyph glyph,
-            ImmutableArray<TextSpan> spans,
-            ImmutableArray<NavigationBarItem> childItems = default,
-            int indent = 0,
-            bool bolded = false,
-            bool grayed = false)
+            bool bolded,
+            bool grayed,
+            int indent,
+            ImmutableArray<NavigationBarItem> childItems,
+            ImmutableArray<TextSpan> spans)
         {
             this.Text = text;
             this.Glyph = glyph;
@@ -47,6 +46,5 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             this.Bolded = bolded;
             this.Grayed = grayed;
         }
-
     }
 }
