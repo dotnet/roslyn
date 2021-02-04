@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// </summary>
     internal static class FormattingRangeHelper
     {
-
         public static ValueTuple<SyntaxToken, SyntaxToken>? FindAppropriateRange(SyntaxToken endToken, bool useDefaultRange = true)
         {
             Contract.ThrowIfTrue(endToken.Kind() == SyntaxKind.None);
