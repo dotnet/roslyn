@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview)
+            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
             {
                 // If the document is a source generated document, we need to do the navigation ourselves;
                 // this is because the file path given to the table control isn't a real file path to a file
@@ -218,7 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             workspace,
                             _excerptResult.Document.Id,
                             _excerptResult.Span,
-                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
+                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                            cancellationToken);
                     }
                 }
 

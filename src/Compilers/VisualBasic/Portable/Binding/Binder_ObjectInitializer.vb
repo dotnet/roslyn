@@ -670,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' See if we can reclassify access as writable given that this is an object initializer.
                             ' This is needed to accommodate init-only properties.
                             If propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso Not propertyAccess.IsWriteable AndAlso
-                               propertyAccess.PropertySymbol.IsWritable(propertyAccess.ReceiverOpt, Me, isKnownTargetOfObjectMemberInintializer:=True) Then
+                               propertyAccess.PropertySymbol.IsWritable(propertyAccess.ReceiverOpt, Me, isKnownTargetOfObjectMemberInitializer:=True) Then
 
                                 propertyAccess = propertyAccess.Update(propertyAccess.PropertySymbol, propertyAccess.PropertyGroupOpt, propertyAccess.AccessKind, isWriteable:=True,
                                                                        propertyAccess.IsLValue, propertyAccess.ReceiverOpt, propertyAccess.Arguments, propertyAccess.DefaultArguments,

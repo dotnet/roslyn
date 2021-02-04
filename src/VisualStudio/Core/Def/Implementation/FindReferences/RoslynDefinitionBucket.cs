@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -52,9 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     name, expandedByDefault: true, presenter, context, definitionItem);
             }
 
-            public bool TryNavigateTo(bool isPreview)
+            public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionItem.TryNavigateTo(
-                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview); // Only activate the tab if not opening in preview
+                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             public override bool TryGetValue(string key, out object? content)
             {

@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             => parentNode.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
-                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 _ => null
             };
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
                 SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
-                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordName,
+                SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
                 _ => null,
             };
 

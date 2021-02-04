@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
@@ -36,8 +37,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 return SpecializedTasks.False;
             }
 
-            BrowserHelper.StartBrowser(uri);
+            StartBrowser(uri);
             return SpecializedTasks.True;
         }
+
+        public static void StartBrowser(string uri)
+            => VsShellUtilities.OpenSystemBrowser(uri);
+
+        public static void StartBrowser(Uri uri)
+            => VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
     }
 }

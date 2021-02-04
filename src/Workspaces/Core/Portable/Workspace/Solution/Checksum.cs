@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        private const int HashSize = 20;
+        public const int HashSize = 20;
 
         public static readonly Checksum Null = new(default);
 
@@ -136,10 +138,19 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(Checksum left, Checksum right)
             => !(left == right);
 
+        public static bool operator ==(Checksum left, HashData right)
+            => left._checksum == right;
+
+        public static bool operator !=(Checksum left, HashData right)
+            => !(left == right);
+
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
+
+        public void WriteTo(Span<byte> span)
+            => _checksum.WriteTo(span);
 
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
@@ -185,6 +196,43 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt64(Data1);
                 writer.WriteInt64(Data2);
                 writer.WriteInt32(Data3);
+            }
+
+            public void WriteTo(Span<byte> span)
+            {
+                Contract.ThrowIfFalse(span.Length >= HashSize);
+                unsafe
+                {
+                    fixed (byte* bytes = span)
+                    {
+                        // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
+                        //
+                        // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
+                        // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
+
+                        *(long*)bytes = this.Data1;
+                        *(long*)(bytes + sizeof(long)) = this.Data2;
+                        *(int*)(bytes + sizeof(long) + sizeof(long)) = this.Data3;
+                    }
+                }
+            }
+
+            public static unsafe bool FromSpan(Span<byte> bytes, out HashData result)
+            {
+                if (bytes.Length < HashSize)
+                {
+                    result = default;
+                    return false;
+                }
+
+                unsafe
+                {
+                    fixed (byte* ptr = bytes)
+                    {
+                        result = FromPointer((HashData*)ptr);
+                        return true;
+                    }
+                }
             }
 
             public static unsafe HashData FromPointer(HashData* hash)

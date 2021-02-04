@@ -2178,16 +2178,6 @@ Additional information: {1}</source>
         <target state="translated">赋值表达式中类型明显</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">获取有关“{0}”的帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">从必应获取有关“{0}”的帮助</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">下移</target>

@@ -2763,75 +2763,27 @@ class C1
             Assert.Equal("//\u201C", text.ToString());
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(x86)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        public async Task DisposeMSBuildWorkspaceAndServicesCollected()
+        public DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var sol = await MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln"));
-            var workspace = sol.Workspace;
-            var project = sol.Projects.First();
-            var document = project.Documents.First();
-            var tree = await document.GetSyntaxTreeAsync();
+            var sol = await ObjectReference.CreateFromFactory(() => MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result);
+            var workspace = sol.GetObjectReference(static s => s.Workspace);
+            var project = sol.GetObjectReference(static s => s.Projects.First());
+            var document = project.GetObjectReference(static p => p.Documents.First());
+            var tree = document.UseReference(static d => d.GetSyntaxTreeAsync().Result);
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
-            var compilation = await document.GetSemanticModelAsync();
             Assert.NotNull(type);
             Assert.StartsWith("public class CSharpClass", type.ToString(), StringComparison.Ordinal);
+
+            var compilation = document.GetObjectReference(static d => d.GetSemanticModelAsync(CancellationToken.None).Result);
             Assert.NotNull(compilation);
 
             // MSBuildWorkspace doesn't have a cache service
-            Assert.Null(workspace.CurrentSolution.Services.CacheService);
-
-            var weakSolution = ObjectReference.Create(sol);
-            var weakCompilation = ObjectReference.Create(compilation);
-
-            sol.Workspace.Dispose();
-            project = null;
-            document = null;
-            tree = null;
-            type = null;
-            sol = null;
-            compilation = null;
-
-            weakSolution.AssertReleased();
-            weakCompilation.AssertReleased();
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        [WorkItem(1088127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1088127")]
-        public async Task MSBuildWorkspacePreservesEncoding()
-        {
-            var encoding = Encoding.BigEndianUnicode;
-            var fileContent = @"//“
-class C { }";
-            var files = new FileSet(
-                ("Encoding.csproj", Resources.ProjectFiles.CSharp.Encoding.Replace("<CodePage>ReplaceMe</CodePage>", string.Empty)),
-                ("class1.cs", encoding.GetBytesWithPreamble(fileContent)));
-
-            CreateFiles(files);
-            var projPath = GetSolutionFileName("Encoding.csproj");
-
-            using var workspace = CreateMSBuildWorkspace();
-            var project = await workspace.OpenProjectAsync(projPath);
-
-            var document = project.Documents.First(d => d.Name == "class1.cs");
-
-            // update root without first looking at text (no encoding is known)
-            var gen = Editing.SyntaxGenerator.GetGenerator(document);
-            var doc2 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
-            var doc2text = await doc2.GetTextAsync();
-            Assert.Null(doc2text.Encoding);
-            var doc2tree = await doc2.GetSyntaxTreeAsync();
-            Assert.Null(doc2tree.Encoding);
-            Assert.Null(doc2tree.GetText().Encoding);
-
-            // observe original text to discover encoding
-            var text = await document.GetTextAsync();
-            Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
-            Assert.Equal(fileContent, text.ToString());
-
+            Assert.Null(workspace.UseReference(static w => w.CurrentSolution.Services.CacheService));
             // update root blindly again, after observing encoding, see that now encoding is known
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();

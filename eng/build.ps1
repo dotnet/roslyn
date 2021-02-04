@@ -62,6 +62,8 @@ param (
   [switch]$testCoreClr,
   [switch]$testIOperation,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -175,6 +177,11 @@ function Process-Arguments() {
   $anyUnit = $testDesktop -or $testCoreClr
   if ($anyUnit -and $testVsi) {
     Write-Host "Cannot combine unit and VSI testing"
+    exit 1
+  }
+
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
     exit 1
   }
 
@@ -395,6 +402,14 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
+  }
+
   try {
     Write-Host "$runTests $args"
     Exec-Console $dotnetExe "$runTests $args"
@@ -405,8 +420,13 @@ function TestUsingRunTests() {
     }
 
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
     }
   }
 }

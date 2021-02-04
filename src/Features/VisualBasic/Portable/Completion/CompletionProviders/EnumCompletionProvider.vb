@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetPreselectedSymbolsAsync(
+        Private Shared Function GetPreselectedSymbolsAsync(
                 context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(result)
         End Function
 
-        Protected Overrides Function GetSymbolsAsync(
+        Private Shared Function GetNormalSymbolsAsync(
                 context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
             If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
@@ -90,7 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(otherInstances.Concat(enumType))
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As OptionSet,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+            Dim normalSymbols = Await GetNormalSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
+            Dim preselectSymbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
+
+            Return normalSymbols.SelectAsArray(Function(s) (s, preselect:=False)).Concat(preselectSymbols.SelectAsArray(Function(s) (s, preselect:=True)))
+        End Function
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
                 (characterPosition > 1 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
@@ -98,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
         Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
             Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
@@ -130,18 +142,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Function CreateItem(completionContext As CompletionContext,
-                displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As VisualBasicSyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(
+                completionContext As CompletionContext,
+                displayText As String,
+                displayTextSuffix As String,
+                insertionText As String,
+                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                context As VisualBasicSyntaxContext,
+                supportedPlatformData As SupportedPlatformData) As CompletionItem
             Dim rules = GetCompletionItemRules(symbols)
+            Dim preselect = symbols.Any(Function(t) t.preselect)
             rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
 
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
+                filterText:=GetFilterText(symbols(0).symbol, displayText, context),
+                symbols:=symbols.SelectAsArray(Function(t) t.symbol),
                 contextPosition:=context.Position,
                 sortText:=insertionText,
                 supportedPlatforms:=supportedPlatformData,
@@ -151,13 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared ReadOnly s_rules As CompletionItemRules =
             CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
 
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules(symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean))) As CompletionItemRules
             Return s_rules
-        End Function
-
-        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            Dim insertionText As String = SymbolCompletionItem.GetInsertionText(selectedItem)
-            Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String

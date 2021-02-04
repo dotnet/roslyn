@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Roslyn.Utilities;
@@ -39,22 +40,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
         }
 
-        protected override IChecksummedPersistentStorage? TryOpenDatabase(
+        protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
             SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                return null;
+                return new((IChecksummedPersistentStorage?)null);
             }
 
-            return SQLitePersistentStorage.TryCreate(
+            return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
                 bulkLoadSnapshot,
                 workingFolderPath,
                 solutionKey.FilePath,
                 databaseFilePath,
-                _faultInjector);
+                _faultInjector));
         }
 
         // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.
