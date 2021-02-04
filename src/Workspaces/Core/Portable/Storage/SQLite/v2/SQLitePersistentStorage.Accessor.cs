@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
-                        Contract.ThrowIfFalse(checksum.TryWriteTo(checksumBytes));
+                        checksum.WriteTo(checksumBytes);
 
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 

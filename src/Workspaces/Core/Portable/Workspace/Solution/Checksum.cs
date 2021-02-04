@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis
         public string ToBase64String()
         {
 #if NETCOREAPP
-            Span<byte> bytes = stackalloc byte[sizeof(HashData)];
-            Contract.ThrowIfFalse(this.TryWriteTo(bytes));
+            Span<byte> bytes = stackalloc byte[HashSize];
+            this.WriteTo(bytes);
             return Convert.ToBase64String(bytes);
 #else
             unsafe
             {
-                var data = new byte[sizeof(HashData)];
+                var data = new byte[HashSize];
                 fixed (byte* dataPtr = data)
                 {
                     *(HashData*)dataPtr = _checksum;
@@ -116,8 +116,11 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
 
-        public bool TryWriteTo(Span<byte> span)
-            => MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum));
+        public void WriteTo(Span<byte> span)
+        {
+            Contract.ThrowIfFalse(span.Length >= HashSize);
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
+        }
 
         public static Checksum ReadFrom(ObjectReader reader)
             => new(HashData.ReadFrom(reader));
