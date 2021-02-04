@@ -17,7 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractTypeImportCompletionProvider : AbstractImportCompletionProvider
+    internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTypeNode> : AbstractImportCompletionProvider
+        where AliasDeclarationTypeNode : SyntaxNode
     {
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
             => syntaxContext.IsTypeContext;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
-        protected abstract ImmutableArray<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node);
+        protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
@@ -81,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var aliasNode in aliasDeclarations)
             {
                 var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(aliasNode, cancellationToken);
-                if (symbol is IAliasSymbol { Target: ITypeSymbol target }
-                    && target.TypeKind != TypeKind.Error)
+                if (symbol is IAliasSymbol { Target: ITypeSymbol { TypeKind: not TypeKind.Error } target })
                 {
                     // If the target type is a type constructs from generics type, e.g.
                     // using AliasBar = Bar<int>

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(TypeImportCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(PropertySubpatternCompletionProvider))]
     [Shared]
-    internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider
+    internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider<UsingDirectiveSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -79,10 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override ImmutableArray<SyntaxNode> GetAliasDeclarationNodes(SyntaxNode node)
+        protected override ImmutableArray<UsingDirectiveSyntax> GetAliasDeclarationNodes(SyntaxNode node)
             => node.GetEnclosingUsingDirectives()
                 .Where(n => n.Alias != null)
-                .OfType<SyntaxNode>()
                 .ToImmutableArray();
     }
 }

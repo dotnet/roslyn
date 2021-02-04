@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(EmbeddedLanguageCompletionProvider))>
     <[Shared]>
     Friend NotInheritable Class TypeImportCompletionProvider
-        Inherits AbstractTypeImportCompletionProvider
+        Inherits AbstractTypeImportCompletionProvider(Of SimpleImportsClauseSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -48,9 +48,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(False)
         End Function
 
-        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As ImmutableArray(Of SimpleImportsClauseSyntax)
             ' VB imports can only be placed before any declarations
-            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax).SelectAsArray(Function(n) DirectCast(n, SyntaxNode))
+            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax).ToImmutableArray()
         End Function
     End Class
 End Namespace
