@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             public SymbolItem(
                 string text,
                 Glyph glyph,
-                IList<TextSpan> spans,
+                ImmutableArray<TextSpan> spans,
                 SymbolKey navigationSymbolId,
                 int? navigationSymbolIndex,
-                IList<NavigationBarItem>? childItems = null,
+                ImmutableArray<NavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)

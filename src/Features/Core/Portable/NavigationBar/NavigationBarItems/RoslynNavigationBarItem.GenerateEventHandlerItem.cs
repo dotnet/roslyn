@@ -4,7 +4,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {

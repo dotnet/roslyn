@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     /// <summary>
     /// Base type of all C#/VB navigation bar items.  Only for use internally to roslyn.
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             RoslynNavigationBarItemKind kind,
             string text,
             Glyph glyph,
-            IList<TextSpan> spans,
-            IList<NavigationBarItem>? childItems = null,
+            ImmutableArray<TextSpan> spans,
+            ImmutableArray<NavigationBarItem> childItems = default,
             int indent = 0,
             bool bolded = false,
             bool grayed = false)

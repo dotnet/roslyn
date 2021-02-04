@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {    /// <summary>
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             public ActionlessItem(
                 string text,
                 Glyph glyph,
-                IList<TextSpan> spans,
-                IList<NavigationBarItem>? childItems = null,
+                ImmutableArray<TextSpan> spans,
+                ImmutableArray<NavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
