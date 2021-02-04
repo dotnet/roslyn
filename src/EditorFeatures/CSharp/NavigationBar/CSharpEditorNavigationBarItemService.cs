@@ -5,23 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
-using Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -36,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        public override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        public override VirtualTreePoint? GetSymbolItemNavigationPoint(
+            Document document, CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
@@ -71,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        protected override void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.SymbolItem)item, cancellationToken);
+        protected override void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => NavigateToSymbolItem(document, (CodeAnalysis.NavigationBar.RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
     }
 }
