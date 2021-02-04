@@ -7,11 +7,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
-Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -20,8 +19,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
     Partial Friend Class VisualBasicEditorNavigationBarItemService
-        Inherits AbstractNavigationBarItemService
-
         Private Sub GenerateCodeForItem(document As Document, generateCodeItem As AbstractGenerateCodeItem, textView As ITextView, cancellationToken As CancellationToken)
             ' We'll compute everything up front before we go mutate state
             Dim text = document.GetTextSynchronously(cancellationToken)
@@ -67,21 +64,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         End Function
 
         Private Shared Function ShouldApplyLineAdjustmentFormattingRule(generateCodeItem As AbstractGenerateCodeItem) As Boolean
-            Return generateCodeItem.Kind <> RoslynNavigationBarItemKind.GenerateFinalizer
+            Return generateCodeItem.Kind <> CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.GenerateFinalizer
         End Function
 
         Private Shared Function GetGeneratedDocumentCoreAsync(document As Document, generateCodeItem As AbstractGenerateCodeItem, codeGenerationOptions As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of Document)
             Select Case generateCodeItem.Kind
-                Case RoslynNavigationBarItemKind.GenerateDefaultConstructor
+                Case CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.GenerateDefaultConstructor
                     Return GenerateDefaultConstructorAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken)
 
-                Case RoslynNavigationBarItemKind.GenerateEventHandler
+                Case CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.GenerateEventHandler
                     Return GenerateEventHandlerAsync(document, DirectCast(generateCodeItem, GenerateEventHandler), codeGenerationOptions, cancellationToken)
 
-                Case RoslynNavigationBarItemKind.GenerateFinalizer
+                Case CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.GenerateFinalizer
                     Return GenerateFinalizerAsync(document, generateCodeItem, codeGenerationOptions, cancellationToken)
 
-                Case RoslynNavigationBarItemKind.GenerateMethod
+                Case CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.GenerateMethod
                     Return GenerateMethodAsync(document, DirectCast(generateCodeItem, GenerateMethod), codeGenerationOptions, cancellationToken)
 
                 Case Else

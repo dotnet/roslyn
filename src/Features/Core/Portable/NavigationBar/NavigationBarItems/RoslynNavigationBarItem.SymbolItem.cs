@@ -33,6 +33,5 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 this.NavigationSymbolIndex = navigationSymbolIndex;
             }
         }
-
     }
 }

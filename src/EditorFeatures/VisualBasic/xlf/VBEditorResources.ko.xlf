@@ -27,11 +27,6 @@
         <target state="translated">새로 만들기</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Events">
-        <source>({0} Events)</source>
-        <target state="translated">({0} 이벤트)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">디자이너에서 이 호출이 필요합니다.</target>
