@@ -17,11 +17,6 @@
         <target state="translated">キーが同じで値が異なる要素が既に存在します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
-        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="translated">オブジェクトは、比較対象の配列と同じ数の要素を含む配列ではありません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">I で始まる</target>
@@ -106,11 +101,6 @@
         <source>Non-Field Members</source>
         <target state="translated">フィールド以外のメンバー</target>
         <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="NotSupported_FixedSizeCollection">
-        <source>Collection was of a fixed size.</source>
-        <target state="translated">コレクションは固定サイズです。</target>
-        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>

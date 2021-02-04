@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             Name = name;
         }
 
-        public static explicit operator DocumentKey(Document document)
-            => new((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
+        public static DocumentKey ToDocumentKey(Document document)
+            => new(ProjectKey.ToProjectKey(document.Project), document.Id, document.FilePath, document.Name);
 
         public SerializableDocumentKey Dehydrate()
             => new(Project.Dehydrate(), Id, FilePath, Name);

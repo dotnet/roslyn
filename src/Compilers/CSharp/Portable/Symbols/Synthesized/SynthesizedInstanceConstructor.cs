@@ -276,6 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MergeUseSiteInfo(ref result, ReturnTypeWithAnnotations.Type.GetUseSiteInfo());
             return result;
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: false) ?? false;
+
         #endregion
 
         protected void GenerateMethodBodyCore(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)

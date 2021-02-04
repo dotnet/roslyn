@@ -851,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (!constantValue.HasValue || constantValue.Value == null)
                 return null;
 
+            RoslynDebug.Assert(operation.Type is not null);
             if (!operation.Type.SpecialType.IsIntegralType())
                 return null;
 

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../RemoteWorkspacesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../RemoteWorkspacesResources.resx">
     <body>
       <trans-unit id="FeatureName_AssetSynchronization">
         <source>Asset synchronization</source>
@@ -40,6 +40,11 @@
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document higlights</source>
         <target state="translated">文件重點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">

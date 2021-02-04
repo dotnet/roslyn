@@ -481,8 +481,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal struct GlobalAnalyzerConfigBuilder
         {
-            private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath)>.Builder>.Builder? _values;
-            private ImmutableDictionary<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>.Builder? _duplicates;
+            private ImmutableDictionary<string, ImmutableDictionary<string, (string value, string configPath, int globalLevel)>.Builder>.Builder? _values;
+            private ImmutableDictionary<string, ImmutableDictionary<string, (int globalLevel, ArrayBuilder<string> configPaths)>.Builder>.Builder? _duplicates;
 
             internal const string GlobalConfigPath = "<Global Config>";
             internal const string GlobalSectionName = "Global Section";
@@ -491,16 +491,16 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_values is null)
                 {
-                    _values = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (string, string)>.Builder>(Section.NameEqualityComparer);
-                    _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, ArrayBuilder<string>>.Builder>(Section.NameEqualityComparer);
+                    _values = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (string, string, int)>.Builder>(Section.NameEqualityComparer);
+                    _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (int, ArrayBuilder<string>)>.Builder>(Section.NameEqualityComparer);
                 }
 
-                MergeSection(config.PathToFile, config.GlobalSection, isGlobalSection: true);
+                MergeSection(config.PathToFile, config.GlobalSection, config.GlobalLevel, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
                     if (IsAbsoluteEditorConfigPath(section.Name))
                     {
-                        MergeSection(config.PathToFile, section, isGlobalSection: false);
+                        MergeSection(config.PathToFile, section, config.GlobalLevel, isGlobalSection: false);
                     }
                     else
                     {
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     bool isGlobalSection = string.IsNullOrWhiteSpace(section);
                     string sectionName = isGlobalSection ? GlobalSectionName : section;
-                    foreach ((var keyName, var configPaths) in keys)
+                    foreach ((var keyName, (_, var configPaths)) in keys)
                     {
                         diagnostics.Add(Diagnostic.Create(
                              MultipleGlobalAnalyzerKeysDescriptor,
@@ -562,52 +562,71 @@ namespace Microsoft.CodeAnalysis
                 return new Section(sectionName, result);
             }
 
-            private void MergeSection(string configPath, Section section, bool isGlobalSection)
+            private void MergeSection(string configPath, Section section, int globalLevel, bool isGlobalSection)
             {
                 Debug.Assert(_values is object);
                 Debug.Assert(_duplicates is object);
 
                 if (!_values.TryGetValue(section.Name, out var sectionDict))
                 {
-                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string)>(Section.PropertiesKeyComparer);
+                    sectionDict = ImmutableDictionary.CreateBuilder<string, (string, string, int)>(Section.PropertiesKeyComparer);
                     _values.Add(section.Name, sectionDict);
                 }
 
                 _duplicates.TryGetValue(section.Name, out var duplicateDict);
                 foreach ((var key, var value) in section.Properties)
                 {
-                    if (isGlobalSection && Section.PropertiesKeyComparer.Equals(key, GlobalKey))
+                    if (isGlobalSection && (Section.PropertiesKeyComparer.Equals(key, GlobalKey) || Section.PropertiesKeyComparer.Equals(key, GlobalLevelKey)))
                     {
                         continue;
                     }
 
-                    bool keyInSection = sectionDict.ContainsKey(key);
-                    bool keyDuplicated = duplicateDict?.ContainsKey(key) ?? false;
+                    bool keyInSection = sectionDict.TryGetValue(key, out var sectionValue);
 
-                    // if this key is neither already present, or already duplicate, we can add it
+                    (int globalLevel, ArrayBuilder<string> configPaths) duplicateValue = default;
+                    bool keyDuplicated = !keyInSection && duplicateDict?.TryGetValue(key, out duplicateValue) == true;
+
+                    // if this key is neither already present, or already duplicate, we can add it	
                     if (!keyInSection && !keyDuplicated)
                     {
-                        sectionDict.Add(key, (value, configPath));
+                        sectionDict.Add(key, (value, configPath, globalLevel));
                     }
                     else
                     {
-                        if (duplicateDict is null)
+                        int currentGlobalLevel = keyInSection ? sectionValue.globalLevel : duplicateValue.globalLevel;
+
+                        // if this key overrides one we knew about previously, replace it
+                        if (currentGlobalLevel < globalLevel)
                         {
-                            duplicateDict = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<string>>(Section.PropertiesKeyComparer);
-                            _duplicates.Add(section.Name, duplicateDict);
+                            sectionDict[key] = (value, configPath, globalLevel);
+                            if (keyDuplicated)
+                            {
+                                duplicateDict!.Remove(key);
+                            }
                         }
-
-                        // record that this key is now a duplicate
-                        ArrayBuilder<string> configList = keyDuplicated ? duplicateDict[key] : ArrayBuilder<string>.GetInstance();
-                        configList.Add(configPath);
-                        duplicateDict[key] = configList;
-
-                        // if we'd previously added this key, remove it and remember the extra duplicate location
-                        if (keyInSection)
+                        // this key conflicts with a previous one
+                        else if (currentGlobalLevel == globalLevel)
                         {
-                            var originalConfigPath = sectionDict[key].configPath;
-                            sectionDict.Remove(key);
-                            duplicateDict[key].Insert(0, originalConfigPath);
+                            if (duplicateDict is null)
+                            {
+                                duplicateDict = ImmutableDictionary.CreateBuilder<string, (int, ArrayBuilder<string>)>(Section.PropertiesKeyComparer);
+                                _duplicates.Add(section.Name, duplicateDict);
+                            }
+
+                            // record that this key is now a duplicate
+                            ArrayBuilder<string> configList = duplicateValue.configPaths ?? ArrayBuilder<string>.GetInstance();
+                            configList.Add(configPath);
+                            duplicateDict[key] = (globalLevel, configList);
+
+                            // if we'd previously added this key, remove it and remember the extra duplicate location
+                            if (keyInSection)
+                            {
+                                var originalEntry = sectionValue;
+                                Debug.Assert(originalEntry.globalLevel == globalLevel);
+
+                                sectionDict.Remove(key);
+                                configList.Insert(0, originalEntry.configPath);
+                            }
                         }
                     }
                 }

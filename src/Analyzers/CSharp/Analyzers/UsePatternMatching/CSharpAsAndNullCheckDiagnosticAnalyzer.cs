@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpAsAndNullCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineAsTypeCheckId,
+                   EnforceOnBuildValues.InlineAsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverAsWithNullCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

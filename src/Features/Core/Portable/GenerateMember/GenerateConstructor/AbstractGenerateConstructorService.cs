@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             if (currentConstructor.Equals(delegatedConstructor))
                 return true;
 
+            // Delegating to a constructor in the base type can't cause a cycle
+            if (!delegatedConstructor.ContainingType.Equals(currentConstructor.ContainingType))
+                return false;
+
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
             var constructorsCount = delegatedConstructor.ContainingType.InstanceConstructors.Length;

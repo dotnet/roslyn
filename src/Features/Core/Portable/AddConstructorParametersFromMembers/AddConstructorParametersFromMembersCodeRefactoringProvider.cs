@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                         constructorCandidate.MissingParameters,
                         useSubMenuName: false));
                 }
+
                 result.Add(GetOptionalContructorParametersCodeAction(
                     document,
                     constructorCandidate,
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                             constructorCandidate.MissingParameters,
                             useSubMenuName: true));
                     }
+
                     optionalParameterCodeActions.Add(GetOptionalContructorParametersCodeAction(
                         document,
                         constructorCandidate,

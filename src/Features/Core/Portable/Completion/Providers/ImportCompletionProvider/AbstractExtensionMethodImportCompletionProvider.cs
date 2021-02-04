@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractExtensionMethodImportCompletionProvider : AbstractImportCompletionProvider
     {
+        private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
+
         protected abstract string GenericSuffix { get; }
 
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
@@ -39,12 +43,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     using var nestedTokenSource = new CancellationTokenSource();
                     using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+                    var inferredTypes = IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Document.Project.Solution.Workspace)
+                        ? syntaxContext.InferredTypes
+                        : ImmutableArray<ITypeSymbol>.Empty;
 
                     var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
+                        inferredTypes,
                         forceIndexCreation: isExpandedCompletion,
                         linkedTokenSource.Token));
 
@@ -77,6 +85,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.ExpandItemsAvailable = false;
                 }
             }
+        }
+
+        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        {
+            if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+                _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
+            }
+
+            return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
         private static bool TryGetReceiverTypeSymbol(
@@ -132,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 serializableItem.Glyph,
                 GenericSuffix,
                 CompletionItemFlags.Expanded,
-                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount));
+                (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount),
+                serializableItem.IncludedInTargetTypeCompletion);
     }
 }

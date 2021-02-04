@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            public override bool CanNavigateTo(Workspace workspace)
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return CanNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].CanNavigateTo();
+                return SourceSpans[0].CanNavigateTo(cancellationToken);
             }
 
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                 {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return TryNavigateToMetadataSymbol(workspace, symbolKey);
                 }
 
-                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab);
+                return SourceSpans[0].TryNavigateTo(showInPreviewTab, activateTab, cancellationToken);
             }
 
             private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)

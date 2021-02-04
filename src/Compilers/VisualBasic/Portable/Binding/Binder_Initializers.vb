@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Const fields of type Date or Decimal will get initialized in the synthesized shared constructor
             ' because their value is not regarded as compile time constant by the CLR.
             ' This will produce sequence points in the shared constructor which is exactly what Dev10 does.
-            Dim constantValue = fieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            Dim constantValue = fieldSymbol.GetConstantValue(VisualBasic.ConstantFieldsInProgress.Empty)
 
             If constantValue IsNot Nothing Then
                 Dim meSymbol As ParameterSymbol = Nothing

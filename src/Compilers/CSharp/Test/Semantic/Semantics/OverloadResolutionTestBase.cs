@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
                 .ToArray());
 
-            AssertEx.Equal(expected, results);
+            AssertEx.EqualOrDiff(expected, results);
         }
     }
 }

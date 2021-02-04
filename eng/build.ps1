@@ -38,6 +38,7 @@ param (
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
+  [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -62,6 +63,8 @@ param (
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$sequential,
+  [switch]$helix,
+  [string]$helixQueueName = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -102,6 +105,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
+  Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -178,6 +182,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -233,6 +242,9 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -258,6 +270,8 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
@@ -394,6 +408,14 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
+  if ($helix) {
+    $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
+  }
+
   try {
     Write-Host "$runTests $args"
     Exec-Console $dotnetExe "$runTests $args"
@@ -408,8 +430,13 @@ function TestUsingRunTests() {
     }
 
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
     }
   }
 }

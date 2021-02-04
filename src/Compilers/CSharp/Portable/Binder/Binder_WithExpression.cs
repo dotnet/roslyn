@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax.Initializer,
                 receiverType,
                 syntax.Expression,
+                isForNewInstance: true,
                 diagnostics);
 
             // N.B. Since we only don't parse nested initializers in syntax there should be no extra

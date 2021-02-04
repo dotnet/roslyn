@@ -728,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(object other)
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            // It is possible to get here when we compare diagnostic for equality
+            return other is TypeWithAnnotations t && this.Equals(t, TypeCompareKind.ConsiderEverything);
         }
 
 #pragma warning disable CS0809

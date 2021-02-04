@@ -195,10 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeConstructor = boundAttribute.Constructor;
 
             RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
 
             if (diagnostics.DiagnosticBag is object)
             {
-                NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics.DiagnosticBag);
+                NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
             }
 
             bool hasErrors = boundAttribute.HasAnyErrors;
@@ -380,6 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+
+                    if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
+                    {
+                        // an error would have already been reported on declaring an init-only setter
+                        CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                    }
                 }
             }
 

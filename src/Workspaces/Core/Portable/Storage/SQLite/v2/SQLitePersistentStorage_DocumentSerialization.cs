@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        protected override Task<Checksum?> ReadChecksumAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
-            => _documentAccessor.ReadChecksumAsync((documentKey, bulkLoadSnapshot, name), cancellationToken);
+        protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
+            => _documentAccessor.ChecksumMatchesAsync((documentKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
         protected override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _documentAccessor.ReadStreamAsync((documentKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => _documentAccessor.WriteStreamAsync(((DocumentKey)document, document, name), stream, checksum, cancellationToken);
+        protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => _documentAccessor.WriteStreamAsync((documentKey, bulkLoadSnapshot, name), stream, checksum, cancellationToken);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and 

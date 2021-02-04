@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     return;
 
                 // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
                     return;
 
                 var outliningService = BlockStructureService.GetService(document);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     return;
 
                 // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
                     return;
 
                 var outliningService = BlockStructureService.GetService(document);

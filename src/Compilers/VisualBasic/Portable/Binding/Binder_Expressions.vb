@@ -1064,7 +1064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If type.IsErrorType() OrElse
                SourceModule IsNot type.ContainingModule OrElse
-               type.TypeKind <> TypeKind.Class Then
+               type.TypeKind <> TYPEKIND.Class Then
                 Return Nothing
             End If
 
@@ -1204,16 +1204,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function GetTypeNotExpressionErrorId(type As TypeSymbol) As ERRID
             Select Case type.TypeKind
 
-                Case TypeKind.Class
+                Case TYPEKIND.Class
                     Return ERRID.ERR_ClassNotExpression1
 
-                Case TypeKind.Interface
+                Case TYPEKIND.Interface
                     Return ERRID.ERR_InterfaceNotExpression1
 
-                Case TypeKind.Enum
+                Case TYPEKIND.Enum
                     Return ERRID.ERR_EnumNotExpression1
 
-                Case TypeKind.Structure
+                Case TYPEKIND.Structure
                     Return ERRID.ERR_StructureNotExpression1
 
                     ' TODO Modules??
@@ -2596,8 +2596,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
-            If currentType.TypeKind = TypeKind.Submission AndAlso Not currentMember.IsShared Then
-                If memberDeclaringType.TypeKind = TypeKind.Submission Then
+            If currentType.TypeKind = TYPEKIND.Submission AndAlso Not currentMember.IsShared Then
+                If memberDeclaringType.TypeKind = TYPEKIND.Submission Then
                     Return New BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType)
                 Else
                     ' TODO (tomat): host object binding
@@ -2731,7 +2731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
-                        If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
+                        If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TYPEKIND.TypeParameter Then
                             Dim typeDiagnostics = BindingDiagnosticBag.Create(diagnostics)
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything) Then
@@ -2808,9 +2808,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstructorNotFound1, leftTypeSymbol), left)
                     End If
 
-                    Dim leftTypeKind As TypeKind = leftTypeSymbol.TypeKind
+                    Dim leftTypeKind As TYPEKIND = leftTypeSymbol.TypeKind
 
-                    If leftTypeKind = TypeKind.Class OrElse leftTypeKind = TypeKind.Structure OrElse leftTypeKind = TypeKind.Module Then
+                    If leftTypeKind = TYPEKIND.Class OrElse leftTypeKind = TYPEKIND.Structure OrElse leftTypeKind = TYPEKIND.Module Then
 
                         ' Bind to method group representing available instance constructors
                         Dim namedLeftTypeSymbol = DirectCast(leftTypeSymbol, NamedTypeSymbol)
@@ -2863,7 +2863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim rightArity As Integer = If(typeArguments IsNot Nothing, typeArguments.Arguments.Count, 0)
-            Dim lookupResult As LookupResult = LookupResult.GetInstance()
+            Dim lookupResult As LookupResult = lookupResult.GetInstance()
             Dim options As LookupOptions = LookupOptions.AllMethodsOfAnyArity
 
             Try
@@ -2893,7 +2893,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf left.Kind = BoundKind.TypeExpression Then
                     type = DirectCast(left, BoundTypeExpression).Type
 
-                    If type.TypeKind = TypeKind.TypeParameter Then
+                    If type.TypeKind = TYPEKIND.TypeParameter Then
                         Return ReportDiagnosticAndProduceBadExpression(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_TypeParamQualifierDisallowed), left)
                     Else
                         If String.IsNullOrEmpty(rightName) Then
@@ -3016,7 +3016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    referenceLocation IsNot Nothing AndAlso referenceLocation.IsInSource AndAlso
                    declarationLocation.SourceTree Is referenceLocation.SourceTree Then
 
-                    localType = LocalSymbol.UseBeforeDeclarationResultType
+                    localType = localSymbol.UseBeforeDeclarationResultType
 
                     If diagnostics IsNot Nothing Then
                         ReportDiagnostic(diagnostics, node, ERRID.ERR_UseOfLocalBeforeDeclaration1, localSymbol)
@@ -3787,17 +3787,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ElseIf defaultPropertyGroup Is Nothing OrElse Not defaultPropertyGroup.HasErrors Then
                     Select Case type.TypeKind
-                        Case TypeKind.Array, TypeKind.Enum
+                        Case TYPEKIND.Array, TYPEKIND.Enum
                             ReportQualNotObjectRecord(left, diagnostics)
-                        Case TypeKind.Class
+                        Case TYPEKIND.Class
                             If type.SpecialType = SpecialType.System_Array Then
                                 ReportDefaultMemberNotProperty(left, diagnostics)
                             Else
                                 ReportNoDefaultProperty(left, diagnostics)
                             End If
-                        Case TypeKind.TypeParameter, TypeKind.Interface
+                        Case TYPEKIND.TypeParameter, TYPEKIND.Interface
                             ReportNoDefaultProperty(left, diagnostics)
-                        Case TypeKind.Structure
+                        Case TYPEKIND.Structure
                             If type.IsIntrinsicValueType() Then
                                 ReportQualNotObjectRecord(left, diagnostics)
                             Else
@@ -3824,13 +3824,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim type = expr.Type
             Dim syntax = expr.Syntax
             Select Case type.TypeKind
-                Case TypeKind.Class
+                Case TYPEKIND.Class
                     ' "Class '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_NoDefaultNotExtend1, type)
-                Case TypeKind.Structure
+                Case TYPEKIND.Structure
                     ' "Structure '{0}' cannot be indexed because it has no default property."
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_StructureNoDefault1, type)
-                Case TypeKind.Error
+                Case TYPEKIND.Error
                     ' We should have reported an error elsewhere.
                 Case Else
                     ' "'{0}' cannot be indexed because it has no default property."
@@ -3884,7 +3884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeCharacterString As String = Nothing
             Dim specialType As SpecialType = GetSpecialTypeForTypeCharacter(typeChar, typeCharacterString)
 
-            If specialType <> SpecialType.None Then
+            If specialType <> specialType.None Then
                 If type.IsArrayType() Then
                     type = DirectCast(type, ArrayTypeSymbol).ElementType
                 End If
@@ -3905,23 +3905,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expr = expr.MakeRValue()
             End If
 
-            Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
-            For i = 0 To boundArguments.Length - 1
-                Dim index As BoundExpression = boundArguments(i)
-                If builder Is Nothing AndAlso index.IsLValue Then
-                    builder = ArrayBuilder(Of BoundExpression).GetInstance()
-                    For k = 0 To i - 1
-                        builder.Add(boundArguments(k))
-                    Next
-                End If
+            Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(boundArguments.Length)
+            Dim int32Type = GetSpecialType(SpecialType.System_Int32, node.ArgumentList, diagnostics)
 
-                If builder IsNot Nothing Then
-                    builder.Add(index.MakeRValue)
-                End If
+            For Each argument In boundArguments
+                convertedArguments.Add(ApplyImplicitConversion(argument.Syntax, int32Type, argument, diagnostics))
             Next
-            If builder IsNot Nothing Then
-                boundArguments = builder.ToImmutableAndFree()
-            End If
+
+            boundArguments = convertedArguments.ToImmutableAndFree()
 
             Dim exprType = expr.Type
             If exprType Is Nothing Then
@@ -3945,13 +3936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundArrayAccess(node, expr, boundArguments, arrayType.ElementType, hasErrors:=True)
             End If
 
-            Dim convertedArguments As BoundExpression() = New BoundExpression(boundArguments.Length - 1) {}
-            Dim int32Type = GetSpecialType(SpecialType.System_Int32, node.ArgumentList, diagnostics)
-            For i = 0 To boundArguments.Length - 1
-                convertedArguments(i) = ApplyImplicitConversion(boundArguments(i).Syntax, int32Type, boundArguments(i), diagnostics)
-            Next i
-
-            Return New BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType)
+            Return New BoundArrayAccess(node, expr, boundArguments, arrayType.ElementType)
         End Function
 
         ' Get the common return type of a set of symbols, or error type if no common return type. Used
@@ -3961,7 +3946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetCommonExpressionTypeForErrorRecovery(
             symbolReference As VisualBasicSyntaxNode,
             symbols As ImmutableArray(Of Symbol),
-            constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+            constantFieldsInProgress As ConstantFieldsInProgress
         ) As TypeSymbol
             Dim commonType As TypeSymbol = Nothing
             Dim commonName As String = Nothing
@@ -4005,7 +3990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetExpressionType(
             symbolReference As VisualBasicSyntaxNode,
             s As Symbol,
-            constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol),
+            constantFieldsInProgress As ConstantFieldsInProgress,
             diagnostics As BindingDiagnosticBag
         ) As TypeSymbol
             Select Case s.Kind
@@ -4467,9 +4452,9 @@ lElseClause:
                 Dim specialType As SpecialType = SpecialTypeExtensions.FromRuntimeTypeOfLiteralValue(value)
 
                 ' VB literals can't be of type byte, sbyte
-                Debug.Assert(specialType <> SpecialType.None AndAlso
-                             specialType <> SpecialType.System_Byte AndAlso
-                             specialType <> SpecialType.System_SByte)
+                Debug.Assert(specialType <> specialType.None AndAlso
+                             specialType <> specialType.System_Byte AndAlso
+                             specialType <> specialType.System_SByte)
 
                 cv = ConstantValue.Create(value, specialType)
                 type = GetSpecialType(specialType, node, diagnostics)
@@ -4735,7 +4720,7 @@ lElseClause:
 
                 Debug.Assert(operand.Type.IsErrorType() OrElse ignoreDiagnostics.DiagnosticBag.IsEmptyWithoutResolution())
             Else
-                Dim lookupResult As LookupResult = LookupResult.GetInstance()
+                Dim lookupResult As LookupResult = lookupResult.GetInstance()
                 Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
                 ' 11.25 Await Operator

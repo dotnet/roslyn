@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.Emit;
@@ -14,8 +12,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         private readonly Guid _mvid;
 
-        public Func<Stream> OpenAssemblyStreamImpl { get; set; }
-        public Func<Stream> OpenPdbStreamImpl { get; set; }
+        public Func<Stream?>? OpenAssemblyStreamImpl { get; set; }
+        public Func<Stream?>? OpenPdbStreamImpl { get; set; }
 
         public MockCompilationOutputs(Guid mvid)
             => _mvid = mvid;
@@ -23,10 +21,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public override string AssemblyDisplayPath => "test-assembly";
         public override string PdbDisplayPath => "test-pdb";
 
-        protected override Stream OpenAssemblyStream()
+        protected override Stream? OpenAssemblyStream()
             => (OpenAssemblyStreamImpl ?? throw new NotImplementedException())();
 
-        protected override Stream OpenPdbStream()
+        protected override Stream? OpenPdbStream()
             => (OpenPdbStreamImpl ?? throw new NotImplementedException())();
 
         internal override Guid ReadAssemblyModuleVersionId()

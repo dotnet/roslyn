@@ -2587,6 +2587,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
+BC30059: Constant expression is required.
+        Const s As SByte = i'BIND:"Const s As SByte = i"
+                           ~
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByte'.
         Const s As SByte = i'BIND:"Const s As SByte = i"
                            ~

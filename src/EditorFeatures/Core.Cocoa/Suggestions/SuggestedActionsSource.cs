@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var fixAllSuggestedActions = ArrayBuilder<FixAllSuggestedAction>.GetInstance();
                 foreach (var scope in supportedScopes)
                 {
-                    var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                    var fixAllStateForScope = fixAllState.With(scope: scope, codeActionEquivalenceKey: action.EquivalenceKey);
                     var fixAllSuggestedAction = new FixAllSuggestedAction(
                         ThreadingContext,
                         _owner, workspace, _subjectBuffer, fixAllStateForScope,

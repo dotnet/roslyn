@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_using_directives_on_paste">
         <source>Add missing using directives on paste</source>
-        <target state="new">Add missing using directives on paste</target>
+        <target state="translated">Ajouter les directives using manquantes au moment du collage</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

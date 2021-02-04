@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1091,9 +1092,13 @@ namespace System.Runtime.CompilerServices
             bool skipUsesIsNullable,
             MessageID? experimentalFeature)
         {
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
+
             if (options == null)
             {
-                options = TestOptions.ReleaseDll;
+                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
+
+                options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
             }
 
             // Using single-threaded build if debugger attached, to simplify debugging.
@@ -1109,7 +1114,7 @@ namespace System.Runtime.CompilerServices
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
-                source.GetSyntaxTrees(parseOptions, sourceFileName),
+                syntaxTrees,
                 references,
                 options);
             ValidateCompilation(createCompilationLambda);
@@ -1870,8 +1875,8 @@ namespace System.Runtime.CompilerServices
         protected static void VerifyFlowGraph(CSharpCompilation compilation, SyntaxNode syntaxNode, string expectedFlowGraph)
         {
             var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
-            ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
-            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
+            (ControlFlowGraph graph, ISymbol associatedSymbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph, associatedSymbol);
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(

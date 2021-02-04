@@ -497,6 +497,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return _curriedFromMethod.IsInitOnly
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return _curriedFromMethod.IsVararg

@@ -364,12 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 transformedReceiver,
                 indexer,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string>),
                 argumentRefKinds,
-                false,
-                default(ImmutableArray<int>),
-                default(BitVector),
-                null,
+                expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 indexerAccess.Type);
         }
 
@@ -630,6 +629,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
+                    break;
+
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)originalLHS).FunctionPointer.Signature.RefKind != RefKind.None);
                     break;
 
                 case BoundKind.ConditionalOperator:
