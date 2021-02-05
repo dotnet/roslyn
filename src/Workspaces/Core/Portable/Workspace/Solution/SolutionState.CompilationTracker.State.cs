@@ -275,6 +275,30 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+
+                private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
+                {
+                    // TODO: how would we ever get a null here?
+                    if (assemblyOrModuleSymbol == null)
+                    {
+                        return;
+                    }
+
+                    Contract.ThrowIfNull(projectId);
+                    // remember which project is associated with this assembly
+                    if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
+                    {
+                        // use GetValue to avoid race condition exceptions from Add.
+                        // the first one to set the value wins.
+                        s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
+                    }
+                    else
+                    {
+                        // sanity check: this should always be true, no matter how many times
+                        // we attempt to record the association.
+                        Debug.Assert(tmp == projectId);
+                    }
+                }
             }
         }
     }
