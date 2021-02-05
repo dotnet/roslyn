@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
-                if (isBody || TopSyntaxComparer.Statement.HasLabel(node))
+                if (isBody || SyntaxComparer.Statement.HasLabel(node))
                 {
                     switch (node.Kind())
                     {
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
-            => TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
+            => SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
         protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 Debug.Assert(oldBody.Parent is not null);
                 Debug.Assert(newBody.Parent is not null);
-                return new TopSyntaxComparer(oldBody.Parent, newBody.Parent, new[] { oldBody }, new[] { newBody }, compareStatementSyntax: true).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
+                return new SyntaxComparer(oldBody.Parent, newBody.Parent, new[] { oldBody }, new[] { newBody }, compareStatementSyntax: true).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -595,10 +595,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 RoslynDebug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
                 RoslynDebug.Assert(newBody.Parent is object);
 
-                return TopSyntaxComparer.Statement.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                return SyntaxComparer.Statement.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
-            return TopSyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
+            return SyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
         }
 
         protected override bool TryMatchActiveStatement(
@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-            => TopSyntaxComparer.Statement.GetLabel(node1) == TopSyntaxComparer.Statement.GetLabel(node2);
+            => SyntaxComparer.Statement.GetLabel(node1) == SyntaxComparer.Statement.GetLabel(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
             => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
@@ -952,8 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<SyntaxToken>? oldTokens = null;
             List<SyntaxToken>? newTokens = null;
 
-            TopSyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
-            TopSyntaxComparer.GetLocalNames(newNode, ref newTokens);
+            SyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
+            SyntaxComparer.GetLocalNames(newNode, ref newTokens);
 
             // A valid foreach statement declares at least one variable.
             RoslynDebug.Assert(oldTokens != null);

@@ -13,10 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal sealed class TopSyntaxComparer : SyntaxComparer
+    internal sealed class SyntaxComparer : AbstractSyntaxComparer
     {
-        internal static readonly TopSyntaxComparer Instance = new();
-        internal static readonly TopSyntaxComparer Statement = new(compareStatementSyntax: true);
+        internal static readonly SyntaxComparer TopLevel = new();
+        internal static readonly SyntaxComparer Statement = new(compareStatementSyntax: true);
 
         private readonly SyntaxNode? _oldRoot;
         private readonly SyntaxNode? _newRoot;
@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private readonly IEnumerable<SyntaxNode>? _newRootChildren;
         private readonly bool _compareStatementSyntax;
 
-        private TopSyntaxComparer()
+        private SyntaxComparer()
         {
         }
 
-        public TopSyntaxComparer(bool compareStatementSyntax)
+        public SyntaxComparer(bool compareStatementSyntax)
         {
             _compareStatementSyntax = compareStatementSyntax;
         }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <param name="oldRootChildren">Child nodes that should always be compared</param>
         /// <param name="newRootChildren">New child nodes to compare against</param>
         /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
-        public TopSyntaxComparer(
+        public SyntaxComparer(
             SyntaxNode oldRoot,
             SyntaxNode newRoot,
             IEnumerable<SyntaxNode> oldRootChildren,
