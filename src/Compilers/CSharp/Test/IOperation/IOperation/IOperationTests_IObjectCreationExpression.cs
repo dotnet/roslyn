@@ -15204,16 +15204,13 @@ Public Class A
     Implements IA
     Property P1(Optional index As Integer = 1) As Object Implements IA.P1
         Get
-            Console.WriteLine(""P1({0}).get"", index)
             Return Nothing
         End Get
         Set(value As Object)
-            Console.WriteLine(""P1({0}).set"", index)
         End Set
     End Property
     ReadOnly Property P2(Optional index As Integer = 2) As IA Implements IA.P2
         Get
-            Console.WriteLine(""P2({0}).get"", index)
             Return New A()
         End Get
     End Property
