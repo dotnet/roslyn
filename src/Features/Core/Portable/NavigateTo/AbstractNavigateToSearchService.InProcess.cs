@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -65,14 +66,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             using (nameMatcher)
             using (containerMatcherOpt)
             {
-                using var _1 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
-                using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
-
                 var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
                 var searchResults = await ComputeSearchResultsAsync(
-                    project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt,
-                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                    project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt, declaredSymbolInfoKindsSet, cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
             }
@@ -81,9 +78,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
             Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
+            DeclaredSymbolInfoKindSet kinds, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SearchResult>.GetInstance(out var result);
 
@@ -113,9 +108,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     await AddResultIfMatchAsync(
                         document, declaredSymbolInfo,
                         nameMatcher, containerMatcherOpt,
-                        kinds,
-                        nameMatches, containerMatches,
-                        result, cancellationToken).ConfigureAwait(false);
+                        kinds, result, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -125,29 +118,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task AddResultIfMatchAsync(
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
+            DeclaredSymbolInfoKindSet kinds, ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
         {
-            nameMatches.Clear();
-            containerMatches.Clear();
+            using var nameMatches = TemporaryArray<PatternMatch>.Empty;
+            using var containerMatches = TemporaryArray<PatternMatch>.Empty;
 
             cancellationToken.ThrowIfCancellationRequested();
             if (kinds.Contains(declaredSymbolInfo.Kind) &&
-                nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
-                containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                nameMatcher.AddMatches(declaredSymbolInfo.Name, ref nameMatches.AsRef()) &&
+                containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, ref containerMatches.AsRef()) != false)
             {
-                result.Add(await ConvertResultAsync(
-                    declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false));
+                var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
+                    document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
+
+                result.Add(ConvertResult(
+                    declaredSymbolInfo, document, ref nameMatches.AsRef(), ref containerMatches.AsRef(), additionalMatchingProjects));
             }
         }
 
-        private static async Task<SearchResult> ConvertResultAsync(
+        private static SearchResult ConvertResult(
             DeclaredSymbolInfo declaredSymbolInfo, Document document,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
+            ref TemporaryArray<PatternMatch> nameMatches, ref TemporaryArray<PatternMatch> containerMatches,
+            ImmutableArray<Project> additionalMatchingProjects)
         {
-            var matchKind = GetNavigateToMatchKind(nameMatches);
+            var matchKind = GetNavigateToMatchKind(ref nameMatches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
@@ -162,8 +156,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // See if we have a match in a linked file.  If so, see if we have the same match in other projects that
             // this file is linked in.  If so, include the full set of projects the match is in so we can display that
             // well in the UI.
-            var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
-                document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
                 matchedSpans.ToImmutable(), additionalMatchingProjects);
@@ -229,7 +221,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
+        private static NavigateToMatchKind GetNavigateToMatchKind(ref TemporaryArray<PatternMatch> nameMatches)
         {
             // work backwards through the match kinds.  That way our result is as bad as our worst match part.  For
             // example, say the user searches for `Console.Write` and we find `Console.Write` (exact, exact), and
