@@ -26,12 +26,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <summary>
         /// The pattern was a substring of the candidate string, but in a way that wasn't a CamelCase match.  The
         /// pattern had to have at least one non lowercase letter in it, and the match needs to be case sensitive.
+        /// This will match 'savedWork' against 'FindUnsavedWork'.
         /// </summary>
         NonLowercaseSubstring,
 
         /// <summary>
         /// The pattern was a substring of the candidate string, starting at a word within that candidate.  The pattern
-        /// can be all lowercase here.
+        /// can be all lowercase here.  This will match 'save' or 'Save' in 'FindSavedWork'
         /// </summary>
         StartOfWordSubstring,
 
@@ -101,7 +102,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <summary>
         /// The pattern was a substring of the candidate and wasn't either <see cref="NonLowercaseSubstring"/> or <see
         /// cref="StartOfWordSubstring"/>.  This can happen when the pattern is allow lowercases and matches some non
-        /// word portion of the candidate.
+        /// word portion of the candidate.  For example, finding 'save' in 'GetUnsavedWork'.  This will not match across
+        /// word boundaries.  i.e. it will not match 'save' to 'VisaVerify' even though 'saVe' is in that candidate.
         /// </summary>
         LowercaseSubstring,
     }
