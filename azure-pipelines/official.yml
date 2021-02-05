@@ -27,6 +27,9 @@ parameters:
   type: boolean
   default: false # macOS is often bogged down in Azure Pipelines
 
+variables:
+  NugetSecurityAnalysisWarningLevel: none # nuget.config requires signed packages by trusted owners
+
 stages:
 
 - stage: Build
