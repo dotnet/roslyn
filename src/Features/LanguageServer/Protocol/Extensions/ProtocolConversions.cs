@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         return Completion.CompletionTrigger.Invoke;
 
                     case LSP.VSCompletionInvokeKind.Typing:
-                        var insertionChar = await GetInsertionCharacter(document, position, cancellationToken).ConfigureAwait(false);
+                        var insertionChar = await GetInsertionCharacterAsync(document, position, cancellationToken).ConfigureAwait(false);
                         return Completion.CompletionTrigger.CreateInsertionTrigger(insertionChar);
 
                     case LSP.VSCompletionInvokeKind.Deletion:
@@ -122,12 +122,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             // Local functions
-            static async Task<char> GetInsertionCharacter(Document document, int position, CancellationToken cancellationToken)
+            static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 // We use 'position - 1' here since we want to find the character that was just inserted.
-                var triggerCharacter = char.Parse(text.ToString(new TextSpan(position - 1, 1)));
+                Contract.ThrowIfTrue(position < 1);
+                var triggerCharacter = text[position - 1];
                 return triggerCharacter;
             }
         }
