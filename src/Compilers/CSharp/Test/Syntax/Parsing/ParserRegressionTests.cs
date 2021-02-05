@@ -225,6 +225,75 @@ class A
             Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
+        [Fact]
+        public void QualifiedName_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        A::B.C<D> x;
+    }
+}";
+            ParseAndValidate(source);
+        }
+
+        [Fact]
+        public void QualifiedName_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        A::B.C<D> x,
+        A::B.C<D> y;
+    }
+}";
+            ParseAndValidate(source,
+                // (6,10): error CS1002: ; expected
+                //         A::B.C<D> y;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "::").WithLocation(6, 10),
+                // (6,10): error CS1001: Identifier expected
+                //         A::B.C<D> y;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "::").WithLocation(6, 10));
+        }
+
+        [Fact]
+        public void QualifiedName_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        ::A.B<C> x;
+    }
+}";
+            ParseAndValidate(source,
+                // (4,6): error CS1001: Identifier expected
+                //     {
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void QualifiedName_04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        ::A.B<C>();
+    }
+}";
+            ParseAndValidate(source,
+                // (4,6): error CS1001: Identifier expected
+                //     {
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 6));
+        }
+
         #region "Helpers"
 
         private static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)

@@ -10280,8 +10280,10 @@ tryAgain:
                     return this.ParseRefValueExpression();
                 case SyntaxKind.ColonColonToken:
                     // misplaced ::
-                    // TODO: this should not be a compound name.. (disallow dots)
-                    return this.ParseQualifiedName(NameOptions.InExpression);
+                    //
+                    // Calling ParseAliasQualifiedName will cause us to create a missing identifier node that then
+                    // properly consumes the :: and the reset of the alias name afterwards.
+                    return this.ParseAliasQualifiedName(NameOptions.InExpression);
                 case SyntaxKind.EqualsGreaterThanToken:
                     return this.ParseLambdaExpression();
                 case SyntaxKind.StaticKeyword:
