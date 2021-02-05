@@ -413,16 +413,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal Label Classify(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
-            if (_compareStatementSyntax)
+            var label = ClassifyTopLevelSyntax(kind, out isLeaf);
+
+            if (label == Label.Ignored)
             {
-                return ClassifyStatementSyntax(kind, node, out isLeaf);
+                label = ClassifyStatementSyntax(kind, node, out isLeaf);
             }
 
-            return ClassifyTopLevelSyntax(kind, out isLeaf);
+            var topLabel = ClassifyTopLevelSyntax(kind, out var isLeafTop);
+            var statementLabel = ClassifyStatementSyntax(kind, node, out var isLeafStatement);
+
+            if (_compareStatementSyntax)
+            {
+                if (label != statementLabel || isLeaf != isLeafStatement)
+                {
+                }
+            }
+            else
+            {
+                if (label != topLabel || isLeaf != isLeafTop)
+                {
+                }
+            }
+
+            return label;
         }
 
         // internal for testing
-        internal static Label ClassifyTopLevelSyntax(SyntaxKind kind, out bool isLeaf)
+        internal Label ClassifyTopLevelSyntax(SyntaxKind kind, out bool isLeaf)
         {
             switch (kind)
             {
@@ -468,14 +486,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.FieldDeclaration;
 
                 case SyntaxKind.VariableDeclaration:
+                    // variable declaration appears as a field for top syntax, or a local for statement syntax
                     isLeaf = false;
-                    return Label.FieldVariableDeclaration;
+                    return _compareStatementSyntax ? Label.LocalVariableDeclaration : Label.FieldVariableDeclaration;
 
                 case SyntaxKind.VariableDeclarator:
-                    isLeaf = true;
-                    return Label.FieldVariableDeclarator;
+                    // For top syntax, a variable declarator is a leaf node, but not for statements
+                    isLeaf = !_compareStatementSyntax;
+                    return _compareStatementSyntax ? Label.LocalVariableDeclarator : Label.FieldVariableDeclarator;
 
-                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.MethodDeclaration when !_compareStatementSyntax:
                     isLeaf = false;
                     return Label.MethodDeclaration;
 
@@ -487,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     isLeaf = false;
                     return Label.OperatorDeclaration;
 
-                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.ConstructorDeclaration when !_compareStatementSyntax:
                     isLeaf = false;
                     return Label.ConstructorDeclaration;
 
@@ -534,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     isLeaf = false; // children: attributes
                     return Label.TypeParameter;
 
-                case SyntaxKind.ParameterList:
+                case SyntaxKind.ParameterList when !_compareStatementSyntax: // TODO: Remove https://github.com/dotnet/roslyn/issues/48636
                     isLeaf = false;
                     return Label.ParameterList;
 
@@ -542,8 +562,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     isLeaf = false;
                     return Label.BracketedParameterList;
 
-                case SyntaxKind.Parameter:
-                    // We ignore anonymous methods and lambdas, 
+                case SyntaxKind.Parameter when !_compareStatementSyntax:     // TODO: Remove https://github.com/dotnet/roslyn/issues/48636
+                    // Top syntax only as we ignore anonymous methods and lambdas,
                     // we only care about parameters of member declarations.
                     isLeaf = false; // children: attributes
                     return Label.Parameter;
@@ -562,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
+        internal Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
             // Notes:
             // A descendant of a leaf node may be a labeled node that we don't want to visit if 
@@ -588,7 +608,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // Root when matching constructor bodies.
                     return Label.ConstructorDeclaration;
 
-                case SyntaxKind.Block:
+                case SyntaxKind.Block when _compareStatementSyntax:
+                    // Block is only labelled for statement syntax
                     return Label.Block;
 
                 case SyntaxKind.LocalDeclarationStatement:
@@ -713,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression when _compareStatementSyntax:
                 case SyntaxKind.AnonymousMethodExpression:
                     return Label.NestedFunction;
 
@@ -801,7 +822,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.AwaitExpression;
 
                 default:
-                    // any other node may contain a lambda:
+                    // any other node may contain a lambda, so if we care about syntax, isLeaf must be true
+                    isLeaf = !_compareStatementSyntax;
                     return Label.Ignored;
             }
         }
