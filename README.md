@@ -4,9 +4,9 @@
 
 ![NuGet package](https://img.shields.io/badge/nuget-your--package--here-yellow.svg)
 
-[![Azure Pipelines status](https://dev.azure.com/andrewarnott/OSS/_apis/build/status/AArnott.Library.Template?branchName=master)](https://dev.azure.com/andrewarnott/OSS/_build/latest?definitionId=29&branchName=master)
+[![Azure Pipelines status](https://dev.azure.com/andrewarnott/OSS/_apis/build/status/AArnott.Library.Template?branchName=main)](https://dev.azure.com/andrewarnott/OSS/_build/latest?definitionId=29&branchName=main)
 ![GitHub Actions status](https://github.com/aarnott/Library.Template/workflows/CI/badge.svg)
-[![codecov](https://codecov.io/gh/aarnott/library.template/branch/master/graph/badge.svg)](https://codecov.io/gh/aarnott/library.template)
+[![codecov](https://codecov.io/gh/aarnott/library.template/branch/main/graph/badge.svg)](https://codecov.io/gh/aarnott/library.template)
 
 ## Features
 

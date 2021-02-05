@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-    - master
+    - main
     - 'validate/*'
   paths:
     exclude:
