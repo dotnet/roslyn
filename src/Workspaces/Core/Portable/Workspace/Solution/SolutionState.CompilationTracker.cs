@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                     sourceGeneratedDocuments,
                     State.GetUnrootedSymbols(inProgressCompilation));
 
-                RecordAssemblySymbols(finalState, inProgressCompilation, metadataReferenceToProjectId);
+                RecordAssemblySymbols(finalState, this.ProjectState.Id, inProgressCompilation, metadataReferenceToProjectId);
 
                 return new CompilationTracker(inProgressProject, finalState);
             }
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis
                         generatedDocuments,
                         State.GetUnrootedSymbols(compilation));
 
-                    RecordAssemblySymbols(finalState, compilation, metadataReferenceToProjectId);
+                    RecordAssemblySymbols(finalState, this.ProjectState.Id, compilation, metadataReferenceToProjectId);
 
                     this.WriteState(finalState, solution.Services);
 
@@ -890,16 +890,16 @@ namespace Microsoft.CodeAnalysis
                 return DocumentId.CreateFromSerialized(projectId, guid, hintName);
             }
 
-            private void RecordAssemblySymbols(FinalState finalState, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+            private static void RecordAssemblySymbols(FinalState finalState, ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {
-                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
 
                 if (metadataReferenceToProjectId != null)
                 {
-                    foreach (var (metadataReference, projectId) in metadataReferenceToProjectId)
+                    foreach (var (metadataReference, currentID) in metadataReferenceToProjectId)
                     {
                         var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                        RecordSourceOfAssemblySymbol(symbol, projectId);
+                        RecordSourceOfAssemblySymbol(symbol, currentID);
                     }
                 }
             }
