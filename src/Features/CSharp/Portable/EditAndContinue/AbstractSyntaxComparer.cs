@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
+    internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
     {
         internal const int IgnoredNode = -1;
 
         protected const double ExactMatchDist = 0.0;
         protected const double EpsilonDist = 0.00001;
 
-        protected SyntaxComparer()
+        protected AbstractSyntaxComparer()
         {
         }
 
