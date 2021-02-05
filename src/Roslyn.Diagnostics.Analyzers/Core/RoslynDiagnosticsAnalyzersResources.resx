@@ -390,4 +390,7 @@
   <data name="DoNotCopyValueNoReturnValueFromReferenceMessage" xml:space="preserve">
     <value>Cannot return a value from a reference to non-copyable type '{0}'</value>
   </data>
+  <data name="ApplyTraitToContainingType" xml:space="preserve">
+    <value>Apply trait to containing type</value>
+  </data>
 </root>
