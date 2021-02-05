@@ -1061,6 +1061,34 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                      additionalTextFiles, analyzerConfigProvider);
+
+                if (!analyzers.IsEmpty)
+                {
+                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    analyzerExceptionDiagnostics = new DiagnosticBag();
+
+                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                    var severityFilter = SeverityFilter.Hidden;
+                    if (Arguments.ErrorLogPath == null)
+                        severityFilter |= SeverityFilter.Info;
+
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                        compilation,
+                        analyzers,
+                        analyzerOptions,
+                        new AnalyzerManager(analyzers),
+                        analyzerExceptionDiagnostics.Add,
+                        Arguments.ReportAnalyzer,
+                        severityFilter,
+                        out compilation,
+                        analyzerCts.Token);
+                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+                }
+
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBefore = compilation;
@@ -1151,34 +1179,6 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                     }
-                }
-
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                      additionalTextFiles, analyzerConfigProvider);
-
-                if (!analyzers.IsEmpty)
-                {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                    var severityFilter = SeverityFilter.Hidden;
-                    if (Arguments.ErrorLogPath == null)
-                        severityFilter |= SeverityFilter.Info;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
-                        severityFilter,
-                        out compilation,
-                        analyzerCts.Token);
-                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
             }
 
