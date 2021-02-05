@@ -70,14 +70,14 @@ namespace BuildValidator
             throw new Exception("PROTOTYPE");
         }
 
-        public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
+        public ImmutableArray<PortableExecutableReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
         {
             var referenceArray = references.ToImmutableArray();
             CacheNames(referenceArray);
 
             var files = referenceArray.Select(r => GetReferencePath(r));
 
-            var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
+            var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).ToImmutableArray();
             return metadataReferences;
         }
 

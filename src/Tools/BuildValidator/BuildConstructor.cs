@@ -67,15 +67,8 @@ namespace BuildValidator
         {
             using var _ = _logger.BeginScope("Metadata References");
             var referenceInfos = compilationOptionsReader.GetMetadataReferences();
-            var count = 0;
             foreach (var refInfo in referenceInfos)
             {
-                count++;
-                if (count >= 10)
-                {
-                    _logger.LogInformation($"... {referenceInfos.Length - count} more");
-                    break;
-                }
                 _logger.LogInformation($"{refInfo.Name} - {refInfo.Mvid}");
             }
 
@@ -86,15 +79,8 @@ namespace BuildValidator
         {
             using var _ = _logger.BeginScope("Source Names");
             var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos(encoding);
-            var count = 0;
             foreach (var sourceFileInfo in sourceFileInfos)
             {
-                count++;
-                if (count >= 10)
-                {
-                    _logger.LogInformation($"... {sourceFileInfos.Length - count} more");
-                    break;
-                }
                 var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
                 _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithmDescription} - {hash}");
             }
@@ -105,7 +91,12 @@ namespace BuildValidator
         private ImmutableArray<MetadataReference> ResolveMetadataReferences(ImmutableArray<MetadataReferenceInfo> referenceInfos)
         {
             _logger.LogInformation("Locating metadata references");
-            return _referenceResolver.ResolveReferences(referenceInfos);
+            var references = _referenceResolver.ResolveReferences(referenceInfos);
+            for (var i = 0; i < referenceInfos.Length; i++)
+            {
+                _logger.LogInformation($"    {referenceInfos[i].Name} - {references[i].FilePath}");
+            }
+            return references.As<MetadataReference>();
         }
 
         private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
@@ -139,7 +130,14 @@ namespace BuildValidator
                 var sourceFileInfo = sourceFileInfos[i];
                 tasks[i] = _sourceResolver.ResolveSourceAsync(sourceFileInfo, sourceLinks, encoding);
             }
+
             var result = await Task.WhenAll(tasks).ConfigureAwait(false);
+            for (int i = 0; i < sourceFileInfos.Length; i++)
+            {
+                var sourceFileInfo = sourceFileInfos[i];
+                var tuple = result[i];
+                _logger.LogInformation($"    {sourceFileInfo.SourceFileName} - {tuple.SourceFilePath}");
+            }
 
             return result.ToImmutableArray();
         }
