@@ -1000,13 +1000,36 @@ public class C
 ";
 
             string shippedText = string.Empty;
-            string unshippedText = $@"
+            string unshippedText = @"
 C
 C.C() -> void
 
 C.M(char p1, int p2) -> void
 C.M(int p1 = 0) -> void
 ";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
+        public async Task TestMultipleOverloadsWithOptionalParameter_OneIsObsolete()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void M(int p1 = 0) { }
+
+    [Obsolete]
+    public void M(char p1 = '0') { }
+}
+";
+
+            string shippedText = @"C
+C.C() -> void
+C.M(char p1 = '0') -> void";
+            string unshippedText = "C.M(int p1 = 0) -> void";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
