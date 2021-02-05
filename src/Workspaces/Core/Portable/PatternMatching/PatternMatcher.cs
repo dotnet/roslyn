@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 : (name: pattern, containerOpt: null);
         }
 
-        public abstract bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches);
+        public abstract bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches);
 
         private bool SkipMatch(string candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
@@ -175,76 +176,68 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            ArrayBuilder<TextSpan> candidateHumpsOpt = null;
-            try
+            using var candidateHumps = TemporaryArray<TextSpan>.Empty;
+
+            var patternIsLowercase = patternChunk.IsLowercase;
+            if (caseInsensitiveIndex > 0)
             {
-                var patternIsLowercase = patternChunk.IsLowercase;
-                if (caseInsensitiveIndex > 0)
+                // We found the pattern somewhere in the candidate.  This could be a substring match.
+                // However, we don't want to be overaggressive in returning just any substring results.
+                // So do a few more checks to make sure this is a good result.
+
+                if (!patternIsLowercase)
                 {
-                    // We found the pattern somewhere in the candidate.  This could be a substring match.
-                    // However, we don't want to be overaggressive in returning just any substring results.
-                    // So do a few more checks to make sure this is a good result.
+                    // Pattern contained uppercase letters.  This is a strong indication from the
+                    // user that they expect the same letters to be uppercase in the result.  As 
+                    // such, only return this if we can find this pattern exactly in the candidate.
 
-                    if (!patternIsLowercase)
+                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+                    if (caseSensitiveIndex > 0)
                     {
-                        // Pattern contained uppercase letters.  This is a strong indication from the
-                        // user that they expect the same letters to be uppercase in the result.  As 
-                        // such, only return this if we can find this pattern exactly in the candidate.
-
-                        var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
-                        if (caseSensitiveIndex > 0)
-                        {
-                            return new PatternMatch(
-                                PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
-                                matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
-                        }
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
+                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
                     }
-                    else
-                    {
-                        // Pattern was all lowercase.  This can lead to lots of false positives.  For
-                        // example, we don't want "bin" to match "CombineUnits".  Instead, we want it
-                        // to match "BinaryOperator".  As such, make sure our match looks like it's 
-                        // starting an actual word in the candidate.  
+                }
+                else
+                {
+                    // Pattern was all lowercase.  This can lead to lots of false positives.  For
+                    // example, we don't want "bin" to match "CombineUnits".  Instead, we want it
+                    // to match "BinaryOperator".  As such, make sure our match looks like it's 
+                    // starting an actual word in the candidate.  
 
-                        // Do a quick check to avoid the expensive work of having to go get the candidate
-                        // humps.  
-                        if (char.IsUpper(candidate[caseInsensitiveIndex]))
+                    // Do a quick check to avoid the expensive work of having to go get the candidate
+                    // humps.  
+                    if (char.IsUpper(candidate[caseInsensitiveIndex]))
+                    {
+                        return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: false,
+                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
+
+                    StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+                    for (int i = 0, n = candidateHumps.Count; i < n; i++)
+                    {
+                        var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
+                        if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
                         {
                             return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                isCaseSensitive: false,
-                                matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                        }
-
-                        candidateHumpsOpt = StringBreaker.GetWordParts(candidate);
-                        for (int i = 0, n = candidateHumpsOpt.Count; i < n; i++)
-                        {
-                            var hump = TextSpan.FromBounds(candidateHumpsOpt[i].Start, candidateLength);
-                            if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
-                            {
-                                return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                    isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
-                                    matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
-                            }
+                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
+                                matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
                         }
                     }
                 }
-
-                // Didn't have an exact/prefix match, or a high enough quality substring match.
-                // See if we can find a camel case match.
-                if (candidateHumpsOpt == null)
-                {
-                    candidateHumpsOpt = StringBreaker.GetWordParts(candidate);
-                }
-
-                // Didn't have an exact/prefix match, or a high enough quality substring match.
-                // See if we can find a camel case match.  
-                return TryCamelCaseMatch(
-                    candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumpsOpt);
             }
-            finally
-            {
-                candidateHumpsOpt?.Free();
-            }
+
+            // Didn't have an exact/prefix match, or a high enough quality substring match.
+            // See if we can find a camel case match.
+            if (candidateHumps.Count == 0)
+                StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+
+            // Didn't have an exact/prefix match, or a high enough quality substring match.
+            // See if we can find a camel case match.  
+            return TryCamelCaseMatch(
+                candidate, patternChunk, punctuationStripped, patternIsLowercase, ref candidateHumps.AsRef());
         }
 
         private TextSpan? GetMatchedSpan(int start, int length)
@@ -281,7 +274,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private bool MatchPatternSegment(
             string candidate,
             PatternSegment segment,
-            ArrayBuilder<PatternMatch> matches,
+            ref TemporaryArray<PatternMatch> matches,
             bool fuzzyMatch)
         {
             if (fuzzyMatch && !_allowFuzzyMatching)
@@ -338,7 +331,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
             else
             {
-                using var _ = ArrayBuilder<PatternMatch>.GetInstance(out var tempMatches);
+                using var tempMatches = TemporaryArray<PatternMatch>.Empty;
 
                 foreach (var subWordTextChunk in subWordTextChunks)
                 {
@@ -346,14 +339,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     var result = MatchPatternChunk(
                         candidate, subWordTextChunk, punctuationStripped: true, fuzzyMatch: fuzzyMatch);
                     if (result == null)
-                    {
                         return false;
-                    }
 
                     tempMatches.Add(result.Value);
                 }
 
-                matches.AddRange(tempMatches);
+                matches.AddRange(in tempMatches);
                 return tempMatches.Count > 0;
             }
         }
@@ -398,14 +389,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private PatternMatch? TryCamelCaseMatch(
                    string candidate, TextChunk patternChunk,
                    bool punctuationStripped, bool isLowercase,
-                   ArrayBuilder<TextSpan> candidateHumps)
+                   ref TemporaryArray<TextSpan> candidateHumps)
         {
             if (isLowercase)
             {
                 //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
                 //      match.  i.e. cofipro would match CodeFixProvider.
                 var camelCaseKind = TryAllLowerCamelCaseMatch(
-                    candidate, candidateHumps, patternChunk, out var matchedSpans);
+                    candidate, ref candidateHumps, patternChunk, out var matchedSpans);
                 if (camelCaseKind.HasValue)
                 {
                     return new PatternMatch(
@@ -419,7 +410,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, ref candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -427,7 +418,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             matchedSpans: matchedSpans);
                     }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
+                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, ref candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -442,18 +433,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatchKind? TryAllLowerCamelCaseMatch(
             string candidate,
-            ArrayBuilder<TextSpan> candidateHumps,
+            ref TemporaryArray<TextSpan> candidateHumps,
             TextChunk patternChunk,
             out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(
-                _includeMatchedSpans, candidate, candidateHumps, patternChunk, _textInfo);
-            return matcher.TryMatch(out matchedSpans);
+                _includeMatchedSpans, candidate, patternChunk, _textInfo);
+            return matcher.TryMatch(ref candidateHumps, out matchedSpans);
         }
 
         private PatternMatchKind? TryUpperCaseCamelCaseMatch(
             string candidate,
-            ArrayBuilder<TextSpan> candidateHumps,
+            ref TemporaryArray<TextSpan> candidateHumps,
             TextChunk patternChunk,
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
@@ -488,7 +479,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         : ImmutableArray<TextSpan>.Empty;
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
-                    return GetCamelCaseKind(camelCaseResult, candidateHumps);
+                    return GetCamelCaseKind(camelCaseResult, ref candidateHumps);
                 }
                 else if (currentCandidateHump == candidateHumpCount)
                 {

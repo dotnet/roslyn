@@ -6,6 +6,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
             /// character spans, one for AA and one for BB.
             /// </summary>
-            public readonly ArrayBuilder<TextSpan> PatternHumps;
+            public TemporaryArray<TextSpan> PatternHumps;
 
             public readonly WordSimilarityChecker SimilarityChecker;
 
@@ -38,7 +39,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
-                this.PatternHumps = StringBreaker.GetCharacterParts(text);
+                PatternHumps = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddCharacterParts(text, ref PatternHumps);
+
                 this.SimilarityChecker = allowFuzzingMatching
                     ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public void Dispose()
             {
-                this.PatternHumps.Free();
+                this.PatternHumps.Dispose();
                 this.SimilarityChecker?.Free();
             }
         }

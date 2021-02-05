@@ -6,6 +6,7 @@
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -40,15 +41,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// </summary>
             /// <returns>If this was a match, a set of match types that occurred while matching the
             /// patterns. If it was not a match, it returns null.</returns>
-            public override bool AddMatches(string candidate, ArrayBuilder<PatternMatch> matches)
+            public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
             {
                 if (SkipMatch(candidate))
                 {
                     return false;
                 }
 
-                return MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: false) ||
-                       MatchPatternSegment(candidate, _fullPatternSegment, matches, fuzzyMatch: true);
+                return MatchPatternSegment(candidate, _fullPatternSegment, ref matches, fuzzyMatch: false) ||
+                       MatchPatternSegment(candidate, _fullPatternSegment, ref matches, fuzzyMatch: true);
             }
         }
     }
