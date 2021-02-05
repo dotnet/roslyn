@@ -265,15 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             AccessorList,                      // tied to parent
             AccessorDeclaration,               // tied to parent
 
-            TypeParameterList,                 // tied to parent
-            TypeParameterConstraintClause,     // tied to parent
-            TypeParameter,                     // tied to parent
-            ParameterList,                     // tied to parent
-            BracketedParameterList,            // tied to parent
-            Parameter,                         // tied to parent
-            AttributeList,                     // tied to parent
-            Attribute,                         // tied to parent
-
             // Statement syntax kinds
             Block,
             CheckedStatement,
@@ -335,6 +326,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             JoinIntoClause,                   // tied to parent
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
+
+            // common
+            TypeParameterList,                 // tied to parent
+            TypeParameterConstraintClause,     // tied to parent
+            TypeParameter,                     // tied to parent
+            ParameterList,                     // tied to parent
+            BracketedParameterList,            // tied to parent
+            Parameter,                         // tied to parent
+            AttributeList,                     // tied to parent
+            Attribute,                         // tied to parent
 
             // helpers:
             Count,
