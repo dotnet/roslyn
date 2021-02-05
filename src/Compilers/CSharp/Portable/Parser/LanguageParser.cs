@@ -9849,6 +9849,7 @@ tryAgain:
                 case SyntaxKind.PostDecrementExpression:
                 case SyntaxKind.PostIncrementExpression:
                 case SyntaxKind.PredefinedType:
+                case SyntaxKind.QualifiedName:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.StackAllocArrayCreationExpression:
