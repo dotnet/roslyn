@@ -6242,15 +6242,26 @@ tryAgain:
                 }
             }
 
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            // Handle :: as well for error case of an alias used without a preceding identifier.
+            if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken or SyntaxKind.ColonColonToken)
             {
-                result = this.ScanNamedTypePart(out lastTokenOfType);
-                if (result == ScanTypeFlags.NotType)
+                bool isAlias;
+                if (this.CurrentToken.Kind is SyntaxKind.ColonColonToken)
                 {
-                    return ScanTypeFlags.NotType;
+                    lastTokenOfType = null;
+                    result = ScanTypeFlags.NonGenericTypeOrExpression;
+                    isAlias = true;
                 }
+                else
+                {
+                    result = this.ScanNamedTypePart(out lastTokenOfType);
+                    if (result == ScanTypeFlags.NotType)
+                    {
+                        return ScanTypeFlags.NotType;
+                    }
 
-                bool isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
+                    isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
+                }
 
                 // Scan a name
                 for (bool firstLoop = true; IsDotOrColonColon(); firstLoop = false)
@@ -6924,7 +6935,8 @@ done:;
                 return _syntaxFactory.PredefinedType(token);
             }
 
-            if (IsTrueIdentifier())
+            // The :: case is for error recovery.
+            if (IsTrueIdentifier() || this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
             {
                 return this.ParseQualifiedName(options);
             }
