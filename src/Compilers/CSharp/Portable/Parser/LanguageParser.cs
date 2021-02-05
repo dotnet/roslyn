@@ -10292,7 +10292,6 @@ tryAgain:
                     return this.ParseRefValueExpression();
                 case SyntaxKind.ColonColonToken:
                     // misplaced ::
-                    //
                     // Calling ParseAliasQualifiedName will cause us to create a missing identifier node that then
                     // properly consumes the :: and the reset of the alias name afterwards.
                     return this.ParseAliasQualifiedName(NameOptions.InExpression);
