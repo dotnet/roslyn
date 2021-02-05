@@ -134,10 +134,10 @@ if ($DotNetInstallDir) {
 }
 
 if ($IsMacOS -or $IsLinux) {
-    $DownloadUri = "https://dot.net/v1/dotnet-install.sh"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/1ebb108764c092e7a314ff3fe1388f582cbcf89a/src/dotnet-install.sh"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.sh"
 } else {
-    $DownloadUri = "https://dot.net/v1/dotnet-install.ps1"
+    $DownloadUri = "https://raw.githubusercontent.com/dotnet/install-scripts/1ebb108764c092e7a314ff3fe1388f582cbcf89a/src/dotnet-install.ps1"
     $DotNetInstallScriptPath = "$DotNetInstallScriptRoot/dotnet-install.ps1"
 }
 
@@ -149,10 +149,16 @@ if (-not (Test-Path $DotNetInstallScriptPath)) {
 }
 
 $anythingInstalled = $false
+$global:LASTEXITCODE = 0
 
 if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
     $anythingInstalled = $true
     Invoke-Expression -Command "$DotNetInstallScriptPath -Version $sdkVersion $switches"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error ".NET SDK installation failure: $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
 } else {
     Invoke-Expression -Command "$DotNetInstallScriptPath -Version $sdkVersion $switches -DryRun"
 }
@@ -163,6 +169,11 @@ $runtimeVersions | Get-Unique |% {
     if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
         $anythingInstalled = $true
         Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches"
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error ".NET SDK installation failure: $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
     } else {
         Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches -DryRun"
     }
