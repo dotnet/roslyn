@@ -7,6 +7,7 @@
 using System.Collections.Immutable;
 using Humanizer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
                 var baseName = TryRemoveInterfacePrefix(type);
-                var parts = StringBreaker.GetWordParts(baseName);
-                var result = GetInterleavedPatterns(parts, baseName, pluralize);
+                using var parts = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(baseName, ref parts.AsRef());
+                var result = GetInterleavedPatterns(ref parts.AsRef(), baseName, pluralize);
 
-                parts.Free();
                 return result;
             }
 
@@ -38,41 +39,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     name = name.Substring(1);
                 }
 
-                var breaks = StringBreaker.GetWordParts(name);
-                var result = GetInterleavedPatterns(breaks, name, pluralize: false);
-                breaks.Free();
+                using var breaks = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(name, ref breaks.AsRef());
+                var result = GetInterleavedPatterns(ref breaks.AsRef(), name, pluralize: false);
                 return result;
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static ImmutableArray<Words> GetInterleavedPatterns(
+                ref TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
-                var result = ArrayBuilder<Words>.GetInstance();
+                using var result = TemporaryArray<Words>.Empty;
                 var breakCount = breaks.Count;
-                result.Add(GetWords(0, breakCount, breaks, baseName, pluralize));
+                result.Add(GetWords(0, breakCount, ref breaks, baseName, pluralize));
 
                 for (var length = breakCount - 1; length > 0; length--)
                 {
                     // going forward
-                    result.Add(GetLongestForwardSubsequence(length, breaks, baseName, pluralize));
+                    result.Add(GetLongestForwardSubsequence(length, ref breaks, baseName, pluralize));
 
                     // going backward
-                    result.Add(GetLongestBackwardSubsequence(length, breaks, baseName, pluralize));
+                    result.Add(GetLongestBackwardSubsequence(length, ref breaks, baseName, pluralize));
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
 
-            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static Words GetLongestBackwardSubsequence(int length, ref TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var breakCount = breaks.Count;
                 var start = breakCount - length;
-                return GetWords(start, breakCount, breaks, baseName, pluralize);
+                return GetWords(start, breakCount, ref breaks, baseName, pluralize);
             }
 
-            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
-                => GetWords(0, length, breaks, baseName, pluralize);
+            private static Words GetLongestForwardSubsequence(int length, ref TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
+                => GetWords(0, length, ref breaks, baseName, pluralize);
 
-            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static Words GetWords(int start, int end, ref TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var result = ArrayBuilder<string>.GetInstance();
                 // Add all the words but the last one
