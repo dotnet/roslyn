@@ -1665,6 +1665,110 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
 ");
         }
 
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnClass()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C`6<T1, T2, T3, T4, T5, T6>
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1 (
+            method !T1 modopt(!T2) & modopt(!T3) *(!T4 modopt(!T5) & modopt(!T6)) param
+        ) cil managed 
+    {
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe
+{
+    C<D1, D2, D3, D4, D5, D6>.M1(null);
+}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
+
+            // This method should theoretically be supported by the language, but our custom modifier code doesn't decode these modifiers today.
+            // https://github.com/dotnet/roslyn/issues/51037
+            comp.VerifyDiagnostics(
+                // (4,31): error CS0570: 'C<T1, T2, T3, T4, T5, T6>.M1(?)' is not supported by the language
+                //     C<D1, D2, D3, D4, D5, D6>.M1(null);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("C<T1, T2, T3, T4, T5, T6>.M1(?)").WithLocation(4, 31)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbol = model.GetSymbolInfo(invocation);
+
+            Assert.Null(symbol.Symbol);
+            AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(? param)", symbol.CandidateSymbols.Single().ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnMethod()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1<T1, T2, T3, T4, T5, T6> (
+            method !!T1 modopt(!!T2) & modopt(!!T3) *(!!T4 modopt(!!T5) & modopt(!!T6)) param
+        ) cil managed 
+    {
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe
+{
+    C.M1<D1, D2, D3, D4, D5, D6>(null);
+}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
+
+            // This method should theoretically be supported by the language, but our custom modifier code doesn't decode these modifiers today.
+            // https://github.com/dotnet/roslyn/issues/51037
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0570: 'C.M1<T1, T2, T3, T4, T5, T6>(?)' is not supported by the language
+                //     C.M1<D1, D2, D3, D4, D5, D6>(null);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1<D1, D2, D3, D4, D5, D6>").WithArguments("C.M1<T1, T2, T3, T4, T5, T6>(?)").WithLocation(4, 7)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbol = model.GetSymbolInfo(invocation);
+
+            Assert.Null(symbol.Symbol);
+            AssertEx.Equal("void C.M1<D1, D2, D3, D4, D5, D6>(? param)", symbol.CandidateSymbols.Single().ToTestDisplayString());
+        }
+
         [Fact]
         public void FunctionPointerAsConstraint()
         {
