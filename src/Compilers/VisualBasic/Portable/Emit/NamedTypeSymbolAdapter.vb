@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For Each field In AdaptedNamedTypeSymbol.GetFieldsToEmit()
                 Dim adapter = field.GetCciAdapter()
-                If isStruct OrElse adapter.ShouldInclude(context) OrElse ShouldIncludePrivateField(field) Then
+                If isStruct OrElse adapter.ShouldInclude(context) OrElse IsWithEventsField(field) Then
                     Yield adapter
                 End If
             Next
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private Function ShouldIncludePrivateField(field As FieldSymbol) As Boolean
+        Private Function IsWithEventsField(field As FieldSymbol) As Boolean
             ' Backing fields for WithEvents are emitted with AccessedThroughPropertyAttribute
             ' so need to be emitted even if private
             Return TypeOf field Is SourceWithEventsBackingFieldSymbol

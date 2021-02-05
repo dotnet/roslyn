@@ -1062,11 +1062,25 @@ End Class
 "
             Dim libComp = CreateCompilationWithMscorlib40({Parse(lib_vb)}, options:=TestOptions.DebugDll.WithDeterministic(True))
 
+            Assert.Equal({"Sub Base..ctor()",
+                         "Base._Button1 As Button",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         libComp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+
             Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
             Dim libImage = libComp.EmitToImageReference(options)
 
             Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libImage})
             AssertNoDiagnostics(comp)
+
+            ' The logic in PENamedTypeSymbol.CreateFields chooses not to import the field, but its presence still matters.
+            Assert.Equal({"Sub Base..ctor()",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         comp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
         End Sub
 
         Private Sub VerifyRefAssemblyClient(lib_vb As String, client_vb As String, validator As Action(Of VisualBasicCompilation), Optional debugFlag As Integer = -1)
