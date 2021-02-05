@@ -216,7 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // We also return true for non-labeled statements.
             var label = Classify(node.Kind(), node, out var isLeaf);
 
-            // ignored should always be reported as leaves
+            // ignored should always be reported as leaves for top syntax, but for statements
+            // we want to look at all child nodes, because almost anything could have a lambda
             if (!_compareStatementSyntax)
             {
                 Debug.Assert(label != Label.Ignored || isLeaf);
