@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             diagnostics.Add(node, useSiteInfo);
 
+            var constructorArguments = analyzedArguments.ConstructorArguments;
+            ImmutableArray<BoundExpression> boundConstructorArguments;
             if (attributeConstructor is object)
             {
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
@@ -177,22 +179,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
+
+                boundConstructorArguments = BuildArgumentsForErrorRecovery(constructorArguments, ImmutableArray.Create(attributeConstructor));
+                constructorArguments.Arguments.Free();
+            }
+            else
+            {
+                boundConstructorArguments = constructorArguments.Arguments.SelectAsArrayInPlaceAndFree(
+                    (arg, @this) => @this.BindToTypeForErrorRecovery(arg), this);
             }
 
-            var constructorArguments = analyzedArguments.ConstructorArguments;
-
-            // If the arguments didn't have a natural type, they're not constants, and so would already have diagnostics from the rest of binding.
-            var ignoredDiagnostics = new DiagnosticBag();
-            ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.SelectAsArray(
-                (arg, thisAndDiagnostics) => thisAndDiagnostics.@this.BindToNaturalType(arg, thisAndDiagnostics.ignoredDiagnostics),
-                (@this: this, ignoredDiagnostics));
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
-            ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments.SelectAsArray(
-                (namedArg, thisAndDiagnostics) => thisAndDiagnostics.@this.BindToNaturalType(namedArg, thisAndDiagnostics.ignoredDiagnostics),
-                (@this: this, ignoredDiagnostics));
-            constructorArguments.Free();
+            ImmutableArray<BoundExpression> boundNamedArguments =
+                analyzedArguments.NamedArguments?.SelectAsArrayInPlaceAndFree((namedArg, @this) => @this.BindToTypeForErrorRecovery(namedArg), this)
+                    ?? ImmutableArray<BoundExpression>.Empty;
 
-            Debug.Assert(ignoredDiagnostics.Count == 0 || diagnostics.HasAnyResolvedErrors());
+            constructorArguments.Free();
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
@@ -310,11 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
-            var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
+            ArrayBuilder<BoundExpression>? boundNamedArgumentsBuilder = null;
 
             if (attributeArgumentList != null)
             {
-                ArrayBuilder<BoundExpression>? boundNamedArgumentsBuilder = null;
                 HashSet<string>? boundNamedArgumentsSet = null;
 
                 // Only report the first "non-trailing named args required C# 7.2" error,
@@ -365,14 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         boundNamedArgumentsSet.Add(argumentName);
                     }
                 }
-
-                if (boundNamedArgumentsBuilder != null)
-                {
-                    boundNamedArguments = boundNamedArgumentsBuilder.ToImmutableAndFree();
-                }
             }
 
-            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArguments);
+            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArgumentsBuilder);
         }
 
         private BoundExpression BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
@@ -1257,9 +1253,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
-            internal readonly ImmutableArray<BoundExpression> NamedArguments;
+            internal readonly ArrayBuilder<BoundExpression>? NamedArguments;
 
-            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ImmutableArray<BoundExpression> namedArguments)
+            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ArrayBuilder<BoundExpression>? namedArguments)
             {
                 this.ConstructorArguments = constructorArguments;
                 this.NamedArguments = namedArguments;
