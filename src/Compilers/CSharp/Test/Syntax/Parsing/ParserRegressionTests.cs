@@ -644,7 +644,7 @@ class A
 
         #region "Helpers"
 
-        private new static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
+        private static new void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
         {
             var parsedTree = ParseWithRoundTripCheck(text);
             var actualErrors = parsedTree.GetDiagnostics();
