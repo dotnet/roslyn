@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
@@ -111,7 +112,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return originalNode;
                 });
 
-            newTypeDeclaration = syntaxGenerator.AddAttributes(newTypeDeclaration, attribute);
+            newTypeDeclaration = syntaxGenerator.AddAttributes(newTypeDeclaration, attribute.WithAdditionalAnnotations(Formatter.Annotation));
 
             return state.Document.WithSyntaxRoot(syntaxRoot.ReplaceNode(typeDeclaration, newTypeDeclaration));
         }

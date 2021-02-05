@@ -33,7 +33,7 @@ class C
             var fixedSource = $@"
 using Xunit;
 
-    [Trait(""{name}"", ""{value}"")]
+[Trait(""{name}"", ""{value}"")]
 class C
 {{
     public void Method() {{ }}
@@ -73,7 +73,7 @@ End Class
             var fixedSource = $@"
 Imports Xunit
 
-    <Trait(""{name}"", ""{value}"")>
+<Trait(""{name}"", ""{value}"")>
 Class C
     Public Sub Method()
     End Sub
@@ -113,7 +113,7 @@ class C
             var fixedSource = $@"
 using Xunit;
 
-    [Trait("""", """")]
+[Trait("""", """")]
 class C
 {{
     public void Method() {{ }}
@@ -153,7 +153,7 @@ End Class
             var fixedSource = $@"
 Imports Xunit
 
-    <Trait("""", """")>
+<Trait("""", """")>
 Class C
     Public Sub Method()
     End Sub
