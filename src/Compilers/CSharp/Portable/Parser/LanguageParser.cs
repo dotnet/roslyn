@@ -7385,10 +7385,10 @@ done:;
                 return true;
             }
 
-            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel);
+            return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
         }
 
-        private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
+        private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
@@ -7526,7 +7526,7 @@ done:;
                     EatToken();
                 }
 
-                return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
+                return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel: false);
             }
             finally
             {
