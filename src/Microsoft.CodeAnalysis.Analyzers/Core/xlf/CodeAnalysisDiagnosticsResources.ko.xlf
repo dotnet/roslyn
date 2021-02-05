@@ -257,6 +257,26 @@
         <target state="translated">구문, 기호 또는 작업 분석기 작업을 각각 등록할 때 하나 이상의 구문, 기호 또는 작업 종류를 지정해야 합니다. 지정하지 않으면 등록된 작업이 분석하는 동안 호출되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">'customTags' 값은 특정 태그 값을 기준으로 진단 설명자에서 특정 작업 및 필터를 사용하도록 설정하는 방법으로 사용됩니다. 모든 Roslyn 분석기에는 'WellKnownDiagnosticTags' 클래스의 태그가 하나 이상 있어야 합니다.</target>

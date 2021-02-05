@@ -257,6 +257,26 @@
         <target state="translated">Debe especificar al menos un tipo de sintaxis, símbolo u operación al registrar una acción del analizador de sintaxis, símbolos u operaciones respectivamente. De lo contrario, la acción registrada no se invocará nunca durante el análisis.</target>
         <note />
       </trans-unit>
+      <trans-unit id="PreferIsKindDescription">
+        <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
+        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindFix">
+        <source>Use 'IsKind' instead of 'Kind'</source>
+        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindMessage">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferIsKindTitle">
+        <source>Prefer 'IsKind' for checking syntax kinds</source>
+        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
         <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
         <target state="translated">El valor "customTags" se usa como una forma de habilitar acciones y filtros específicos en los descriptores de diagnóstico según valores específicos de las etiquetas. Cada analizador de Roslyn debe tener al menos una etiqueta de la clase "WellKnownDiagnosticTags".</target>
