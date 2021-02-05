@@ -257,20 +257,20 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
-
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
-                return new CompilationTracker(
-                    inProgressProject,
-                    new FinalState(
-                        new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                        new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                        inProgressCompilation,
-                        hasSuccessfullyLoaded: false,
-                        sourceGeneratedDocuments,
-                        State.GetUnrootedSymbols(inProgressCompilation)));
+                var finalState = new FinalState(
+                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    inProgressCompilation,
+                    hasSuccessfullyLoaded: false,
+                    sourceGeneratedDocuments,
+                    State.GetUnrootedSymbols(inProgressCompilation));
+
+                RecordAssemblySymbols(finalState, inProgressCompilation, metadataReferenceToProjectId);
+
+                return new CompilationTracker(inProgressProject, finalState);
             }
 
             /// <summary>
@@ -843,17 +843,17 @@ namespace Microsoft.CodeAnalysis
 
                     compilation = compilation.AddSyntaxTrees(generatedDocuments.Select(d => d.SyntaxTree));
 
-                    RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
+                    var finalState = new FinalState(
+                        State.CreateValueSource(compilation, solution.Services),
+                        State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
+                        compilationWithoutGeneratedFiles,
+                        hasSuccessfullyLoaded,
+                        generatedDocuments,
+                        State.GetUnrootedSymbols(compilation));
 
-                    this.WriteState(
-                        new FinalState(
-                            State.CreateValueSource(compilation, solution.Services),
-                            State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
-                            compilationWithoutGeneratedFiles,
-                            hasSuccessfullyLoaded,
-                            generatedDocuments,
-                            State.GetUnrootedSymbols(compilation)),
-                        solution.Services);
+                    RecordAssemblySymbols(finalState, compilation, metadataReferenceToProjectId);
+
+                    this.WriteState(finalState, solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatedDocuments);
                 }
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis
                 return DocumentId.CreateFromSerialized(projectId, guid, hintName);
             }
 
-            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+            private void RecordAssemblySymbols(FinalState finalState, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {
                 RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
