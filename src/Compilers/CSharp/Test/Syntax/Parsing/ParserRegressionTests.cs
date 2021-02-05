@@ -233,6 +233,20 @@ class A
 {
     static void Main()
     {
+        A::B.C<D> x;
+    }
+}";
+            ParseAndValidate(source);
+        }
+
+        [Fact]
+        public void QualifiedName_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
         A::B.C<D> x,
         A::B.C<D> y;
     }
@@ -247,7 +261,7 @@ class A
         }
 
         [Fact]
-        public void QualifiedName_02()
+        public void QualifiedName_03()
         {
             var source =
 @"class Program
@@ -264,7 +278,7 @@ class A
         }
 
         [Fact]
-        public void QualifiedName_03()
+        public void QualifiedName_04()
         {
             var source =
 @"class Program
