@@ -247,12 +247,12 @@ namespace Text.Analyzers
             TypeTypeParameterMoreMeaningfulNameRule,
             MethodTypeParameterMoreMeaningfulNameRule);
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            analysisContext.RegisterCompilationStartAction(OnCompilationStart);
+            context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
         private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
