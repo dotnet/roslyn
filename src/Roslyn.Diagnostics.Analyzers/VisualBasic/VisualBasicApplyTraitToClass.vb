@@ -13,9 +13,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     Public NotInheritable Class VisualBasicApplyTraitToClass
         Inherits AbstractApplyTraitToClass(Of AttributeSyntax)
 
-        Public Sub New()
-        End Sub
-
         Private Protected Overrides ReadOnly Property RefactoringHelpers As IRefactoringHelpers
             Get
                 Return VisualBasicRefactoringHelpers.Instance

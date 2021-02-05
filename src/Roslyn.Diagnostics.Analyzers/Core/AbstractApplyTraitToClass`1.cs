@@ -1,27 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
     public abstract class AbstractApplyTraitToClass<TAttributeSyntax> : CodeRefactoringProvider
         where TAttributeSyntax : SyntaxNode
     {
-        protected AbstractApplyTraitToClass()
-        {
-        }
-
         private protected abstract IRefactoringHelpers RefactoringHelpers { get; }
 
         protected abstract SyntaxNode? GetTypeDeclarationForNode(SyntaxNode reportedNode);
+
+        private record State(
+            Document Document,
+            SemanticModel SemanticModel,
+            INamedTypeSymbol TraitAttribute,
+            TAttributeSyntax AttributeSyntax);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -39,43 +42,44 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            var attributeType = semanticModel!.GetTypeInfo(attribute, context.CancellationToken);
-            if (attributeType.Type is not { Name: "TraitAttribute", ContainingNamespace: { Name: "Xunit", ContainingNamespace: { IsGlobalNamespace: true } } })
+            var semanticModel = (await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false))!;
+            if (semanticModel.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.XunitTraitAttribute) is not { } traitAttribute)
+            {
+                // Xunit.TraitAttribute not found in compilation
+                return;
+            }
+
+            var attributeType = semanticModel.GetTypeInfo(attribute, context.CancellationToken);
+            if (!SymbolEqualityComparer.Default.Equals(attributeType.Type, traitAttribute))
                 return;
 
-            var location = attribute.GetLocation();
+            var state = new State(context.Document, semanticModel, traitAttribute, attribute);
             context.RegisterRefactoring(
                 CodeAction.Create(
                     RoslynDiagnosticsAnalyzersResources.ApplyTraitToContainingType,
-                    cancellationToken => ApplyTraitToClassAsync(context.Document, location.SourceSpan, cancellationToken),
+                    cancellationToken => ApplyTraitToClassAsync(state, cancellationToken),
                     nameof(AbstractApplyTraitToClass<TAttributeSyntax>)));
         }
 
-        private async Task<Document> ApplyTraitToClassAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private async Task<Document> ApplyTraitToClassAsync(State state, CancellationToken cancellationToken)
         {
-            var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxRoot = await syntaxTree!.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var reportedNode = syntaxRoot.FindNode(sourceSpan, getInnermostNodeForTie: true);
-            var typeDeclaration = GetTypeDeclarationForNode(reportedNode);
+            var syntaxRoot = await state.SemanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var typeDeclaration = GetTypeDeclarationForNode(state.AttributeSyntax);
             if (typeDeclaration is null)
-                return document;
+                return state.Document;
 
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
-            if (syntaxGenerator.TryGetContainingDeclaration(reportedNode, DeclarationKind.Attribute) is not { } attribute)
+            var syntaxGenerator = SyntaxGenerator.GetGenerator(state.Document);
+            if (syntaxGenerator.TryGetContainingDeclaration(state.AttributeSyntax, DeclarationKind.Attribute) is not { } attribute)
             {
-                return document;
+                throw new InvalidOperationException("Failed to obtain the attribute declaration.");
             }
 
             if (syntaxGenerator.TryGetContainingDeclaration(attribute, DeclarationKind.Method) is not { } method)
             {
-                // The attribute is not applied to a method
-                return document;
+                throw new InvalidOperationException("Failed to obtain the method syntax to which the attribute is applied.");
             }
 
-            var expectedAttributeData = semanticModel.GetDeclaredSymbol(method, cancellationToken).GetAttributes()
+            var expectedAttributeData = state.SemanticModel.GetDeclaredSymbol(method, cancellationToken).GetAttributes()
                 .Single(attributeData => attributeData.ApplicationSyntaxReference is not null && attribute.Span.Contains(attributeData.ApplicationSyntaxReference.Span));
 
             var newTypeDeclaration = typeDeclaration.ReplaceNodes(
@@ -84,14 +88,18 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     foreach (var attribute in syntaxGenerator.GetAttributes(originalNode))
                     {
-                        var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken);
+                        var attributeType = state.SemanticModel.GetTypeInfo(attribute, cancellationToken);
                         if (attributeType.Type is null)
-                            attributeType = semanticModel.GetTypeInfo(attribute.ChildNodes().First(), cancellationToken);
+                        {
+                            // In this case, 'attribute' is an attribute list syntax containing a single attribute
+                            // syntax. SyntaxGenerator treats this case differently from SemanticModel.
+                            attributeType = state.SemanticModel.GetTypeInfo(attribute.ChildNodes().First(), cancellationToken);
+                        }
 
-                        if (attributeType.Type is not { Name: "TraitAttribute", ContainingNamespace: { Name: "Xunit", ContainingNamespace: { IsGlobalNamespace: true } } })
+                        if (!SymbolEqualityComparer.Default.Equals(attributeType.Type, state.TraitAttribute))
                             continue;
 
-                        var actualAttributeData = semanticModel.GetDeclaredSymbol(originalNode, cancellationToken).GetAttributes()
+                        var actualAttributeData = state.SemanticModel.GetDeclaredSymbol(originalNode, cancellationToken).GetAttributes()
                             .Single(attributeData => attributeData.ApplicationSyntaxReference is not null && attribute.Span.Contains(attributeData.ApplicationSyntaxReference.Span));
 
                         if (!expectedAttributeData.ConstructorArguments.SequenceEqual(actualAttributeData.ConstructorArguments))
@@ -105,7 +113,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             newTypeDeclaration = syntaxGenerator.AddAttributes(newTypeDeclaration, attribute);
 
-            return document.WithSyntaxRoot(syntaxRoot.ReplaceNode(typeDeclaration, newTypeDeclaration));
+            return state.Document.WithSyntaxRoot(syntaxRoot.ReplaceNode(typeDeclaration, newTypeDeclaration));
         }
     }
 }
