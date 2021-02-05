@@ -236,7 +236,10 @@ namespace Microsoft.CodeAnalysis
 
             public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
-                GetPartialCompilationState(solution, docState.Id, out var inProgressProject, out var inProgressCompilation, out var sourceGeneratedDocuments, cancellationToken);
+                GetPartialCompilationState(
+                    solution, docState.Id,
+                    out var inProgressProject, out var inProgressCompilation,
+                    out var sourceGeneratedDocuments, out var metadataReferenceToProjectId, cancellationToken);
 
                 if (!inProgressCompilation.SyntaxTrees.Contains(tree))
                 {
@@ -253,6 +256,8 @@ namespace Microsoft.CodeAnalysis
                         inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
                     }
                 }
+
+                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
 
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
@@ -284,6 +289,7 @@ namespace Microsoft.CodeAnalysis
                 out ProjectState inProgressProject,
                 out Compilation inProgressCompilation,
                 out ImmutableArray<SourceGeneratedDocumentState> sourceGeneratedDocuments,
+                out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
@@ -306,6 +312,9 @@ namespace Microsoft.CodeAnalysis
                     // being made to the project, but it's the best we have so we'll use it.
                     inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.Select(d => d.SyntaxTree));
 
+                    // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
+                    // properly record assembly symbols for.
+                    metadataReferenceToProjectId = null;
                     SolutionLogger.UseExistingPartialProjectState();
                     return;
                 }
@@ -320,6 +329,12 @@ namespace Microsoft.CodeAnalysis
                     if (finalCompilation != null)
                     {
                         inProgressCompilation = finalCompilation;
+
+                        // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
+                        // before, we should have already recorded the assembly symbols for it.  So not recording them
+                        // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
+                        // the same references across source edits).
+                        metadataReferenceToProjectId = null;
                         SolutionLogger.UseExistingFullProjectState();
                         return;
                     }
@@ -348,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
-                var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
@@ -393,8 +408,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
-
-                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();
             }
@@ -877,14 +890,17 @@ namespace Microsoft.CodeAnalysis
                 return DocumentId.CreateFromSerialized(projectId, guid, hintName);
             }
 
-            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
+            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {
                 RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
-                foreach (var (metadataReference, projectId) in metadataReferenceToProjectId)
+                if (metadataReferenceToProjectId != null)
                 {
-                    var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                    RecordSourceOfAssemblySymbol(symbol, projectId);
+                    foreach (var (metadataReference, projectId) in metadataReferenceToProjectId)
+                    {
+                        var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                        RecordSourceOfAssemblySymbol(symbol, projectId);
+                    }
                 }
             }
 
