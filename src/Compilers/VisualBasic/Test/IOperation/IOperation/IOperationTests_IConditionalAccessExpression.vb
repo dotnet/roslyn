@@ -607,8 +607,7 @@ Block[B12] - Exit
         Public Sub ConditionalAccessFlow_10()
             Dim source =
 <compilation>
-    <file name="a.vb">
-    <![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -726,8 +725,7 @@ Block[B8] - Exit
         Public Sub ConditionalAccessFlow_11()
             Dim source =
 <compilation>
-    <file name="a.vb">
-    <![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -832,8 +830,7 @@ Block[B6] - Exit
         Public Sub ConditionalAccessFlow_12()
             Dim source =
 <compilation>
-    <file name="a.vb">
-    <![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -940,8 +937,7 @@ Block[B6] - Exit
         Public Sub ConditionalAccessFlow_13()
             Dim source =
 <compilation>
-    <file name="a.vb">
-    <![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
