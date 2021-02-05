@@ -96,11 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
         {
-            var results = GetChildrenImpl(node)?.ToList();
-            return results;
-        }
-        private IEnumerable<SyntaxNode>? GetChildrenImpl(SyntaxNode node)
-        {
             Debug.Assert(HasLabel(node));
 
             if (node == _oldRoot)
@@ -145,12 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
          => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
-        {
-            var results = GetDescendantsImpl(node).ToList();
-            return results;
-        }
-
-        private IEnumerable<SyntaxNode> GetDescendantsImpl(SyntaxNode node)
         {
             var rootChildren = (node == _oldRoot) ? _oldRootChildren : (node == _newRoot) ? _newRootChildren : null;
             return (rootChildren != null) ? EnumerateDescendants(rootChildren) : EnumerateDescendants(node);
