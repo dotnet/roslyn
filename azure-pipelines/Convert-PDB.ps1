@@ -18,7 +18,7 @@
         [string]$OutputPath
     )
 
-    $version = '1.1.0-beta2-20115-01'
+    $version = '1.1.0-beta2-21101-01'
     $baseDir = "$PSScriptRoot\..\obj\tools"
     $pdb2pdbpath = "$baseDir\Microsoft.DiaSymReader.Pdb2Pdb.$version\tools\Pdb2Pdb.exe"
     if (-not (Test-Path $pdb2pdbpath)) {
