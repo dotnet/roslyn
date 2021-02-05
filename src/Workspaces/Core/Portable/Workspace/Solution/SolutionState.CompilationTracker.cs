@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
 
-                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                var unrootedSymbolSet = (state as FinalState)?.UnrootedSymbolSet;
                 if (unrootedSymbolSet == null)
                 {
                     // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation,
                     hasSuccessfullyLoaded: false,
                     sourceGeneratedDocuments,
-                    State.GetUnrootedSymbols(inProgressCompilation),
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -849,7 +848,6 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatedDocuments,
-                        State.GetUnrootedSymbols(compilation),
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
