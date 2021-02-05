@@ -2206,7 +2206,7 @@ C2.C2() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [WindowsOnlyTheory]
+        [Theory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
