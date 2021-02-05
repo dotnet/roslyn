@@ -82,7 +82,7 @@ namespace BuildValidator
             foreach (var sourceFileInfo in sourceFileInfos)
             {
                 var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithmDescription} - {hash}");
+                _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithmDescription} - {hash} - {sourceFileInfo.EmbeddedText is object}");
             }
 
             return sourceFileInfos;
