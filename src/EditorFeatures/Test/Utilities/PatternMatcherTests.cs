@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("FogBar", "GoooB")]
         [InlineData("GooActBarCatAlp", "GooAlpBarCat")]
         // We don't want a lowercase pattern to match *across* a word boundary.
-        [InlineData("AbcdefGhijefghij", "efghij")]
+        [InlineData("AbcdefGhijklmnop", "efghij")]
         [InlineData("Fog_Bar", "F__B")]
         [InlineData("FogBarBaz", "FZ")]
         [InlineData("_mybutton", "myB")]

@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         {
                             if (char.IsUpper(candidate[caseInsensitiveIndex]))
                             {
-                                return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
-                                    isCaseSensitive: false,
+                                return new PatternMatch(
+                                    PatternMatchKind.StartOfWordSubstring, punctuationStripped, isCaseSensitive: true,
                                     matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                             }
                             else
