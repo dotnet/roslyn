@@ -885,132 +885,124 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)
         {
-            if (_compareStatementSyntax)
+            switch (leftNode.Kind())
             {
-                switch (leftNode.Kind())
-                {
-                    case SyntaxKind.VariableDeclarator:
-                        distance = ComputeDistance(
-                            ((VariableDeclaratorSyntax)leftNode).Identifier,
-                            ((VariableDeclaratorSyntax)rightNode).Identifier);
+                case SyntaxKind.VariableDeclarator:
+                    distance = ComputeDistance(
+                        ((VariableDeclaratorSyntax)leftNode).Identifier,
+                        ((VariableDeclaratorSyntax)rightNode).Identifier);
+                    return true;
+
+                case SyntaxKind.ForStatement:
+                    var leftFor = (ForStatementSyntax)leftNode;
+                    var rightFor = (ForStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftFor, rightFor);
+                    return true;
+
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    {
+
+                        var leftForEach = (CommonForEachStatementSyntax)leftNode;
+                        var rightForEach = (CommonForEachStatementSyntax)rightNode;
+                        distance = ComputeWeightedDistance(leftForEach, rightForEach);
                         return true;
+                    }
 
-                    case SyntaxKind.ForStatement:
-                        var leftFor = (ForStatementSyntax)leftNode;
-                        var rightFor = (ForStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftFor, rightFor);
+                case SyntaxKind.UsingStatement:
+                    var leftUsing = (UsingStatementSyntax)leftNode;
+                    var rightUsing = (UsingStatementSyntax)rightNode;
+
+                    if (leftUsing.Declaration != null && rightUsing.Declaration != null)
+                    {
+                        distance = ComputeWeightedDistance(
+                            leftUsing.Declaration,
+                            leftUsing.Statement,
+                            rightUsing.Declaration,
+                            rightUsing.Statement);
+                    }
+                    else
+                    {
+                        distance = ComputeWeightedDistance(
+                            (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
+                            leftUsing.Statement,
+                            (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
+                            rightUsing.Statement);
+                    }
+
+                    return true;
+
+                case SyntaxKind.LockStatement:
+                    var leftLock = (LockStatementSyntax)leftNode;
+                    var rightLock = (LockStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftLock.Expression, leftLock.Statement, rightLock.Expression, rightLock.Statement);
+                    return true;
+
+                case SyntaxKind.FixedStatement:
+                    var leftFixed = (FixedStatementSyntax)leftNode;
+                    var rightFixed = (FixedStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftFixed.Declaration, leftFixed.Statement, rightFixed.Declaration, rightFixed.Statement);
+                    return true;
+
+                case SyntaxKind.WhileStatement:
+                    var leftWhile = (WhileStatementSyntax)leftNode;
+                    var rightWhile = (WhileStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftWhile.Condition, leftWhile.Statement, rightWhile.Condition, rightWhile.Statement);
+                    return true;
+
+                case SyntaxKind.DoStatement:
+                    var leftDo = (DoStatementSyntax)leftNode;
+                    var rightDo = (DoStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftDo.Condition, leftDo.Statement, rightDo.Condition, rightDo.Statement);
+                    return true;
+
+                case SyntaxKind.IfStatement:
+                    var leftIf = (IfStatementSyntax)leftNode;
+                    var rightIf = (IfStatementSyntax)rightNode;
+                    distance = ComputeWeightedDistance(leftIf.Condition, leftIf.Statement, rightIf.Condition, rightIf.Statement);
+                    return true;
+
+                case SyntaxKind.Block:
+                    var leftBlock = (BlockSyntax)leftNode;
+                    var rightBlock = (BlockSyntax)rightNode;
+                    return TryComputeWeightedDistance(leftBlock, rightBlock, out distance);
+
+                case SyntaxKind.CatchClause:
+                    distance = ComputeWeightedDistance((CatchClauseSyntax)leftNode, (CatchClauseSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                    distance = ComputeWeightedDistanceOfNestedFunctions(leftNode, rightNode);
+                    return true;
+
+                case SyntaxKind.YieldBreakStatement:
+                case SyntaxKind.YieldReturnStatement:
+                    // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
+                    distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
+                    return true;
+
+                case SyntaxKind.SingleVariableDesignation:
+                    distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
+                    return true;
+
+                default:
+                    var leftName = TryGetName(leftNode);
+                    var rightName = TryGetName(rightNode);
+                    Contract.ThrowIfFalse(rightName.HasValue == leftName.HasValue);
+
+                    if (leftName.HasValue)
+                    {
+                        distance = ComputeDistance(leftName.Value, rightName!.Value);
                         return true;
-
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.ForEachVariableStatement:
-                        {
-
-                            var leftForEach = (CommonForEachStatementSyntax)leftNode;
-                            var rightForEach = (CommonForEachStatementSyntax)rightNode;
-                            distance = ComputeWeightedDistance(leftForEach, rightForEach);
-                            return true;
-                        }
-
-                    case SyntaxKind.UsingStatement:
-                        var leftUsing = (UsingStatementSyntax)leftNode;
-                        var rightUsing = (UsingStatementSyntax)rightNode;
-
-                        if (leftUsing.Declaration != null && rightUsing.Declaration != null)
-                        {
-                            distance = ComputeWeightedDistance(
-                                leftUsing.Declaration,
-                                leftUsing.Statement,
-                                rightUsing.Declaration,
-                                rightUsing.Statement);
-                        }
-                        else
-                        {
-                            distance = ComputeWeightedDistance(
-                                (SyntaxNode?)leftUsing.Expression ?? leftUsing.Declaration!,
-                                leftUsing.Statement,
-                                (SyntaxNode?)rightUsing.Expression ?? rightUsing.Declaration!,
-                                rightUsing.Statement);
-                        }
-
-                        return true;
-
-                    case SyntaxKind.LockStatement:
-                        var leftLock = (LockStatementSyntax)leftNode;
-                        var rightLock = (LockStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftLock.Expression, leftLock.Statement, rightLock.Expression, rightLock.Statement);
-                        return true;
-
-                    case SyntaxKind.FixedStatement:
-                        var leftFixed = (FixedStatementSyntax)leftNode;
-                        var rightFixed = (FixedStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftFixed.Declaration, leftFixed.Statement, rightFixed.Declaration, rightFixed.Statement);
-                        return true;
-
-                    case SyntaxKind.WhileStatement:
-                        var leftWhile = (WhileStatementSyntax)leftNode;
-                        var rightWhile = (WhileStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftWhile.Condition, leftWhile.Statement, rightWhile.Condition, rightWhile.Statement);
-                        return true;
-
-                    case SyntaxKind.DoStatement:
-                        var leftDo = (DoStatementSyntax)leftNode;
-                        var rightDo = (DoStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftDo.Condition, leftDo.Statement, rightDo.Condition, rightDo.Statement);
-                        return true;
-
-                    case SyntaxKind.IfStatement:
-                        var leftIf = (IfStatementSyntax)leftNode;
-                        var rightIf = (IfStatementSyntax)rightNode;
-                        distance = ComputeWeightedDistance(leftIf.Condition, leftIf.Statement, rightIf.Condition, rightIf.Statement);
-                        return true;
-
-                    case SyntaxKind.Block:
-                        var leftBlock = (BlockSyntax)leftNode;
-                        var rightBlock = (BlockSyntax)rightNode;
-                        return TryComputeWeightedDistance(leftBlock, rightBlock, out distance);
-
-                    case SyntaxKind.CatchClause:
-                        distance = ComputeWeightedDistance((CatchClauseSyntax)leftNode, (CatchClauseSyntax)rightNode);
-                        return true;
-
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.LocalFunctionStatement:
-                        distance = ComputeWeightedDistanceOfNestedFunctions(leftNode, rightNode);
-                        return true;
-
-                    case SyntaxKind.YieldBreakStatement:
-                    case SyntaxKind.YieldReturnStatement:
-                        // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
-                        distance = (leftNode.RawKind == rightNode.RawKind) ? 0.0 : 0.1;
-                        return true;
-
-                    case SyntaxKind.SingleVariableDesignation:
-                        distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
-                        return true;
-
-                    default:
+                    }
+                    else
+                    {
                         distance = 0;
                         return false;
-                }
-            }
-            else
-            {
-                var leftName = TryGetName(leftNode);
-                var rightName = TryGetName(rightNode);
-                Contract.ThrowIfFalse(rightName.HasValue == leftName.HasValue);
-
-                if (leftName.HasValue)
-                {
-                    distance = ComputeDistance(leftName.Value, rightName!.Value);
-                    return true;
-                }
-                else
-                {
-                    distance = 0;
-                    return false;
-                }
+                    }
             }
         }
 
