@@ -266,9 +266,10 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation,
                     hasSuccessfullyLoaded: false,
                     sourceGeneratedDocuments,
-                    State.GetUnrootedSymbols(inProgressCompilation));
-
-                RecordAssemblySymbols(finalState, this.ProjectState.Id, inProgressCompilation, metadataReferenceToProjectId);
+                    State.GetUnrootedSymbols(inProgressCompilation),
+                    this.ProjectState.Id,
+                    inProgressCompilation,
+                    metadataReferenceToProjectId);
 
                 return new CompilationTracker(inProgressProject, finalState);
             }
@@ -849,9 +850,10 @@ namespace Microsoft.CodeAnalysis
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatedDocuments,
-                        State.GetUnrootedSymbols(compilation));
-
-                    RecordAssemblySymbols(finalState, this.ProjectState.Id, compilation, metadataReferenceToProjectId);
+                        State.GetUnrootedSymbols(compilation),
+                        this.ProjectState.Id,
+                        compilation,
+                        metadataReferenceToProjectId);
 
                     this.WriteState(finalState, solution.Services);
 
@@ -888,20 +890,6 @@ namespace Microsoft.CodeAnalysis
                 var guid = new Guid(hash);
 
                 return DocumentId.CreateFromSerialized(projectId, guid, hintName);
-            }
-
-            private static void RecordAssemblySymbols(FinalState finalState, ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
-            {
-                RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
-
-                if (metadataReferenceToProjectId != null)
-                {
-                    foreach (var (metadataReference, currentID) in metadataReferenceToProjectId)
-                    {
-                        var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                        RecordSourceOfAssemblySymbol(symbol, currentID);
-                    }
-                }
             }
 
             /// <summary>

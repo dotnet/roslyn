@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -237,7 +238,10 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    UnrootedSymbolSet? unrootedSymbolSet)
+                    UnrootedSymbolSet? unrootedSymbolSet,
+                    ProjectId projectId,
+                    Compilation finalCompilation,
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
@@ -251,8 +255,24 @@ namespace Microsoft.CodeAnalysis
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
-                        Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
+                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
+                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
+                    }
+
+                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+                }
+
+                private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
+                    RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
+
+                    if (metadataReferenceToProjectId != null)
+                    {
+                        foreach (var (metadataReference, currentID) in metadataReferenceToProjectId)
+                        {
+                            var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                            RecordSourceOfAssemblySymbol(symbol, currentID);
+                        }
                     }
                 }
             }
