@@ -232,7 +232,7 @@ class C
             // TODO: test
             // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
             // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-            TestSpans(source, StatementSyntaxComparer.IgnoreLabeledChild);
+            TestSpans(source, kind => TopSyntaxComparer.Statement.HasLabel(kind));
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ class C
         [Fact]
         public void ErrorSpansAllKinds()
         {
-            TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
+            TestErrorSpansAllKinds(kind => TopSyntaxComparer.Statement.HasLabel(kind));
             TestErrorSpansAllKinds(kind => TopSyntaxComparer.Instance.HasLabel(kind));
         }
 
