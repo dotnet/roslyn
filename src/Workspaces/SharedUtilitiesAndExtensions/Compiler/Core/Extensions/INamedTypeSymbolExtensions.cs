@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class INamedTypeSymbolExtensions
     {
+#if !LIGHTWEIGHT
         public static IEnumerable<INamedTypeSymbol> GetBaseTypesAndThis(this INamedTypeSymbol? namedType)
         {
             var current = namedType;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var stack = GetContainmentStack(symbol);
             return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
         }
+#endif
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
         {
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return stack;
         }
 
+#if !LIGHTWEIGHT
         public static bool IsContainedWithin([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol, INamedTypeSymbol outer)
         {
             // TODO(cyrusn): Should we be using OriginalSymbol here?
@@ -594,5 +597,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
             => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+#endif
     }
 }

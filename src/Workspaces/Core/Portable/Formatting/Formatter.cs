@@ -8,13 +8,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         public static SyntaxAnnotation Annotation { get; } = new SyntaxAnnotation();
 
+#if !LIGHTWEIGHT
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
@@ -315,5 +319,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
         }
+#endif
     }
 }

@@ -8,12 +8,15 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+
+#if !LIGHTWEIGHT
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -29,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Editing
     /// preference if any <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)" /> 
     /// overload is called.
     /// </summary>
-    public abstract class SyntaxGenerator : ILanguageService
+    public abstract class SyntaxGenerator
+#if !LIGHTWEIGHT
+        : ILanguageService
+#endif
     {
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
@@ -46,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
         internal abstract SyntaxToken CreateInterpolatedStringEndToken();
 
+#if !LIGHTWEIGHT
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -63,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
             => project.LanguageServices.GetService<SyntaxGenerator>();
+#endif
 
         #region Declarations
 

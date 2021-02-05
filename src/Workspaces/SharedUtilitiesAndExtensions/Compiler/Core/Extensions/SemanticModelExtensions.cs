@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+#if !LIGHTWEIGHT
         /// <summary>
         /// Gets semantic information, such as type, symbols, and diagnostics, about the parent of a token.
         /// </summary>
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
+#endif
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
         {
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return semanticModel.ParentModel;
         }
 
+#if !LIGHTWEIGHT
         public static HashSet<ISymbol> GetAllDeclaredSymbols(
            this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? filter = null)
         {
@@ -125,5 +128,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool>? filter)
                 => filter != null ? filter(node) : true;
         }
+#endif
     }
 }

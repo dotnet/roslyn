@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         TDeclarationNode AddStatements<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> statements, CodeGenerationOptions options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode;
 
+#if !LIGHTWEIGHT
         /// <summary>
         /// Adds a field with the provided signature into destination.
         /// </summary>
@@ -183,5 +184,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// then all the potential location. Return null if no declaration.
         /// </summary>
         Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, CodeGenerationOptions options, CancellationToken cancellationToken);
+#endif
     }
 }
