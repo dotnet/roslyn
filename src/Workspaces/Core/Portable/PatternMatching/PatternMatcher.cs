@@ -449,8 +449,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
         {
-            var patternHumps = patternChunk.PatternHumps;
-
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
             // pattern parts may match a candidate part.  For example "SiUI" against "SimpleUI".
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
@@ -461,7 +459,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             int? firstMatch = null;
             bool? contiguous = null;
 
-            var patternHumpCount = patternHumps.Count;
+            var patternHumpCount = patternChunk.PatternHumps.Count;
             var candidateHumpCount = candidateHumps.Count;
 
             using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchSpans);
@@ -497,15 +495,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // still keep matching pattern parts against that candidate part. 
                 for (; currentPatternHump < patternHumpCount; currentPatternHump++)
                 {
-                    var patternChunkCharacterSpan = patternHumps[currentPatternHump];
+                    var patternChunkCharacterSpan = patternChunk.PatternHumps[currentPatternHump];
 
                     if (gotOneMatchThisCandidate)
                     {
                         // We've already gotten one pattern part match in this candidate.  We will
                         // only continue trying to consume pattern parts if the last part and this
                         // part are both upper case.  
-                        if (!char.IsUpper(patternChunk.Text[patternHumps[currentPatternHump - 1].Start]) ||
-                            !char.IsUpper(patternChunk.Text[patternHumps[currentPatternHump].Start]))
+                        if (!char.IsUpper(patternChunk.Text[patternChunk.PatternHumps[currentPatternHump - 1].Start]) ||
+                            !char.IsUpper(patternChunk.Text[patternChunk.PatternHumps[currentPatternHump].Start]))
                         {
                             break;
                         }

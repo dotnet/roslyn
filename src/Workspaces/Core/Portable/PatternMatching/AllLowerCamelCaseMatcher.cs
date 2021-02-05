@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return GetKind(result.Value, ref candidateHumps);
             }
 
-            private PatternMatchKind GetKind(CamelCaseResult result, ref TemporaryArray<TextSpan> candidateHumps)
+            private static PatternMatchKind GetKind(CamelCaseResult result, ref TemporaryArray<TextSpan> candidateHumps)
                 => PatternMatcher.GetCamelCaseKind(result, ref candidateHumps);
 
             private CamelCaseResult? TryMatch(
