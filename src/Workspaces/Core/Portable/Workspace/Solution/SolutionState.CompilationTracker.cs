@@ -268,7 +268,6 @@ namespace Microsoft.CodeAnalysis
                     sourceGeneratedDocuments,
                     State.GetUnrootedSymbols(inProgressCompilation),
                     this.ProjectState.Id,
-                    inProgressCompilation,
                     metadataReferenceToProjectId);
 
                 return new CompilationTracker(inProgressProject, finalState);
@@ -852,7 +851,6 @@ namespace Microsoft.CodeAnalysis
                         generatedDocuments,
                         State.GetUnrootedSymbols(compilation),
                         this.ProjectState.Id,
-                        compilation,
                         metadataReferenceToProjectId);
 
                     this.WriteState(finalState, solution.Services);

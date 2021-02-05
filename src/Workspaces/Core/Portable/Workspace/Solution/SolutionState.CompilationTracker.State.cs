@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     UnrootedSymbolSet? unrootedSymbolSet,
                     ProjectId projectId,
-                    Compilation finalCompilation,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
@@ -259,7 +258,12 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
                     }
 
-                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+                    // finalCompilationSource.GetValue().Value must succeed.  Our caller either passes us a constant
+                    // source (which will succeed), or a WeakSource, but to a compilation that is strongly held through
+                    // other values on their stack.  So this is safe to call.
+                    var finalCompilation = finalCompilationSource.GetValue().Value;
+                    Contract.ThrowIfNull(finalCompilation);
+                    RecordAssemblySymbols(projectId, finalCompilationSource.GetValue().Value, metadataReferenceToProjectId);
                 }
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
