@@ -47,13 +47,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         private static readonly string s_semicolon = SyntaxFacts.GetText(SyntaxKind.SemicolonToken);
 
+        /// <summary>
+        /// Annotation to locate the open brace token.
+        /// </summary>
         private static readonly SyntaxAnnotation s_openBracePositionAnnotation = new();
+
+        /// <summary>
+        /// Annotation to locate the replacement node(with or without braces).
+        /// </summary>
         private static readonly SyntaxAnnotation s_replacementNodeAnnotation = new();
 
+        /// <summary>
+        /// The open brace token that is used, it doesn't have any elastic annotation, because it would cause
+        /// the formatter not add new line between braces for BasePropertyDeclaration.
+        /// It has a trailing new line trivia. Because we want to insert a brace pair like this
+        /// '{
+        /// }'
+        /// </summary>
         private static readonly SyntaxToken s_openBrace = SyntaxFactory.Token(
             SyntaxTriviaList.Empty, SyntaxKind.OpenBraceToken, SyntaxTriviaList.Empty.Add(SyntaxFactory.CarriageReturnLineFeed))
             .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
+        /// <summary>
+        /// The close brace token that is used, it doesn't have any elastic annotation, because it would cause
+        /// the formatter not add new line between braces for BasePropertyDeclaration.
+        /// </summary>
         private static readonly SyntaxToken s_closeBrace = SyntaxFactory.Token(
             SyntaxTriviaList.Empty, SyntaxKind.CloseBraceToken, SyntaxTriviaList.Empty);
 
@@ -801,6 +819,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return objectCreationExpressionNode;
         }
 
+        /// <summary>
+        /// Remove the brace for the input syntax node
+        /// For ObjectCreationExpressionSyntax, it would remove the initializer
+        /// For PropertyDeclarationSyntax, it would change it to a FieldDeclaration
+        /// For EventDeclarationSyntax, it would change it to eventFieldDeclaration
+        /// For Accessor, it would change it to the empty version ending with semicolon.
+        /// e.g get {} => get;
+        /// </summary>
         private static SyntaxNode WithoutBraces(SyntaxNode node)
             => node switch
             {
@@ -826,12 +852,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 _ => node,
             };
 
+        /// <summary>
+        /// Add braces to the syntax node
+        /// For baseTypeDeclaration, method, local method, accessors and embeddedStatementOwner it would add braces/empty block to it.
+        /// For FieldDeclarations, it would change it a property with empty accessorList
+        /// For EventFieldDeclarations, it would change it to EventDeclaration node with empty accessorList
+        /// For ObjectCreationExpression, it would add an empty initializer to it.
+        /// </summary>
         private static SyntaxNode WithBraces(SyntaxNode node)
             => node switch
             {
                 BaseTypeDeclarationSyntax baseTypeDeclarationNode =>
                     baseTypeDeclarationNode.WithOpenBraceToken(s_openBrace)
                         .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
+                ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.WithInitializer(s_initializerNode),
+                // For field/event field/method/local function/accessor, there is a missing semicolon(it is not visible) in the original node,
+                // remove it
                 FieldDeclarationSyntax fieldDeclarationNode when fieldDeclarationNode.Declaration.Variables.IsSingle() =>
                     SyntaxFactory.PropertyDeclaration(
                         fieldDeclarationNode.AttributeLists,
@@ -843,7 +879,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                         expressionBody: null,
                         initializer: null,
                         semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(node),
-                ObjectCreationExpressionSyntax objectCreationExpressionNode => objectCreationExpressionNode.WithInitializer(s_initializerNode),
                 EventFieldDeclarationSyntax eventFieldDeclarationNode when eventFieldDeclarationNode.Declaration.Variables.IsSingle() =>
                     SyntaxFactory.EventDeclaration(
                         eventFieldDeclarationNode.AttributeLists,
