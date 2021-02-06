@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static ImmutableArray<string> PartListToSubstrings(string identifier, ref TemporaryArray<TextSpan> parts)
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
         {
             using var result = TemporaryArray<string>.Empty;
             foreach (var span in parts)
@@ -433,14 +433,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             using var parts = TemporaryArray<TextSpan>.Empty;
             StringBreaker.AddCharacterParts(identifier, ref parts.AsRef());
-            return PartListToSubstrings(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
         }
 
         private static ImmutableArray<string> BreakIntoWordParts(string identifier)
         {
             using var parts = TemporaryArray<TextSpan>.Empty;
             StringBreaker.AddWordParts(identifier, ref parts.AsRef());
-            return PartListToSubstrings(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
         }
 
         private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
