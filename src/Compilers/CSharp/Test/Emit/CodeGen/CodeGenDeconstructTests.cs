@@ -9229,5 +9229,35 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 17)
                 );
         }
+
+        [Fact, WorkItem(50654, "https://github.com/dotnet/roslyn/issues/50654")]
+        public void Repro50654()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int, (int, (int, int), (int, int)))[] vals = new[]
+        {
+            (1, (2, (3, 4), (5, 6))),
+            (11, (12, (13, 14), (15, 16)))
+        };
+
+        foreach (var (a, (b, (c, d), (e, f))) in vals)
+        {
+            System.Console.Write($""{a + b + c + d + e + f} "");
+        }
+
+        foreach ((int a, (int b, (int c, int d), (int e, int f))) in vals)
+        {
+            System.Console.Write($""{a + b + c + d + e + f} "");
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "21 81 21 81");
+        }
     }
 }
