@@ -382,13 +382,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 

@@ -39,16 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
-                // If this is a definition we always want to show, then create entries
-                // for all the declaration locations immediately.  Otherwise, we'll 
-                // create them on demand when we hear about references for this definition.
+                // If this is a definition we always want to show, then create entries for all the declaration locations
+                // immediately.  Otherwise, we'll create them on demand when we hear about references for this
+                // definition.
                 if (definition.DisplayIfNoReferences)
-                {
-                    await AddDeclarationEntriesAsync(definition).ConfigureAwait(false);
-                }
+                    await AddDeclarationEntriesAsync(definition, expandedByDefault: true).ConfigureAwait(false);
             }
 
-            private async Task AddDeclarationEntriesAsync(DefinitionItem definition)
+            private async Task AddDeclarationEntriesAsync(DefinitionItem definition, bool expandedByDefault)
             {
                 CancellationToken.ThrowIfCancellationRequested();
 
@@ -59,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return;
                 }
 
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault);
 
                 // We could do this inside the lock.  but that would mean async activity in a 
                 // lock, and I'd like to avoid that.  That does mean that we might do extra
@@ -122,20 +120,20 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry?>> createEntryAsync,
                 bool addToEntriesWhenGroupingByDefinition,
-                bool addToEntriesWhenNotGroupingByDefinition)
+                bool addToEntriesWhenNotGroupingByDefinition,
+                bool expandedByDefault = true)
             {
                 Debug.Assert(addToEntriesWhenGroupingByDefinition || addToEntriesWhenNotGroupingByDefinition);
                 CancellationToken.ThrowIfCancellationRequested();
 
-                // OK, we got a *reference* to some definition item.  This may have been
-                // a reference for some definition that we haven't created any declaration
-                // entries for (i.e. because it had DisplayIfNoReferences = false).  Because
-                // we've now found a reference, we want to make sure all its declaration
-                // entries are added.
-                await AddDeclarationEntriesAsync(definition).ConfigureAwait(false);
+                // OK, we got a *reference* to some definition item.  This may have been a reference for some definition
+                // that we haven't created any declaration entries for (i.e. because it had DisplayIfNoReferences =
+                // false).  Because we've now found a reference, we want to make sure all its declaration entries are
+                // added.
+                await AddDeclarationEntriesAsync(definition, expandedByDefault).ConfigureAwait(false);
 
                 // First find the bucket corresponding to our definition.
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
                 if (entry == null)
                 {
@@ -201,10 +199,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         await OnEntryFoundAsync(SymbolsWithoutReferencesDefinitionItem,
                             bucket => SimpleMessageEntry.CreateAsync(
                                 definitionBucket: bucket,
-                                navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition),
+                                navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false),
                                 string.Format(ServicesVSResources.No_references_found_to_0, definition.NameDisplayParts.JoinText()))!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
-                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
+                            expandedByDefault: false).ConfigureAwait(false);
                     }
                 }
             }

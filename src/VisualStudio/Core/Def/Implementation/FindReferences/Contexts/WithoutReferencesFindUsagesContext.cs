@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
                 using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
