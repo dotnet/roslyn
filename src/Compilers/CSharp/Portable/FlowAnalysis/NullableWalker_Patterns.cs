@@ -318,9 +318,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
             }
+            Debug.Assert(originalInputSlot > 0);
+
+            // If the input of the switch (or is-pattern expression) is a tuple literal, we reuse the slots of
+            // those expressions (when possible), pretending that we are not copying them into a temporary ValueTuple instance
+            // to evaluate the patterns.  In this way we infer non-nullability of the original element's parts.
+            // We do not extend such courtesy to nested tuple literals.
+            var originalInputElementSlots = expression is BoundTupleExpression tuple
+                ? tuple.Arguments.SelectAsArray(a => MakeSlot(a))
+                : default;
+            var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
+            originalInputMap.Add(originalInputSlot, expression);
 
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
-            Debug.Assert(originalInputSlot > 0);
             Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
 
@@ -402,11 +412,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var field = (FieldSymbol)AsMemberOfType(inputType, e.Field);
                                         var type = field.TypeWithAnnotations;
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = GetOrCreateSlot(field, inputSlot, forceSlotEvenIfEmpty: true);
+                                        int outputSlot = -1;
+                                        var originalTupleElement = e.Input.IsOriginalInput && !originalInputElementSlots.IsDefault
+                                            ? field as TupleFieldSymbol
+                                            : null;
+                                        if (originalTupleElement is not null)
+                                        {
+                                            // Re-use the slot of the element/expression if possible
+                                            outputSlot = originalInputElementSlots[originalTupleElement.TupleElementIndex];
+                                        }
+                                        if (outputSlot <= 0)
+                                        {
+                                            outputSlot = GetOrCreateSlot(field, inputSlot, forceSlotEvenIfEmpty: true);
+
+                                            if (originalTupleElement is not null)
+                                            {
+                                                // The expression in the tuple could not be assigned a slot (for example, `a?.b`),
+                                                // so we had to create a slot for the tuple element instead.
+                                                // We'll remember that so that we can apply any learnings to the expression.
+                                                if (!originalInputMap.ContainsKey(outputSlot))
+                                                {
+                                                    originalInputMap.Add(outputSlot,
+                                                        ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
+                                                }
+                                                else
+                                                {
+                                                    Debug.Assert(originalInputMap[outputSlot] == ((BoundTupleExpression)expression).Arguments[originalTupleElement.TupleElementIndex]);
+                                                }
+                                            }
+                                        }
                                         if (outputSlot <= 0)
                                         {
                                             outputSlot = makeDagTempSlot(type, output);
                                         }
+
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
                                         break;
@@ -573,6 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SetUnreachable(); // the decision dag is always complete (no fall-through)
+            originalInputMap.Free();
             tempMap.Free();
             nodeStateMap.Free();
             return labelStateMap;
@@ -580,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void learnFromNonNullTest(int inputSlot, ref LocalState state)
             {
                 LearnFromNonNullTest(inputSlot, ref state);
-                if (inputSlot == originalInputSlot)
+                if (originalInputMap.TryGetValue(inputSlot, out var expression))
                     LearnFromNonNullTest(expression, ref state);
             }
 
