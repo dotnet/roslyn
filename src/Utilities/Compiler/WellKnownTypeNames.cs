@@ -525,5 +525,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
         public const string XunitAssert = "Xunit.Assert";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitTraitAttribute = "Xunit.TraitAttribute";
     }
 }
