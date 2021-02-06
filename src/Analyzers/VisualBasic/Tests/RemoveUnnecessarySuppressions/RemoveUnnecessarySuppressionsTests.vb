@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions.VisualBasicRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions.RemoveUnnecessaryAttributeSuppressionsCodeFixProvider)
@@ -11,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryS
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)>
     <WorkItem(44176, "https://github.com/dotnet/roslyn/issues/44176")>
     Public Class RemoveUnnecessarySuppressionsTests
-        <Fact>
-        Public Sub TestStandardProperties()
-            VerifyVB.VerifyStandardProperties()
+        <Theory, CombinatorialData>
+        Public Sub TestStandardProperty([property] As AnalyzerProperty)
+            VerifyVB.VerifyStandardProperty([property])
         End Sub
 
         <Theory>

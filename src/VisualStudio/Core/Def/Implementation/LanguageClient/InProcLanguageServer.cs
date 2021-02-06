@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             Workspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             string? clientName)
         {
             _languageClient = languageClient;
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(solutionProvider, languageClient.Name);
+            _queue = new RequestExecutionQueue(lspWorkspaceRegistrationService, languageClient.Name, _languageClient.GetType().Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -144,10 +144,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [JsonRpcMethod(Methods.ExitName)]
         public Task ExitAsync(CancellationToken _)
         {
-            Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
-
             try
             {
+                ShutdownRequestQueue();
                 _jsonRpc.Dispose();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -367,11 +366,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnAutoInsertResponseItem[]> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
+        public Task<DocumentOnAutoInsertResponseItem?> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
@@ -578,7 +577,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var option = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
-            var pushDiagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken);
+            var pushDiagnostics = await diagnosticService.GetPushDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken).ConfigureAwait(false);
             var diagnostics = pushDiagnostics.WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

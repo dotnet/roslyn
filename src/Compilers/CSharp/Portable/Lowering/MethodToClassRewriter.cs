@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)
@@ -258,7 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
                 node.ResultKind,
-                node.BinderOpt,
                 rewrittenType);
         }
 
@@ -488,7 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.DefaultArguments,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
-                    rewritten.BinderOpt,
                     rewritten.Type);
             }
 
@@ -622,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, node.Binder, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

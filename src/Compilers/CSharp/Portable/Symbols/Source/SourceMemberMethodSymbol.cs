@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |                |vvv|yy|s|r|q|z|wwwww|
+            // |              |n|vvv|yy|s|r|q|z|wwwww|
             // 
             // w = method kind.  5 bits.
             // z = isExtensionMethod. 1 bit.
@@ -34,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // s = isMetadataVirtualLocked. 1 bit.
             // y = ReturnsVoid. 2 bits.
             // v = NullableContext. 3 bits.
+            // n = IsNullableAnalysisEnabled. 1 bit.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextOffset = ReturnsVoidOffset + ReturnsVoidSize;
             private const int NullableContextSize = 3;
 
+            private const int IsNullableAnalysisEnabledOffset = NullableContextOffset + NullableContextSize;
+            private const int IsNullableAnalysisEnabledSize = 1;
+
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
             private const int IsExtensionMethodBit = 1 << IsExtensionMethodOffset;
@@ -68,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
 
             private const int NullableContextMask = (1 << NullableContextSize) - 1;
+
+            private const int IsNullableAnalysisEnabledBit = 1 << IsNullableAnalysisEnabledOffset;
 
             public bool TryGetReturnsVoid(out bool value)
             {
@@ -89,6 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsExtensionMethod
             {
                 get { return (_flags & IsExtensionMethodBit) != 0; }
+            }
+
+            public bool IsNullableAnalysisEnabled
+            {
+                get { return (_flags & IsNullableAnalysisEnabledBit) != 0; }
             }
 
             public bool IsMetadataVirtualLocked
@@ -115,17 +125,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers declarationModifiers,
                 bool returnsVoid,
                 bool isExtensionMethod,
+                bool isNullableAnalysisEnabled,
                 bool isMetadataVirtualIgnoringModifiers = false)
             {
                 bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
+                int isNullableAnalysisEnabledInt = isNullableAnalysisEnabled ? IsNullableAnalysisEnabledBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
                 _flags = methodKindInt
                     | isExtensionMethodInt
+                    | isNullableAnalysisEnabledInt
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
@@ -267,10 +280,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
             bool isExtensionMethod,
+            bool isNullableAnalysisEnabled,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
             DeclarationModifiers = declarationModifiers;
-            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
+            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers);
         }
 
         protected void SetReturnsVoid(bool returnsVoid)
@@ -857,6 +871,12 @@ done:
                 parameter.GetCommonNullableValues(compilation, ref builder);
             }
             return builder.MostCommonValue;
+        }
+
+        internal override bool IsNullableAnalysisEnabled()
+        {
+            Debug.Assert(!this.IsConstructor()); // Constructors should use IsNullableEnabledForConstructorsAndInitializers() instead.
+            return flags.IsNullableAnalysisEnabled;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, EnforceOnBuildValues.UseAutoProperty, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
         {
         }
 

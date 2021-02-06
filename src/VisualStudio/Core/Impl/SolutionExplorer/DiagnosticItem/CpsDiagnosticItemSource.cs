@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class CpsDiagnosticItemSource : BaseDiagnosticItemSource, INotifyPropertyChanged
+    internal partial class CpsDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource, INotifyPropertyChanged
     {
         private readonly IVsHierarchyItem _item;
         private readonly string _projectDirectoryPath;
@@ -42,11 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public override object SourceItem => _item;
 
         public override AnalyzerReference? AnalyzerReference => _analyzerReference;
-
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
-        {
-            return new CpsDiagnosticItem(this, diagnostic, effectiveSeverity, language);
-        }
 
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
         {

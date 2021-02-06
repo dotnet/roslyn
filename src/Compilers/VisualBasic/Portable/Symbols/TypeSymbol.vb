@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the kind of this type.
         ''' </summary>
-        Public MustOverride ReadOnly Property TypeKind As TypeKind
+        Public MustOverride ReadOnly Property TypeKind As TYPEKIND
 
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
@@ -573,7 +573,7 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
+        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind, ITypeSymbolInternal.TypeKind
             Get
                 Return Me.TypeKind
             End Get
@@ -643,7 +643,8 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
                Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If

@@ -387,16 +387,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
             Debug.Assert(newType.Type is object);
-            TypeSymbol originalType = _type?.Value.DefaultType;
+            TypeWithAnnotations? originalType = _type?.Value;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
 
-            Debug.Assert((object)originalType == null ||
-                originalType.IsErrorType() && newType.Type.IsErrorType() ||
-                TypeSymbol.Equals(originalType, newType.Type, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)originalType?.DefaultType == null ||
+                originalType.Value.DefaultType.IsErrorType() && newType.Type.IsErrorType() ||
+                originalType.Value.TypeSymbolEquals(newType, TypeCompareKind.ConsiderEverything));
 
-            if ((object)originalType == null)
+            if ((object)_type == null)
             {
                 Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }

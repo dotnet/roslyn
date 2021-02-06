@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
                 if (portable is ISupportTemporaryStorage supportTemporaryStorage)
                 {
-                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, cancellationToken))
+                    if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
                     {
                         return;
                     }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-            ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
+            ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             var storages = reference.GetStorages();
             if (storages == null)
@@ -328,10 +328,12 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             foreach (var storage in storages)
             {
-                if (!(storage is ITemporaryStorageWithName storage2))
+                if (storage is not ITemporaryStorageWithName storage2)
                 {
                     return false;
                 }
+
+                context.AddResource(storage);
 
                 pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }

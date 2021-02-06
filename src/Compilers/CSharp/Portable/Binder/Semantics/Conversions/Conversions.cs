@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
+                GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo, inferWithDynamic: true,
                     isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
                     isFunctionPointerResolution: isFunctionPointer, callingConventionInfo: callingConventionInfo);
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)delegateInvokeMethod != null && !delegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
-            GetDelegateArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
+            GetDelegateOrFunctionPointerArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        public static void GetDelegateArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
+        public static void GetDelegateOrFunctionPointerArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
         {
             foreach (var p in delegateParameters)
             {

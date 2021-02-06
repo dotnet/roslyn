@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IGoToDefinitionService : ILanguageService
     {
-        /// <summary>
-        /// Finds the definitions for the symbol at the specific position in the document.
-        /// </summary>
-        Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
+        /// <inheritdoc cref="CodeAnalysis.GoToDefinition.IFindDefinitionService.FindDefinitionsAsync(Document, int, CancellationToken)"/>
+        // Keep changes to this method in sync with CodeAnalysis.GoToDefinition.IFindDefinitionService
+        // Obsoletion is tracked with https://github.com/dotnet/roslyn/issues/50391
+        Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Finds the definitions for the symbol at the specific position in the document and then 

@@ -25,16 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
     internal class CSharpCodeCleanupService : ICodeCleanupService
     {
-        private readonly ICodeFixService _codeFixServiceOpt;
+        private readonly ICodeFixService _codeFixService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(
-            // will remove the AllowDefault once CodeFixService is moved to Features
-            // https://github.com/dotnet/roslyn/issues/27369
-            [Import(AllowDefault = true)] ICodeFixService codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService)
         {
-            _codeFixServiceOpt = codeFixService;
+            _codeFixService = codeFixService;
         }
 
         /// <summary>
@@ -111,11 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 progressTracker.AddItems(1);
             }
 
-            if (_codeFixServiceOpt != null)
-            {
-                document = await ApplyCodeFixesAsync(
-                    document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
-            }
+            document = await ApplyCodeFixesAsync(
+                document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
@@ -194,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }

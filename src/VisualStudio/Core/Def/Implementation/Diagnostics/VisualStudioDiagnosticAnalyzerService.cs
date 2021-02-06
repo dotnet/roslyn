@@ -158,6 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 command.Visible = visible;
             }
+
             if (command.Enabled != enabled)
             {
                 command.Enabled = enabled;

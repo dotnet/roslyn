@@ -967,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf (foundModifiers And SourceMemberFlags.Static) <> 0 Then
 
                 ' 'Static' keyword is only allowed in class methods, but not in structure methods
-                If Me.ContainingType IsNot Nothing AndAlso Me.ContainingType.TypeKind = TypeKind.Structure Then
+                If Me.ContainingType IsNot Nothing AndAlso Me.ContainingType.TypeKind = TYPEKIND.Structure Then
                     '  Local variables within methods of structures cannot be declared 'Static'
                     ReportDiagnostic(diagBag, firstStatic, ERRID.ERR_BadStaticLocalInStruct)
                 ElseIf Me.IsInLambda Then
@@ -1914,33 +1914,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(propertyAccess.AccessKind <> PropertyAccessKind.Get)
 
+                    Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
+
                     If Not propertyAccess.IsWriteable Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        If setMethod Is Nothing Then
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        Else
+                            Debug.Assert(setMethod.IsInitOnly)
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_AssignmentInitOnly, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        End If
+
                         isError = True
-                    Else
-                        Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
+                    End If
 
-                        ' NOTE: the setMethod could not be present, while it would still be
-                        '       possible to write to the property in a case
-                        '       where the property is a getter-only autoproperty 
-                        '       and the writing is happening in the corresponding constructor or initializer
-                        If setMethod IsNot Nothing Then
-                            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                    ' NOTE: the setMethod could not be present, while it would still be
+                    '       possible to write to the property in a case
+                    '       where the property is a getter-only autoproperty 
+                    '       and the writing is happening in the corresponding constructor or initializer
+                    If setMethod IsNot Nothing Then
 
-                            If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
-                                isError = True
-                            Else
-                                Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
-                                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                        If propertyAccess.IsWriteable AndAlso setMethod.IsInitOnly Then
+                            InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   node.Location,
+                                                                   DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.InitOnlySettersUsage)
+                        End If
 
-                                If Not IsAccessible(setMethod, useSiteInfo, accessThroughType) AndAlso
+                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+
+                        If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
+                            isError = True
+                        Else
+                            Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
+                            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+
+                            If Not IsAccessible(setMethod, useSiteInfo, accessThroughType) AndAlso
                                    IsAccessible(propertySymbol, useSiteInfo, accessThroughType) Then
-                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
-                                    isError = True
-                                End If
-
-                                diagnostics.Add(node, useSiteInfo)
+                                ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                                isError = True
                             End If
+
+                            diagnostics.Add(node, useSiteInfo)
                         End If
                     End If
 

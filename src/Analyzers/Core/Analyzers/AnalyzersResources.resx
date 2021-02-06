@@ -334,4 +334,7 @@
   <data name="Use_increment_operator" xml:space="preserve">
     <value>Use '++' operator</value>
   </data>
+  <data name="Simplify_LINQ_expression" xml:space="preserve">
+    <value>Simplify LINQ expression</value>
+  </data>
 </root>

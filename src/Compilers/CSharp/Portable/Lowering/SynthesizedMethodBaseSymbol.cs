@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
                 isExtensionMethod: false,
+                isNullableAnalysisEnabled: false,
                 isMetadataVirtualIgnoringModifiers: false);
         }
 
