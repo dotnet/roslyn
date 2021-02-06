@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 // Success, this symbol's full name matched against the dotted name the user was asking
                 // about.
-                matches.AddRange(in tempContainerMatches);
+                matches.AddRange(tempContainerMatches);
                 return true;
             }
         }

@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     tempMatches.Add(result.Value);
                 }
 
-                matches.AddRange(in tempMatches);
+                matches.AddRange(tempMatches);
                 return tempMatches.Count > 0;
             }
         }
