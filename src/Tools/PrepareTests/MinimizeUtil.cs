@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,7 +19,7 @@ internal static class MinimizeUtil
     internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
         // Map of all PE files MVID to the path information
-        var idToFilePathMap = new Dictionary<Guid, List<FilePathInfo>>();
+        var idToFilePathMap = new ConcurrentDictionary<Guid, List<FilePathInfo>>();
 
         const string duplicateDirectoryName = ".duplicate";
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
@@ -41,7 +42,7 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
             Stats stats = default;
-            foreach (var unitDirPath in directories)
+            directories.AsParallel().ForAll(unitDirPath =>
             {
                 string? lastOutputDir = null;
                 foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
@@ -81,7 +82,7 @@ internal static class MinimizeUtil
                         CreateHardLink(destFilePath, sourceFilePath);
                     }
                 }
-            }
+            });
 
             string results = @"
 successful dlls opened: " + stats.Success + @"
