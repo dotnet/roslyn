@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// If 'weight' is better than 'bestWeight' and matchSpanToAdd is not null, then
             /// matchSpanToAdd will be added to matchedSpansInReverse.
             /// </summary>
-            private bool UpdateBestResultIfBetter(
+            private static bool UpdateBestResultIfBetter(
                 CamelCaseResult result, ref CamelCaseResult? bestResult, TextSpan? matchSpanToAdd, ref TemporaryArray<TextSpan> candidateHumps)
             {
                 if (matchSpanToAdd != null)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return GetKind(result, ref candidateHumps) == PatternMatchKind.CamelCaseExact;
             }
 
-            private bool IsBetter(CamelCaseResult result, CamelCaseResult? currentBestResult, ref TemporaryArray<TextSpan> candidateHumps)
+            private static bool IsBetter(CamelCaseResult result, CamelCaseResult? currentBestResult, ref TemporaryArray<TextSpan> candidateHumps)
             {
                 if (currentBestResult == null)
                 {
