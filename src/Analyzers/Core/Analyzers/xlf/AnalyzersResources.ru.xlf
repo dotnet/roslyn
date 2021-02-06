@@ -203,13 +203,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="translated">Закрытый элемент "{0}" может быть удален, так как присвоенное ему значение никогда не читается.</target>
+        <source>Private member '{0}' can be removed as the value assigned to it is never read</source>
+        <target state="needs-review-translation">Закрытый элемент "{0}" может быть удален, так как присвоенное ему значение никогда не читается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="translated">Закрытый член «{0}» не используется.</target>
+        <source>Private member '{0}' is unused</source>
+        <target state="needs-review-translation">Закрытый член «{0}» не используется.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
