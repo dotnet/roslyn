@@ -132,16 +132,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
                 result.Add(ConvertResult(
-                    declaredSymbolInfo, document, ref nameMatches.AsRef(), ref containerMatches.AsRef(), additionalMatchingProjects));
+                    declaredSymbolInfo, document, nameMatches, containerMatches, additionalMatchingProjects));
             }
         }
 
         private static SearchResult ConvertResult(
             DeclaredSymbolInfo declaredSymbolInfo, Document document,
-            ref TemporaryArray<PatternMatch> nameMatches, ref TemporaryArray<PatternMatch> containerMatches,
+            in TemporaryArray<PatternMatch> nameMatches, in TemporaryArray<PatternMatch> containerMatches,
             ImmutableArray<Project> additionalMatchingProjects)
         {
-            var matchKind = GetNavigateToMatchKind(ref nameMatches);
+            var matchKind = GetNavigateToMatchKind(nameMatches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
-            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
+            using var matchedSpans = TemporaryArray<TextSpan>.Empty;
             foreach (var match in nameMatches)
                 matchedSpans.AddRange(match.MatchedSpans);
 
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // well in the UI.
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutable(), additionalMatchingProjects);
+                matchedSpans.ToImmutableAndClear(), additionalMatchingProjects);
         }
 
         private static async Task<ImmutableArray<Project>> GetAdditionalProjectsWithMatchAsync(
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(ref TemporaryArray<PatternMatch> nameMatches)
+        private static NavigateToMatchKind GetNavigateToMatchKind(in TemporaryArray<PatternMatch> nameMatches)
         {
             // work backwards through the match kinds.  That way our result is as bad as our worst match part.  For
             // example, say the user searches for `Console.Write` and we find `Console.Write` (exact, exact), and
