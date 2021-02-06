@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // Didn't have an exact/prefix match, or a high enough quality substring match.
             // See if we can find a camel case match.  
             return TryCamelCaseMatch(
-                candidate, patternChunk, punctuationStripped, patternIsLowercase, ref candidateHumps.AsRef());
+                candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumps);
         }
 
         private TextSpan? GetMatchedSpan(int start, int length)
@@ -387,16 +387,16 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             => PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
 
         private PatternMatch? TryCamelCaseMatch(
-                   string candidate, TextChunk patternChunk,
-                   bool punctuationStripped, bool isLowercase,
-                   ref TemporaryArray<TextSpan> candidateHumps)
+            string candidate, TextChunk patternChunk,
+            bool punctuationStripped, bool isLowercase,
+            in TemporaryArray<TextSpan> candidateHumps)
         {
             if (isLowercase)
             {
                 //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
                 //      match.  i.e. cofipro would match CodeFixProvider.
                 var camelCaseKind = TryAllLowerCamelCaseMatch(
-                    candidate, ref candidateHumps, patternChunk, out var matchedSpans);
+                    candidate, candidateHumps, patternChunk, out var matchedSpans);
                 if (camelCaseKind.HasValue)
                 {
                     return new PatternMatch(
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
                 if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, ref candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
+                    var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             matchedSpans: matchedSpans);
                     }
 
-                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, ref candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
+                    camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.IgnoreCase, out matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
                         return new PatternMatch(
@@ -433,18 +433,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatchKind? TryAllLowerCamelCaseMatch(
             string candidate,
-            ref TemporaryArray<TextSpan> candidateHumps,
+            in TemporaryArray<TextSpan> candidateHumps,
             TextChunk patternChunk,
             out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(
                 _includeMatchedSpans, candidate, patternChunk, _textInfo);
-            return matcher.TryMatch(ref candidateHumps, out matchedSpans);
+            return matcher.TryMatch(candidateHumps, out matchedSpans);
         }
 
         private PatternMatchKind? TryUpperCaseCamelCaseMatch(
             string candidate,
-            ref TemporaryArray<TextSpan> candidateHumps,
+            in TemporaryArray<TextSpan> candidateHumps,
             TextChunk patternChunk,
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         : ImmutableArray<TextSpan>.Empty;
 
                     var camelCaseResult = new CamelCaseResult(firstMatch == 0, contiguous.Value, matchCount, null);
-                    return GetCamelCaseKind(camelCaseResult, ref candidateHumps);
+                    return GetCamelCaseKind(camelCaseResult, candidateHumps);
                 }
                 else if (currentCandidateHump == candidateHumpCount)
                 {

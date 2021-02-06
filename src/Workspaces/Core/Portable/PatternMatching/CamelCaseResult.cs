@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ref TemporaryArray<TextSpan> candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, in TemporaryArray<TextSpan> candidateHumps)
         {
             var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)
