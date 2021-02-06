@@ -12,6 +12,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 internal static class MinimizeUtil
 {
@@ -43,7 +44,7 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
             Stats stats = default;
-            directories.AsParallel().ForAll(unitDirPath =>
+            Parallel.ForEach(directories, unitDirPath =>
             {
                 string? lastOutputDir = null;
                 foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
@@ -52,7 +53,6 @@ internal static class MinimizeUtil
                     var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
                     var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
 
-                    // TODO: decide if this is worth keeping to save <1s
                     if (lastOutputDir != currentOutputDirectory)
                     {
                         lastOutputDir = currentOutputDirectory;
@@ -111,7 +111,6 @@ total dlls opened: " + stats.Total;
             {
                 var outputPath = Path.Combine(destinationDirectory, individualFile);
                 var outputDirectory = Path.GetDirectoryName(outputPath)!;
-                Directory.CreateDirectory(outputDirectory);
                 CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
             }
         }
