@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
 
             using var parts = TemporaryArray<TextSpan>.Empty;
             StringBreaker.AddWordParts(baseName, ref parts.AsRef());
-            var words = CreateWords(ref parts.AsRef(), baseName);
+            var words = CreateWords(parts, baseName);
 
             return new IdentifierNameParts(baseName, words);
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
             return RemovePrefixesAndSuffixes(symbol, rules, newBaseName);
         }
 
-        private static ImmutableArray<string> CreateWords(ref TemporaryArray<TextSpan> parts, string name)
+        private static ImmutableArray<string> CreateWords(in TemporaryArray<TextSpan> parts, string name)
         {
             using var words = TemporaryArray<string>.Empty;
             foreach (var part in parts)
