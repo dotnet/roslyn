@@ -185,26 +185,28 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var definitions = GetDefinitionsToCreateMissingReferenceItemsFor(whenGroupingByDefinition);
                 foreach (var definition in definitions)
                 {
-                    // Create a fake reference to this definition that says 
-                    // "no references found to <symbolname>".
-                    await OnEntryFoundAsync(definition,
-                        bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, GetMessage(bucket.DefinitionItem))!,
-                        addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
-                        addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                    if (definition.IsExternal)
+                    {
+                        await OnEntryFoundAsync(definition,
+                            bucket => SimpleMessageEntry.CreateAsync(bucket, bucket, ServicesVSResources.External_reference_found)!,
+                            addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
+                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Create a fake reference to this definition that says "no references found to <symbolname>".
+                        //
+                        // We'll place this under a single bucket called "Symbols without references" and we'll allow
+                        // the user to navigate on that text entry to that definition if possible.
+                        await OnEntryFoundAsync(SymbolsWithoutReferencesDefinitionItem,
+                            bucket => SimpleMessageEntry.CreateAsync(
+                                definitionBucket: bucket,
+                                navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition),
+                                string.Format(ServicesVSResources.No_references_found_to_0, definition.NameDisplayParts.JoinText()))!,
+                            addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
+                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                    }
                 }
-            }
-
-            private static string GetMessage(DefinitionItem definition)
-            {
-                if (definition.IsExternal)
-                {
-                    return ServicesVSResources.External_reference_found;
-                }
-
-                return string.Format(
-                    ServicesVSResources.No_references_found_to_0,
-                    definition.NameDisplayParts.JoinText());
             }
 
             private ImmutableArray<DefinitionItem> GetDefinitionsToCreateMissingReferenceItemsFor(
@@ -257,8 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     // Create a fake definition/reference called "search found no results"
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
-                        bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, ServicesVSResources.Search_found_no_results)!,
+                        bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
                         addToEntriesWhenGroupingByDefinition: true,
                         addToEntriesWhenNotGroupingByDefinition: true).ConfigureAwait(false);
                 }
@@ -270,6 +271,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     ImmutableArray.Create(new TaggedText(
                         TextTags.Text,
                         ServicesVSResources.Search_found_no_results)));
+
+            private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
+                DefinitionItem.CreateNonNavigableItem(
+                    GlyphTags.GetTags(Glyph.StatusInformation),
+                    ImmutableArray.Create(new TaggedText(
+                        TextTags.Text,
+                        ServicesVSResources.Symbols_without_references)));
         }
     }
 }
