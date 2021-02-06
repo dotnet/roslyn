@@ -6248,9 +6248,13 @@ tryAgain:
                 bool isAlias;
                 if (this.CurrentToken.Kind is SyntaxKind.ColonColonToken)
                 {
-                    lastTokenOfType = null;
                     result = ScanTypeFlags.NonGenericTypeOrExpression;
                     isAlias = true;
+
+                    // We set this to null to appease the flow checker.  It will always be the case that this will be
+                    // set to an appropriate value inside the `for` loop below.  We'll consume the :: there and then
+                    // call ScanNamedTypePart which will always set this to a valid value.
+                    lastTokenOfType = null;
                 }
                 else
                 {
@@ -6271,8 +6275,7 @@ tryAgain:
                         isAlias = false;
                     }
 
-                    lastTokenOfType = this.EatToken();
-
+                    this.EatToken();
                     result = this.ScanNamedTypePart(out lastTokenOfType);
                     if (result == ScanTypeFlags.NotType)
                     {
