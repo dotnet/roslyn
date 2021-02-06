@@ -11,6 +11,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 internal static class MinimizeUtil
 {
@@ -320,22 +321,22 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
             var reader = new PEReader(stream);
             if (!reader.HasMetadata)
             {
-                stats.Thrown++;
-                stats.Total++;
+                Interlocked.Increment(ref stats.Thrown);
+                Interlocked.Increment(ref stats.Total);
                 mvid = default;
                 return false;
             }
             var metadataReader = reader.GetMetadataReader();
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-            stats.Success++;
-            stats.Total++;
+            Interlocked.Increment(ref stats.Success);
+            Interlocked.Increment(ref stats.Total);
             mvid = metadataReader.GetGuid(mvidHandle);
             return true;
         }
         catch
         {
-            stats.Thrown++;
-            stats.Total++;
+            Interlocked.Increment(ref stats.Success);
+            Interlocked.Increment(ref stats.Total);
             mvid = default;
             return false;
         }
