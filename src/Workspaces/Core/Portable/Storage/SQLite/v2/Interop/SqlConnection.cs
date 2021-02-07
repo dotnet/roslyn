@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                     Span<byte> bytes = stackalloc byte[Checksum.HashSize];
                     self.ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blobHandle, bytes, offset: 0));
 
-                    Contract.ThrowIfFalse(Checksum.HashData.FromSpan(bytes, out var result));
+                    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData result));
                     return new Optional<Checksum.HashData>(result);
                 });
         }

@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         internal void Close_OnlyForUseBySqlConnection()
             => _rawStatement.Dispose();
 
+        public void ClearBindings()
+            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_clear_bindings(_rawStatement));
+
         public void Reset()
             => _connection.ThrowIfNotOk(NativeMethods.sqlite3_reset(_rawStatement));
 
