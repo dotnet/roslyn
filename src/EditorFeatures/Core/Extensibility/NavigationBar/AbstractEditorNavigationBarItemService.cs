@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
             => NavigateToItem(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
-        public void NavigateToSymbolItem(
-            Document document, RoslynNavigationBarItem item, CancellationToken cancellationToken)
+        protected void NavigateToSymbolItem(
+            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
 
-            var symbolInfo = item.NavigationSymbolId!.Value.Resolve(document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+            var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             var symbol = symbolInfo.GetAnySymbol();
 
             // Do not allow third party navigation to types or constructors
