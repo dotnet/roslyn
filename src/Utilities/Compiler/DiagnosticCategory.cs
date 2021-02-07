@@ -16,7 +16,6 @@ namespace Analyzer.Utilities
         public const string Library = nameof(Library);
         public const string Documentation = nameof(Documentation);
         public const string Maintainability = nameof(Maintainability);
-        public const string Publish = nameof(Publish);
 
         public const string RoslynDiagnosticsDesign = nameof(RoslynDiagnosticsDesign);
         public const string RoslynDiagnosticsMaintainability = nameof(RoslynDiagnosticsMaintainability);
