@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<RoslynNavigationBarItem>>(
+                var result = await client.TryInvokeAsync<IRemoteNavigationBarItemService, ImmutableArray<SerializableNavigationBarItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, supportsCodeGeneration, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
-                    return result.Value;
+                    return result.Value.SelectAsArray(v => v.Rehydrate());
             }
 
             var items = await GetItemsInCurrentProcessAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
