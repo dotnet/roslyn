@@ -210,41 +210,27 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
                 else
                 {
-                    // Pattern was all lowercase.  This can lead to lots of false positives.  For
-                    // example, we don't want "bin" to match "CombineUnits".  Instead, we want it
-                    // to match "BinaryOperator".  As such, make sure our match looks like it's 
-                    // starting an actual word in the candidate.  
-
-                    // Do a quick check to avoid the expensive work of having to go get the candidate
-                    // humps.  
+                    // If the lowercase search string matched what looks to be the start of a word then that's a
+                    // reasonable hit. This is equivalent to 'bin' matching 'Operator[|Bin|]ary'
                     if (char.IsUpper(candidate[caseInsensitiveIndex]))
                     {
-                        // Pattern was all lowercase.  This can lead to lots of hits.  For example, "bin" in
-                        // "CombineUnits".  Instead, we want it to match "Operator[|Bin|]ary" first rather than
-                        // Com[|bin|]eUnits
+                        return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
+                            isCaseSensitive: false,
+                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
+                    }
 
-                        // If the lowercase search string matched what looks to be the start of a word then that's a
-                        // reasonable hit. This is equivalent to 'bin' matching 'Operator[|Bin|]ary'
-                        if (char.IsUpper(candidate[caseInsensitiveIndex]))
+                    // Now do the more expensive check to see if we're at the start of a word.  This is to catch
+                    // word matches like CombineBinary.  We want to find the hit against '[|Bin|]ary' not
+                    // 'Com[|bin|]e'
+                    StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+                    for (int i = 0, n = candidateHumps.Count; i < n; i++)
+                    {
+                        var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
+                        if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
                         {
                             return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
-                                isCaseSensitive: false,
-                                matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                        }
-
-                        // Now do the more expensive check to see if we're at the start of a word.  This is to catch
-                        // word matches like CombineBinary.  We want to find the hit against '[|Bin|]ary' not
-                        // 'Com[|bin|]e'
-                        StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
-                        for (int i = 0, n = candidateHumps.Count; i < n; i++)
-                        {
-                            var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
-                            if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
-                            {
-                                return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
-                                    isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
-                                    matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
-                            }
+                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
+                                matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
                         }
                     }
                 }
