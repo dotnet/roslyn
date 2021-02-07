@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             Dim members = Aggregate member In type.GetMembers()
                           Where member.IsShared AndAlso member.Kind = SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(SymbolItem(
+                          Select DirectCast(New SymbolItem(
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                               symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), RoslynNavigationBarItem)
                           Into ToImmutableArray()
 
-            Return SymbolItem(
+            Return New SymbolItem(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(GenerateDefaultConstructor("New", type.GetSymbolKey(cancellationToken)))
+                    childItems.Add(New GenerateDefaultConstructor("New", type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
             If Not finalizeMethods.Any() Then
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey(cancellationToken)))
+                    childItems.Add(New GenerateFinalizer(WellKnownMemberNames.DestructorName, type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -233,10 +233,9 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Return SymbolItem(
+            Return New SymbolItem(
                 name,
                 type.GetGlyph(),
-                indent:=0,
                 spans:=GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
                 navigationSymbolId:=type.GetSymbolKey(cancellationToken),
                 navigationSymbolIndex:=typeSymbolIdIndex,
@@ -329,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey(cancellationToken)
 
                     rightHandMemberItems.Add(
-                        SymbolItem(
+                        New SymbolItem(
                             e.Name,
                             e.GetGlyph(),
                             methodSpans,
@@ -347,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                         Dim eventContainerName = eventContainer?.Name
 
                         rightHandMemberItems.Add(
-                            GenerateEventHandler(
+                            New GenerateEventHandler(
                                 e.Name,
                                 e.GetGlyph(),
                                 eventContainerName,
@@ -358,14 +357,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             Next
 
             If eventContainer IsNot Nothing Then
-                Return ActionlessItem(
+                Return New ActionlessItem(
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
                     spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             Else
-                Return ActionlessItem(
+                Return New ActionlessItem(
                     String.Format(VBFeaturesResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
@@ -416,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 Dim method = TryCast(member, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
-                    items.Add(SymbolItem(
+                    items.Add(New SymbolItem(
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
@@ -426,14 +425,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                         grayed:=spans.Count = 0))
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
-                        items.Add(GenerateMethod(
+                        items.Add(New GenerateMethod(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         member.ContainingType.GetSymbolKey(cancellationToken),
                         member.GetSymbolKey(cancellationToken)))
                     End If
                 Else
-                    items.Add(SymbolItem(
+                    items.Add(New SymbolItem(
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
                         spans,
