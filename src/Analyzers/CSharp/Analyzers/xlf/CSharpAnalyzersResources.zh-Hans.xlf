@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">向“{0}”报表添加大括号。</target>
+        <target state="translated">向 “{0}” 语句添加大括号。</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Negate_expression_changes_semantics">
         <source>Negate expression (changes semantics)</source>
-        <target state="translated">请使用求反表达式(更改语义)</target>
+        <target state="translated">使用求反表达式(更改语义)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
-        <target state="translated">请删除运算符(保留语义)</target>
+        <target state="translated">删除运算符(保留语义)</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
         <source>Suppression operator has no effect and can be misinterpreted</source>
-        <target state="translated">请禁止使用不起任何作用且可能被误解的运算符</target>
+        <target state="translated">忽略运算符不起任何作用且可能被误解</target>
         <note />
       </trans-unit>
       <trans-unit id="Unreachable_code_detected">
@@ -274,7 +274,7 @@
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">可简化“If”语句</target>
+        <target state="translated">可简化 “if” 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">

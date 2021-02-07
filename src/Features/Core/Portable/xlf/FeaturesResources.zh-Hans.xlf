@@ -72,12 +72,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
-        <target state="translated">将参数引用添加到“{0}”。</target>
+        <target state="translated">添加到“{0}”的项目引用”。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_reference_to_0">
         <source>Add reference to '{0}'.</source>
-        <target state="translated">将引用添加到“{0}”。</target>
+        <target state="translated">添加到“{0}”的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Actions_can_not_be_empty">
@@ -177,7 +177,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
-        <target state="translated">将名称空间更改为“{0}”</target>
+        <target state="translated">将命名空间更改为“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_global_namespace">
@@ -242,7 +242,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="translated">转换为 LINQ (调用表单)</target>
+        <target state="translated">转换为 LINQ (调用形式)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_record">
@@ -262,22 +262,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
-        <target state="translated">创建并分配字段 "{0}"</target>
+        <target state="translated">创建并赋值字段 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_property_0">
         <source>Create and assign property '{0}'</source>
-        <target state="translated">创建并分配属性 "{0}"</target>
+        <target state="translated">创建并赋值属性 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_remaining_as_fields">
         <source>Create and assign remaining as fields</source>
-        <target state="translated">创建并分配其余字段</target>
+        <target state="translated">创建并赋值其余为字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
-        <target state="translated">创建并分配其余属性</target>
+        <target state="translated">创建并赋值其余为属性</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -342,7 +342,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="translated">提取接口…</target>
+        <target state="translated">提取接口...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
@@ -512,12 +512,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Introduce_field">
         <source>Introduce field</source>
-        <target state="translated">介绍领域</target>
+        <target state="translated">引入字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
-        <target state="translated">引入局部</target>
+        <target state="translated">引入局部变量</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -577,7 +577,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="translated">与以前的 "{0}" 语句合并</target>
+        <target state="translated">与上一个 "{0}" 语句合并</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
@@ -632,7 +632,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">修改源文件“{0}”将防止调试会话继续，原因是出现内部错误: {1}</target>
+        <target state="needs-review-translation">修改源文件“{0}”将阻止调试会话继续，原因是出现内部错误: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -667,7 +667,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
-        <target state="translated">将成员拉到基本类型..。</target>
+        <target state="translated">将成员拉到基类...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
@@ -1862,17 +1862,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="translated">取消 {0}</target>
+        <target state="translated">忽略 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: 释放未托管的资源(未托管的对象)并替代终结器</target>
+        <target state="translated">TODO: 释放未托管的资源(未托管的对象)并重写终结器</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
         <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: 仅当“{0}”拥有用于释放未托管资源的代码时才替代终结器</target>
+        <target state="translated">TODO: 仅当“{0}”拥有用于释放未托管资源的代码时才重写终结器</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -2072,7 +2072,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
-        <target state="translated">“{0}”不能为 Null 或空。</target>
+        <target state="translated">“{0}”不能为 null 或空。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
