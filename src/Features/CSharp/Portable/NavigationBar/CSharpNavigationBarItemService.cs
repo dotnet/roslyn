@@ -111,10 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                     });
 
                     var symbolId = type.GetSymbolKey(cancellationToken);
-                    items.Add(RoslynNavigationBarItem.SymbolItem(
+                    items.Add(new RoslynNavigationBarItem.SymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
-                        indent: 0,
                         spans: GetSpansInDocument(type, tree, cancellationToken),
                         navigationSymbolId: symbolId,
                         navigationSymbolIndex: typeSymbolIndexProvider.GetIndexForSymbolId(symbolId),
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
-            return RoslynNavigationBarItem.SymbolItem(
+            return new RoslynNavigationBarItem.SymbolItem(
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
