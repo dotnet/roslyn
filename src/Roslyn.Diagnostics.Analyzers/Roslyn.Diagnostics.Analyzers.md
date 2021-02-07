@@ -146,7 +146,7 @@ Defaultable types should have defaultable fields.
 
 ## RS0042: Do not copy value
 
-Do not unbox non-copyable value types.
+Auto-properties always copy values, so they cannot be declared with non-copyable types.
 
 |Item|Value|
 |-|-|

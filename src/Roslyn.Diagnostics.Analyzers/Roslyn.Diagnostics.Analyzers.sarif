@@ -251,7 +251,7 @@
         "RS0042": {
           "id": "RS0042",
           "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
@@ -414,7 +414,7 @@
         "RS0042": {
           "id": "RS0042",
           "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
+          "fullDescription": "Auto-properties always copy values, so they cannot be declared with non-copyable types.",
           "defaultLevel": "warning",
           "properties": {
             "category": "RoslynDiagnosticsReliability",
