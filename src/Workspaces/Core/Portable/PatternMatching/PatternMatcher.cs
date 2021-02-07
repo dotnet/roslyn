@@ -194,9 +194,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
                     if (caseSensitiveIndex > 0)
                     {
-                        return new PatternMatch(
-                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                        if (char.IsUpper(candidate[caseInsensitiveIndex]))
+                        {
+                            return new PatternMatch(
+                                PatternMatchKind.StartOfWordSubstring, punctuationStripped, isCaseSensitive: true,
+                                matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
+                        }
+                        else
+                        {
+                            return new PatternMatch(
+                                PatternMatchKind.NonLowercaseSubstring, punctuationStripped, isCaseSensitive: true,
+                                matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                        }
                     }
                 }
                 else
@@ -210,20 +219,32 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // humps.  
                     if (char.IsUpper(candidate[caseInsensitiveIndex]))
                     {
-                        return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                            isCaseSensitive: false,
-                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                    }
+                        // Pattern was all lowercase.  This can lead to lots of hits.  For example, "bin" in
+                        // "CombineUnits".  Instead, we want it to match "Operator[|Bin|]ary" first rather than
+                        // Com[|bin|]eUnits
 
-                    StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
-                    for (int i = 0, n = candidateHumps.Count; i < n; i++)
-                    {
-                        var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
-                        if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
+                        // If the lowercase search string matched what looks to be the start of a word then that's a
+                        // reasonable hit. This is equivalent to 'bin' matching 'Operator[|Bin|]ary'
+                        if (char.IsUpper(candidate[caseInsensitiveIndex]))
                         {
-                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
-                                matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
+                            return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
+                                isCaseSensitive: false,
+                                matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
+                        }
+
+                        // Now do the more expensive check to see if we're at the start of a word.  This is to catch
+                        // word matches like CombineBinary.  We want to find the hit against '[|Bin|]ary' not
+                        // 'Com[|bin|]e'
+                        StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+                        for (int i = 0, n = candidateHumps.Count; i < n; i++)
+                        {
+                            var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
+                            if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
+                            {
+                                return new PatternMatch(PatternMatchKind.StartOfWordSubstring, punctuationStripped,
+                                    isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
+                                    matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
+                            }
                         }
                     }
                 }
@@ -236,8 +257,29 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             // Didn't have an exact/prefix match, or a high enough quality substring match.
             // See if we can find a camel case match.  
-            return TryCamelCaseMatch(
-                candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumps);
+            var match = TryCamelCaseMatch(candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumps);
+            if (match != null)
+                return match;
+
+            // If pattern was all lowercase, we allow it to match an all lowercase section of the candidate.  But
+            // only after we've tried all other forms first.  This is the weakest of all matches.  For example, if
+            // user types 'bin' we want to match 'OperatorBinary' (start of word) or 'BinaryInformationNode' (camel
+            // humps) before matching 'Combine'.
+            // 
+            // We only do this for strings longer than three characters to avoid too many false positives when the
+            // user has only barely started writing a word.
+            if (patternIsLowercase && caseInsensitiveIndex > 0 && patternChunk.Text.Length >= 3)
+            {
+                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+                if (caseSensitiveIndex > 0)
+                {
+                    return new PatternMatch(
+                        PatternMatchKind.LowercaseSubstring, punctuationStripped, isCaseSensitive: true,
+                        matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                }
+            }
+
+            return null;
         }
 
         private TextSpan? GetMatchedSpan(int start, int length)

@@ -145,24 +145,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("[|system.ref|]lection", "system.ref", PatternMatchKind.Prefix, CaseSensitive)]
 
-        [InlineData("Fog[|B|]ar", "b", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("Fog[|B|]ar", "b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
-        [InlineData("_[|my|]Button", "my", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|my|]button", "my", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_my[|_b|]utton", "_b", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|myb|]utton", "myb", PatternMatchKind.Substring, CaseSensitive)]
-        [InlineData("_[|myB|]utton", "myB", PatternMatchKind.Substring, CaseSensitive)]
+        [InlineData("_[|my|]Button", "my", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("my[|_b|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|my|]button", "my", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_my[|_b|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|myb|]utton", "myb", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+        [InlineData("_[|myB|]utton", "myB", PatternMatchKind.NonLowercaseSubstring, CaseSensitive)]
 
-        [InlineData("my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("_my[|_B|]utton", "_b", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("_[|myB|]utton", "myb", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("my[|_B|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("_my[|_B|]utton", "_b", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("_[|myB|]utton", "myb", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
         [InlineData("[|AbCd|]xxx[|Ef|]Cd[|Gh|]", "AbCdEfGh", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseSensitive)]
 
-        [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.Substring, CaseInsensitive)]
-        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.Substring, CaseInsensitive)]
+        [InlineData("A[|BCD|]EFGH", "bcd", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("FogBar[|ChangedEventArgs|]", "changedeventargs", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [InlineData("Abcdefghij[|EfgHij|]", "efghij", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
         [InlineData("[|F|]og[|B|]ar", "FB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
         [InlineData("[|Fo|]g[|B|]ar", "FoB", PatternMatchKind.CamelCaseExact, CaseSensitive)]
@@ -197,7 +197,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [InlineData("my[|_b|]utton", "_B", PatternMatchKind.CamelCaseSubstring, CaseInsensitive)]
         [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
-        // Test is internal as PatternMatchKind is internal, but this is still ran.
+        [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
+        [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+        [WorkItem(51029, "https://github.com/dotnet/roslyn/issues/51029")]
         internal void TestNonFuzzyMatch(
             string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
         {
@@ -214,7 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [InlineData("FogBarBaz", "ZZ")]
         [InlineData("FogBar", "GoooB")]
         [InlineData("GooActBarCatAlp", "GooAlpBarCat")]
-        [InlineData("Abcdefghijefghij", "efghij")]
+        // We don't want a lowercase pattern to match *across* a word boundary.
+        [InlineData("AbcdefGhijklmnop", "efghij")]
         [InlineData("Fog_Bar", "F__B")]
         [InlineData("FogBarBaz", "FZ")]
         [InlineData("_mybutton", "myB")]
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|]Reference", "metadata");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -266,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|]Reference", "Metadata");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|M|]etadataReference", "M");
 
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -291,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Metadata|]Reference", "add metadata");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -300,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|A|]dd[|M|]etadataReference", "A M");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -316,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|Metadata|][|Ref|]erence", "ref Metadata");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
         [Fact]
@@ -324,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Add[|M|]etadata[|Ref|]erence", "ref M");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
         [Fact]
@@ -349,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "add Meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -358,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "Add meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -367,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var match = TryMatchMultiWordPattern("[|Add|][|Meta|]dataReference", "Add Meta");
 
             AssertContainsType(PatternMatchKind.Prefix, match);
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
         }
 
         [Fact]
@@ -383,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             var match = TryMatchMultiWordPattern("Get[|K|]ey[|W|]ord", "K*W");
 
-            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.Substring, PatternMatchKind.Substring }));
+            Assert.True(match.Select(m => m.Kind).SequenceEqual(new[] { PatternMatchKind.StartOfWordSubstring, PatternMatchKind.StartOfWordSubstring }));
         }
 
         [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
@@ -396,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         public void MatchMultiWordPattern_LowercaseSubstring2()
         {
             var match = TryMatchMultiWordPattern("Goo[|A|]ttribute", "a");
-            AssertContainsType(PatternMatchKind.Substring, match);
+            AssertContainsType(PatternMatchKind.StartOfWordSubstring, match);
             Assert.False(match.First().IsCaseSensitive);
         }
 

@@ -167,5 +167,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             using var _ = stmt.Lease();
             return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index).utf8_to_string();
         }
+
+        public static int sqlite3_clear_bindings(SafeSqliteStatementHandle stmt)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_clear_bindings(stmt.DangerousGetWrapper());
+        }
     }
 }

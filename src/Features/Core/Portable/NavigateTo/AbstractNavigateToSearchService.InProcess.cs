@@ -28,13 +28,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
-                (PatternMatchKind.Substring, NavigateToMatchKind.Substring),
+                (PatternMatchKind.NonLowercaseSubstring, NavigateToMatchKind.Substring),
+                (PatternMatchKind.StartOfWordSubstring, NavigateToMatchKind.Substring),
                 (PatternMatchKind.CamelCaseExact, NavigateToMatchKind.CamelCaseExact),
                 (PatternMatchKind.CamelCasePrefix, NavigateToMatchKind.CamelCasePrefix),
                 (PatternMatchKind.CamelCaseNonContiguousPrefix, NavigateToMatchKind.CamelCaseNonContiguousPrefix),
                 (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
                 (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
-                (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy));
+                (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
+                // Map our value to 'Fuzzy' as that's the lower value the platform supports.
+                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
