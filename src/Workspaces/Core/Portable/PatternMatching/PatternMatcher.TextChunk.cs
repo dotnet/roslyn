@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +20,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
         /// character spans, one for AA and one for BB.
         /// </summary>
+        [NonCopyable]
         private struct TextChunk : IDisposable
         {
             public readonly string Text;

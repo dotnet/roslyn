@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// text between the dots, as well as information about any individual 'Words' that we 
         /// can break the segment into.
         /// </summary>
+        [NonCopyable]
         private struct PatternSegment : IDisposable
         {
             // Information about the entire piece of text between the dots.  For example, if the 
