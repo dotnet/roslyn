@@ -36,19 +36,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var characterTyped = ";";
             var locationTyped = locations["type"].Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped);
+            var results = await RunFormatDocumentOnTypeAsync(workspace.CurrentSolution, characterTyped, locationTyped);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(TestLspServer testLspServer, string characterTyped, LSP.Location locationTyped)
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution)
+                       .ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentOnTypeFormattingName,
                            CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 

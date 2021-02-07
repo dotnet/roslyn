@@ -17,10 +17,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 {
     public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtocolTests
     {
-        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(TestLspServer testLspServer, LSP.Location caret)
+        protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensAsync(
+            Solution solution, LSP.Location caret)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName,
-                CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(queue,
+                           LSP.SemanticTokensMethods.TextDocumentSemanticTokensName,
+                           CreateSemanticTokensParams(caret), new LSP.VSClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensParams CreateSemanticTokensParams(LSP.Location caret)
@@ -29,10 +32,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri }
             };
 
-        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
+        protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(
+            Solution solution, LSP.Location caret, LSP.Range range)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(queue,
+                           LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
+                           CreateSemanticTokensRangeParams(caret, range), new LSP.VSClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
@@ -42,10 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 Range = range
             };
 
-        private protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> RunGetSemanticTokensEditsAsync(TestLspServer testLspServer, LSP.Location caret, string previousResultId)
+        protected static async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> RunGetSemanticTokensEditsAsync(
+            Solution solution, LSP.Location caret, string previousResultId)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
-                CreateSemanticTokensParams(caret, previousResultId), new LSP.VSClientCapabilities(), null, CancellationToken.None);
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>(queue,
+                           LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
+                           CreateSemanticTokensParams(caret, previousResultId), new LSP.VSClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SemanticTokensEditsParams CreateSemanticTokensParams(LSP.Location caret, string previousResultId)

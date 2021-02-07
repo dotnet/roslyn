@@ -1928,6 +1928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_DoNotCompareFunctionPointers = 8909,
         ERR_RecordAmbigCtor = 8910,
+        ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
 
         #endregion diagnostics introduced for C# 9.0
 

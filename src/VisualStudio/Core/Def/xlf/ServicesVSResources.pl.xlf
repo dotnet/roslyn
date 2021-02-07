@@ -2178,16 +2178,6 @@ Dodatkowe informacje: {1}</target>
         <target state="translated">typ jest widoczny z wyrażenia przypisania</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Uzyskaj pomoc dla „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Uzyskaj pomoc dla „{0}” z wyszukiwarki Bing</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">Przenieś w dół</target>

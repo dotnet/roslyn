@@ -10,14 +10,18 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
+    /// <summary>
+    /// Implements Language Server Protocol
+    /// TODO - Make this public when we're ready.
+    /// </summary>
     [Shared]
-    [Export(typeof(CSharpVisualBasicRequestDispatcherFactory))]
-    internal sealed class CSharpVisualBasicRequestDispatcherFactory : AbstractRequestDispatcherFactory
+    [Export(typeof(LanguageServerProtocol))]
+    internal sealed class LanguageServerProtocol : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpVisualBasicRequestDispatcherFactory([ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, IRequestHandlerProviderMetadata>> requestHandlerProviders)
-            : base(requestHandlerProviders)
+        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+            : base(requestHandlers)
         {
         }
     }
