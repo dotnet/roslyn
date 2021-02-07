@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
 
                 Dim contextLocation = (Await document.GetSyntaxTreeAsync()).GetLocation(New TextSpan(0, 0))
-                Dim generateCodeItem = DirectCast(rightItem, AbstractGenerateCodeItem)
-                Dim newDocument = Await generateCodeItem.GetGeneratedDocumentAsync(document, CancellationToken.None)
+                Dim generateCodeItem = DirectCast(rightItem, RoslynNavigationBarItem.AbstractGenerateCodeItem)
+                Dim newDocument = Await VisualBasicNavigationBarItemService.GetGeneratedDocumentAsync(document, generateCodeItem, CancellationToken.None)
 
                 Dim actual = (Await newDocument.GetSyntaxRootAsync()).ToFullString().TrimEnd()
                 Dim expected = expectedText.NormalizedValue.TrimEnd()
@@ -86,11 +86,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Function
 
-        Public Async Function AssertNavigationPointAsync(workspaceElement As XElement,
-                                         startingDocumentFilePath As String,
-                                         leftItemToSelectText As String,
-                                         rightItemToSelectText As String,
-                                         Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
+        Public Async Function AssertNavigationPointAsync(
+                workspaceElement As XElement,
+                startingDocumentFilePath As String,
+                leftItemToSelectText As String,
+                rightItemToSelectText As String,
+                Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
             Using workspace = TestWorkspace.Create(workspaceElement)
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
@@ -103,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = service.GetSymbolItemNavigationPoint(sourceDocument, DirectCast(rightItem, NavigationBarSymbolItem), CancellationToken.None).Value
+                Dim navigationPoint = service.GetSymbolItemNavigationPoint(sourceDocument, DirectCast(rightItem, RoslynNavigationBarItem.SymbolItem), CancellationToken.None).Value
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)
@@ -125,13 +126,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Next
 
             ' Ensure all the actual items that have navigation are distinct
-            Dim navigableItems = actualItems.OfType(Of NavigationBarSymbolItem).ToList()
+            Dim navigableItems = actualItems.OfType(Of RoslynNavigationBarItem.SymbolItem).ToList()
 
             Assert.True(navigableItems.Count() = navigableItems.Distinct(New NavigationBarItemNavigationSymbolComparer(isCaseSensitive)).Count(), "The items were not unique by SymbolID and index.")
         End Sub
 
         Private Class NavigationBarItemNavigationSymbolComparer
-            Implements IEqualityComparer(Of NavigationBarSymbolItem)
+            Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem)
 
             Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
 
@@ -139,11 +140,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
             End Sub
 
-            Public Function IEqualityComparer_Equals(x As NavigationBarSymbolItem, y As NavigationBarSymbolItem) As Boolean Implements IEqualityComparer(Of NavigationBarSymbolItem).Equals
+            Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem.SymbolItem, y As RoslynNavigationBarItem.SymbolItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).Equals
                 Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
             End Function
 
-            Public Function IEqualityComparer_GetHashCode(obj As NavigationBarSymbolItem) As Integer Implements IEqualityComparer(Of NavigationBarSymbolItem).GetHashCode
+            Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem.SymbolItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).GetHashCode
                 Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex.Value
             End Function
         End Class
@@ -161,9 +162,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
             If expectedItem.HasNavigationSymbolId Then
                 ' Assert.True(DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolId IsNot Nothing)
-                Assert.Equal(expectedItem.HasNavigationSymbolId, DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolIndex.HasValue)
+                Assert.Equal(expectedItem.HasNavigationSymbolId, DirectCast(actualItem, RoslynNavigationBarItem.SymbolItem).NavigationSymbolIndex.HasValue)
             Else
-                Assert.True(TypeOf actualItem IsNot NavigationBarSymbolItem)
+                Assert.True(TypeOf actualItem IsNot RoslynNavigationBarItem.SymbolItem)
             End If
 
             If expectedItem.Children IsNot Nothing Then

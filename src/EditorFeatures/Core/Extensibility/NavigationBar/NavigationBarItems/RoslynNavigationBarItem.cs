@@ -2,32 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal class NavigationBarSymbolItem : NavigationBarItem
+    /// <summary>
+    /// Base type of all C#/VB navigation bar items.  Only for use internally to roslyn.
+    /// </summary>
+    internal abstract partial class RoslynNavigationBarItem : NavigationBarItem
     {
-        public SymbolKey NavigationSymbolId { get; }
-        public int? NavigationSymbolIndex { get; }
+        public readonly RoslynNavigationBarItemKind Kind;
 
-        public NavigationBarSymbolItem(
+        protected RoslynNavigationBarItem(
+            RoslynNavigationBarItemKind kind,
             string text,
             Glyph glyph,
             IList<TextSpan> spans,
-            SymbolKey navigationSymbolId,
-            int? navigationSymbolIndex,
-            IList<NavigationBarItem> childItems = null,
+            IList<NavigationBarItem>? childItems = null,
             int indent = 0,
             bool bolded = false,
             bool grayed = false)
             : base(text, glyph, spans, childItems, indent, bolded, grayed)
         {
-            this.NavigationSymbolId = navigationSymbolId;
-            this.NavigationSymbolIndex = navigationSymbolIndex;
+            Kind = kind;
         }
     }
 }
