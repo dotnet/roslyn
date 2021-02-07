@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
         /// </summary>
-        protected readonly string _sourceName;
+        private readonly string _sourceName;
 
         private string _lazyDocComment;
         private string _lazyExpandedDocComment;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     CSharpSyntaxNode syntax = CSharpSyntaxNode;
                     string interfacePropertyName = IsIndexer ? WellKnownMemberNames.Indexer : ((PropertyDeclarationSyntax)syntax).Identifier.ValueText;
-                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceType, interfacePropertyName, GetExplicitInterfaceSpecifier(syntax), diagnostics);
+                    explicitlyImplementedProperty = this.FindExplicitlyImplementedProperty(_explicitInterfaceType, interfacePropertyName, GetExplicitInterfaceSpecifier(), diagnostics);
                     this.FindExplicitlyImplementedMemberVerification(explicitlyImplementedProperty, diagnostics);
                     overriddenOrImplementedProperty = explicitlyImplementedProperty;
                 }
@@ -407,6 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal string SourceName
+        {
+            get
+            {
+                return _sourceName;
+            }
+        }
+
         public override string MetadataName
         {
             get
@@ -511,14 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
             bool isAutoPropertyAccessor,
-            bool isExplicitInterfaceImplementation,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
             DiagnosticBag diagnostics);
 
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
             bool isAutoPropertyAccessor,
-            bool isExplicitInterfaceImplementation,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
             DiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
@@ -528,9 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyGetMethod is null && (_propertyFlags & Flags.HasGetAccessor) != 0)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
-                    var result = CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, isExplicitInterfaceImplementation,
-                                                         explicitlyImplementedPropertyOpt: isExplicitInterfaceImplementation ? ExplicitInterfaceImplementations.FirstOrDefault() : null,
+                    var result = CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty,
                                                          diagnostics);
                     if (Interlocked.CompareExchange(ref _lazyGetMethod, result, null) == null)
                     {
@@ -552,9 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazySetMethod is null && (_propertyFlags & Flags.HasSetAccessor) != 0)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
-                    var result = CreateSetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, isExplicitInterfaceImplementation,
-                                                         explicitlyImplementedPropertyOpt: isExplicitInterfaceImplementation ? ExplicitInterfaceImplementations.FirstOrDefault() : null,
+                    var result = CreateSetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty,
                                                          diagnostics);
                     if (Interlocked.CompareExchange(ref _lazySetMethod, result, null) == null)
                     {
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)_explicitInterfaceType != null)
             {
-                var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(this.CSharpSyntaxNode);
+                var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier();
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
 
@@ -1535,6 +1535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected static ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier(SyntaxNode syntax)
             => (syntax as BasePropertyDeclarationSyntax)?.ExplicitInterfaceSpecifier;
+
+        internal ExplicitInterfaceSpecifierSyntax? GetExplicitInterfaceSpecifier()
+            => GetExplicitInterfaceSpecifier(CSharpSyntaxNode);
 #nullable disable
     }
 }

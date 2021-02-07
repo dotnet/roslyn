@@ -17,9 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
+    [Shared]
+    [ExportLspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<DocumentOnAutoInsertResponseItem?> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 

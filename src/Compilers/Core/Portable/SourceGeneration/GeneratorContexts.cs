@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the current <see cref="Compilation"/> at the time of execution.
+        /// Get the current <see cref="CodeAnalysis.Compilation"/> at the time of execution.
         /// </summary>
         /// <remarks>
         /// This compilation contains only the user supplied code; other generated code is not
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         public Compilation Compilation { get; }
 
         /// <summary>
-        /// Get the <see cref="ParseOptions"/> that will be used to parse any added sources.
+        /// Get the <see cref="CodeAnalysis.ParseOptions"/> that will be used to parse any added sources.
         /// </summary>
         public ParseOptions ParseOptions { get; }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         public ISyntaxContextReceiver? SyntaxContextReceiver { get; }
 
         /// <summary>
-        /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the generation should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// A <see cref="CancellationToken"/> that can be checked to see if the initialization should be cancelled.
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the initialization should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         public SyntaxNode Node { get; }
 
         /// <summary>
-        /// The <see cref="SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
+        /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
         /// </summary>
         public SemanticModel SemanticModel { get; }
     }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// A <see cref="CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
 

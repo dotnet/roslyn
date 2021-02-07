@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 @"{|caret:|}// Comment
 static class C { }
 ";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
-            var results = await RunGetSemanticTokensRangeAsync(testLspServer, locations["caret"].First(), range);
+            var results = await RunGetSemanticTokensRangeAsync(workspace.CurrentSolution, locations["caret"].First(), range);
 
             var expectedResults = new LSP.SemanticTokens
             {
