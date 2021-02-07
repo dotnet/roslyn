@@ -25,20 +25,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             private readonly bool _includeMatchedSpans;
             private readonly string _candidate;
-            private readonly TextChunk _patternChunk;
             private readonly string _patternText;
             private readonly TextInfo _textInfo;
 
             public AllLowerCamelCaseMatcher(
                 bool includeMatchedSpans,
                 string candidate,
-                TextChunk patternChunk,
+                string patternChunkText,
                 TextInfo textInfo)
             {
                 _includeMatchedSpans = includeMatchedSpans;
                 _candidate = candidate;
-                _patternChunk = patternChunk;
-                _patternText = _patternChunk.Text;
+                _patternText = patternChunkText;
                 _textInfo = textInfo;
             }
 

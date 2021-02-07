@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatch? MatchPatternChunk(
             string candidate,
-            TextChunk patternChunk,
+            in TextChunk patternChunk,
             bool punctuationStripped,
             bool fuzzyMatch)
         {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private static PatternMatch? FuzzyMatchPatternChunk(
             string candidate,
-            TextChunk patternChunk,
+            in TextChunk patternChunk,
             bool punctuationStripped)
         {
             if (patternChunk.SimilarityChecker.AreSimilar(candidate))
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatch? NonFuzzyMatchPatternChunk(
             string candidate,
-            TextChunk patternChunk,
+            in TextChunk patternChunk,
             bool punctuationStripped)
         {
             var candidateLength = candidate.Length;
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
         private bool MatchPatternSegment(
             string candidate,
-            PatternSegment segment,
+            in PatternSegment segment,
             ref TemporaryArray<PatternMatch> matches,
             bool fuzzyMatch)
         {
@@ -415,8 +415,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             => PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
 
         private PatternMatch? TryCamelCaseMatch(
-            string candidate, TextChunk patternChunk,
-            bool punctuationStripped, bool isLowercase,
+            string candidate,
+            in TextChunk patternChunk,
+            bool punctuationStripped,
+            bool isLowercase,
             in TemporaryArray<TextSpan> candidateHumps)
         {
             if (isLowercase)
@@ -462,18 +464,17 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private PatternMatchKind? TryAllLowerCamelCaseMatch(
             string candidate,
             in TemporaryArray<TextSpan> candidateHumps,
-            TextChunk patternChunk,
+            in TextChunk patternChunk,
             out ImmutableArray<TextSpan> matchedSpans)
         {
-            var matcher = new AllLowerCamelCaseMatcher(
-                _includeMatchedSpans, candidate, patternChunk, _textInfo);
+            var matcher = new AllLowerCamelCaseMatcher(_includeMatchedSpans, candidate, patternChunk.Text, _textInfo);
             return matcher.TryMatch(candidateHumps, out matchedSpans);
         }
 
         private PatternMatchKind? TryUpperCaseCamelCaseMatch(
             string candidate,
             in TemporaryArray<TextSpan> candidateHumps,
-            TextChunk patternChunk,
+            in TextChunk patternChunk,
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
         {
