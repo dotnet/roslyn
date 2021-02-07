@@ -852,6 +852,11 @@
         <target state="translated">パラメーター名のサフィックスのみが異なる場合にヒントを非表示にする</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">ターゲット名前空間:</target>

@@ -852,6 +852,11 @@
         <target state="translated">매개 변수 이름이 접미사만 다른 경우 힌트 표시 안 함</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">대상 네임스페이스:</target>

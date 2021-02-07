@@ -1596,4 +1596,7 @@ I agree to all of the foregoing:</value>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
   </data>
+  <data name="Symbols_without_references" xml:space="preserve">
+    <value>Symbols without references</value>
+  </data>
 </root>
