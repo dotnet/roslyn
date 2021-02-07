@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
+            ImmutableArray<ITypeSymbol> targetTypesSymbols,
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
@@ -41,11 +42,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (client != null)
             {
                 var receiverTypeSymbolKeyData = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                var targetTypesSymbolKeyData = targetTypesSymbols.SelectAsArray(s => SymbolKey.CreateString(s, cancellationToken));
 
                 var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods>(
                     project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
-                        solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(), forceIndexCreation, cancellationToken),
+                        solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
+                        targetTypesSymbolKeyData, forceIndexCreation, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -57,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else
             {
-                items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(document, position, receiverTypeSymbol, namespaceInScope, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                items = await GetUnimportedExtensionMethodsInCurrentProcessAsync(
+                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             // report telemetry:
@@ -81,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
+            ImmutableArray<ITypeSymbol> targetTypes,
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
@@ -95,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var getSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;
 
-            var items = ConvertSymbolsToCompletionItems(extentsionMethodSymbols, cancellationToken);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var items = ConvertSymbolsToCompletionItems(compilation, extentsionMethodSymbols, targetTypes, cancellationToken);
 
             // If we don't have all the indices available already, queue a backgrounds task to create them.
             if (isPartialResult)
@@ -119,25 +126,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         }
 
-        private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(ImmutableArray<IMethodSymbol> extentsionMethodSymbols, CancellationToken cancellationToken)
+        private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(
+            Compilation compilation, ImmutableArray<IMethodSymbol> extentsionMethodSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
         {
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache = new();
             using var _1 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
-            using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount)>.GetInstance(out var overloadMap);
+            using var _2 = PooledDictionary<(string containingNamespace, string methodName, bool isGeneric), (IMethodSymbol bestSymbol, int overloadCount, bool includeInTargetTypedCompletion)>
+                .GetInstance(out var overloadMap);
 
             // Aggregate overloads
             foreach (var symbol in extentsionMethodSymbols)
             {
                 IMethodSymbol bestSymbol;
                 int overloadCount;
+                var includeInTargetTypedCompletion = ShouldIncludeInTargetTypedCompletion(compilation, symbol, targetTypeSymbols, typeConvertibilityCache);
 
                 var containingNamespacename = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, namespaceNameCache);
                 var overloadKey = (containingNamespacename, symbol.Name, isGeneric: symbol.Arity > 0);
 
-                // Select the overload with minimum number of parameters to display
+                // Select the overload convertable to any targeted type (if any) and with minimum number of parameters to display
                 if (overloadMap.TryGetValue(overloadKey, out var currentValue))
                 {
-                    bestSymbol = currentValue.bestSymbol.Parameters.Length > symbol.Parameters.Length ? symbol : currentValue.bestSymbol;
+                    if (currentValue.includeInTargetTypedCompletion == includeInTargetTypedCompletion)
+                    {
+                        bestSymbol = currentValue.bestSymbol.Parameters.Length > symbol.Parameters.Length ? symbol : currentValue.bestSymbol;
+                    }
+                    else if (currentValue.includeInTargetTypedCompletion)
+                    {
+                        bestSymbol = currentValue.bestSymbol;
+                    }
+                    else
+                    {
+                        bestSymbol = symbol;
+                    }
+
                     overloadCount = currentValue.overloadCount + 1;
+                    includeInTargetTypedCompletion = includeInTargetTypedCompletion || currentValue.includeInTargetTypedCompletion;
                 }
                 else
                 {
@@ -145,13 +169,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     overloadCount = 1;
                 }
 
-                overloadMap[overloadKey] = (bestSymbol, overloadCount);
+                overloadMap[overloadKey] = (bestSymbol, overloadCount, includeInTargetTypedCompletion);
             }
 
             // Then convert symbols into completion items
             using var _3 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var itemsBuilder);
 
-            foreach (var ((containingNamespace, _, _), (bestSymbol, overloadCount)) in overloadMap)
+            foreach (var ((containingNamespace, _, _), (bestSymbol, overloadCount, includeInTargetTypedCompletion)) in overloadMap)
             {
                 // To display the count of of additional overloads, we need to substract total by 1.
                 var item = new SerializableImportCompletionItem(
@@ -160,12 +184,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     bestSymbol.Arity,
                     bestSymbol.GetGlyph(),
                     containingNamespace,
-                    additionalOverloadCount: overloadCount - 1);
+                    additionalOverloadCount: overloadCount - 1,
+                    includeInTargetTypedCompletion);
 
                 itemsBuilder.Add(item);
             }
 
             return itemsBuilder.ToImmutable();
+        }
+
+        private static bool ShouldIncludeInTargetTypedCompletion(
+            Compilation compilation, IMethodSymbol methodSymbol, ImmutableArray<ITypeSymbol> targetTypeSymbols,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
+        {
+            if (methodSymbol.ReturnsVoid || methodSymbol.ReturnType == null || targetTypeSymbols.IsEmpty)
+            {
+                return false;
+            }
+
+            if (typeConvertibilityCache.TryGetValue(methodSymbol.ReturnType, out var isConvertible))
+            {
+                return isConvertible;
+            }
+
+            isConvertible = CompletionUtilities.IsTypeImplicitlyConvertible(compilation, methodSymbol.ReturnType, targetTypeSymbols);
+            typeConvertibilityCache[methodSymbol.ReturnType] = isConvertible;
+
+            return isConvertible;
         }
 
         private static string GetFullyQualifiedNamespaceName(INamespaceSymbol symbol, Dictionary<INamespaceSymbol, string> stringCache)

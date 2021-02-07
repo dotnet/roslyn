@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView, ITextView2
+    internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITextView2
     {
         /// <summary>
         /// The actual debugger view of the watch or immediate window that we're wrapping

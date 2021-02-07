@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }
+
                 var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
                 var groupingCodeAction = new CodeActionWithNestedActions(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());

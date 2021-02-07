@@ -104,6 +104,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
             Assert.Empty(results);
         }
 
+        [Fact, WorkItem(1264627, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1264627")]
+        public async Task TestGotoDefinitionAsync_NoResultsOnNamespace()
+        {
+            var markup =
+@"namespace {|caret:M|}
+{
+    class A
+    {
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
+            Assert.Empty(results);
+        }
+
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
         {
             var queue = CreateRequestQueue(solution);

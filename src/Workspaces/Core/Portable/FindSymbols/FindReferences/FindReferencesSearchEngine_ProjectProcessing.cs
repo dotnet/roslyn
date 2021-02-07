@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -26,17 +27,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
 
                     var documentTasks = new List<Task>();
-                    foreach (var kvp in documentMap)
+                    foreach (var (document, documentQueue) in documentMap)
                     {
-                        var document = kvp.Key;
-
                         if (document.Project == project)
-                        {
-                            var documentQueue = kvp.Value;
-
-                            documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(
-                                document, documentQueue), _cancellationToken));
-                        }
+                            documentTasks.Add(Task.Run(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken));
                     }
 
                     await Task.WhenAll(documentTasks).ConfigureAwait(false);

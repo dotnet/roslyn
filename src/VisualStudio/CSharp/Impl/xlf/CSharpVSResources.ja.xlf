@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_using_directives_on_paste">
         <source>Add missing using directives on paste</source>
-        <target state="new">Add missing using directives on paste</target>
+        <target state="translated">貼り付け時に欠落している using ディレクティブを追加する</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">

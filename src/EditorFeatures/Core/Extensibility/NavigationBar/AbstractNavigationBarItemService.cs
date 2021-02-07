@@ -19,13 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
     internal abstract class AbstractNavigationBarItemService : INavigationBarItemService
     {
         public abstract Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
+        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken);
+        protected abstract void NavigateToItem(Document document, RoslynNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
-        protected internal abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken);
-
-        public abstract void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => NavigateToItem(document, (RoslynNavigationBarItem)item, textView, cancellationToken);
 
         public void NavigateToSymbolItem(
-            Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
+            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
@@ -45,19 +46,19 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
             if (navigationPoint.HasValue)
             {
-                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value);
+                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value, cancellationToken);
             }
         }
 
-        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint)
+        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
         {
             var documentToNavigate = solution.GetDocument(navigationPoint.Tree);
             var workspace = solution.Workspace;
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces))
+            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
             {
-                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces);
+                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, options: null, cancellationToken);
             }
             else
             {

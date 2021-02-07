@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -124,7 +125,6 @@ namespace Microsoft.CodeAnalysis
 
                 public static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
                 {
-
                     var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
 
                     // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
@@ -133,17 +133,24 @@ namespace Microsoft.CodeAnalysis
                     var primaryDynamic = new WeakReference<ITypeSymbol?>(
                         compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
 
-                    var secondarySymbols = new WeakSet<ISymbol>();
+                    // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
+                    using var _ = ArrayBuilder<(int hashcode, WeakReference<ISymbol> symbol)>.GetInstance(
+                        compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
+
                     foreach (var reference in compilation.References)
                     {
                         var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
                         if (symbol == null)
                             continue;
 
-                        secondarySymbols.Add(symbol);
+                        secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
                     }
 
-                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols);
+                    // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
+                    // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
+                    // search algorithm will account for that.
+                    secondarySymbols.Sort(WeakSymbolComparer.Instance);
+                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
                 }
             }
 

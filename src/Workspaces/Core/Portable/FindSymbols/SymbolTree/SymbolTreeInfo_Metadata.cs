@@ -320,12 +320,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
-                foreach (var kvp in _parentToChildren)
+                foreach (var (_, children) in _parentToChildren)
                 {
-                    foreach (var child in kvp.Value)
-                    {
+                    foreach (var child in children)
                         MetadataNode.Free(child);
-                    }
                 }
 
                 MetadataNode.Free(_rootNode);
@@ -342,10 +340,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     LookupMetadataDefinitions(globalNamespace, definitionMap);
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(_rootNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(_rootNode, name, definitions);
                 }
                 finally
                 {
@@ -381,10 +377,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         LookupMetadataDefinitions(definition, definitionMap);
                     }
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(childNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(childNode, name, definitions);
                 }
                 finally
                 {

@@ -822,6 +822,11 @@
         <target state="translated">Mostra suggerimenti per tutto il resto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="new">Show hints for implicit object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Mostra suggerimenti per i tipi di parametro lambda</target>
@@ -2176,16 +2181,6 @@ Informazioni aggiuntive: {1}</target>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">il tipo è apparente rispetto all'espressione di assegnazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Visualizza la Guida per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Visualizza la Guida per '{0}' disponibile in Bing</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

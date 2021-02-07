@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 findSymbol,
                 format,
                 "A",
-                SymbolDisplayPartKind.RecordName);
+                SymbolDisplayPartKind.RecordClassName);
         }
 
         [Fact, WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
@@ -84,7 +84,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "R2",
-                SymbolDisplayPartKind.RecordName);
+                SymbolDisplayPartKind.RecordClassName);
         }
 
         [Fact]
@@ -7650,7 +7650,7 @@ record Person(string First, string Last);
                 "record Person",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.RecordName);
+                SymbolDisplayPartKind.RecordClassName);
         }
     }
 }

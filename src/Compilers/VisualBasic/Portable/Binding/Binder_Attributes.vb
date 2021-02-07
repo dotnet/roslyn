@@ -484,6 +484,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    AccessCheck.GetAccessibilityForErrorMessage(setMethod, Me.Compilation.Assembly))
                                 hasErrors = True
                             End If
+
+                            If setMethod.IsInitOnly Then
+                                InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                   identifierName.Location,
+                                                   DirectCast(identifierName.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                   InternalSyntax.Feature.InitOnlySettersUsage)
+                            End If
                         End If
 
                     Case Else
