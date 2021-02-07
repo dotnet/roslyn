@@ -299,5 +299,207 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Equal("error CS0103: The name 'value' does not exist in the current context", error);
             });
         }
+
+        [Fact]
+        [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
+        public void LocalFunctionWithParameterHidingOuterScopeVariable()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(42);
+    }
+
+    void M(int x)
+    {
+        local(string.Empty);
+        local2();
+
+        void local(string x)
+        {
+            GetValue(out var something); // captures 'this' so causes use of a display class from outer scope
+            Console.WriteLine(x); // set breakpoint here and inspect `x` (should display a `string`, not an `int`)
+        }
+
+        void local2()
+        {
+            Console.Write(x);
+        }
+    }
+
+    void GetValue(out int x)
+    {
+        x = 42;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>g__local|1_0");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+                Assert.Equal(new[] { "this", "x", "something" }, locals.SelectAsArray(l => l.LocalName));
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //something
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+                locals.Free();
+
+                testData = new CompilationTestData();
+                context.CompileExpression("x", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //something
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+            });
+        }
+
+        [Fact]
+        [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
+        public void LocalFunctionWithParameterNotHidingInnerScopeVariable()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(42);
+    }
+
+    void M(int x)
+    {
+        local(string.Empty); // set breakpoint here and inspect `x` (we'll still use the copy inside display class)
+        local2();
+
+        void local(string x)
+        {
+            GetValue(out var something);
+            Console.WriteLine(x);
+        }
+
+        void local2()
+        {
+            Console.Write(x);
+        }
+    }
+
+    void GetValue(out int x)
+    {
+        x = 42;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+                Assert.Equal(new[] { "this", "x" }, locals.SelectAsArray(l => l.LocalName));
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x""
+  IL_0006:  ret
+}");
+                locals.Free();
+
+                testData = new CompilationTestData();
+                context.CompileExpression("x", out var error, testData);
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass1_0.x""
+  IL_0006:  ret
+}");
+            });
+        }
+
+        [Fact]
+        [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
+        public void LocalFunctionWithoutOuterScopeVariable()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(42);
+    }
+
+    void M(int x)
+    {
+        local(string.Empty);
+        local2();
+
+        void local(string x)
+        {
+            Console.WriteLine(x); // inspect `x` (no display class used from outer scope)
+        }
+
+        void local2()
+        {
+            Console.Write(x);
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>g__local|1_0");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+                Assert.Equal(new[] { "x" }, locals.SelectAsArray(l => l.LocalName));
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+                locals.Free();
+
+                testData = new CompilationTestData();
+                context.CompileExpression("x", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            });
+        }
     }
 }
