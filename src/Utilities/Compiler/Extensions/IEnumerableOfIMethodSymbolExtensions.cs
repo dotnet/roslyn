@@ -147,6 +147,40 @@ namespace Analyzer.Utilities.Extensions
                 return true;
             });
         }
+
+        /// <summary>
+        /// Given an <see cref="IEnumerable{IMethodSymbol}"/>, returns the <see cref="IMethodSymbol"/> whose parameter list
+        /// matches <paramref name="expectedParameterTypesInOrder"/>.
+        /// </summary>
+        /// <param name="members"></param>
+        /// <param name="expectedParameterTypesInOrder">Expected types of the member's parameters.</param>
+        /// <returns>
+        /// The first member in the sequence whose parameters match <paramref name="expectedParameterTypesInOrder"/>, 
+        /// or null if no matches are found.
+        /// </returns>
+        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterTypes(this IEnumerable<IMethodSymbol>? members, IEnumerable<ITypeSymbol> expectedParameterTypesInOrder)
+        {
+            if (members is null)
+                return null;
+
+            foreach (var member in members)
+            {
+                if (Predicate(member))
+                    return member;
+            }
+            return null;
+
+            bool Predicate(IMethodSymbol member)
+            {
+                int index = 0;
+                foreach (var expectedType in expectedParameterTypesInOrder)
+                {
+                    if (!member.Parameters[index++].Type.Equals(expectedType))
+                        return false;
+                }
+                return true;
+            }
+        }
     }
 
     // Contains the expected properties of a parameter
