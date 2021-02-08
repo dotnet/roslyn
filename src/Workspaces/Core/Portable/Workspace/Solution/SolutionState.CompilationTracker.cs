@@ -229,8 +229,7 @@ namespace Microsoft.CodeAnalysis
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
                         hasSuccessfullyLoaded: false,
-                        State.GetUnrootedSymbols(inProgressCompilation),
-                        default));
+                        State.GetUnrootedSymbols(inProgressCompilation)));
             }
 
             /// <summary>
@@ -399,12 +398,14 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.GeneratorDriverRunResult;
             }
 
+            // <Caravela>
             public async Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return compilationInfo.TransformerDiagnostics;
             }
+            // </Caravela>
 
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
@@ -478,7 +479,9 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                            // <Caravela>
                             return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult(), state.TransformerDiagnostics);
+                            // </Caravela>
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -520,7 +523,9 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                    // <Caravela>
                     return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult(), state.TransformerDiagnostics));
+                    // </Caravela>
                 }
 
                 compilation = state.Compilation?.GetValueOrNull(cancellationToken);
@@ -663,14 +668,18 @@ namespace Microsoft.CodeAnalysis
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
                 public GeneratorDriverRunResult? GeneratorDriverRunResult { get; }
+                // <Caravela>
                 public ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
+                // </Caravela>
 
                 public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, GeneratorDriverRunResult? generatorDriverRunResult, ImmutableArray<Diagnostic> transformerDiagnostics)
                 {
                     Compilation = compilation;
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     GeneratorDriverRunResult = generatorDriverRunResult;
+                    // <Caravela>
                     TransformerDiagnostics = transformerDiagnostics;
+                    // </Caravela>
                 }
             }
 
@@ -764,6 +773,7 @@ namespace Microsoft.CodeAnalysis
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
+                    // <Caravela>
                     ImmutableArray<Diagnostic> transformerDiagnostics = default;
 
                     if (!compilation.GetParseDiagnostics().HasAnyErrors())
@@ -777,6 +787,7 @@ namespace Microsoft.CodeAnalysis
                         if (runTransformers != null)
                             (compilation, transformerDiagnostics) = runTransformers(compilation);
                     }
+                    // </Caravela>
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
 
@@ -788,10 +799,17 @@ namespace Microsoft.CodeAnalysis
                             generatorDriver,
                             hasSuccessfullyLoaded,
                             State.GetUnrootedSymbols(compilation),
-                            transformerDiagnostics),
+                            // <Caravela>
+                            transformerDiagnostics
+                            // </Caravela>
+                            ),
                         solution.Services);
 
-                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult(), transformerDiagnostics);
+                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult(),
+                        // <Caravela>
+                        transformerDiagnostics
+                        // </Caravela>
+                        );
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {

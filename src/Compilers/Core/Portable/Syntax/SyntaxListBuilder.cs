@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void Add(SyntaxNode item)
         {
+            // <Caravela>
             item = TreeTracker.TrackIfNeeded(item);
+            // </Caravela>
             AddInternal(item.Green);
         }
 
@@ -95,11 +97,13 @@ namespace Microsoft.CodeAnalysis.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
+                // <Caravela>
                 var node = list.ItemInternal(i);
 
                 node = TreeTracker.TrackIfNeeded(node);
 
                 _nodes[dst].Value = node!.Green;
+                // </Caravela>
                 dst++;
             }
 
@@ -133,9 +137,11 @@ namespace Microsoft.CodeAnalysis.Syntax
             var dst = this.Count;
             for (int i = offset, limit = offset + count; i < limit; i++)
             {
+                // <Caravela>
                 var nodeOrToken = TreeTracker.TrackIfNeeded(list[i].AsNode()) ?? list[i];
 
                 _nodes[dst].Value = nodeOrToken.UnderlyingNode;
+                // </Caravela>
                 dst++;
             }
 

@@ -1044,13 +1044,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
+            // <Caravela>
             var preTransformationSyntax = TreeTracker.GetPreTransformationSyntax(syntax);
             return BoundSequencePoint.Create(preTransformationSyntax, statement);
+            // </Caravela>
         }
 
         public BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan? span, BoundStatement statement)
         {
+            // <Caravela>
             return BoundSequencePoint.Create(syntax, span, statement);
+            // </Caravela>
         }
 
         public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)

@@ -620,7 +620,9 @@ namespace Microsoft.CodeAnalysis
         internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(CancellationToken cancellationToken)
             => _solution.State.GetGeneratorDriverRunResultAsync(_projectState, cancellationToken);
 
+        // <Caravela>
         public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(CancellationToken cancellationToken)
             => _solution.State.GetTransformerDiagnosticsAsync(_projectState, cancellationToken);
+        // </Caravela>
     }
 }

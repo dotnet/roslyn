@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(location.SourceTree != null);
 
+            // <Caravela>
             // Caravela compiler tree tracking means that the syntax trees don't match, so disable this check
 
             //if (!compilation.ContainsSyntaxTree(location.SourceTree))
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //    // Disallow diagnostics with source locations outside this compilation.
             //    throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
             //}
+            // </Caravela>
 
             if (location.SourceSpan.End > location.SourceTree.Length)
             {

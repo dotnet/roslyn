@@ -310,13 +310,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotations));
             }
 
+            // <Caravela>
             var token = TreeTracker.TrackIfNeeded(this);
+            // </Caravela>
 
             if (token.Node != null)
             {
                 return new SyntaxToken(
                     parent: null,
+                    // <Caravela>
                     token: token.Node.WithAdditionalAnnotationsGreen(annotations),
+                    // </Caravela>
                     position: 0,
                     index: 0);
             }
@@ -342,13 +346,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(annotations));
             }
             
+            // <Caravela>
             var token = TreeTracker.TrackIfNeeded(this);
-
+            
             if (token.Node != null)
+                // </Caravela>
             {
                 return new SyntaxToken(
                     parent: null,
+                    // <Caravela>
                     token: token.Node.WithoutAnnotationsGreen(annotations),
+                    // // </Caravela>
                     position: 0,
                     index: 0);
             }
@@ -382,7 +390,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public SyntaxToken CopyAnnotationsTo(SyntaxToken token)
         {
+            // <Caravela>
             token = TreeTracker.TrackIfNeeded(token);
+            // </Caravela>
 
             if (token.Node == null)
             {
@@ -394,7 +404,10 @@ namespace Microsoft.CodeAnalysis
                 return token;
             }
 
+            // <Caravela>
             var annotations = Node.GetAnnotations();
+            // </Caravela>
+            
             if (annotations?.Length > 0)
             {
                 return new SyntaxToken(
@@ -487,11 +500,13 @@ namespace Microsoft.CodeAnalysis
         {
             var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
+            // <Caravela>
             var token = TreeTracker.TrackIfNeeded(this);
 
             return token.Node != null
                 ? new SyntaxToken(null, token.Node.WithLeadingTrivia(token.Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
+            // </Caravela>
         }
 
         /// <summary>
@@ -517,11 +532,13 @@ namespace Microsoft.CodeAnalysis
         {
             var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
+            // <Caravela>
             var token = TreeTracker.TrackIfNeeded(this);
 
             return token.Node != null
                 ? new SyntaxToken(null, token.Node.WithTrailingTrivia(token.Node.CreateList(greenList)), position: 0, index: 0)
                 : default(SyntaxToken);
+            // </Caravela>
         }
 
         /// <summary>

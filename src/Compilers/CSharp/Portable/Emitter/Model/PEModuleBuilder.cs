@@ -1000,7 +1000,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             TypeSymbol typeSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
-            bool needDeclaration = false)
+            // <Caravela>
+            bool needDeclaration = false
+            // </Caravela>
+            )
         {
             Debug.Assert(diagnostics != null);
 
@@ -1014,7 +1017,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
+                    // <Caravela> - pass needDeclaration
                     return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics, needDeclaration: needDeclaration);
+                    // </Caravela>
 
                 case SymbolKind.PointerType:
                     return Translate((PointerTypeSymbol)typeSymbol);

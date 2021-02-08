@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // User-defined locals have to have a distinct syntax offset, thus ordinal is always 0.
             if (localKind == SynthesizedLocalKind.UserDefined)
             {
+// CARAVELA TODO: Comment why this is disabled.
                 //return 0;
             }
 #endif
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             _lazyMap[key] = ordinal + 1;
+// CARAVELA TODO: Comment why this is disabled.            
             //Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);
             return ordinal;
         }

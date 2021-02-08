@@ -972,6 +972,10 @@ done:
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
+            // <Caravela>
+            // Debug.Assert(this.SyntaxNode.SyntaxTree == localTree);
+            // </Caravela>
+
             (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = Bodies;
 
             CSharpSyntaxNode bodySyntax = null;
@@ -987,6 +991,11 @@ done:
             }
             else
             {
+                // Method without body doesn't declare locals.
+                // <Caravela>
+                // Debug.Assert(bodySyntax != null);
+                // </Caravela>
+                
                 return -1;
             }
 

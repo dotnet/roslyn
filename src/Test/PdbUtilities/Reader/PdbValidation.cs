@@ -234,8 +234,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
+            // <Caravela>
             if (CaravelaCompilerTest.ShouldExecuteTransformer)
+            {
                 compilation = CaravelaCompilerTest.ExecuteTransformer(compilation, new CaravelaCompilerTest.TokenPerLineTransformer());
+            }
+            // </Caravela>
 
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
@@ -401,12 +405,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
+            // <Caravela>
             if (CaravelaCompilerTest.ShouldExecuteTransformer)
             {
                 RemoveEnc(actualXml);
                 RemoveEnc(expectedXml);
             }
-
+            // </Caravela>
+            
             return (actualXml.ToString(), expectedXml.ToString());
         }
 
@@ -422,12 +428,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return array.Length > 0;
         }
 
+        // <Caravela>
         private static void RemoveEnc(XElement pdb)
         {
             RemoveElements(from e in pdb.DescendantsAndSelf()
                            where e.Name.LocalName.StartsWith("enc")
                            select e);
         }
+        // </Caravela>
 
         private static void RemoveEmptyCustomDebugInfo(XElement pdb)
         {

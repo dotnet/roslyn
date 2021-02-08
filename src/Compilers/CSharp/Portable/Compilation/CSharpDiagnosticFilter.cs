@@ -48,10 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return d;
             }
 
+            // <Caravela>
             if (TreeTracker.GetPreTransformationLocation(d.Location) is { } location)
             {
                 d = d.WithLocation(location);
             }
+            // </Caravela>
 
             if (d.IsNotConfigurable())
             {

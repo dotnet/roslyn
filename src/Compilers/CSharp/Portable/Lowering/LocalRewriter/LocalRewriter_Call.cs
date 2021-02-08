@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments[1],
                     type);
             }
+            // <Caravela>
             else if (method.IsStatic &&
                 // global::Caravela.Compiler.Intrinsics
                 method.ContainingType is
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constantValue == null)
                 {
-                    return error();
+                    return Error();
                 }
                 else
                 {
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbols.IsDefaultOrEmpty || symbols.Length > 1)
                     {
-                        return error();
+                        return Error();
                     }
 
                     var symbol = symbols.Single();
@@ -281,12 +282,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expectedSymbolKind != default);
 
                     if (symbol.Kind != expectedSymbolKind)
-                        return error();
+                        return Error();
 
                     return new BoundGetRuntimeHandleExpression(syntax, symbol.GetSymbol(), method.ReturnType);
                 }
 
-                BoundBadExpression error()
+                BoundBadExpression Error()
                 {
                     _diagnostics.Add(new DiagnosticInfo(
                         CaravelaCompilerMessageProvider.Instance, (int)Caravela.Compiler.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.BadExpression(_compilation.GetSpecialType(SpecialType.System_Void));
                 }
             }
+            // </Caravela>
             else if (node == null)
             {
                 rewrittenBoundCall = new BoundCall(
@@ -1247,10 +1249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SourceLocation? GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
         {
+            // <Caravela>
             syntax = TreeTracker.GetPreTransformationSyntax(syntax);
 
             if (syntax == null)
                 return null;
+            // </Caravela>
 
             switch (enableCallerInfo)
             {

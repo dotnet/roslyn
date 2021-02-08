@@ -68,8 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public virtual ImmutableArray<ISourceGenerator> GetGenerators() { return ImmutableArray<ISourceGenerator>.Empty; }
 
+        // <Caravela>
         public virtual ImmutableArray<ISourceTransformer> GetTransformers() { return ImmutableArray<ISourceTransformer>.Empty; }
 
         public virtual ImmutableArray<object> GetPlugins() { return ImmutableArray<object>.Empty; }
+        // </Caravela>
     }
 }

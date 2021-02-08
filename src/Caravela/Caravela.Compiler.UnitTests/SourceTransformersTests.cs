@@ -148,11 +148,11 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
 
             Assert.Equal(0, exitCode);
 
-            Assert.Equal("/* comment */\r\nclass C\r\n{\r\n}", File.ReadAllText(Path.Combine(transformedDir.Path, "C.cs")));
-            Assert.Equal("/* comment */\r\nclass D\r\n{\r\n}", File.ReadAllText(Path.Combine(transformedDir.Path, "dir/D.cs")));
+            Assert.Equal("/* comment */class C { }", File.ReadAllText(Path.Combine(transformedDir.Path, "C.cs")));
+            Assert.Equal("/* comment */class D { }", File.ReadAllText(Path.Combine(transformedDir.Path, "dir/D.cs")));
 
             var generatedFile = Directory.EnumerateFiles(transformedDir.Path).Single(p => Guid.TryParse(Path.GetFileNameWithoutExtension(p), out _));
-            Assert.Equal("class G\r\n{\r\n}", File.ReadAllText(generatedFile));
+            Assert.Equal("class G {}", File.ReadAllText(generatedFile));
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src1.Path);

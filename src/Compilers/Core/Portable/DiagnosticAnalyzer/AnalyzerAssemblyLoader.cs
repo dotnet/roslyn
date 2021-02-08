@@ -32,8 +32,15 @@ namespace Microsoft.CodeAnalysis
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
 
-            if (simpleName == "Caravela.Compiler.Interface.dll")
+            // <Caravela>
+            if (string.Equals(simpleName, "Caravela.Compiler.Interface.dll", StringComparison.OrdinalIgnoreCase))
+            {
+                // This analyzer assembly has to be ignored, just like in CSharpCommandLineParser.ParseAnalyzers.
+                // This is only reached if CSharpCommandLineParser is not used (like when using Workspaces).
+
                 return;
+            }
+            // </Caravela>
 
             lock (_guard)
             {
@@ -51,10 +58,15 @@ namespace Microsoft.CodeAnalysis
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            // This analyzer assembly has to be ignored, just like in CSharpCommandLineParser.ParseAnalyzers.
-            // This is only reached if CSharpCommandLineParser is not used (like when using Workspaces).
-            if (PathUtilities.GetFileName(fullPath) == "Caravela.Compiler.Interface.dll")
+            // <Caravela>
+            if (string.Equals(PathUtilities.GetFileName(fullPath), "Caravela.Compiler.Interface.dll", StringComparison.OrdinalIgnoreCase))
+            {
+                // This analyzer assembly has to be ignored, just like in CSharpCommandLineParser.ParseAnalyzers.
+                // This is only reached if CSharpCommandLineParser is not used (like when using Workspaces).
+
                 return null;
+            }
+            // </Caravela>
 
             return LoadFromPathUnchecked(fullPath);
         }

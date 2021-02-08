@@ -6728,7 +6728,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact()]
+        [Fact]
         public void NoLogo_2()
         {
             string source = @"
@@ -10920,7 +10920,8 @@ class Runner
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321", AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321",
+            AlwaysSkip = "Caravela does not have consistent assembly informational version.")]
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();

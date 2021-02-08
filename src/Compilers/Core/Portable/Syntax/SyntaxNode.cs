@@ -1217,12 +1217,16 @@ recurse:
 
         internal SyntaxNode WithAdditionalAnnotationsInternal(IEnumerable<SyntaxAnnotation> annotations)
         {
+            // <Caravela>
             return TreeTracker.TrackIfNeeded(this).Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
+            // </Caravela>
         }
 
         internal SyntaxNode GetNodeWithoutAnnotations(IEnumerable<SyntaxAnnotation> annotations)
         {
+            // <Caravela>
             return TreeTracker.TrackIfNeeded(this).Green.WithoutAnnotationsGreen(annotations).CreateRed();
+            // </Caravela>
         }
 
         /// <summary>
