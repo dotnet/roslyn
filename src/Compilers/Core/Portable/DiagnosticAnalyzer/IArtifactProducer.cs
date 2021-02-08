@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Wrapper type to allow an IArtifactProducer to flow through the normal DiagnosticAnalyzer codepaths.
     /// </summary>
-    internal class ArtifactProducerDiagnosticAnalyzer : DiagnosticAnalyzer
+    internal sealed class ArtifactProducerDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public readonly IArtifactProducer ArtifactProducer;
 
