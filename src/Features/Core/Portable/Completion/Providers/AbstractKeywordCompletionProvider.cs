@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private readonly ImmutableArray<IKeywordRecommender<TContext>> _keywordRecommenders;
 
+        public ImmutableArray<IKeywordRecommender<TContext>> KeywordRecommenders => _keywordRecommenders;
+
         protected AbstractKeywordCompletionProvider(ImmutableArray<IKeywordRecommender<TContext>> keywordRecommenders)
             => _keywordRecommenders = keywordRecommenders;
 

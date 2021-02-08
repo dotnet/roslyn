@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSharpSyntaxContext>
     {
+        public new ImmutableArray<IKeywordRecommender<CSharpSyntaxContext>> KeywordRecommenders => base.KeywordRecommenders;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public KeywordCompletionProvider()
