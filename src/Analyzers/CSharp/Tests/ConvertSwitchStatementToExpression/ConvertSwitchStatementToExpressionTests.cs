@@ -1916,8 +1916,8 @@ return i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -1961,8 +1961,8 @@ j = i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }

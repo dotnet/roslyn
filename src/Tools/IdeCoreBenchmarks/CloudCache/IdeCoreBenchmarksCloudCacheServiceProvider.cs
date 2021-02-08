@@ -13,6 +13,7 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
+using Microsoft.VisualStudio.Cache.SQLite;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace CloudCache
@@ -27,7 +28,7 @@ namespace CloudCache
             Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
         }
 
-        public ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
             var authorizationServiceClient = new AuthorizationServiceClient(new AuthorizationServiceMock());
             var solutionService = new SolutionServiceMock();
@@ -43,8 +44,10 @@ namespace CloudCache
             };
 
             var someContext = new CacheContext { RelativePathBase = @"C:\github\roslyn" };
-            var cacheService = new CacheService(someContext, serviceBroker, authorizationServiceClient);
-            return new(new IdeCoreBenchmarksCloudCacheService(cacheService));
+            var pool = new SqliteConnectionPool();
+            var activeContext = await pool.ActivateContextAsync(someContext, default);
+            var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
+            return new IdeCoreBenchmarksCloudCacheService(cacheService);
         }
 
         private class IdeCoreBenchmarksCloudCacheService : ICloudCacheService

@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
 
             VerifyContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Returns_colon}|  |a string");
         }
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             VerifyContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
         }
 
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             VerifyContent(results, "string A.Method(int i)|A great method|Remarks are cool too.");
         }
 
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             VerifyContent(results, "string A.Method(int i)|A great method|• |Item 1.|• |Item 2.");
         }
 
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
         {|caret:|}
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGetHoverAsync(testLspServer, locations["caret"].Single()).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(workspace.CurrentSolution, locations["caret"].Single()).ConfigureAwait(false);
             Assert.Null(results);
         }
 
@@ -179,21 +179,22 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
+            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
             var location = locations["caret"].Single();
 
-            foreach (var project in testLspServer.GetCurrentSolution().Projects)
+            foreach (var project in workspace.Projects)
             {
-                var result = await RunGetHoverAsync(testLspServer, location, project.Id);
+                var result = await RunGetHoverAsync(workspace.CurrentSolution, location, project.Id);
 
                 var expectedConstant = project.Name == "Net472" ? "Target in net472" : "Target in netcoreapp3.1";
                 VerifyContent(result, $"({FeaturesResources.constant}) string WithConstant.Target = \"{expectedConstant}\"");
             }
         }
 
-        private static async Task<LSP.VSHover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret, ProjectId projectContext = null)
+        private static async Task<LSP.VSHover> RunGetHoverAsync(Solution solution, LSP.Location caret, ProjectId projectContext = null)
         {
-            return (LSP.VSHover)await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
+            var queue = CreateRequestQueue(solution);
+            return (LSP.VSHover)await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(queue, LSP.Methods.TextDocumentHoverName,
                            CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 

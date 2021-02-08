@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Roslyn.Utilities;
@@ -35,82 +37,34 @@ namespace Microsoft.CodeAnalysis
             => _checksum = hash;
 
         /// <summary>
-        /// Create Checksum from given byte array. if byte array is bigger than
-        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
+        /// truncated to the size.
         /// </summary>
         public static Checksum From(byte[] checksum)
-        {
-            if (checksum.Length == 0)
-            {
-                return Null;
-            }
-
-            if (checksum.Length < HashSize)
-            {
-                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
-            }
-
-            return FromWorker(checksum);
-        }
+            => From(checksum.AsSpan());
 
         /// <summary>
-        /// Create Checksum from given byte array. if byte array is bigger than
-        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
+        /// truncated to the size.
         /// </summary>
         public static Checksum From(ImmutableArray<byte> checksum)
+            => From(checksum.AsSpan());
+
+        public static Checksum From(ReadOnlySpan<byte> checksum)
         {
             if (checksum.Length == 0)
-            {
                 return Null;
-            }
 
             if (checksum.Length < HashSize)
-            {
-                throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
-            }
+                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
 
-            using var pooled = SharedPools.ByteArray.GetPooledObject();
-            var bytes = pooled.Object;
-            checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
-
-            return FromWorker(bytes);
-        }
-
-        public static Checksum FromSerialized(byte[] checksum)
-        {
-            if (checksum.Length == 0)
-            {
-                return Null;
-            }
-
-            if (checksum.Length != HashSize)
-            {
-                throw new ArgumentException($"{nameof(checksum)} must be equal to the hash size: {HashSize}", nameof(checksum));
-            }
-
-            return FromWorker(checksum);
-        }
-
-        private static unsafe Checksum FromWorker(byte[] checksum)
-        {
-            fixed (byte* data = checksum)
-            {
-                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
-                //
-                // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
-                // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
-                return new Checksum(HashData.FromPointer((HashData*)data));
-            }
+            Contract.ThrowIfFalse(MemoryMarshal.TryRead(checksum, out HashData hash));
+            return new Checksum(hash);
         }
 
         public bool Equals(Checksum other)
         {
-            if (other == null)
-            {
-                return false;
-            }
-
-            return _checksum == other._checksum;
+            return other != null && _checksum == other._checksum;
         }
 
         public override bool Equals(object obj)
@@ -119,16 +73,31 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => _checksum.GetHashCode();
 
-        public override unsafe string ToString()
+        public string ToBase64String()
         {
-            var data = new byte[sizeof(HashData)];
-            fixed (byte* dataPtr = data)
+#if NETCOREAPP
+            Span<byte> bytes = stackalloc byte[HashSize];
+            this.WriteTo(bytes);
+            return Convert.ToBase64String(bytes);
+#else
+            unsafe
             {
-                *(HashData*)dataPtr = _checksum;
-            }
+                var data = new byte[HashSize];
+                fixed (byte* dataPtr = data)
+                {
+                    *(HashData*)dataPtr = _checksum;
+                }
 
-            return Convert.ToBase64String(data, 0, HashSize);
+                return Convert.ToBase64String(data, 0, HashSize);
+            }
+#endif
         }
+
+        public static Checksum FromBase64String(string value)
+            => value == null ? null : From(Convert.FromBase64String(value));
+
+        public override string ToString()
+            => ToBase64String();
 
         public static bool operator ==(Checksum left, Checksum right)
             => EqualityComparer<Checksum>.Default.Equals(left, right);
@@ -147,11 +116,10 @@ namespace Microsoft.CodeAnalysis
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
 
-        public void WriteTo(byte[] bytes)
+        public void WriteTo(Span<byte> span)
         {
-            Contract.ThrowIfFalse(bytes.Length == HashSize);
-            var copy = _checksum;
-            MemoryMarshal.Write(bytes.AsSpan(), ref copy);
+            Contract.ThrowIfFalse(span.Length >= HashSize);
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
         }
 
         public static Checksum ReadFrom(ObjectReader reader)
@@ -191,7 +159,7 @@ namespace Microsoft.CodeAnalysis
                 => x.Equals(y);
 
             public static bool operator !=(HashData x, HashData y)
-                => !x.Equals(y);
+                => !(x == y);
 
             public void WriteTo(ObjectWriter writer)
             {

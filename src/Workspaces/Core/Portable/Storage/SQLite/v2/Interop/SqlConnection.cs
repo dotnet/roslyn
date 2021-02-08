@@ -5,12 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
+using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
+    using static SQLitePersistentStorageConstants;
+
     /// <summary>
     /// Encapsulates a connection to a sqlite database.  On construction an attempt will be made
     /// to open the DB if it exists, or create it if it does not.
@@ -26,6 +31,33 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// </summary>
     internal class SqlConnection
     {
+        // Cached utf8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
+        // having to convert these names to/from utf16 to utf8 on every call.  Sqlite requires these be null terminated.
+
+        private static readonly byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.Main.GetName());
+        private static readonly byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.WriteCache.GetName());
+
+        private static readonly byte[] s_solutionTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(SolutionDataTableName);
+        private static readonly byte[] s_projectTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(ProjectDataTableName);
+        private static readonly byte[] s_documentTableNameWithTrailingZero = GetUtf8BytesWithTrailingZero(DocumentDataTableName);
+
+        private static readonly byte[] s_checksumColumnNameWithTrailingZero = GetUtf8BytesWithTrailingZero(ChecksumColumnName);
+        private static readonly byte[] s_dataColumnNameWithTrailingZero = GetUtf8BytesWithTrailingZero(DataColumnName);
+
+        private static byte[] GetUtf8BytesWithTrailingZero(string value)
+        {
+            var length = Encoding.UTF8.GetByteCount(value);
+
+            // Add one for the trailing zero.
+            var byteArray = new byte[length + 1];
+            var wrote = Encoding.UTF8.GetBytes(value, 0, value.Length, byteArray, 0);
+            Contract.ThrowIfFalse(wrote == length);
+
+            // Paranoia, but write in the trailing zero no matter what.
+            byteArray[^1] = 0;
+            return byteArray;
+        }
+
         /// <summary>
         /// The raw handle to the underlying DB.
         /// </summary>
@@ -229,34 +261,31 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Stream? ReadBlob_MustRunInTransaction(Database database, string tableName, string columnName, long rowId)
+        public Optional<Stream> ReadDataBlob_MustRunInTransaction(Database database, Table table, long rowId)
         {
-            // NOTE: we do need to do the blob reading in a transaction because of the
-            // following: https://www.sqlite.org/c3ref/blob_open.html
-            //
-            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
-            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
-            // This is true if any column of the row is changed, even a column other than
-            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
-            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
-            // SQLITE_ABORT.
-            if (!IsInTransaction)
-            {
-                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
-            }
+            return ReadBlob_MustRunInTransaction(
+                database, table, Column.Data, rowId,
+                static (self, blobHandle) => new Optional<Stream>(self.ReadBlob(blobHandle)));
+        }
 
-            const int ReadOnlyFlags = 0;
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
+        public Optional<Checksum.HashData> ReadChecksum_MustRunInTransaction(Database database, Table table, long rowId)
+        {
+            return ReadBlob_MustRunInTransaction(
+                database, table, Column.Checksum, rowId,
+                static (self, blobHandle) =>
+                {
+                    // If the length of the blob isn't correct, then we can't read a checksum out of this.
+                    var length = NativeMethods.sqlite3_blob_bytes(blobHandle);
+                    if (length != Checksum.HashSize)
+                        return new Optional<Checksum.HashData>();
 
-            using var blob = NativeMethods.sqlite3_blob_open(_handle, database.GetName(), tableName, columnName, rowId, ReadOnlyFlags, out var result);
+                    Span<byte> bytes = stackalloc byte[Checksum.HashSize];
+                    self.ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blobHandle, bytes, offset: 0));
 
-            if (result == Result.ERROR)
-            {
-                // can happen when rowId points to a row that hasn't been written to yet.
-                return null;
-            }
-
-            ThrowIfNotOk(result);
-            return ReadBlob(blob);
+                    Contract.ThrowIfFalse(MemoryMarshal.TryRead(bytes, out Checksum.HashData result));
+                    return new Optional<Checksum.HashData>(result);
+                });
         }
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
@@ -293,6 +322,78 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             {
                 // Return our small array back to the pool.
                 SQLitePersistentStorage.ReturnPooledBytes(bytes);
+            }
+        }
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
+        public Optional<T> ReadBlob_MustRunInTransaction<T>(
+            Database database, Table table, Column column, long rowId,
+            Func<SqlConnection, SafeSqliteBlobHandle, Optional<T>> readBlob)
+        {
+            // NOTE: we do need to do the blob reading in a transaction because of the
+            // following: https://www.sqlite.org/c3ref/blob_open.html
+            //
+            // If the row that a BLOB handle points to is modified by an UPDATE, DELETE, 
+            // or by ON CONFLICT side-effects then the BLOB handle is marked as "expired".
+            // This is true if any column of the row is changed, even a column other than
+            // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
+            // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
+            // SQLITE_ABORT.
+            if (!IsInTransaction)
+            {
+                throw new InvalidOperationException("Must read blobs within a transaction to prevent corruption!");
+            }
+
+            var databaseNameBytes = database switch
+            {
+                Database.Main => s_mainNameWithTrailingZero,
+                Database.WriteCache => s_writeCacheNameWithTrailingZero,
+                _ => throw ExceptionUtilities.UnexpectedValue(database),
+            };
+
+            var tableNameBytes = table switch
+            {
+                Table.Solution => s_solutionTableNameWithTrailingZero,
+                Table.Project => s_projectTableNameWithTrailingZero,
+                Table.Document => s_documentTableNameWithTrailingZero,
+                _ => throw ExceptionUtilities.UnexpectedValue(table),
+            };
+
+            var columnNameBytes = column switch
+            {
+                Column.Data => s_dataColumnNameWithTrailingZero,
+                Column.Checksum => s_checksumColumnNameWithTrailingZero,
+                _ => throw ExceptionUtilities.UnexpectedValue(column),
+            };
+
+            unsafe
+            {
+                fixed (byte* databaseNamePtr = databaseNameBytes)
+                fixed (byte* tableNamePtr = tableNameBytes)
+                fixed (byte* columnNamePtr = columnNameBytes)
+                {
+                    // sqlite requires a byte* and a length *not* including the trailing zero.  So subtract one from all
+                    // the array lengths to get the length they expect.
+
+                    const int ReadOnlyFlags = 0;
+                    using var blob = NativeMethods.sqlite3_blob_open(
+                        _handle,
+                        utf8z.FromPtrLen(databaseNamePtr, databaseNameBytes.Length - 1),
+                        utf8z.FromPtrLen(tableNamePtr, tableNameBytes.Length - 1),
+                        utf8z.FromPtrLen(columnNamePtr, columnNameBytes.Length - 1),
+                        rowId,
+                        ReadOnlyFlags,
+                        out var result);
+
+                    if (result == Result.ERROR)
+                    {
+                        // can happen when rowId points to a row that hasn't been written to yet.
+                        return default;
+                    }
+
+                    ThrowIfNotOk(result);
+                    return readBlob(this, blob);
+                }
             }
         }
 

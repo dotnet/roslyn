@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.9.0-4.21076.10</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.10.0-1.21108.12</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -115,7 +115,7 @@
     <MicrosoftServiceHubClientVersion>2.7.89</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.7.339</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <MicrosoftVisualStudioCacheVersion>16.10.11-alpha-g9ca9aea07e</MicrosoftVisualStudioCacheVersion>
+    <MicrosoftVisualStudioCacheVersion>16.10.19-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>16.0.467</MicrosoftVisualStudioComponentModelHostVersion>
