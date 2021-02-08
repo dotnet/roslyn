@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
-        <target state="new">Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</target>
+        <target state="translated">A propriedade apenas para inicialização '{0}' só pode ser atribuída por um inicializador de membro de objeto ou em 'Me', 'MyClass` ou 'MyBase' em um construtor de instância.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
         <source>'{0}' cannot override init-only '{1}'.</source>
-        <target state="new">'{0}' cannot override init-only '{1}'.</target>
+        <target state="translated">A propriedade '{0}' não pode substituir a propriedade '{1}' apenas para inicialização.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
         <source>Init-only '{0}' cannot be implemented.</source>
-        <target state="new">Init-only '{0}' cannot be implemented.</target>
+        <target state="translated">A propriedade '{0}' apenas para inicialização não pode ser implementada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
-        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <target state="translated">Os eventos das variáveis WithEvents compartilhadas não podem ser manipulados por métodos em um tipo diferente.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
-        <target state="new">assigning to or passing 'ByRef' properties with init-only setters</target>
+        <target state="translated">atribuindo ou passando as propriedades 'ByRef' com setters apenas para inicialização</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
