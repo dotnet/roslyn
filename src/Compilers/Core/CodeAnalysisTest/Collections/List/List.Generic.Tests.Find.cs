@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Find.cs
@@ -7,20 +8,21 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
     /// </summary>
     public abstract partial class List_Generic_Tests<T> : IList_Generic_Tests<T>
     {
-        private readonly Predicate<T> _equalsDefaultDelegate = (T item) => { return default(T) == null ? item == null : default(T).Equals(item); };
-        private readonly Predicate<T> _alwaysTrueDelegate = (T item) => true;
-        private readonly Predicate<T> _alwaysFalseDelegate = (T item) => false;
+        private readonly Predicate<T?> _equalsDefaultDelegate = (T? item) => { return default(T) == null ? item == null : default(T)!.Equals(item); };
+        private readonly Predicate<T?> _alwaysTrueDelegate = (T? item) => true;
+        private readonly Predicate<T?> _alwaysFalseDelegate = (T? item) => false;
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
@@ -30,16 +32,16 @@ namespace System.Collections.Tests
             List<T> beforeList = list.ToList();
 
             //[] Verify Null match Find
-            Assert.Throws<ArgumentNullException>(() => list.Find(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.Find(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             //[] Verify Null match FindLast
-            Assert.Throws<ArgumentNullException>(() => list.FindLast(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindLast(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             //[] Verify Null match FindLastIndex
-            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             //[] Verify Null match FindAll
-            Assert.Throws<ArgumentNullException>(() => list.FindAll(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindAll(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
         }
 
         [Theory]
@@ -52,7 +54,7 @@ namespace System.Collections.Tests
 
 
             //[] Verify Null match
-            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(0, null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             /******************************************************************************
             index
@@ -86,7 +88,7 @@ namespace System.Collections.Tests
 
 
             //[] Verify Null match
-            Assert.Throws<ArgumentNullException>(() => list.FindIndex(0, 0, null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindIndex(0, 0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             /******************************************************************************
             index
@@ -143,7 +145,7 @@ namespace System.Collections.Tests
             Predicate<T> predicate = _alwaysTrueDelegate;
 
             //[] Verify Null match
-            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(0, 0, null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindLastIndex(0, 0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             /******************************************************************************
             index
@@ -203,7 +205,7 @@ namespace System.Collections.Tests
             Predicate<T> predicate = delegate (T item) { return true; };
 
             //[] Verify Null match
-            Assert.Throws<ArgumentNullException>(() => list.FindIndex(0, null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+            Assert.Throws<ArgumentNullException>(() => list.FindIndex(0, null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
 
             /******************************************************************************
             index
@@ -227,11 +229,11 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void Find_VerifyVanilla(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
-            T expectedItem = default(T);
-            T foundItem;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            List<T?> list = GenericListFactory(count)!;
+            List<T?> beforeList = list.ToList();
+            T? expectedItem = default(T);
+            T? foundItem;
+            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             //[] Verify Find returns the correct index
             for (int i = 0; i < count; ++i)
@@ -252,7 +254,7 @@ namespace System.Collections.Tests
 
             //[] Verify with default(T)
             list.Add(default(T));
-            foundItem = list.Find((T item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
+            foundItem = list.Find((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
             Assert.Equal(default(T), foundItem); //"Err_541848ajodi Verify with default(T) FAILED\n"
             list.RemoveAt(list.Count - 1);
         }
@@ -261,11 +263,11 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void Find_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
-            T foundItem;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            T? foundItem;
+            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -301,11 +303,11 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLast_VerifyVanilla(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
-            T expectedItem = default(T);
-            T foundItem;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            List<T?> list = GenericListFactory(count)!;
+            List<T?> beforeList = list.ToList();
+            T? expectedItem = default(T);
+            T? foundItem;
+            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             for (int i = 0; i < count; ++i)
                 list.Add(beforeList[i]);
@@ -321,7 +323,7 @@ namespace System.Collections.Tests
 
             //[] Verify FindLast returns the last item if the match returns true on every item
             foundItem = list.FindLast(_alwaysTrueDelegate);
-            T expected = 0 < count ? beforeList[count - 1] : default(T);
+            T? expected = 0 < count ? beforeList[count - 1] : default(T);
             Assert.Equal(expected, foundItem); //"Err_548ahid Verify FindLast returns the last item if the match returns true on every item FAILED\n"
 
             //[] Verify FindLast returns default(T) if the match returns false on every item
@@ -330,7 +332,7 @@ namespace System.Collections.Tests
 
             //[] Verify with default(T)
             list.Add(default(T));
-            foundItem = list.FindLast((T item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
+            foundItem = list.FindLast((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
             Assert.Equal(default(T), foundItem); //"Err_541848ajodi Verify with default(T) FAILED\n"
             list.RemoveAt(list.Count - 1);
         }
@@ -339,11 +341,11 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLast_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
-            T foundItem;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            T? foundItem;
+            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -378,7 +380,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndex_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -411,7 +413,7 @@ namespace System.Collections.Tests
         {
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -444,7 +446,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexInt_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -497,7 +499,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexInt_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -542,7 +544,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexIntInt_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -620,7 +622,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexIntInt_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -665,7 +667,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndex_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -694,7 +696,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndex_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -729,7 +731,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexInt_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -781,7 +783,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexInt_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -826,7 +828,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexIntInt_VerifyVanilla(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -907,7 +909,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexIntInt_VerifyDuplicates(int count)
         {
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
             int index;
@@ -944,7 +946,7 @@ namespace System.Collections.Tests
         {
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             Predicate<T> EqualsDelegate = (value) => expectedItem == null ? value == null : expectedItem.Equals(value);
 
             //[] Verify FindAll returns the correct List with one item
@@ -970,7 +972,7 @@ namespace System.Collections.Tests
             for (int i = 0; i < count / 2; i++)
                 list.Add(list[i]);
             List<T> beforeList = list.ToList();
-            T expectedItem = default(T);
+            T? expectedItem = default(T);
             Predicate<T> EqualsDelegate = (value) => expectedItem == null ? value == null : expectedItem.Equals(value);
             //[] Verify FindAll returns the correct List with one item
             for (int i = 0; i < count; ++i)

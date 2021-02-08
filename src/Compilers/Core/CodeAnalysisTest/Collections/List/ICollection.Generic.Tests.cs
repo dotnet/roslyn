@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/ICollection.Generic.Tests.cs
@@ -7,17 +8,19 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the generic
     /// ICollection interface
     /// </summary>
     public abstract class ICollection_Generic_Tests<T> : IEnumerable_Generic_Tests<T>
+        where T : notnull
     {
         #region ICollection<T> Helper Methods
 
@@ -122,7 +125,7 @@ namespace System.Collections.Tests
         public void ICollection_Generic_IsReadOnly_Validity(int count)
         {
             ICollection<T> collection = GenericICollectionFactory(count);
-            Assert.Equal(IsReadOnly_ValidityValue , collection.IsReadOnly);
+            Assert.Equal(IsReadOnly_ValidityValue, collection.IsReadOnly);
         }
 
         #endregion
@@ -147,7 +150,7 @@ namespace System.Collections.Tests
         {
             if (DefaultValueAllowed && !IsReadOnly && !AddRemoveClear_ThrowsNotSupported)
             {
-                ICollection<T> collection = GenericICollectionFactory(count);
+                ICollection<T?> collection = GenericICollectionFactory(count)!;
                 collection.Add(default(T));
                 Assert.Equal(count + 1, collection.Count);
             }
@@ -371,7 +374,7 @@ namespace System.Collections.Tests
         {
             ICollection<T> collection = GenericICollectionFactory(count);
             if (DefaultValueAllowed)
-                Assert.False(collection.Contains(default(T)));
+                Assert.False(collection.Contains(default(T)!));
         }
 
         [Theory]
@@ -380,7 +383,7 @@ namespace System.Collections.Tests
         {
             if (DefaultValueAllowed && !IsReadOnly && !AddRemoveClear_ThrowsNotSupported)
             {
-                ICollection<T> collection = GenericICollectionFactory(count);
+                ICollection<T?> collection = GenericICollectionFactory(count)!;
                 collection.Add(default(T));
                 Assert.True(collection.Contains(default(T)));
             }
@@ -418,9 +421,9 @@ namespace System.Collections.Tests
             {
                 ICollection<T> collection = GenericICollectionFactory(count);
                 if (DefaultValueWhenNotAllowed_Throws)
-                    AssertExtensions.Throws<ArgumentNullException>("item", () => collection.Contains(default(T)));
+                    Assert.Throws<ArgumentNullException>("item", () => collection.Contains(default(T)!));
                 else
-                    Assert.False(collection.Contains(default(T)));
+                    Assert.False(collection.Contains(default(T)!));
             }
         }
 
@@ -433,7 +436,7 @@ namespace System.Collections.Tests
         public void ICollection_Generic_CopyTo_NullArray_ThrowsArgumentNullException(int count)
         {
             ICollection<T> collection = GenericICollectionFactory(count);
-            Assert.Throws<ArgumentNullException>(() => collection.CopyTo(null, 0));
+            Assert.Throws<ArgumentNullException>(() => collection.CopyTo(null!, 0));
         }
 
         [Theory]
@@ -521,8 +524,8 @@ namespace System.Collections.Tests
             if (!IsReadOnly && !AddRemoveClear_ThrowsNotSupported && DefaultValueAllowed && !Enumerable.Contains(InvalidValues, default(T)))
             {
                 int seed = count * 21;
-                ICollection<T> collection = GenericICollectionFactory(count);
-                T value = default(T);
+                ICollection<T?> collection = GenericICollectionFactory(count)!;
+                T? value = default(T);
                 while (collection.Contains(value))
                 {
                     collection.Remove(value);
@@ -556,8 +559,8 @@ namespace System.Collections.Tests
             if (!IsReadOnly && !AddRemoveClear_ThrowsNotSupported && DefaultValueAllowed && !Enumerable.Contains(InvalidValues, default(T)))
             {
                 int seed = count * 21;
-                ICollection<T> collection = GenericICollectionFactory(count);
-                T value = default(T);
+                ICollection<T?> collection = GenericICollectionFactory(count)!;
+                T? value = default(T);
                 if (!collection.Contains(value))
                 {
                     collection.Add(value);
@@ -640,9 +643,9 @@ namespace System.Collections.Tests
             {
                 ICollection<T> collection = GenericICollectionFactory(count);
                 if (DefaultValueWhenNotAllowed_Throws)
-                    Assert.Throws<ArgumentNullException>(() => collection.Remove(default(T)));
+                    Assert.Throws<ArgumentNullException>(() => collection.Remove(default(T)!));
                 else
-                    Assert.False(collection.Remove(default(T)));
+                    Assert.False(collection.Remove(default(T)!));
             }
         }
 

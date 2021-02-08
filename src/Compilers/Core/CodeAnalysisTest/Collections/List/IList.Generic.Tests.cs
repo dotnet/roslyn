@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/IList.Generic.Tests.cs
@@ -7,17 +8,19 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the generic
     /// IList interface
     /// </summary>
     public abstract class IList_Generic_Tests<T> : ICollection_Generic_Tests<T>
+        where T : notnull
     {
         #region IList<T> Helper Methods
 
@@ -198,12 +201,12 @@ namespace System.Collections.Tests
                 IList<T> list = GenericIListFactory(count);
                 if (DefaultValueAllowed)
                 {
-                    list[0] = default(T);
+                    list[0] = default(T)!;
                     Assert.Equal(default(T), list[0]);
                 }
                 else
                 {
-                    Assert.Throws<ArgumentNullException>(() => list[0] = default(T));
+                    Assert.Throws<ArgumentNullException>(() => list[0] = default(T)!);
                     Assert.NotEqual(default(T), list[0]);
                 }
             }
@@ -233,12 +236,12 @@ namespace System.Collections.Tests
                 int lastIndex = count > 0 ? count - 1 : 0;
                 if (DefaultValueAllowed)
                 {
-                    list[lastIndex] = default(T);
+                    list[lastIndex] = default(T)!;
                     Assert.Equal(default(T), list[lastIndex]);
                 }
                 else
                 {
-                    Assert.Throws<ArgumentNullException>(() => list[lastIndex] = default(T));
+                    Assert.Throws<ArgumentNullException>(() => list[lastIndex] = default(T)!);
                     Assert.NotEqual(default(T), list[lastIndex]);
                 }
             }
@@ -263,7 +266,7 @@ namespace System.Collections.Tests
         [MemberData(nameof(ValidCollectionSizes))]
         public void IList_Generic_ItemSet_InvalidValue(int count)
         {
-            if (count > 0&& !IsReadOnly)
+            if (count > 0 && !IsReadOnly)
             {
                 Assert.All(InvalidValues, value =>
                 {
@@ -283,8 +286,8 @@ namespace System.Collections.Tests
         {
             if (DefaultValueAllowed)
             {
-                IList<T> list = GenericIListFactory(count);
-                T value = default(T);
+                IList<T?> list = GenericIListFactory(count)!;
+                T? value = default(T);
                 if (list.Contains(value))
                 {
                     if (IsReadOnly)
@@ -296,7 +299,7 @@ namespace System.Collections.Tests
             else
             {
                 IList<T> list = GenericIListFactory(count);
-                Assert.Throws<ArgumentNullException>(() => list.IndexOf(default(T)));
+                Assert.Throws<ArgumentNullException>(() => list.IndexOf(default(T)!));
             }
         }
 
@@ -306,8 +309,8 @@ namespace System.Collections.Tests
         {
             if (count > 0 && DefaultValueAllowed)
             {
-                IList<T> list = GenericIListFactory(count);
-                T value = default(T);
+                IList<T?> list = GenericIListFactory(count)!;
+                T? value = default(T);
                 if (!list.Contains(value))
                 {
                     if (IsReadOnly)
@@ -452,8 +455,8 @@ namespace System.Collections.Tests
         {
             if (!IsReadOnly && !AddRemoveClear_ThrowsNotSupported && DefaultValueAllowed)
             {
-                IList<T> list = GenericIListFactory(count);
-                T value = default(T);
+                IList<T?> list = GenericIListFactory(count)!;
+                T? value = default(T);
                 list.Insert(0, value);
                 Assert.Equal(value, list[0]);
                 Assert.Equal(count + 1, list.Count);
@@ -481,8 +484,8 @@ namespace System.Collections.Tests
         {
             if (!IsReadOnly && !AddRemoveClear_ThrowsNotSupported && DefaultValueAllowed)
             {
-                IList<T> list = GenericIListFactory(count);
-                T value = default(T);
+                IList<T?> list = GenericIListFactory(count)!;
+                T? value = default(T);
                 int lastIndex = count > 0 ? count - 1 : 0;
                 list.Insert(lastIndex, value);
                 Assert.Equal(value, list[lastIndex]);
@@ -619,7 +622,7 @@ namespace System.Collections.Tests
                 {
                     while (enumerator.MoveNext()) ; // Go to end of enumerator
 
-                    T current = default(T);
+                    T? current = default(T);
                     if (Enumerator_Current_UndefinedOperation_Throws)
                     {
                         Assert.Throws<InvalidOperationException>(() => enumerator.Current); // enumerator.Current should fail

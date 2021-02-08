@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/ICollection.NonGeneric.Tests.cs
@@ -7,11 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the nongeneric
@@ -43,7 +46,7 @@ namespace System.Collections.Tests
         protected virtual bool IsReadOnly => false;
         protected virtual bool NullAllowed => true;
         protected virtual bool ExpectedIsSynchronized => false;
-        protected virtual IEnumerable<object> InvalidValues => new object[0];
+        protected virtual IEnumerable<object?> InvalidValues => new object?[0];
 
         protected abstract void AddToCollection(ICollection collection, int numberOfItemsToAdd);
 
@@ -173,7 +176,7 @@ namespace System.Collections.Tests
         public void ICollection_NonGeneric_CopyTo_NullArray_ThrowsArgumentNullException(int count)
         {
             ICollection collection = NonGenericICollectionFactory(count);
-            Assert.Throws<ArgumentNullException>(() => collection.CopyTo(null, 0));
+            Assert.Throws<ArgumentNullException>(() => collection.CopyTo(null!, 0));
         }
 
         [Theory]
@@ -189,8 +192,7 @@ namespace System.Collections.Tests
             }
         }
 
-#pragma warning disable xUnit1013 // xunit analyzer bug https://github.com/xunit/xunit/issues/1973
-        [ConditionalTheory(typeof(PlatformDetection), nameof(PlatformDetection.IsNonZeroLowerBoundArraySupported))]
+        [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public virtual void ICollection_NonGeneric_CopyTo_NonZeroLowerBound(int count)
         {
@@ -200,7 +202,6 @@ namespace System.Collections.Tests
             Assert.Equal(2, arr.GetLowerBound(0));
             Assert.Throws(ICollection_NonGeneric_CopyTo_NonZeroLowerBound_ThrowType, () => collection.CopyTo(arr, 0));
         }
-#pragma warning restore xUnit1013
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]

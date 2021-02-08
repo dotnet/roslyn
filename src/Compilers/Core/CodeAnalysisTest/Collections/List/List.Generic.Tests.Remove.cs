@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Remove.cs
@@ -7,11 +8,12 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
@@ -49,7 +51,7 @@ namespace System.Collections.Tests
         {
             List<T> list = GenericListFactory(count);
             List<T> beforeList = list.ToList();
-            Predicate<T> EqualsDefaultElement = (value) => { return default(T) == null ? value == null : default(T).Equals(value); };
+            Predicate<T> EqualsDefaultElement = (value) => { return default(T) == null ? value == null : default(T)!.Equals(value); };
             int expectedCount = beforeList.Count((value) => EqualsDefaultElement(value));
             int removedCount = list.RemoveAll(EqualsDefaultElement);
             Assert.Equal(expectedCount, removedCount);
@@ -58,7 +60,7 @@ namespace System.Collections.Tests
         [Fact]
         public void RemoveAll_NullMatchPredicate()
         {
-            AssertExtensions.Throws<ArgumentNullException>("match", () => new List<T>().RemoveAll(null));
+            Assert.Throws<ArgumentNullException>("match", () => new List<T>().RemoveAll(null!));
         }
 
         #endregion
@@ -121,7 +123,7 @@ namespace System.Collections.Tests
             Assert.All(InvalidParameters, invalidSet =>
             {
                 if (invalidSet.Item1 >= 0 && invalidSet.Item2 >= 0)
-                    AssertExtensions.Throws<ArgumentException>(null, () => list.RemoveRange(invalidSet.Item1, invalidSet.Item2));
+                    Assert.Throws<ArgumentException>(null, () => list.RemoveRange(invalidSet.Item1, invalidSet.Item2));
             });
         }
 

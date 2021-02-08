@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/IEnumerable.Generic.Tests.cs
@@ -7,19 +8,22 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the generic
     /// IEnumerable interface.
     /// </summary>
     public abstract partial class IEnumerable_Generic_Tests<T> : TestBase<T>
+        where T : notnull
     {
         #region IEnumerable<T> Helper Methods
 
@@ -138,7 +142,7 @@ namespace System.Collections.Tests
             }
             else
             {
-                object current = enumerator.Current;
+                object? current = enumerator.Current;
                 for (var i = 0; i < 3; i++)
                 {
                     Assert.Equal(expectedCurrent, current);
@@ -206,7 +210,7 @@ namespace System.Collections.Tests
                      iterations < count && enumerator.MoveNext();
                      iterations++)
                 {
-                    object currentItem = enumerator.Current;
+                    object? currentItem = enumerator.Current;
                     var itemFound = false;
                     for (var i = 0; i < itemsVisited.Length; ++i)
                     {
@@ -228,7 +232,7 @@ namespace System.Collections.Tests
 
                     for (var i = 0; i < 3; i++)
                     {
-                        object tempItem = enumerator.Current;
+                        object? tempItem = enumerator.Current;
                         Assert.Equal(currentItem, tempItem);
                     }
                 }
@@ -258,11 +262,11 @@ namespace System.Collections.Tests
                      iterations < count && enumerator.MoveNext();
                      iterations++)
                 {
-                    object currentItem = enumerator.Current;
+                    object? currentItem = enumerator.Current;
                     Assert.Equal(expectedItems[iterations], currentItem);
                     for (var i = 0; i < 3; i++)
                     {
-                        object tempItem = enumerator.Current;
+                        object? tempItem = enumerator.Current;
                         Assert.Equal(currentItem, tempItem);
                     }
                 }

@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Misc.cs
@@ -7,11 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
@@ -20,11 +23,11 @@ namespace System.Collections.Tests
     {
         internal class Driver<T>
         {
-            public Func<T[], IEnumerable<T>>[] CollectionGenerators { get; }
+            public Func<T?[], IEnumerable<T?>>[] CollectionGenerators { get; }
 
             public Driver()
             {
-                CollectionGenerators = new Func<T[], IEnumerable<T>>[]
+                CollectionGenerators = new Func<T?[], IEnumerable<T?>>[]
                 {
                     ConstructTestList,
                     ConstructTestEnumerable,
@@ -34,9 +37,9 @@ namespace System.Collections.Tests
 
             #region Insert
 
-            public void BasicInsert(T[] items, T item, int index, int repeat)
+            public void BasicInsert(T?[] items, T? item, int index, int repeat)
             {
-                List<T> list = new List<T>(items);
+                List<T?> list = new List<T?>(items);
 
                 for (int i = 0; i < repeat; i++)
                 {
@@ -74,9 +77,9 @@ namespace System.Collections.Tests
                 }
             }
 
-            public void NonGenericIListBasicInsert(T[] items, T item, int index, int repeat)
+            public void NonGenericIListBasicInsert(T?[] items, T? item, int index, int repeat)
             {
-                List<T> list = new List<T>(items);
+                List<T?> list = new List<T?>(items);
                 IList _ilist = list;
 
                 for (int i = 0; i < repeat; i++)
@@ -94,7 +97,7 @@ namespace System.Collections.Tests
 
                 for (int i = index; i < index + repeat; i++)
                 {
-                    Assert.Equal((object)list[i], item); //"Expected them to be equal."
+                    Assert.Equal((object?)list[i], item); //"Expected them to be equal."
                 }
 
 
@@ -114,23 +117,23 @@ namespace System.Collections.Tests
                     Assert.Throws<ArgumentOutOfRangeException>(() => _ilist.Insert(bad[i], items[0])); //"ArgumentOutOfRangeException expected."
                 }
 
-                AssertExtensions.Throws<ArgumentException>("value", () => _ilist.Insert(0, new LinkedListNode<string>("blargh"))); //"ArgumentException expected."
+                Assert.Throws<ArgumentException>("value", () => _ilist.Insert(0, new LinkedListNode<string>("blargh"))); //"ArgumentException expected."
             }
 
             #endregion
 
             #region InsertRange
 
-            public void InsertRangeIEnumerable(T[] itemsX, T[] itemsY, int index, int repeat, Func<T[], IEnumerable<T>> constructIEnumerable)
+            public void InsertRangeIEnumerable(T?[] itemsX, T?[] itemsY, int index, int repeat, Func<T?[], IEnumerable<T?>> constructIEnumerable)
             {
-                List<T> list = new List<T>(constructIEnumerable(itemsX));
+                List<T?> list = new List<T?>(constructIEnumerable(itemsX));
 
                 for (int i = 0; i < repeat; i++)
                 {
                     list.InsertRange(index, constructIEnumerable(itemsY));
                 }
 
-                foreach (T item in itemsY)
+                foreach (T? item in itemsY)
                 {
                     Assert.True(list.Contains(item)); //"Should contain the item."
                 }
@@ -152,10 +155,10 @@ namespace System.Collections.Tests
                 }
 
                 //InsertRange into itself
-                list = new List<T>(constructIEnumerable(itemsX));
+                list = new List<T?>(constructIEnumerable(itemsX));
                 list.InsertRange(index, list);
 
-                foreach (T item in itemsX)
+                foreach (T? item in itemsX)
                 {
                     Assert.True(list.Contains(item)); //"Should contain the item."
                 }
@@ -177,30 +180,30 @@ namespace System.Collections.Tests
                 }
             }
 
-            public void InsertRangeValidations(T[] items, Func<T[], IEnumerable<T>> constructIEnumerable)
+            public void InsertRangeValidations(T?[] items, Func<T?[], IEnumerable<T?>> constructIEnumerable)
             {
-                List<T> list = new List<T>(constructIEnumerable(items));
+                List<T?> list = new List<T?>(constructIEnumerable(items));
                 int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
                 for (int i = 0; i < bad.Length; i++)
                 {
                     Assert.Throws<ArgumentOutOfRangeException>(() => list.InsertRange(bad[i], constructIEnumerable(items))); //"ArgumentOutOfRangeException expected"
                 }
 
-                Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, null)); //"ArgumentNullException expected."
+                Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, null!)); //"ArgumentNullException expected."
             }
 
-            public IEnumerable<T> ConstructTestEnumerable(T[] items)
+            public IEnumerable<T?> ConstructTestEnumerable(T?[] items)
             {
                 return items;
             }
 
-            public IEnumerable<T> ConstructLazyTestEnumerable(T[] items)
+            public IEnumerable<T?> ConstructLazyTestEnumerable(T?[] items)
             {
                 return ConstructTestEnumerable(items)
                     .Select(item => item);
             }
 
-            public IEnumerable<T> ConstructTestList(T[] items)
+            public IEnumerable<T?> ConstructTestList(T?[] items)
             {
                 return items.ToList();
             }
@@ -283,7 +286,7 @@ namespace System.Collections.Tests
 
                 for (int i = 0; i < bad.Length; i++)
                 {
-                    AssertExtensions.Throws<ArgumentException>(null, () => list.GetRange(bad[i], bad[++i])); //"ArgumentException expected."
+                    Assert.Throws<ArgumentException>(null, () => list.GetRange(bad[i], bad[++i])); //"ArgumentException expected."
                 }
 
                 bad = new int[] {
@@ -328,14 +331,14 @@ namespace System.Collections.Tests
                     list.Add(items[i]);
 
                 //[] Verify Null match
-                Assert.Throws<ArgumentNullException>(() => list.Exists(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+                Assert.Throws<ArgumentNullException>(() => list.Exists(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
             }
 
             private void Exists_VerifyVanilla(T[] items)
             {
-                T expectedItem = default(T);
-                List<T> list = new List<T>();
-                Predicate<T> expectedItemDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+                T? expectedItem = default(T);
+                List<T?> list = new List<T?>();
+                Predicate<T?> expectedItemDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 
                 for (int i = 0; i < items.Length; ++i)
@@ -351,23 +354,23 @@ namespace System.Collections.Tests
                 }
 
                 //[] Verify Exists returns true if the match returns true on every item
-                Assert.True((0 < items.Length) == list.Exists((T item) => { return true; }),
+                Assert.True((0 < items.Length) == list.Exists((T? item) => { return true; }),
                         "Err_548ahid Verify Exists returns 0 if the match returns true on every item FAILED\n");
 
                 //[] Verify Exists returns false if the match returns false on every item
-                Assert.True(!list.Exists((T item) => { return false; }),
+                Assert.True(!list.Exists((T? item) => { return false; }),
                         "Err_30848ahidi Verify Exists returns -1 if the match returns false on every item FAILED\n");
 
                 //[] Verify with default(T)
                 list.Add(default(T));
-                Assert.True(list.Exists((T item) => { return item == null ? default(T) == null : item.Equals(default(T)); }),
+                Assert.True(list.Exists((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); }),
                         "Err_541848ajodi Verify with default(T) FAILED\n");
                 list.RemoveAt(list.Count - 1);
             }
 
             private void Exists_VerifyDuplicates(T[] items)
             {
-                T expectedItem = default(T);
+                T? expectedItem = default(T);
                 List<T> list = new List<T>();
                 Predicate<T> expectedItemDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -460,14 +463,14 @@ namespace System.Collections.Tests
                 }
                 Assert.False(list.Contains(items[items.Length / 2])); //"Should not contain item"
             }
-            public void ContainsNullWhenReference(T[] items, T value)
+            public void ContainsNullWhenReference(T?[] items, T? value)
             {
-                if ((object)value != null)
+                if ((object?)value != null)
                 {
                     throw new ArgumentException("invalid argument passed to testcase");
                 }
 
-                List<T> list = new List<T>(items);
+                List<T?> list = new List<T?>(items);
                 list.Add(value);
                 Assert.True(list.Contains(value)); //"Should contain item."
             }
@@ -536,14 +539,14 @@ namespace System.Collections.Tests
                 Assert.False(_ilist.Contains(items[items.Length / 2])); //"Should not contain item"
             }
 
-            public void NonGenericIListContainsNullWhenReference(T[] items, T value)
+            public void NonGenericIListContainsNullWhenReference(T?[] items, T? value)
             {
-                if ((object)value != null)
+                if ((object?)value != null)
                 {
                     throw new ArgumentException("invalid argument passed to testcase");
                 }
 
-                List<T> list = new List<T>(items);
+                List<T?> list = new List<T?>(items);
                 IList _ilist = list;
                 list.Add(value);
                 Assert.True(_ilist.Contains(value)); //"Should contain item."
@@ -640,7 +643,7 @@ namespace System.Collections.Tests
 
             public void TrueForAll_VerifyVanilla(T[] items)
             {
-                T expectedItem = default(T);
+                T? expectedItem = default(T);
                 List<T> list = new List<T>();
                 Predicate<T> expectedItemDelegate = delegate (T item) { return expectedItem == null ? item != null : !expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
@@ -668,7 +671,7 @@ namespace System.Collections.Tests
             {
                 var list = new List<T>(items);
                 Assert.True(list.TrueForAll(item => true));
-                Assert.Throws<ArgumentNullException>(() => list.TrueForAll(null)); //"Err_858ahia Expected null match to throw ArgumentNullException"
+                Assert.Throws<ArgumentNullException>(() => list.TrueForAll(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
             }
 
             #endregion
@@ -683,7 +686,7 @@ namespace System.Collections.Tests
 
                 for (int i = 0; i < items.Length; i++)
                 {
-                    Assert.Equal(((object)arr[i]), items[i]); //"Should be equal."
+                    Assert.Equal(((object?)arr[i]), items[i]); //"Should be equal."
                 }
             }
 
@@ -692,10 +695,10 @@ namespace System.Collections.Tests
                 List<T> list = new List<T>(items);
                 T[] arr = list.ToArray();
                 list[0] = item;
-                if (((object)arr[0]) == null)
+                if (((object?)arr[0]) == null)
                     Assert.NotNull(list[0]); //"Should NOT be null"
                 else
-                    Assert.NotEqual(((object)arr[0]), list[0]); //"Should NOT be equal."
+                    Assert.NotEqual(((object?)arr[0]), list[0]); //"Should NOT be equal."
             }
 
             #endregion
@@ -743,18 +746,18 @@ namespace System.Collections.Tests
             StringDriver.BasicInsert(stringArr1, "strobia", 1, 5);
             StringDriver.BasicInsert(stringArr1, "strobia", 50, 51);
             StringDriver.BasicInsert(stringArr1, "strobia", 0, 100);
-            StringDriver.BasicInsert(new string[] { null, null, null, "strobia", null }, null, 2, 3);
-            StringDriver.BasicInsert(new string[] { null, null, null, null, null }, "strobia", 0, 5);
-            StringDriver.BasicInsert(new string[] { null, null, null, null, null }, "strobia", 5, 1);
+            StringDriver.BasicInsert(new string?[] { null, null, null, "strobia", null }, null, 2, 3);
+            StringDriver.BasicInsert(new string?[] { null, null, null, null, null }, "strobia", 0, 5);
+            StringDriver.BasicInsert(new string?[] { null, null, null, null, null }, "strobia", 5, 1);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 99, 2);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 100, 3);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 0, 4);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 1, 5);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 50, 51);
             StringDriver.NonGenericIListBasicInsert(stringArr1, "strobia", 0, 100);
-            StringDriver.NonGenericIListBasicInsert(new string[] { null, null, null, "strobia", null }, null, 2, 3);
-            StringDriver.NonGenericIListBasicInsert(new string[] { null, null, null, null, null }, "strobia", 0, 5);
-            StringDriver.NonGenericIListBasicInsert(new string[] { null, null, null, null, null }, "strobia", 5, 1);
+            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, "strobia", null }, null, 2, 3);
+            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, null, null }, "strobia", 0, 5);
+            StringDriver.NonGenericIListBasicInsert(new string?[] { null, null, null, null, null }, "strobia", 5, 1);
         }
 
         [Fact]
@@ -807,7 +810,7 @@ namespace System.Collections.Tests
             for (int i = 0; i < 10; i++)
                 stringArr2[i] = "SomeTestString" + (i + 100).ToString();
 
-            foreach (Func<string[], IEnumerable<string>> collectionGenerator in StringDriver.CollectionGenerators)
+            foreach (Func<string?[], IEnumerable<string?>> collectionGenerator in StringDriver.CollectionGenerators)
             {
                 StringDriver.InsertRangeIEnumerable(new string[0], stringArr1, 0, 1, collectionGenerator);
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 0, 1, collectionGenerator);
@@ -815,10 +818,10 @@ namespace System.Collections.Tests
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 99, 1, collectionGenerator);
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 100, 1, collectionGenerator);
                 StringDriver.InsertRangeIEnumerable(stringArr1, stringArr2, 50, 50, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string[] { null, null, null, null }, stringArr2, 0, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string[] { null, null, null, null }, stringArr2, 4, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string[] { null, null, null, null }, new string[] { null, null, null, null }, 0, 1, collectionGenerator);
-                StringDriver.InsertRangeIEnumerable(new string[] { null, null, null, null }, new string[] { null, null, null, null }, 4, 50, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, stringArr2, 0, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, stringArr2, 4, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, new string?[] { null, null, null, null }, 0, 1, collectionGenerator);
+                StringDriver.InsertRangeIEnumerable(new string?[] { null, null, null, null }, new string?[] { null, null, null, null }, 4, 50, collectionGenerator);
             }
         }
 

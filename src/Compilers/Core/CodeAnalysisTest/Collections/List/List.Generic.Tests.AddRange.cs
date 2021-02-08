@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.AddRange.cs
@@ -7,11 +8,12 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
@@ -48,14 +50,14 @@ namespace System.Collections.Tests
         {
             List<T> list = GenericListFactory(count);
             List<T> listBeforeAdd = list.ToList();
-            Assert.Throws<ArgumentNullException>(() => list.AddRange(null));
+            Assert.Throws<ArgumentNullException>(() => list.AddRange(null!));
             Assert.Equal(listBeforeAdd, list);
         }
 
         [Fact]
         public void AddRange_AddSelfAsEnumerable_ThrowsExceptionWhenNotEmpty()
         {
-            List<T> list = GenericListFactory(0);
+            List<T?> list = GenericListFactory(0)!;
 
             // Succeeds when list is empty.
             list.AddRange(list);

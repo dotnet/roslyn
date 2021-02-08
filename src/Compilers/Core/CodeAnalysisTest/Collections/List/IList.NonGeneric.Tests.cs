@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/IList.NonGeneric.Tests.cs
@@ -7,11 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the nongeneric
@@ -232,7 +235,7 @@ namespace System.Collections.Tests
         public void IList_NonGeneric_ItemGet_ValidGetWithinListBounds(int count)
         {
             IList list = NonGenericIListFactory(count);
-            object result;
+            object? result;
             Assert.All(Enumerable.Range(0, count), index => result = list[index]);
         }
 
@@ -300,7 +303,7 @@ namespace System.Collections.Tests
             if (count > 0 && !IsReadOnly && NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 list[0] = value;
                 Assert.Equal(value, list[0]);
             }
@@ -327,7 +330,7 @@ namespace System.Collections.Tests
             if (count > 0 && !IsReadOnly && NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 int lastIndex = count > 0 ? count - 1 : 0;
                 list[lastIndex] = value;
                 Assert.Equal(value, list[lastIndex]);
@@ -629,7 +632,7 @@ namespace System.Collections.Tests
             if (NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 if (list.Contains(value))
                 {
                     if (IsReadOnly || ExpectedFixedSize)
@@ -647,7 +650,7 @@ namespace System.Collections.Tests
             if (count > 0 && NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 if (!list.Contains(value))
                 {
                     if (IsReadOnly || ExpectedFixedSize)
@@ -787,7 +790,7 @@ namespace System.Collections.Tests
             if (!IsReadOnly && !ExpectedFixedSize && NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 list.Insert(0, value);
                 Assert.Equal(value, list[0]);
                 Assert.Equal(count + 1, list.Count);
@@ -816,7 +819,7 @@ namespace System.Collections.Tests
             if (!IsReadOnly && !ExpectedFixedSize && NullAllowed)
             {
                 IList list = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 int lastIndex = count > 0 ? count - 1 : 0;
                 list.Insert(lastIndex, value);
                 Assert.Equal(value, list[lastIndex]);
@@ -877,7 +880,7 @@ namespace System.Collections.Tests
             {
                 int seed = count * 21;
                 IList collection = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 while (collection.Contains(value))
                 {
                     collection.Remove(value);
@@ -920,7 +923,7 @@ namespace System.Collections.Tests
             {
                 int seed = count * 21;
                 IList collection = NonGenericIListFactory(count);
-                object value = null;
+                object? value = null;
                 if (!collection.Contains(value))
                 {
                     collection.Add(value);

@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/TestBase.Generic.cs
@@ -7,12 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Provides a base set of generic operations that are used by all other generic testing interfaces.
@@ -37,6 +39,7 @@ namespace System.Collections.Tests
         /// <summary>
         /// The Comparer that can be used in the overriding class when creating test enumerables
         /// or test collections. Default if not overridden is the default comparator.
+        /// </summary>
         protected virtual IComparer<T> GetIComparer() => Comparer<T>.Default;
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace System.Collections.Tests
         /// to it until it is full. It will begin by adding the desired number of matching and duplicate elements,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateEnumerable(EnumerableType type, IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
+        protected IEnumerable<T> CreateEnumerable(EnumerableType type, IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
             Debug.Assert(count >= numberOfMatchingElements);
             Debug.Assert(count >= numberOfDuplicateElements);
@@ -120,12 +123,12 @@ namespace System.Collections.Tests
         /// to it until it is full. It will begin by adding the desired number of matching,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateQueue(IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
+        protected IEnumerable<T> CreateQueue(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
             Queue<T> queue = new Queue<T>(count);
             int seed = 528;
             int duplicateAdded = 0;
-            List<T> match = null;
+            List<T>? match = null;
 
             // Enqueue Matching elements
             if (enumerableToMatchTo != null)
@@ -169,12 +172,12 @@ namespace System.Collections.Tests
         /// to it until it is full. It will begin by adding the desired number of matching,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateList(IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
+        protected IEnumerable<T> CreateList(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
             List<T> list = new List<T>(count);
             int seed = 528;
             int duplicateAdded = 0;
-            List<T> match = null;
+            List<T>? match = null;
 
             // Add Matching elements
             if (enumerableToMatchTo != null)
@@ -218,11 +221,11 @@ namespace System.Collections.Tests
         /// to it until it is full. It will begin by adding the desired number of matching,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateHashSet(IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements)
+        protected IEnumerable<T> CreateHashSet(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements)
         {
             HashSet<T> set = new HashSet<T>(GetIEqualityComparer());
             int seed = 528;
-            List<T> match = null;
+            List<T>? match = null;
 
             // Add Matching elements
             if (enumerableToMatchTo != null)
@@ -260,11 +263,11 @@ namespace System.Collections.Tests
         /// to it until it is full. It will begin by adding the desired number of matching,
         /// followed by random (deterministic) elements until the desired count is reached.
         /// </summary>
-        protected IEnumerable<T> CreateSortedSet(IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements)
+        protected IEnumerable<T> CreateSortedSet(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements)
         {
             SortedSet<T> set = new SortedSet<T>(GetIComparer());
             int seed = 528;
-            List<T> match = null;
+            List<T>? match = null;
 
             // Add Matching elements
             if (enumerableToMatchTo != null)
@@ -296,7 +299,7 @@ namespace System.Collections.Tests
             return set;
         }
 
-        protected IEnumerable<T> CreateLazyEnumerable(IEnumerable<T> enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
+        protected IEnumerable<T> CreateLazyEnumerable(IEnumerable<T>? enumerableToMatchTo, int count, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
             IEnumerable<T> list = CreateList(enumerableToMatchTo, count, numberOfMatchingElements, numberOfDuplicateElements);
             return list.Select(item => item);
