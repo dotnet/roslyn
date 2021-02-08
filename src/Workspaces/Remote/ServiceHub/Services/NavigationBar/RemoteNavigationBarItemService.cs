@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(
+        public ValueTask<ImmutableArray<SerializableNavigationBarItem>> GetItemsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, bool supportsCodeGeneration, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var navigationBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                 var result = await navigationBarService.GetItemsAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
 
-                return result;
+                return SerializableNavigationBarItem.Dehydrate(result);
             }, cancellationToken);
         }
     }

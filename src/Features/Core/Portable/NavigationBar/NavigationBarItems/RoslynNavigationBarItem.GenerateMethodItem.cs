@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             {
                 MethodToReplicateSymbolKey = methodToReplicateSymbolId;
             }
+
+            protected internal override SerializableNavigationBarItem Dehydrate()
+                => SerializableNavigationBarItem.GenerateMethod(Text, Glyph, DestinationTypeSymbolKey, MethodToReplicateSymbolKey);
         }
     }
 }

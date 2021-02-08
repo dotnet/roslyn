@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         }
 
         public override VirtualTreePoint? GetSymbolItemNavigationPoint(
-            Document document, RoslynNavigationBarItem item, CancellationToken cancellationToken)
+            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
             var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId!.Value.Resolve(compilation, cancellationToken: cancellationToken);
+            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
 
             var symbol = symbols.Symbol;
 
@@ -63,6 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         }
 
         protected override void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, item.UnderlyingItem, cancellationToken);
+            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
     }
 }

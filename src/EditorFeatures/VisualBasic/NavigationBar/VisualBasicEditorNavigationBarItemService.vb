@@ -37,10 +37,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return DirectCast(DirectCast(item, WrappedNavigationBarItem).UnderlyingItem, CodeAnalysis.NavigationBar.RoslynNavigationBarItem).Kind = CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.Symbol
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As RoslynNavigationBarItem, cancellationToken As CancellationToken) As VirtualTreePoint?
+        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
             Contract.ThrowIfFalse(item.Kind = RoslynNavigationBarItemKind.Symbol)
             Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim symbols = item.NavigationSymbolId.Value.Resolve(compilation, cancellationToken:=cancellationToken)
+            Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
             Dim symbol = symbols.Symbol
 
             If symbol Is Nothing Then
@@ -82,14 +82,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Protected Overrides Sub NavigateToItem(document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
             Dim underlying = item.UnderlyingItem
 
-            If underlying.Kind = RoslynNavigationBarItemKind.GenerateDefaultConstructor OrElse
-               underlying.Kind = RoslynNavigationBarItemKind.GenerateEventHandler OrElse
-               underlying.Kind = RoslynNavigationBarItemKind.GenerateFinalizer OrElse
-               underlying.Kind = RoslynNavigationBarItemKind.GenerateMethod Then
-
-                GenerateCodeForItem(document, underlying, textView, cancellationToken)
-            ElseIf item.UnderlyingItem.Kind = RoslynNavigationBarItemKind.Symbol Then
-                NavigateToSymbolItem(document, underlying, cancellationToken)
+            Dim generateCodeItem = TryCast(underlying, AbstractGenerateCodeItem)
+            Dim symbolItem = TryCast(underlying, SymbolItem)
+            If generateCodeItem IsNot Nothing Then
+                GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
+            ElseIf symbolItem IsNot Nothing Then
+                NavigateToSymbolItem(document, symbolItem, cancellationToken)
             End If
         End Sub
     End Class

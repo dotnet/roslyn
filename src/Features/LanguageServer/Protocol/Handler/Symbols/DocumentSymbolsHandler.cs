@@ -190,10 +190,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private static Location GetLocation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            if (item is not WrappedNavigationBarItem { UnderlyingItem: { Kind: RoslynNavigationBarItemKind.Symbol } symbolItem })
+            if (item is not WrappedNavigationBarItem { UnderlyingItem: RoslynNavigationBarItem.SymbolItem symbolItem })
                 return null;
 
-            var symbols = symbolItem.NavigationSymbolId.Value.Resolve(compilation, cancellationToken: cancellationToken);
+            var symbols = symbolItem.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
             var symbol = symbols.Symbol;
 
             if (symbol == null)

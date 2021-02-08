@@ -148,13 +148,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Next
 
             ' Ensure all the actual items that have navigation are distinct
-            Dim navigableItems = actualItems.OfType(Of RoslynNavigationBarItem).ToList()
+            Dim navigableItems = actualItems.Cast(Of RoslynNavigationBarItem.SymbolItem).ToList()
 
             Assert.True(navigableItems.Count() = navigableItems.Distinct(New NavigationBarItemNavigationSymbolComparer(isCaseSensitive)).Count(), "The items were not unique by SymbolID and index.")
         End Sub
 
         Private Class NavigationBarItemNavigationSymbolComparer
-            Implements IEqualityComparer(Of RoslynNavigationBarItem)
+            Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem)
 
             Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
 
@@ -162,12 +162,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
             End Sub
 
-            Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem, y As RoslynNavigationBarItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem).Equals
-                Return _symbolIdComparer.Equals(x.NavigationSymbolId.Value, y.NavigationSymbolId.Value) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
+            Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem.SymbolItem, y As RoslynNavigationBarItem.SymbolItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).Equals
+                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
             End Function
 
-            Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem).GetHashCode
-                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId.Value) Xor obj.NavigationSymbolIndex.Value
+            Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem.SymbolItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).GetHashCode
+                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex
             End Function
         End Class
 
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Assert.Equal(expectedItem.Indent, actualItem.Indent)
             Assert.Equal(expectedItem.Grayed, actualItem.Grayed)
 
-            Dim underlyingItem = DirectCast(actualItem, WrappedNavigationBarItem).UnderlyingItem
+            Dim underlyingItem = DirectCast(DirectCast(actualItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem)
             If expectedItem.HasNavigationSymbolId Then
                 ' Assert.True(DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolId IsNot Nothing)
                 Assert.Equal(

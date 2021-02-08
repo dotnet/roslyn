@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 : base(RoslynNavigationBarItemKind.GenerateDefaultConstructor, text, Glyph.MethodPublic, destinationTypeSymbolKey)
             {
             }
+
+            protected internal override SerializableNavigationBarItem Dehydrate()
+                => SerializableNavigationBarItem.GenerateDefaultConstructor(Text, DestinationTypeSymbolKey);
         }
     }
 }

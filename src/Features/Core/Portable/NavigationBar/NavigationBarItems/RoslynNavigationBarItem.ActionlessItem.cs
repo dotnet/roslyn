@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 : base(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, spans)
             {
             }
+
+            protected internal override SerializableNavigationBarItem Dehydrate()
+                => SerializableNavigationBarItem.ActionlessItem(Text, Glyph, Spans, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
         }
     }
 }

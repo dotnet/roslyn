@@ -42,5 +42,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             Bolded = bolded;
             Grayed = grayed;
         }
+
+        protected internal abstract SerializableNavigationBarItem Dehydrate();
     }
 }

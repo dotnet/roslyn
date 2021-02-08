@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -107,6 +108,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 RoslynNavigationBarItemKind.Actionless => new RoslynNavigationBarItem.ActionlessItem(Text, Glyph, Spans, ChildItems.SelectAsArray(v => v.Rehydrate()), Indent, Bolded, Grayed),
                 _ => throw ExceptionUtilities.UnexpectedValue(this.Kind),
             };
+
+        public static ImmutableArray<SerializableNavigationBarItem> Dehydrate(ImmutableArray<RoslynNavigationBarItem> values)
+            => values.SelectAsArray(v => v.Dehydrate());
 
         public static SerializableNavigationBarItem ActionlessItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<SerializableNavigationBarItem> childItems = default, int indent = 0, bool bolded = false, bool grayed = false)
             => new(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, spans, null, null, null, null, null, null);
