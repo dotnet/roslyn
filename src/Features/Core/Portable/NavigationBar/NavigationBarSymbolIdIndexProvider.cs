@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     /// <summary>
     /// A little helper to produce indexes when producing NavigationBarItems when we have multiple

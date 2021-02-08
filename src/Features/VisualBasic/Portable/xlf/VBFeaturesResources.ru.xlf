@@ -112,6 +112,11 @@
         <target state="translated">Примечание. Завершение по нажатию клавиши ПРОБЕЛ отключено во избежание возникновения взаимных помех. Для вставки имени из списка используйте клавишу TAB.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;новое поле&gt;</target>

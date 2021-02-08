@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             {
                 MethodToReplicateSymbolKey = methodToReplicateSymbolId;
             }
+
+            protected internal override SerializableNavigationBarItem Dehydrate()
+                => SerializableNavigationBarItem.GenerateMethod(Text, Glyph, DestinationTypeSymbolKey, MethodToReplicateSymbolKey);
         }
     }
 }
