@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         void Initialize(AnalysisContext analysisContext, ArtifactContext artifactContext);
     }
 
-    public struct ArtifactContext
+    public readonly struct ArtifactContext
     {
         /// <summary>
         /// Callback the compiler can pass into us to actually generate artifacts.  This is safe to hold as a mutable
