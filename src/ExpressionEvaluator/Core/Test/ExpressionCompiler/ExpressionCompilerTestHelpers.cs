@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         comp.MessageProvider,
                         () => peStream,
                         () => pdbStream,
-                        null, null,
+                        null, null, null,
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,

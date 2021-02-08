@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,89 +13,61 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    /// <summary>
-    /// Roslyn specific implementation for looking for files
-    /// in the Roslyn repo
-    /// </summary>
+    internal record ResolvedSource(
+        string? OnDiskPath,
+        SourceText SourceText,
+        SourceFileInfo SourceFileInfo)
+    {
+        public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
+    }
+
     internal class LocalSourceResolver
     {
-        private readonly DirectoryInfo _baseDirectory;
+        private readonly Options _options;
         private readonly ILogger _logger;
 
-        public LocalSourceResolver(ILoggerFactory loggerFactory)
+        public LocalSourceResolver(Options options, ILoggerFactory loggerFactory)
         {
-            _baseDirectory = GetSourceDirectory();
+            _options = options;
             _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
-
-            _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
         }
 
-        public SourceText ResolveSource(SourceFileInfo sourceFileInfo, Encoding encoding)
+        public Task<ResolvedSource> ResolveSourceAsync(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
         {
-            var name = sourceFileInfo.SourceFilePath;
-            if (!File.Exists(name))
+            var pdbDocumentPath = sourceFileInfo.SourceFilePath;
+            if (sourceFileInfo.EmbeddedText is { } embeddedText)
             {
-                _logger.LogTrace($"{name} doesn't exist, adding base directory");
-                name = Path.Combine(_baseDirectory.FullName, name);
+                return Task.FromResult(new ResolvedSource(OnDiskPath: null, embeddedText, sourceFileInfo));
             }
-
-            if (File.Exists(name))
+            else
             {
-                using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
-                if (sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
+                string? onDiskPath = null;
+                foreach (var link in sourceLinks)
                 {
-                    return sourceText;
+                    if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
+                    {
+                        onDiskPath = Path.GetFullPath(Path.Combine(_options.SourcePath, pdbDocumentPath.Substring(link.Prefix.Length)));
+                        if (File.Exists(onDiskPath))
+                        {
+                            break;
+                        }
+                    }
                 }
 
-                throw new Exception($"File has incorrect hash {name}");
-            }
+                // if no source links exist to let us prefix the source path,
+                // then assume the file path in the pdb points to the on-disk location of the file.
+                onDiskPath ??= pdbDocumentPath;
 
-            throw new FileNotFoundException(name);
-        }
-
-        private static DirectoryInfo GetSourceDirectory()
-        {
-            bool useSimpleProgram = true;
-            if (useSimpleProgram)
-            {
-                return new DirectoryInfo(TestData.SourceDirectory);
-            }
-
-            var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
-            var srcDir = Directory.GetParent(assemblyLocation);
-
-            while (srcDir != null)
-            {
-                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
-                if (potentialDir is null)
+                using var fileStream = File.OpenRead(onDiskPath);
+                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
+                if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
                 {
-                    srcDir = srcDir.Parent;
+                    _logger.LogError($@"File ""{onDiskPath}"" has incorrect hash");
                 }
-                else
-                {
-                    srcDir = potentialDir;
-                    break;
-                }
+                return Task.FromResult(new ResolvedSource(onDiskPath, sourceText, sourceFileInfo));
             }
 
-            if (srcDir == null)
-            {
-                throw new Exception("Unable to find src directory");
-            }
-
-            return srcDir;
-
-            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
-            {
-                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
-                {
-                    // Check that src/compilers exists to be more accurate about getting the correct src directory
-                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
-                }
-
-                return false;
-            }
+            throw new FileNotFoundException(pdbDocumentPath);
         }
     }
 }

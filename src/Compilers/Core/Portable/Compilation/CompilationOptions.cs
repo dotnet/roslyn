@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Emit mode that favors debuggability. 
         /// </summary>
-        public bool DebugPlusMode { get; set; }
+        internal bool DebugPlusMode { get; set; }
 
         /// <summary>
         /// Specifies whether to import members with accessibility other than public or protected by default. 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
         // Expects correct arguments.
-        public CompilationOptions(
+        internal CompilationOptions(
             OutputKind outputKind,
             bool reportSuppressedDiagnostics,
             string? moduleName,

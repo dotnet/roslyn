@@ -29,7 +29,6 @@ namespace Microsoft.Cci
         public const string Nullable = "nullable";
         public const string Define = "define";
         public const string Strict = "strict";
-        public const string SourceFiles = "source-files";
         public const string SourceFileCount = "source-file-count";
     }
 }

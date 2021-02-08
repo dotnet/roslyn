@@ -38,10 +38,9 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(MetadataReader metadataReader, PEReader peReader, string name)
+        public Task<Compilation> CreateCompilationAsync(CompilationOptionsReader optionsReader, string name)
         {
-            var pdbReader = new CompilationOptionsReader(metadataReader, peReader);
-            var pdbCompilationOptions = pdbReader.GetMetadataCompilationOptions();
+            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             if (pdbCompilationOptions.Length == 0)
             {
@@ -52,8 +51,8 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilation(pdbReader, name),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(pdbReader, name),
+                    LanguageNames.CSharp => CreateCSharpCompilationAsync(optionsReader, name),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilationAsync(optionsReader, name),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
@@ -65,34 +64,38 @@ namespace BuildValidator
 
         private ImmutableArray<MetadataReferenceInfo> GetMetadataReferenceInfos(CompilationOptionsReader compilationOptionsReader)
         {
-            using var _ = _logger.BeginScope("Metadata References");
             var referenceInfos = compilationOptionsReader.GetMetadataReferences();
-            var count = 0;
-            foreach (var refInfo in referenceInfos)
-            {
-                count++;
-                if (count >= 10)
-                {
-                    _logger.LogInformation($"... {referenceInfos.Length - count} more");
-                    break;
-                }
-                _logger.LogInformation($"{refInfo.Name} - {refInfo.Mvid}");
-            }
-
             return referenceInfos;
         }
 
-        private IEnumerable<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader)
+        private ImmutableArray<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader, Encoding encoding)
         {
-            using var _ = _logger.BeginScope("Source Names");
-            var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos();
-            foreach (var sourceFileInfo in sourceFileInfos)
+            return compilationOptionsReader.GetSourceFileInfos(encoding);
+        }
+
+        private void LogResolvedMetadataReferences(ImmutableArray<MetadataReferenceInfo> infos, ImmutableArray<MetadataReference> references)
+        {
+            using var _ = _logger.BeginScope("Metadata References");
+            if (infos.Length != references.Length)
             {
-                var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                _logger.LogInformation($"{sourceFileInfo.SourceFileName} - {sourceFileInfo.HashAlgorithm} - {hash}");
+                throw new Exception($"{nameof(infos)} has length {infos.Length} but {nameof(references)} has length {references.Length}.");
             }
 
-            return sourceFileInfos;
+            for (var i = 0; i < infos.Length; i++)
+            {
+                _logger.LogInformation($@"""{references[i].Display}"" - {infos[i].Mvid}");
+            }
+        }
+
+        private void LogResolvedSources(ImmutableArray<ResolvedSource> resolvedSources)
+        {
+            using var _ = _logger.BeginScope("Source Names");
+            foreach (var resolvedSource in resolvedSources)
+            {
+                var sourceFileInfo = resolvedSource.SourceFileInfo;
+                var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
+            }
         }
 
         private ImmutableArray<MetadataReference> ResolveMetadataReferences(ImmutableArray<MetadataReferenceInfo> referenceInfos)
@@ -101,40 +104,66 @@ namespace BuildValidator
             return _referenceResolver.ResolveReferences(referenceInfos);
         }
 
-        private ImmutableArray<(string SourceFilePath, SourceText SourceText)> ResolveSources(IEnumerable<SourceFileInfo> sourceFileInfos, Encoding encoding)
+        private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
+        {
+            using var _ = _logger.BeginScope("Source Links");
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            if (sourceLinks.IsDefault)
+            {
+                _logger.LogWarning("No source links found in pdb");
+            }
+            else
+            {
+                foreach (var link in sourceLinks)
+                {
+                    _logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
+                }
+            }
+            return sourceLinks;
+        }
+
+        private async Task<ImmutableArray<ResolvedSource>> ResolveSourcesAsync(
+            ImmutableArray<SourceFileInfo> sourceFileInfos,
+            ImmutableArray<SourceLink> sourceLinks,
+            Encoding encoding)
         {
             _logger.LogInformation("Locating source files");
 
-            var builder = ImmutableArray.CreateBuilder<(string filename, SourceText sourceText)>();
-            foreach (var sourceFileInfo in sourceFileInfos)
+            var tasks = new Task<ResolvedSource>[sourceFileInfos.Length];
+            for (int i = 0; i < sourceFileInfos.Length; i++)
             {
-                var text = _sourceResolver.ResolveSource(sourceFileInfo, encoding);
-                builder.Add((sourceFileInfo.SourceFilePath, text));
+                var sourceFileInfo = sourceFileInfos[i];
+                tasks[i] = _sourceResolver.ResolveSourceAsync(sourceFileInfo, sourceLinks, encoding);
             }
+            var result = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return builder.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         #region CSharp
-        private Compilation CreateCSharpCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader);
             var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(compilationOptionsReader, assemblyName);
+            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
 
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            var sources = ResolveSources(sourceFileInfos, encoding);
+            LogResolvedMetadataReferences(metadataReferenceInfos, metadataReferences);
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding).ConfigureAwait(false);
+            LogResolvedSources(sources);
+
             return CSharpCompilation.Create(
                 assemblyName,
-                syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFilePath)).ToImmutableArray(),
+                syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }
 
-        private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader, string assemblyName)
+        private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)
         {
             using var scope = _logger.BeginScope("Options");
-            var pdbCompilationOptions = pdbReader.GetMetadataCompilationOptions();
+            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = GetUniqueOption("language-version");
             var optimization = GetUniqueOption("optimization");
@@ -168,13 +197,13 @@ namespace BuildValidator
                 : (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullable);
 
             var compilationOptions = new CSharpCompilationOptions(
-                pdbReader.GetOutputKind(),
+                optionsReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
 
                 // PROTOTYPE: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
                 // end with .dll but the inferred name will be .exe
                 moduleName: assemblyName + ".dll",
-                mainTypeName: pdbReader.GetMainTypeName(),
+                mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: null,
                 usings: null,
                 optimizationLevel,
@@ -182,20 +211,26 @@ namespace BuildValidator
                 !string.IsNullOrEmpty(unsafeString) && bool.Parse(unsafeString),
                 cryptoKeyContainer: null,
                 cryptoKeyFile: null,
-                cryptoPublicKey: default,
+                cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
                 Platform.AnyCpu,
+
+                // presence of diagnostics is expected to not affect emit.
                 ReportDiagnostic.Suppress,
                 warningLevel: 4,
                 specificDiagnosticOptions: null,
+
                 concurrentBuild: true,
                 deterministic: true,
+
                 xmlReferenceResolver: null,
                 sourceReferenceResolver: null,
                 metadataReferenceResolver: null,
+
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
                 publicSign: false,
+
                 metadataImportOptions: MetadataImportOptions.Public,
                 nullableContextOptions: nullableOptions);
             compilationOptions.DebugPlusMode = plus;
@@ -228,17 +263,19 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        private Compilation CreateVisualBasicCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        // TODO: can we just make "get compilation options" and "create the compilation" virtual and share the rest?
+        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader);
             var compilationOptions = CreateVisualBasicCompilationOptions(compilationOptionsReader);
+            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, Encoding.UTF8); // TODO: is this encoding right?
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            var sources = ResolveSources(sourceFileInfos, Encoding.UTF8);
+            var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
+            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, Encoding.UTF8).ConfigureAwait(false);
 
             return VisualBasicCompilation.Create(
                 assemblyName,
-                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.SourceFilePath)).ToImmutableArray(),
+                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.DisplayPath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }

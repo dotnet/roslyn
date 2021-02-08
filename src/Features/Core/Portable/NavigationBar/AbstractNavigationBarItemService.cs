@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                     (service, solutionInfo, cancellationToken) => service.GetItemsAsync(solutionInfo, document.Id, supportsCodeGeneration, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue
-                    ? result.Value.SelectAsArray(v => v.Rehydrate())
-                    : ImmutableArray<RoslynNavigationBarItem>.Empty;
+                if (result.HasValue)
+                    return result.Value.SelectAsArray(v => v.Rehydrate());
             }
 
             var items = await GetItemsInCurrentProcessAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);

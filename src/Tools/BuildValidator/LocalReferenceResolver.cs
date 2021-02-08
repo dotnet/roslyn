@@ -27,15 +27,15 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new HashSet<DirectoryInfo>();
         private readonly ILogger _logger;
 
-        public LocalReferenceResolver(ILoggerFactory loggerFactory)
+        public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            _indexDirectories.Add(GetArtifactsDirectory());
-            _indexDirectories.Add(GetNugetCacheDirectory());
             foreach (var directoryInfo in GetRefAssembliesDirectories())
             {
                 _indexDirectories.Add(directoryInfo);
             }
+            _indexDirectories.Add(new DirectoryInfo(options.AssembliesPath));
+            _indexDirectories.Add(GetNugetCacheDirectory());
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -144,30 +144,6 @@ namespace BuildValidator
                     return null;
                 }
             }
-        }
-
-        public static DirectoryInfo GetArtifactsDirectory()
-        {
-            bool useSimpleProject = true;
-            if (useSimpleProject)
-            {
-                return new DirectoryInfo(TestData.ArtifactsDirectory);
-            }
-
-            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            var binDir = Directory.GetParent(assemblyLocation);
-
-            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin", FileNameEqualityComparer.StringComparison))
-            {
-                binDir = binDir.Parent;
-            }
-
-            if (binDir == null)
-            {
-                throw new Exception();
-            }
-
-            return binDir;
         }
     }
 }
