@@ -437,6 +437,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
+
                     words = newWords;
                 }
             }

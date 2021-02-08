@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_using_directives_on_paste">
         <source>Add missing using directives on paste</source>
-        <target state="new">Add missing using directives on paste</target>
+        <target state="translated">Adicionar as diretivas using ausentes ao colar</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -86,6 +86,11 @@
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">Executar limpeza de código adicional durante a formatação</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -265,11 +270,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Colocar chave de abertura na nova linha para métodos e funções locais</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Colocar a chave de abertura em nova linha para inicializadores de objeto, coleção e matriz</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">

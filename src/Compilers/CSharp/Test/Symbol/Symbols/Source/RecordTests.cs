@@ -1234,10 +1234,11 @@ data class C1 { }
 data class C2(int X, int Y);
 data struct S1 { }
 data struct S2(int X, int Y);";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (3,14): error CS8805: Program using top-level statements must be an executable.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int X, int Y);").WithLocation(3, 14),
                 // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // data class C1 { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),

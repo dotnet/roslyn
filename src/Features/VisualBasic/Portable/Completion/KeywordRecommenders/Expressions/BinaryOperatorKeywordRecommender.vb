@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
     Friend Class BinaryOperatorKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Friend Shared ReadOnly KeywordList As RecommendedKeyword() = {
+        Friend Shared ReadOnly KeywordList As ImmutableArray(Of RecommendedKeyword) = ImmutableArray.Create(
             New RecommendedKeyword("And", VBFeaturesResources.Performs_a_logical_conjunction_on_two_Boolean_expressions_or_a_bitwise_conjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_both_operands_evaluate_to_True_Both_expressions_are_always_evaluated_result_expression1_And_expression2),
             New RecommendedKeyword("AndAlso", VBFeaturesResources.Performs_a_short_circuit_logical_conjunction_on_two_expressions_Returns_True_if_both_operands_evaluate_to_True_If_the_first_expression_evaluates_to_False_the_second_is_not_evaluated_result_expression1_AndAlso_expression2),
             New RecommendedKeyword("Or", VBFeaturesResources.Performs_an_inclusive_logical_disjunction_on_two_Boolean_expressions_or_a_bitwise_disjunction_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_at_least_one_operand_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Or_expression2),
@@ -23,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             New RecommendedKeyword("IsNot", VBFeaturesResources.Compares_two_object_reference_variables_and_returns_True_if_the_objects_are_not_equal_result_object1_IsNot_object2),
             New RecommendedKeyword("Mod", VBFeaturesResources.Divides_two_numbers_and_returns_only_the_remainder_number1_Mod_number2),
             New RecommendedKeyword("Like", VBFeaturesResources.Compares_a_string_against_a_pattern_Wildcards_available_include_to_match_1_character_and_to_match_0_or_more_characters_result_string_Like_pattern),
-            New RecommendedKeyword("Xor", VBFeaturesResources.Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2)}
+            New RecommendedKeyword("Xor", VBFeaturesResources.Performs_a_logical_exclusion_on_two_Boolean_expressions_or_a_bitwise_exclusion_on_two_numeric_expressions_For_Boolean_expressions_returns_True_if_exactly_one_of_the_expressions_evaluates_to_True_Both_expressions_are_always_evaluated_result_expression1_Xor_expression2))
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If IsBinaryOperatorContext(context, cancellationToken) Then
                 Return KeywordList
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
         Private Shared Function IsBinaryOperatorContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean

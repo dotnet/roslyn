@@ -222,6 +222,22 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+
+        /// <summary>
+        /// Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
+        /// </summary>
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ValueTask<TResult>> selector)
+        {
+            var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
+
+            foreach (var item in array)
+            {
+                builder.Add(await selector(item).ConfigureAwait(false));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,16 +34,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var document = solution.GetDocument(documentId);
-                    var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                        document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
+                var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
-                    return Convert(result);
-                }
+                return Convert(result);
             }, cancellationToken);
         }
 
@@ -58,19 +54,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var project = solution.GetProject(projectId);
-                    var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
-                                                               .ToImmutableArray();
+                var project = solution.GetProject(projectId);
+                var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
+                                                           .ToImmutableArray();
 
-                    var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                        project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
-                    return Convert(result);
-                }
+                return Convert(result);
             }, cancellationToken);
         }
 

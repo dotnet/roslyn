@@ -123,10 +123,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default,
             ImmutableArray<SyntaxNode> baseConstructorArguments = default,
-            ImmutableArray<SyntaxNode> thisConstructorArguments = default)
+            ImmutableArray<SyntaxNode> thisConstructorArguments = default,
+            bool isPrimaryConstructor = false)
         {
             var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
-            CodeGenerationConstructorInfo.Attach(result, modifiers.IsUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
+            CodeGenerationConstructorInfo.Attach(result, isPrimaryConstructor, modifiers.IsUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
             return result;
         }
 
@@ -392,10 +393,29 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             NullableAnnotation nullableAnnotation = NullableAnnotation.None,
             IAssemblySymbol? containingAssembly = null)
         {
+            return CreateNamedTypeSymbol(attributes, accessibility, modifiers, isRecord: false, typeKind, name, typeParameters, baseType, interfaces, specialType, members, nullableAnnotation, containingAssembly);
+        }
+
+        /// <summary>
+        /// Creates a named type symbol that can be used to describe a named type declaration.
+        /// </summary>
+        public static INamedTypeSymbol CreateNamedTypeSymbol(
+            ImmutableArray<AttributeData> attributes,
+            Accessibility accessibility,
+            DeclarationModifiers modifiers,
+            bool isRecord, TypeKind typeKind, string name,
+            ImmutableArray<ITypeParameterSymbol> typeParameters = default,
+            INamedTypeSymbol? baseType = null,
+            ImmutableArray<INamedTypeSymbol> interfaces = default,
+            SpecialType specialType = SpecialType.None,
+            ImmutableArray<ISymbol> members = default,
+            NullableAnnotation nullableAnnotation = NullableAnnotation.None,
+            IAssemblySymbol? containingAssembly = null)
+        {
             members = members.NullToEmpty();
 
             return new CodeGenerationNamedTypeSymbol(
-                containingAssembly, null, attributes, accessibility, modifiers, typeKind, name,
+                containingAssembly, null, attributes, accessibility, modifiers, isRecord, typeKind, name,
                 typeParameters, baseType, interfaces, specialType, nullableAnnotation,
                 members.WhereAsArray(m => !(m is INamedTypeSymbol)),
                 members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
@@ -433,6 +453,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes: attributes,
                 declaredAccessibility: accessibility,
                 modifiers: modifiers,
+                isRecord: false,
                 typeKind: TypeKind.Delegate,
                 name: name,
                 typeParameters: typeParameters,

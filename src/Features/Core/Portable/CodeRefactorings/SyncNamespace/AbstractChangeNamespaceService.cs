@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     // we were syncing. 
                     continue;
                 }
+
                 syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // Since the original namespaces were retrieved before the document was modified

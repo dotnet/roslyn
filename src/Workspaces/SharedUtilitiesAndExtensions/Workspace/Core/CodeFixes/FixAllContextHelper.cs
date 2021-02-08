@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var cancellationToken = fixAllContext.CancellationToken;
 
             var allDiagnostics = ImmutableArray<Diagnostic>.Empty;
-            var projectsToFix = ImmutableArray<Project>.Empty;
 
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
@@ -52,12 +51,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     break;
 
                 case FixAllScope.Project:
-                    projectsToFix = ImmutableArray.Create(project);
                     allDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                     break;
 
                 case FixAllScope.Solution:
-                    projectsToFix = project.Solution.Projects
+                    var projectsToFix = project.Solution.Projects
                         .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
@@ -75,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         await Task.WhenAll(tasks).ConfigureAwait(false);
                         allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
                     }
+
                     break;
             }
 
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return await GetDocumentDiagnosticsToFixAsync(
-                allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
+                fixAllContext.Solution, allDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
 
             async Task AddDocumentDiagnosticsAsync(ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, Project projectToFix)
             {
@@ -101,14 +100,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            Solution solution,
             ImmutableArray<Diagnostic> diagnostics,
-            ImmutableArray<Project> projects,
             CancellationToken cancellationToken)
         {
-            var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
-
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
+            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => solution.GetDocument(d.Location.SourceTree)))
             {
                 if (document is null)
                     continue;
@@ -121,37 +118,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return builder.ToImmutable();
-        }
-
-        private static async Task<ImmutableDictionary<SyntaxTree, Document>> GetTreeToDocumentMapAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Document>();
-            foreach (var project in projects)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                foreach (var document in project.Documents)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    builder.Add(tree, document);
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
-        private static Document? GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
-        {
-            var tree = diagnostic.Location.SourceTree;
-            if (tree != null)
-            {
-                if (treeToDocumentsMap.TryGetValue(tree, out var document))
-                {
-                    return document;
-                }
-            }
-
-            return null;
         }
 
         public static string GetDefaultFixAllTitle(FixAllContext fixAllContext)
