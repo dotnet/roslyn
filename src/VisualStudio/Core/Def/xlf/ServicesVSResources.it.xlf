@@ -852,6 +852,11 @@
         <target state="translated">Non visualizzare suggerimenti quando i nomi dei parametri differiscono solo per il suffisso</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Spazio dei nomi di destinazione:</target>
@@ -2176,16 +2181,6 @@ Informazioni aggiuntive: {1}</target>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">il tipo è apparente rispetto all'espressione di assegnazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Visualizza la Guida per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Visualizza la Guida per '{0}' disponibile in Bing</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

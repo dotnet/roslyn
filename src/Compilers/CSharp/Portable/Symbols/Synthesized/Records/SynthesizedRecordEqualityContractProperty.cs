@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ContainingType.Locations[0];
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -114,19 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal GetAccessorSymbol(
                 NamedTypeSymbol containingType,
-                string name,
                 SourcePropertySymbolBase property,
                 DeclarationModifiers propertyModifiers,
-                ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
                 Location location,
                 CSharpSyntaxNode syntax,
                 DiagnosticBag diagnostics)
                 : base(
                        containingType,
-                       name,
                        property,
                        propertyModifiers,
-                       explicitInterfaceImplementations,
                        location,
                        syntax,
                        hasBody: false,
@@ -136,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        MethodKind.PropertyGet,
                        usesInit: false,
                        isAutoPropertyAccessor: true,
-                       isExplicitInterfaceImplementation: false,
                        isNullableAnalysisEnabled: false,
                        diagnostics)
             {

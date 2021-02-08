@@ -846,12 +846,6 @@ Additional information: {1}</value>
   <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
     <value>type is apparent from assignment expression</value>
   </data>
-  <data name="Get_help_for_0" xml:space="preserve">
-    <value>Get help for '{0}'</value>
-  </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
-  </data>
   <data name="Move_down" xml:space="preserve">
     <value>Move down</value>
   </data>
@@ -1601,5 +1595,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
+  </data>
+  <data name="Symbols_without_references" xml:space="preserve">
+    <value>Symbols without references</value>
   </data>
 </root>

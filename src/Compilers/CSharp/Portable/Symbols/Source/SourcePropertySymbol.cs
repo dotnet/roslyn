@@ -344,74 +344,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
-            string? aliasQualifierOpt = GetExplicitInterfaceSpecifier(syntax)?.Name.GetAliasQualifierOpt();
 
             if (syntax.AccessorList is null && arrowExpression != null)
             {
                 return CreateExpressionBodiedAccessor(
                     arrowExpression,
-                    explicitlyImplementedPropertyOpt,
-                    aliasQualifierOpt,
-                    isExplicitInterfaceImplementation,
                     diagnostics);
             }
             else
             {
-                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), explicitlyImplementedPropertyOpt, aliasQualifierOpt, isAutoPropertyAccessor, isExplicitInterfaceImplementation, diagnostics);
+                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
-            string? aliasQualifierOpt = GetExplicitInterfaceSpecifier(syntax)?.Name.GetAliasQualifierOpt();
-
             Debug.Assert(!(syntax.AccessorList is null && GetArrowExpression(syntax) != null));
 
-            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), explicitlyImplementedPropertyOpt, aliasQualifierOpt, isAutoPropertyAccessor, isExplicitInterfaceImplementation, diagnostics);
+            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
         }
 
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             AccessorDeclarationSyntax syntax,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
-            string? aliasQualifierOpt,
             bool isAutoPropertyAccessor,
-            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
                 this,
                 _modifiers,
-                _sourceName,
                 syntax,
-                explicitlyImplementedPropertyOpt,
-                aliasQualifierOpt,
                 isAutoPropertyAccessor,
-                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
         private SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
-            PropertySymbol? explicitlyImplementedPropertyOpt,
-            string? aliasQualifierOpt,
-            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
                 this,
                 _modifiers,
-                _sourceName,
                 syntax,
-                explicitlyImplementedPropertyOpt,
-                aliasQualifierOpt,
-                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -442,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
-            if (GetExplicitInterfaceSpecifier(syntax) is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            if (GetExplicitInterfaceSpecifier() is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
