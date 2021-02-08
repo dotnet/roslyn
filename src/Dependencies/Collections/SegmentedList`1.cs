@@ -13,18 +13,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    // Implements a variable-size SegmentedList that uses an array of objects to store the
-    // elements. A SegmentedList has a capacity, which is the allocated length
-    // of the internal array. As elements are added to a SegmentedList, the capacity
-    // of the SegmentedList is automatically increased as required by reallocating the
-    // internal array.
-    //
+    /// <summary>
+    /// Represents a strongly typed list of objects that can be accessed by index. Provides methods to search, sort, and
+    /// manipulate lists.
+    /// </summary>
+    /// <remarks>
+    /// <para>This collection has the same performance characteristics as <see cref="List{T}"/>, but uses segmented
+    /// arrays to avoid allocations in the Large Object Heap.</para>
+    /// </remarks>
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     internal class SegmentedList<T> : IList<T>, IList, IReadOnlyList<T>
