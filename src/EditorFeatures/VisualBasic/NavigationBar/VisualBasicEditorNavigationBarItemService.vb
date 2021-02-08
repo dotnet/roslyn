@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Public Overrides Function ShowItemGrayedIfNear(item As NavigationBarItem) As Boolean
             ' We won't show gray things that don't actually exist
-            Return DirectCast(DirectCast(item, WrappedNavigationBarItem).UnderlyingItem, CodeAnalysis.NavigationBar.RoslynNavigationBarItem).Kind = CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.Symbol
+            Return TypeOf DirectCast(item, WrappedNavigationBarItem).UnderlyingItem Is SymbolItem
         End Function
 
         Protected Overrides Function GetSymbolNavigationPoint(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As VirtualTreePoint?
