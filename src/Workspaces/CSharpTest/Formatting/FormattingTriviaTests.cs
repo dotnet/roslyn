@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -1649,19 +1651,22 @@ class Program
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_1()
         {
+            var expected = @"> Roslyn.Utilities.dll!   Basic";
             var content = @">	Roslyn.Utilities.dll! 	Basic";
-            await AssertFormatAsync(content, content);
+            await AssertFormatAsync(expected, content);
         }
 
         [WorkItem(542546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatInvalidCode_2()
         {
             var content = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic";
-            var expectedContent = @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
+            var expectedContent = @"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes Basic";
             await AssertFormatAsync(expectedContent, content);
         }
 
@@ -1789,6 +1794,33 @@ class F
 
             var actual = formatted.ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+// Test");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/* Test */");
+        }
+
+        [WorkItem(39351, "https://github.com/dotnet/roslyn/issues/39351")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
+        {
+            await AssertNoFormattingChangesAsync(@"class Program { }
+
+/// Test");
         }
     }
 }

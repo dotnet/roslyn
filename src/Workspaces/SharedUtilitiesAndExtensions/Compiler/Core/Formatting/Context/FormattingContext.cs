@@ -109,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                                                 formattingRules,
                                                 this.Options.GetOption(FormattingOptions2.TabSize),
                                                 this.Options.GetOption(FormattingOptions2.IndentationSize),
-                                                _tokenStream);
+                                                _tokenStream,
+                                                _engine.SyntaxFacts);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -198,10 +199,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             // relative indentation case where indentation depends on other token
             if (operation.IsRelativeIndentation)
             {
-                var inseparableRegionStartingPosition = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken).FullSpan.Start : operation.BaseToken.FullSpan.Start;
+                var effectiveBaseToken = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) : operation.BaseToken;
+                var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.SyntaxFacts, TreeData.Root, effectiveBaseToken);
+                    var indentationDelta = baseIndentationDelta * this.Options.GetOption(FormattingOptions2.IndentationSize);
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
                     var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
@@ -398,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         [Conditional("DEBUG")]
-        private void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
+        private static void DebugCheckEmpty<T, TIntrospector>(ContextIntervalTree<T, TIntrospector> tree, TextSpan textSpan)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
             var intervals = tree.GetIntervalsThatContain(textSpan.Start, textSpan.Length);
@@ -456,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private AnchorData GetAnchorData(SyntaxToken token)
+        private AnchorData? GetAnchorData(SyntaxToken token)
         {
             var span = token.Span;
 
@@ -554,12 +557,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             return lastEndToken;
         }
 
-        private AnchorData FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
+        private AnchorData? FindAnchorSpanOnSameLineAfterToken(TokenData tokenData)
         {
             // every token after given token on same line is implicitly dependent to the token.
             // check whether one of them is an anchor token.
 
-            AnchorData lastBaseAnchorData = null;
+            AnchorData? lastBaseAnchorData = null;
             while (tokenData.IndexInStream >= 0)
             {
                 if (_anchorBaseTokenMap.TryGetValue(tokenData.Token, out var tempAnchorData))

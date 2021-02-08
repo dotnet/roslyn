@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Extensions;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestExtensionManager([Import]TestExtensionErrorHandler errorHandler)
+        public TestExtensionManager([Import] TestExtensionErrorHandler errorHandler)
         {
             _errorHandler = errorHandler;
         }

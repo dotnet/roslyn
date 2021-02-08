@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text, bool allowFailure)
+        private static SyntaxToken GetStringToken(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
             var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private void Test(string stringText, string expected)
+        private static void Test(string stringText, string expected)
         {
             var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             Assert.Equal(expected, actual);
         }
 
-        private void TestFailure(string stringText)
+        private static void TestFailure(string stringText)
         {
             var token = GetStringToken(stringText, allowFailure: true);
             if (token == default)
@@ -176,30 +178,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             => TestFailure(@"""\U10000000""");
 
         [Fact]
-        public void TestValidLongEscape1()
+        public void TestValidLongEscape1_InCharRange()
             => Test(@"""\U00000000""", @"['\u0000',[1,11]]");
 
         [Fact]
-        public void TestValidLongEscape2()
+        public void TestValidLongEscape2_InCharRange()
             => Test(@"""\U0000ffff""", @"['\uFFFF',[1,11]]");
 
         [Fact]
-        public void TestValidLongEscape3()
+        public void TestValidLongEscape3_InCharRange()
             => Test(@"""a\U00000000a""", @"['a',[1,2]]['\u0000',[2,12]]['a',[12,13]]");
 
         [Fact]
-        public void TestValidButUnsupportedLongEscape1()
+        public void TestValidLongEscape1_NotInCharRange()
         {
             var token = GetStringToken(@"""\U00010000""", allowFailure: false);
             Assert.False(token.ContainsDiagnostics);
-            TestFailure(@"""\U00010000""");
+            Test(@"""\U00010000""", @"['\U00010000',[1,11]]");
+        }
+
+        [Fact]
+        public void TestValidLongEscape2_NotInCharRange()
+        {
+            var token = GetStringToken(@"""\U0002A6A5𪚥""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\U0002A6A5𪚥""", @"['\U0002A6A5',[1,11]]['\U0002A6A5',[11,13]]");
+        }
+
+        [Fact]
+        public void TestSurrogate1()
+        {
+            var token = GetStringToken(@"""😊""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""😊""", @"['\U0001F60A',[1,3]]");
+        }
+
+        [Fact]
+        public void TestSurrogate2()
+        {
+            var token = GetStringToken(@"""\U0001F60A""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\U0001F60A""", @"['\U0001F60A',[1,11]]");
+        }
+
+        [Fact]
+        public void TestSurrogate3()
+        {
+            var token = GetStringToken(@"""\ud83d\ude0a""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\ud83d\ude0a""", @"['\U0001F60A',[1,13]]");
+        }
+
+        [Fact]
+        public void TestHighSurrogate()
+        {
+            var token = GetStringToken(@"""\ud83d""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\ud83d""", @"['\uD83D',[1,7]]");
+        }
+
+        [Fact]
+        public void TestLowSurrogate()
+        {
+            var token = GetStringToken(@"""\ude0a""", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test(@"""\ude0a""", @"['\uDE0A',[1,7]]");
+        }
+
+        [Fact]
+        public void TestMixedSurrogate1()
+        {
+            var token = GetStringToken("\"\ud83d\\ude0a\"", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test("\"\ud83d\\ude0a\"", @"['\U0001F60A',[1,8]]");
+        }
+
+        [Fact]
+        public void TestMixedSurrogate2()
+        {
+            var token = GetStringToken("\"\\ud83d\ude0a\"", allowFailure: false);
+            Assert.False(token.ContainsDiagnostics);
+            Test("\"\\ud83d\ude0a\"", @"['\U0001F60A',[1,8]]");
         }
 
         [Fact]
         public void TestEscapedQuoteInVerbatimString()
             => Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
 
-        private string ConvertToString(VirtualCharSequence virtualChars)
+        private static string ConvertToString(VirtualCharSequence virtualChars)
         {
             var strings = ArrayBuilder<string>.GetInstance();
             foreach (var ch in virtualChars)
@@ -210,15 +276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             return string.Join("", strings.ToImmutableAndFree());
         }
 
-        private string ConvertToString(VirtualChar vc)
-            => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
+        private static string ConvertToString(VirtualChar vc)
+            => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
-        private string ConvertToString(char c)
-            => PrintAsUnicodeEscape(c) ? $"'\\u{((int)c).ToString("X4")}'" : $"'{c}'";
+        private static string ConvertRuneToString(VirtualChar c)
+            => PrintAsUnicodeEscape(c)
+                ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
+                : $"'{(char)c.Value}'";
 
-        private static bool PrintAsUnicodeEscape(char c)
+        private static bool PrintAsUnicodeEscape(VirtualChar c)
         {
-            if (char.IsLetterOrDigit(c) && c < 127)
+            if (c < (char)127 && char.IsLetterOrDigit((char)c.Value))
             {
                 return false;
             }

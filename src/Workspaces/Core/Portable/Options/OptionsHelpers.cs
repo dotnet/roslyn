@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 
@@ -35,6 +33,17 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             return (T)value!;
+        }
+
+        public static object? GetPublicOption(OptionKey optionKey, Func<OptionKey, object?> getOption)
+        {
+            var value = getOption(optionKey);
+            if (value is ICodeStyleOption codeStyleOption)
+            {
+                return codeStyleOption.AsPublicCodeStyleOption();
+            }
+
+            return value;
         }
     }
 }

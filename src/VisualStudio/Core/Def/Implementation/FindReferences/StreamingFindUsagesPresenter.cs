@@ -9,6 +9,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -41,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly Workspace _workspace;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
-            new HashSet<AbstractTableDataSourceFindUsagesContext>();
+            new();
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         [ImportingConstructor]
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            [ImportMany]IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+            [ImportMany] IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
             : this(workspace,
                    threadingContext,
                    serviceProvider,
@@ -111,6 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames2.SymbolKind:
                     case ContainingTypeColumnDefinition.ColumnName:
                     case ContainingMemberColumnDefinition.ColumnName:
+                    case StandardTableKeyNames.Repository:
+                    case StandardTableKeyNames.ItemOrigin:
                         yield return column.Value;
                         break;
                 }
@@ -133,10 +137,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// <param name="title"></param>
         /// <param name="supportsReferences"></param>
         /// <returns></returns>
-        public FindUsagesContext StartSearch(string title, bool supportsReferences)
+        public FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false);
+            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false, cancellationToken);
 
             // Keep track of this context object as long as it is being displayed in the UI.
             // That way we can Clear it out if requested by a client.  When the context is
@@ -149,15 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// <summary>
         /// Start a search that may include Containing Type, Containing Member, or Kind information about the reference
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="supportsReferences"></param>
-        /// <param name="includeContainingTypeAndMemberColumns"></param>
-        /// <param name="includeKindColumn"></param>
-        /// <returns></returns>
-        public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        public FindUsagesContext StartSearchWithCustomColumns(
+            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn);
+            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
 
             // Keep track of this context object as long as it is being displayed in the UI.
             // That way we can Clear it out if requested by a client.  When the context is
@@ -167,7 +167,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             return context;
         }
 
-        private AbstractTableDataSourceFindUsagesContext StartSearchWorker(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        private AbstractTableDataSourceFindUsagesContext StartSearchWorker(
+            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
@@ -186,11 +187,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             return supportsReferences
-                ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn)
-                : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn);
+                ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
+                : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
         }
 
-        private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(IFindAllReferencesWindow window, int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(
+            IFindAllReferencesWindow window, int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             // Ensure that the window's definition-grouping reflects what the user wants.
             // i.e. we may have disabled this column for a previous GoToImplementation call. 
@@ -205,16 +207,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
         }
 
-        private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(IFindAllReferencesWindow window, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+        private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
+            IFindAllReferencesWindow window, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             // If we're not showing references, then disable grouping by definition, as that will
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
@@ -234,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             foreach (var columnState in window.TableControl.ColumnStates)
             {
                 var columnState2 = columnState as ColumnState2;
-                if (columnState?.Name == StandardTableColumnDefinitions2.Definition)
+                if (columnState2?.Name == StandardTableColumnDefinitions2.Definition)
                 {
                     newColumns.Add(new ColumnState2(
                         columnState2.Name,

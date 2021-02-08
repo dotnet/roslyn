@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +16,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
-                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder)
                 : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
 
             // A property should always have this modreq, and vice versa.
@@ -95,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PropertyDefinitionHandle handle,
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod,
-            int countOfCustomModifiers,
             ParamInfo<TypeSymbol>[] propertyParams,
             MetadataDecoder metadataDecoder)
         {
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBad;
 
             _parameters = setMethodParams is null
-                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
-                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
+                ? GetParameters(moduleSymbol, this, getMethod, propertyParams, getMethodParams, out isBad)
+                : GetParameters(moduleSymbol, this, setMethod, propertyParams, setMethodParams, out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol originalPropertyType = returnInfo.Type;
 
             originalPropertyType = DynamicTypeDecoder.TransformType(originalPropertyType, typeCustomModifiers.Length, handle, moduleSymbol, _refKind);
+            originalPropertyType = NativeIntegerTypeDecoder.TransformType(originalPropertyType, handle, moduleSymbol);
 
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
@@ -186,7 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // accessor signatures do not agree, both with each other and with the property,
             // or if it has parameters and is not an indexer or indexed property.
             bool callMethodsDirectly = !DoSignaturesMatch(module, metadataDecoder, propertyParams, _getMethod, getMethodParams, _setMethod, setMethodParams) ||
-                MustCallMethodsDirectlyCore();
+                MustCallMethodsDirectlyCore() ||
+                anyUnexpectedRequiredModifiers(propertyParams);
 
             if (!callMethodsDirectly)
             {
@@ -214,6 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if ((mdFlags & PropertyAttributes.RTSpecialName) != 0)
             {
                 _flags |= Flags.IsRuntimeSpecialName;
+            }
+
+            static bool anyUnexpectedRequiredModifiers(ParamInfo<TypeSymbol>[] propertyParams)
+            {
+                return propertyParams.Any(p => (!p.RefCustomModifiers.IsDefaultOrEmpty && p.RefCustomModifiers.Any(m => !m.IsOptional && !m.Modifier.IsWellKnownTypeInAttribute())) ||
+                                               p.CustomModifiers.AnyRequired());
             }
         }
 
@@ -664,9 +672,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static ImmutableArray<ParameterSymbol> GetParameters(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol property,
+            PEMethodSymbol accessor,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
-            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -685,11 +693,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // NOTE: this is a best guess at the Dev10 behavior.  The actual behavior is
                 // in the unmanaged helper code that Dev10 uses to load the metadata.
                 var propertyParam = propertyParams[i];
-                var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
+                ParameterHandle paramHandle;
+                Symbol nullableContext;
+                if (i < numAccessorParams)
+                {
+                    paramHandle = accessorParams[i].Handle;
+                    nullableContext = accessor;
+                }
+                else
+                {
+                    paramHandle = propertyParam.Handle;
+                    nullableContext = property;
+                }
                 var ordinal = i - 1;
                 bool isBad;
 
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, accessor.IsMetadataVirtual(), ordinal, paramHandle, propertyParam, nullableContext, out isBad);
 
                 if (isBad)
                 {
@@ -752,8 +771,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ParamInfo<TypeSymbol>[] propertyParams,
                 MetadataDecoder metadataDecoder)
                 : base(moduleSymbol, containingType, handle, getMethod, setMethod,
-                        propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
-                        propertyParams, metadataDecoder)
+                    propertyParams,
+                    metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);

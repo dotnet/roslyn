@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Windows;
@@ -53,7 +55,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 action(cancellationTokenSource.Token);
             });
@@ -67,7 +68,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 return action(cancellationTokenSource.Token);
             });

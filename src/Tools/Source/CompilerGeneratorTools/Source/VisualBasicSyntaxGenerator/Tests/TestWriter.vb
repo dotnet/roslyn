@@ -123,7 +123,6 @@ Public Class TestWriter
 
         Dim functionName As String = If(nodeKind Is Nothing, FactoryName(nodeStructure), FactoryName(nodeKind))
 
-
         If isGreen Then
             _writer.Write("GenerateGreen" + functionName)
         Else
@@ -446,7 +445,6 @@ Public Class TestWriter
                     _writer.WriteLine()
                 Next
 
-
                 _writer.Write("            return ")
                 callTokens.ForEach(AddressOf _writer.Write)
                 _writer.WriteLine()
@@ -511,7 +509,6 @@ Public Class TestWriter
         _writer.WriteLine("        End Sub")
         _writer.WriteLine()
     End Sub
-
 
     Private Sub GenerateRewriterTests(isGreen As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values

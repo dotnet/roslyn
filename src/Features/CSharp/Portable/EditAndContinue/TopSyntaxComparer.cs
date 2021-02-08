@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -188,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     isLeaf = false;
                     return Label.NamespaceDeclaration;
 
+                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
@@ -306,11 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => (int)GetLabel(node.Kind());
 
         internal static Label GetLabel(SyntaxKind kind)
-            => Classify(kind, out var isLeaf);
+            => Classify(kind, out _);
 
         // internal for testing
         internal static bool HasLabel(SyntaxKind kind)
-            => Classify(kind, out var isLeaf) != Label.Ignored;
+            => Classify(kind, out _) != Label.Ignored;
 
         protected internal override int LabelCount
         {
@@ -410,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.NamespaceDeclaration:
                     return ((NamespaceDeclarationSyntax)node).Name;
 
+                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:

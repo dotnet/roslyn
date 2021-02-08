@@ -2218,7 +2218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
-        ' Parses the as-clause and initializer for both locals, fields an properties
+        ' Parses the as-clause and initializer for both locals, fields and properties
         ' Properties allow Attributes before the type and allow implicit line continuations before "FROM", otherwise, fields and
         ' properties allow the same syntax.
         Private Sub ParseFieldOrPropertyAsClauseAndInitializer(isProperty As Boolean, allowAsNewWith As Boolean, ByRef optionalAsClause As AsClauseSyntax, ByRef optionalInitializer As EqualsValueSyntax)
@@ -4181,14 +4181,6 @@ checkNullable:
 
             If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
                 propertyParameters = ParseParameters(openParen, closeParen)
-
-                ' If we blow up on the parameters try to resume on the AS, =, or Implements
-                ' TODO - GreenSepList knows its error count. Expose it instead of recomputing it.
-                If propertyParameters.Count = 0 Then
-                    Dim unexpected = ResyncAt({SyntaxKind.AsKeyword, SyntaxKind.ImplementsKeyword, SyntaxKind.EqualsToken})
-                    closeParen = closeParen.AddTrailingSyntax(unexpected)
-                End If
-
                 optionalParameters = SyntaxFactory.ParameterList(openParen, propertyParameters, closeParen)
             Else
                 If ident.ContainsDiagnostics Then
@@ -6079,16 +6071,6 @@ checkNullable:
             _scanner.MoveToNextSyntaxNode()
             _currentToken = Nothing
         End Sub
-
-        ''' <summary>
-        ''' returns true if feature is available
-        ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
-            Return True
-        End Function
 
         '============ Methods to test properties of NodeKind. ====================
         '

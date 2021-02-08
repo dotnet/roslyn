@@ -30,6 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return expression;
             }
 
+            // Throw expressions are not permitted to be parenthesized:
+            //
+            //     "a" ?? throw new ArgumentNullException()
+            //
+            // is legal whereas
+            //
+            //     "a" ?? (throw new ArgumentNullException())
+            //
+            // is not.
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            {
+                return expression;
+            }
+
             var result = ParenthesizeWorker(expression, includeElasticTrivia);
             return addSimplifierAnnotation
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)
@@ -48,6 +62,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
 
             return parenthesized.WithTriviaFrom(expression);
+        }
+
+        public static PatternSyntax Parenthesize(
+            this PatternSyntax pattern, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            var withoutTrivia = pattern.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedPattern(withoutTrivia)
+                : SyntaxFactory.ParenthesizedPattern(
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            var result = parenthesized.WithTriviaFrom(pattern);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
         }
 
         public static CastExpressionSyntax Cast(

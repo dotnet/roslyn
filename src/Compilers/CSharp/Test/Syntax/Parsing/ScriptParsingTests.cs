@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -84,15 +86,43 @@ Console.Goo
             var test = @"
 new in
 ";
-            // (2,5): error CS1526: A new expression requires (), [], or {} after type
-            // (2,5): error CS1031: Type expected
-            // (2,5): error CS1002: ; expected
-            // (2,5): error CS7017: Member definition, statement, or end-of-file expected
-            ParseAndValidate(test,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadNewExpr, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_GlobalDefinitionOrStatementExpected, Line = 2, Column = 5 });
+
+            UsingTree(test).GetDiagnostics().Verify(
+                // (2,5): error CS1526: A new expression requires an argument list or (), [], or {} after type
+                // new in
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "in").WithLocation(2, 5),
+                // (2,5): error CS1002: ; expected
+                // new in
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 5),
+                // (2,5): error CS7017: Member definition, statement, or end-of-file expected
+                // new in
+                Diagnostic(ErrorCode.ERR_GlobalDefinitionOrStatementExpected, "in").WithLocation(2, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.ArgumentList);
+                            {
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #region Method Declarations
@@ -1922,10 +1952,10 @@ partial void Goo(){};
 partial enum en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }
@@ -2531,11 +2561,11 @@ fixed int x[10];
         {
             // pointer decl
             string test = @"a.b * c;";
-            ParseAndValidate(test, TestOptions.Regular);
+            ParseAndValidate(test, TestOptions.Regular9);
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Regular, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular9, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
 
             // multiplication
             test = @"a.b * c;";

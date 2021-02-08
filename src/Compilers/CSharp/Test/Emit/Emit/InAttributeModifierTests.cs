@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -630,9 +632,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(in ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.M(in int)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -816,9 +818,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in ?, ?)'
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in int, int)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in ?]", "TestRef.set_Item(in ?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in int]", "TestRef.set_Item(in int, int)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -832,9 +834,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(in ?, ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.set_Item(in int, int)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in ?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in int, int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -895,9 +897,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[int]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(int)'
                 //         System.Console.WriteLine(obj[0]);
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[int]", "TestRef.get_Item(int)").WithLocation(7, 34));
 
             code = @"
 public class Test
@@ -910,9 +912,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+                // (7,38): error CS0570: 'TestRef.get_Item(int)' is not supported by the language
                 //         System.Console.WriteLine(obj.get_Item(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(int)").WithLocation(7, 38));
         }
 
         [Fact]
@@ -967,12 +969,12 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in ?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in ?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -1081,9 +1083,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.M(in int)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1267,9 +1269,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(?, ?)'
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in int, int)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[?]", "TestRef.set_Item(?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in int]", "TestRef.set_Item(in int, int)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -1283,9 +1285,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(?, ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.set_Item(in int, int)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in int, int)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1346,9 +1348,9 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[int]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(int)'
                 //         System.Console.WriteLine(obj[0]);
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[int]", "TestRef.get_Item(int)").WithLocation(7, 34));
 
             code = @"
 public class Test
@@ -1361,9 +1363,10 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+                // (7,38): error CS0570: 'TestRef.get_Item(int)' is not supported by the language
                 //         System.Console.WriteLine(obj.get_Item(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(int)").WithLocation(7, 38)
+                );
         }
 
         [Fact]
@@ -1418,12 +1421,12 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(?)' is not supported by the language
+                // (6,17): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         Process((in int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in int)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in int)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in int)").WithLocation(12, 9));
         }
 
         [Fact]

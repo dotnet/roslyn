@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
 
             Func<int, IEnumerable<int>> succF = x => successors[x];
-            var sorted = TopologicalSort.IterativeSort<int>(new[] { 4, 5 }, i => succF(i).ToImmutableArray());
+            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 4, 5 }, i => succF(i).ToImmutableArray(), out var sorted);
+            Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test01");
             Assert.Equal(6, sorted.Length);
             AssertEx.Equal(new[] { 4, 5, 2, 3, 1, 0 }, sorted);
@@ -48,7 +51,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
 
             Func<string, IEnumerable<string>> succF = x => successors[int.Parse(x)];
-            var sorted = TopologicalSort.IterativeSort<string>(new[] { "4", "5" }, i => succF(i).ToImmutableArray());
+            var wasAcyclic = TopologicalSort.TryIterativeSort<string>(new[] { "4", "5" }, i => succF(i).ToImmutableArray(), out var sorted);
+            Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test01");
             Assert.Equal(6, sorted.Length);
             AssertEx.Equal(new[] { "4", "5", "2", "3", "1", "0" }, sorted);
@@ -70,7 +74,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
 
             Func<int, IEnumerable<int>> succF = x => successors[x];
-            var sorted = TopologicalSort.IterativeSort<int>(new[] { 1, 6 }, i => succF(i).ToImmutableArray());
+            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 1, 6 }, i => succF(i).ToImmutableArray(), out var sorted);
+            Assert.True(wasAcyclic);
             AssertTopologicallySorted(sorted, succF, "Test02");
             Assert.Equal(7, sorted.Length);
             AssertEx.Equal(new[] { 1, 4, 3, 5, 6, 7, 2 }, sorted);
@@ -92,10 +97,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
 
             // 1 -> 4 -> 3 -> 5 -> 1
-            Assert.Throws<ArgumentException>(() =>
-            {
-                var sorted = TopologicalSort.IterativeSort<int>(new[] { 1 }, x => successors[x].ToImmutableArray());
-            });
+            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(new[] { 1 }, x => successors[x].ToImmutableArray(), out var sorted);
+            Assert.False(wasAcyclic);
         }
 
         [Theory]
@@ -138,7 +141,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // Perform a topological sort and check it.
             Func<int, IEnumerable<int>> succF = x => successors[x];
-            var sorted = TopologicalSort.IterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray());
+            var wasAcyclic = TopologicalSort.TryIterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray(), out var sorted);
+            Assert.True(wasAcyclic);
             Assert.Equal(numberOfNodes, sorted.Length);
             AssertTopologicallySorted(sorted, succF, $"TestRandom(seed: {seed})");
 
@@ -151,10 +155,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // time.
             successors[possibleSort[0]] = successors[possibleSort[0]].Concat(new int[] { possibleSort[numberOfNodes - 1] }).ToArray();
 
-            Assert.Throws<ArgumentException>(() =>
-            {
-                TopologicalSort.IterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray());
-            });
+            wasAcyclic = TopologicalSort.TryIterativeSort<int>(Enumerable.Range(0, numberOfNodes).ToArray(), i => succF(i).ToImmutableArray(), out sorted);
+            Assert.False(wasAcyclic);
 
             // where
             void shuffle(int[] data)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeconstructMethodInfo = deconstructMethodInfoOpt;
             }
 
-            readonly internal DeconstructMethodInfo DeconstructMethodInfo;
+            internal readonly DeconstructMethodInfo DeconstructMethodInfo;
         }
 
         private Conversion(
@@ -187,11 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                 case ConversionKind.NullLiteral:
                 case ConversionKind.DefaultLiteral:
-                case ConversionKind.NullToPointer:
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ImplicitNullToPointer:
+                case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.IntPtr:
@@ -225,15 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitReference => new Conversion(ConversionKind.ImplicitReference);
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
+        internal static Conversion ObjectCreation => new Conversion(ConversionKind.ObjectCreation);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
         internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
         internal static Conversion DefaultLiteral => new Conversion(ConversionKind.DefaultLiteral);
-        internal static Conversion NullToPointer => new Conversion(ConversionKind.NullToPointer);
-        internal static Conversion PointerToVoid => new Conversion(ConversionKind.PointerToVoid);
-        internal static Conversion PointerToPointer => new Conversion(ConversionKind.PointerToPointer);
-        internal static Conversion PointerToInteger => new Conversion(ConversionKind.PointerToInteger);
-        internal static Conversion IntegerToPointer => new Conversion(ConversionKind.IntegerToPointer);
+        internal static Conversion NullToPointer => new Conversion(ConversionKind.ImplicitNullToPointer);
+        internal static Conversion PointerToVoid => new Conversion(ConversionKind.ImplicitPointerToVoid);
+        internal static Conversion PointerToPointer => new Conversion(ConversionKind.ExplicitPointerToPointer);
+        internal static Conversion PointerToInteger => new Conversion(ConversionKind.ExplicitPointerToInteger);
+        internal static Conversion IntegerToPointer => new Conversion(ConversionKind.ExplicitIntegerToPointer);
         internal static Conversion Unboxing => new Conversion(ConversionKind.Unboxing);
         internal static Conversion ExplicitReference => new Conversion(ConversionKind.ExplicitReference);
         internal static Conversion IntPtr => new Conversion(ConversionKind.IntPtr);
@@ -244,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
+        internal static Conversion ImplicitPointer => new Conversion(ConversionKind.ImplicitPointer);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitEnumeration:
                     nested = ExplicitEnumerationUnderlying;
                     break;
-                case ConversionKind.PointerToInteger:
+                case ConversionKind.ExplicitPointerToInteger:
                     nested = PointerToIntegerUnderlying;
                     break;
                 default:
@@ -312,6 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion MakeSwitchExpression(ImmutableArray<Conversion> innerConversions)
         {
             return new Conversion(ConversionKind.SwitchExpression, innerConversions);
+        }
+
+        internal static Conversion MakeConditionalExpression(ImmutableArray<Conversion> innerConversions)
+        {
+            return new Conversion(ConversionKind.ConditionalExpression, innerConversions);
         }
 
         internal ConversionKind Kind
@@ -526,6 +531,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if the conversion is an implicit object creation expression conversion.
+        /// </summary>
+        internal bool IsObjectCreation
+        {
+            get
+            {
+                return Kind == ConversionKind.ObjectCreation;
+            }
+        }
+
+        /// <summary>
         /// Returns true if the conversion is an implicit switch expression conversion.
         /// </summary>
         public bool IsSwitchExpression
@@ -533,6 +549,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.SwitchExpression;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit conditional expression conversion.
+        /// </summary>
+        public bool IsConditionalExpression
+        {
+            get
+            {
+                return Kind == ConversionKind.ConditionalExpression;
             }
         }
 
@@ -734,8 +761,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  a) from a pointer type to void*, 
         ///  b) from a pointer type to another pointer type (other than void*),
         ///  c) from the null literal to a pointer type,
-        ///  d) from an integral numeric type to a pointer type, or
-        ///  e) from a pointer type to an integral numeric type.
+        ///  d) from an integral numeric type to a pointer type,
+        ///  e) from a pointer type to an integral numeric type, or
+        ///  d) from a function pointer type to a function pointer type.
         /// 
         /// Does not return true for user-defined conversions to/from pointer types.
         /// Does not return true for conversions between pointer types and IntPtr/UIntPtr.
@@ -915,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, IsNullable, methodSymbol);
         }
 
         /// <summary>
@@ -1020,9 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             (Invocation, InputPlaceholder, OutputPlaceholders) = (invocation, inputPlaceholder, outputPlaceholders);
         }
 
-        readonly internal BoundExpression Invocation;
-        readonly internal BoundDeconstructValuePlaceholder InputPlaceholder;
-        readonly internal ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
+        internal readonly BoundExpression Invocation;
+        internal readonly BoundDeconstructValuePlaceholder InputPlaceholder;
+        internal readonly ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders;
         internal bool IsDefault => Invocation is null;
     }
 }

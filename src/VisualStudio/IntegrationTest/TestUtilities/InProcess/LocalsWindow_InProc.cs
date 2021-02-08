@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var dte = ((DTE2)GetDTE());
             if (dte.Debugger.CurrentStackFrame != null) // Ensure that debugger is running
             {
-                EnvDTE.Expressions locals = dte.Debugger.CurrentStackFrame.Locals;
+                var locals = dte.Debugger.CurrentStackFrame.Locals;
                 return locals.Count;
             }
 
@@ -33,10 +35,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 throw new Exception($"Could not find locals. Debugger is not running.");
             }
 
-            EnvDTE.Expressions expressions = dte.Debugger.CurrentStackFrame.Locals;
+            var expressions = dte.Debugger.CurrentStackFrame.Locals;
             EnvDTE.Expression entry = null;
 
-            int i = 0;
+            var i = 0;
             while (i < entryNames.Length && TryGetEntryInternal(entryNames[i], expressions, out entry))
             {
                 i++;
@@ -48,8 +50,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return new Common.Expression(entry);
             }
 
-            string localHierarchicalName = string.Join("->", entryNames);
-            string allLocalsString = string.Join("\n", GetAllLocals(dte.Debugger.CurrentStackFrame.Locals));
+            var localHierarchicalName = string.Join("->", entryNames);
+            var allLocalsString = string.Join("\n", GetAllLocals(dte.Debugger.CurrentStackFrame.Locals));
             throw new Exception($"\nCould not find the local named {localHierarchicalName}.\nAll available locals are: \n{allLocalsString}");
         }
 
@@ -68,7 +70,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             foreach (var expression in expressions.Cast<EnvDTE.Expression>())
             {
-                string expressionName = expression.Name;
+                var expressionName = expression.Name;
                 yield return expressionName;
                 var nestedExpressions = expression.DataMembers;
                 if (nestedExpressions != null)

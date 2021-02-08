@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -825,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(params XmlNodeSyntax[] content)
@@ -834,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        /// Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         /// </summary>
         /// <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
@@ -1552,34 +1550,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(string, CSharpParseOptions?, string, Encoding?, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options = null,
             string path = "",
             Encoding? encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
         }
 
-        /// <summary>
-        /// Produces a syntax tree by parsing the source text.
-        /// </summary>
+        /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, cancellationToken);
         }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
@@ -1693,9 +1687,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Parse a TypeNameSyntax node using the grammar rule for type names.
         /// </summary>
-        public static TypeSyntax ParseTypeName(string text, int offset = 0, bool consumeFullText = true)
+        // Backcompat overload, do not remove
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static TypeSyntax ParseTypeName(string text, int offset, bool consumeFullText)
         {
-            using (var lexer = MakeLexer(text, offset))
+            return ParseTypeName(text, offset, options: null, consumeFullText);
+        }
+
+        /// <summary>
+        /// Parse a TypeNameSyntax node using the grammar rule for type names.
+        /// </summary>
+        public static TypeSyntax ParseTypeName(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
+        {
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseTypeName();
@@ -1882,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Helper method for wrapping a string in an SourceText.
+        /// Helper method for wrapping a string in a SourceText.
         /// </summary>
         private static SourceText MakeSourceText(string text, int offset)
         {
@@ -2114,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node;
             }
 
-            CSharpSyntaxNode parent = node.Parent;
+            CSharpSyntaxNode? parent = node.Parent;
 
             if (parent == null)
             {
@@ -2161,7 +2165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NameMemberCref:
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
-                        CSharpSyntaxNode grandparent = parent.Parent;
+                        CSharpSyntaxNode? grandparent = parent.Parent;
                         return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
                             ? grandparent
                             : parent;
@@ -2588,7 +2592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(ParameterListSyntax? parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block
-                ? AnonymousMethodExpression(default, SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
+                ? AnonymousMethodExpression(default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), parameterList, block, null)
                 : throw new ArgumentException(nameof(body));
 
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
@@ -2597,6 +2601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : throw new ArgumentException(nameof(body));
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
@@ -2610,6 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
@@ -2623,25 +2629,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             string text,
             ParseOptions? options,
             string path,
             Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseSyntaxTree(
             SourceText text,
             ParseOptions? options,
             string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions: null, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
     }
 }

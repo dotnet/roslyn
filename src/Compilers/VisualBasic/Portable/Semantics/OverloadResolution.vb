@@ -502,12 +502,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
         ' Compile time asserts.
         Private Const s_delegateRelaxationLevelMask_AssertZero = SmallFieldMask.DelegateRelaxationLevelMask - ConversionKind.DelegateRelaxationLevelMask
-        Private _delegateRelaxationLevelMask_Assert1(s_delegateRelaxationLevelMask_AssertZero) As Boolean
-        Private _delegateRelaxationLevelMask_Assert2(-s_delegateRelaxationLevelMask_AssertZero) As Boolean
+        Private ReadOnly _delegateRelaxationLevelMask_Assert1(s_delegateRelaxationLevelMask_AssertZero) As Boolean
+        Private ReadOnly _delegateRelaxationLevelMask_Assert2(-s_delegateRelaxationLevelMask_AssertZero) As Boolean
 
         Private Const s_inferenceLevelMask_AssertZero = CByte((SmallFieldMask.InferenceLevelMask >> SmallFieldMask.InferenceLevelShift) <> ((TypeArgumentInference.InferenceLevel.Invalid << 1) - 1))
-        Private _inferenceLevelMask_Assert1(s_inferenceLevelMask_AssertZero) As Boolean
-        Private _inferenceLevelMask_Assert2(-s_inferenceLevelMask_AssertZero) As Boolean
+        Private ReadOnly _inferenceLevelMask_Assert1(s_inferenceLevelMask_AssertZero) As Boolean
+        Private ReadOnly _inferenceLevelMask_Assert2(-s_inferenceLevelMask_AssertZero) As Boolean
 #End If
         Public Structure OptionalArgument
             Public ReadOnly DefaultValue As BoundExpression
@@ -4411,7 +4411,7 @@ ContinueCandidatesLoop:
             ' §11.8.1.3 Depth of Genericity
             ' A member M is determined to have greater depth of genericity than a member N if, for each pair 
             ' of matching parameters  Mj and Nj, Mj has greater or equal depth of genericity than Nj, and at 
-            ' least one Mj is has greater depth of genericity. Depth of genericity is defined as follows:
+            ' least one Mj has greater depth of genericity. Depth of genericity is defined as follows:
             '
             '    1. Anything other than a type parameter has greater depth of genericity than a type parameter;
             '    2. Recursively, a constructed type has greater depth of genericity than another constructed type 

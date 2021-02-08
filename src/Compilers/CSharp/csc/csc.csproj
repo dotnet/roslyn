@@ -8,7 +8,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <UseAppHost>false</UseAppHost>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
@@ -25,8 +25,6 @@
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
     <Compile Include="..\..\Shared\Csc.cs" />
   </ItemGroup>

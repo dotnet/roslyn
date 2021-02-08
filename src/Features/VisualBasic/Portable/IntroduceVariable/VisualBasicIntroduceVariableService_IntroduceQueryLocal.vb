@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Function IntroduceQueryLocalAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetNewQuery(
+        Private Shared Function GetNewQuery(
             oldQuery As QueryExpressionSyntax,
             oldClause As QueryClauseSyntax,
             newClause As QueryClauseSyntax,

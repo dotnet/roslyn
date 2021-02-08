@@ -126,4 +126,13 @@
   <data name="Remove_unreachable_code" xml:space="preserve">
     <value>Remove unreachable code</value>
   </data>
+  <data name="Pass_in_captured_variables_as_arguments" xml:space="preserve">
+    <value>Pass in captured variables as arguments</value>
+  </data>
+  <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
+  </data>
+  <data name="Convert_typeof_to_nameof" xml:space="preserve">
+    <value>Convert 'typeof' to 'nameof'</value>
+  </data>
 </root>

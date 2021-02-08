@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Friend Partial Class MemberDeclarationsOrganizer
+    Partial Friend Class MemberDeclarationsOrganizer
         Private Sub New()
         End Sub
 

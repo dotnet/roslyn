@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
         }
 
-        protected string? GetClassificationForType(ITypeSymbol type)
+        protected static string? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
         public virtual void AddClassifications(Workspace workspace, SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

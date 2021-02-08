@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
     {
-        private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
+        private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
             = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
         public abstract ISyntaxKinds SyntaxKinds { get; }
@@ -86,6 +87,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsOnSingleLine(SyntaxNode node, bool fullSpan)
         {
+            // The stack logic assumes the initial node is not null
+            Contract.ThrowIfNull(node);
+
             // Use an actual Stack so we can write out deeply recursive structures without overflowing.
             // Note: algorithm is taken from GreenNode.WriteTo.
             //
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else
                 {
-                    var currentNode = currentNodeOrToken.AsNode();
+                    var currentNode = currentNodeOrToken.AsNode()!;
 
                     var childNodesAndTokens = currentNode.ChildNodesAndTokens();
                     var childCount = childNodesAndTokens.Count;
@@ -189,7 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         // For structured trivia, we recurse into the trivia to see if it
                         // is on a single line or not.  If it isn't, then we're definitely
                         // not on a single line.
-                        if (!IsOnSingleLine(trivia.GetStructure(), fullSpan: true))
+                        if (!IsOnSingleLine(trivia.GetStructure()!, fullSpan: true))
                         {
                             return false;
                         }
@@ -215,7 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return true;
         }
 
-        private bool IsOnSingleLine(string value)
+        private static bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
 
         public ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node)
@@ -231,7 +235,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            return GetNodeWithoutLeadingBlankLines(node, out var blankLines);
+            return GetNodeWithoutLeadingBlankLines(node, out _);
         }
 
         public TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             TSyntaxNode node)
             where TSyntaxNode : SyntaxNode
         {
-            return GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out var strippedTrivia);
+            return GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out _);
         }
 
         public TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(
@@ -375,7 +379,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
 
-        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
+        public string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int bannerLength, CancellationToken cancellationToken)
             => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, bannerLength, cancellationToken);
 
         protected abstract IDocumentationCommentService DocumentationCommentService { get; }
@@ -474,7 +478,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Tries to get an ancestor of a Token on current position or of Token directly to left:
         /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
         /// </summary>
-        protected TNode TryGetAncestorForLocation<TNode>(SyntaxNode root, int position) where TNode : SyntaxNode
+        protected TNode? TryGetAncestorForLocation<TNode>(SyntaxNode root, int position) where TNode : SyntaxNode
         {
             var tokenToRightOrIn = root.FindToken(position);
             var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
@@ -508,7 +512,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
 
-        public bool HasIncompleteParentMember(SyntaxNode node)
+        public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+
+        public abstract SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+
+        public bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
         public abstract bool CanHaveAccessibility(SyntaxNode declaration);

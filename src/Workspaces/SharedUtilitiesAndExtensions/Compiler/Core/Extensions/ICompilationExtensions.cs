@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -85,6 +83,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
+        public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
         public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 
@@ -112,8 +113,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
 
+        public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
+
         public static INamedTypeSymbol? ValueTaskOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
+
         public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
 
@@ -140,6 +145,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
+
+        public static INamedTypeSymbol? NativeIntegerAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
 
         public static INamedTypeSymbol? DynamicAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);

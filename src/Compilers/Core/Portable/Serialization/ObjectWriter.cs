@@ -124,7 +124,7 @@ namespace Roslyn.Utilities
         public void WriteUInt32(uint value) => _writer.Write(value);
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
-        public void WriteString(string value) => WriteStringValue(value);
+        public void WriteString(string? value) => WriteStringValue(value);
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -148,7 +148,7 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object value)
+        public void WriteValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -260,9 +260,13 @@ namespace Roslyn.Utilities
 
                 WriteArray(instance);
             }
+            else if (value is Encoding encoding)
+            {
+                WriteEncoding(encoding);
+            }
             else
             {
-                WriteObject(instance: value, instanceAsWritableOpt: null);
+                WriteObject(instance: value, instanceAsWritable: null);
             }
         }
 
@@ -315,7 +319,7 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        public void WriteValue(IObjectWritable value)
+        public void WriteValue(IObjectWritable? value)
         {
             if (value == null)
             {
@@ -323,7 +327,7 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            WriteObject(instance: value, instanceAsWritableOpt: value);
+            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -382,10 +386,10 @@ namespace Roslyn.Utilities
             private int _nextId;
 
             private static readonly ObjectPool<Dictionary<object, int>> s_referenceDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
+                new(() => new Dictionary<object, int>(128, ReferenceEqualityComparer.Instance));
 
             private static readonly ObjectPool<Dictionary<object, int>> s_valueDictionaryPool =
-                new ObjectPool<Dictionary<object, int>>(() => new Dictionary<object, int>(128));
+                new(() => new Dictionary<object, int>(128));
 
             public WriterReferenceMap(bool valueEquality)
             {
@@ -462,7 +466,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string value)
+        private unsafe void WriteStringValue(string? value)
         {
             if (value == null)
             {
@@ -543,7 +547,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = array.GetType().GetElementType();
+            var elementType = array.GetType().GetElementType()!;
 
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
@@ -565,7 +569,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a),
+                        a => WriteArrayValues((Array)a!),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -785,10 +789,62 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
+        public void WriteEncoding(Encoding? encoding)
         {
-            Debug.Assert(instance != null);
-            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+            var kind = GetEncodingKind(encoding);
+            WriteByte((byte)kind);
+
+            if (kind == EncodingKind.EncodingName)
+            {
+                WriteString(encoding!.WebName);
+            }
+        }
+
+        private static EncodingKind GetEncodingKind(Encoding? encoding)
+        {
+            if (encoding is null)
+            {
+                return EncodingKind.Null;
+            }
+
+            switch (encoding.CodePage)
+            {
+                case 1200:
+                    Debug.Assert(HasPreamble(Encoding.Unicode));
+                    return (encoding.Equals(Encoding.Unicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_LE_BOM : EncodingKind.EncodingUnicode_LE;
+
+                case 1201:
+                    Debug.Assert(HasPreamble(Encoding.BigEndianUnicode));
+                    return (encoding.Equals(Encoding.BigEndianUnicode) || HasPreamble(encoding)) ? EncodingKind.EncodingUnicode_BE_BOM : EncodingKind.EncodingUnicode_BE;
+
+                case 12000:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_LE_BOM : EncodingKind.EncodingUTF32_LE;
+
+                case 12001:
+                    Debug.Assert(HasPreamble(Encoding.UTF32));
+                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF32_BE_BOM : EncodingKind.EncodingUTF32_BE;
+
+                case 65001:
+                    Debug.Assert(HasPreamble(Encoding.UTF8));
+                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? EncodingKind.EncodingUTF8_BOM : EncodingKind.EncodingUTF8;
+
+                default:
+                    return EncodingKind.EncodingName;
+            }
+
+            static bool HasPreamble(Encoding encoding)
+#if NETCOREAPP
+                => !encoding.Preamble.IsEmpty;
+#else
+                => !encoding.GetPreamble().IsEmpty();
+#endif
+        }
+
+        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
+        {
+            RoslynDebug.Assert(instance != null);
+            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -814,7 +870,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instanceAsWritableOpt;
+                var writable = instanceAsWritable;
                 if (writable == null)
                 {
                     writable = instance as IObjectWritable;
@@ -833,7 +889,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        obj => WriteObjectWorker((IObjectWritable)obj!),
                         writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -1238,8 +1294,24 @@ namespace Roslyn.Utilities
             /// </summary>
             StringType,
 
+            /// <summary>
+            /// Encoding serialized as <see cref="Encoding.WebName"/>.
+            /// </summary>
+            EncodingName,
 
-            Last = StringType + 1,
+            // well-known encodings (parameterized by BOM)
+            EncodingUTF8,
+            EncodingUTF8_BOM,
+            EncodingUTF32_BE,
+            EncodingUTF32_BE_BOM,
+            EncodingUTF32_LE,
+            EncodingUTF32_LE_BOM,
+            EncodingUnicode_BE,
+            EncodingUnicode_BE_BOM,
+            EncodingUnicode_LE,
+            EncodingUnicode_LE_BOM,
+
+            Last,
         }
     }
 }

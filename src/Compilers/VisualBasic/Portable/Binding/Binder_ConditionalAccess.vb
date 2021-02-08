@@ -12,7 +12,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
 
         Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
             Dim placeholder As BoundRValuePlaceholder = Nothing

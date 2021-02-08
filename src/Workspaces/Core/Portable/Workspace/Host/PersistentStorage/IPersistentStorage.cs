@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Threading;
@@ -12,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Host
     public interface IPersistentStorage : IDisposable
     {
         Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
+
         Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
         Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
 

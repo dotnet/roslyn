@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Composition;
 using System.Composition.Hosting;
 using System.IO;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
         {
-            string commandLine = @"..\goo.cs";
+            var commandLine = @"..\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCreateWithoutRequiredServices()
         {
-            string commandLine = @"goo.cs";
+            var commandLine = @"goo.cs";
 
             Assert.Throws<InvalidOperationException>(delegate
             {
@@ -43,15 +44,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCreateWithRequiredServices()
         {
-            string commandLine = @"goo.cs";
-            var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
+            var commandLine = @"goo.cs";
+            var ws = new AdhocWorkspace();
+            _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
         }
 
         [Fact]
         public void TestUnrootedPathInsideProjectCone()
         {
-            string commandLine = @"goo.cs";
+            var commandLine = @"goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestUnrootedSubPathInsideProjectCone()
         {
-            string commandLine = @"subdir\goo.cs";
+            var commandLine = @"subdir\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRootedPathInsideProjectCone()
         {
-            string commandLine = @"c:\ProjectDirectory\goo.cs";
+            var commandLine = @"c:\ProjectDirectory\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRootedSubPathInsideProjectCone()
         {
-            string commandLine = @"c:\projectDirectory\subdir\goo.cs";
+            var commandLine = @"c:\projectDirectory\subdir\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRootedPathOutsideProjectCone()
         {
-            string commandLine = @"C:\SomeDirectory\goo.cs";
+            var commandLine = @"C:\SomeDirectory\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestUnrootedPathOutsideProjectCone()
         {
-            string commandLine = @"..\goo.cs";
+            var commandLine = @"..\goo.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestAdditionalFiles()
         {
-            string commandLine = @"goo.cs /additionalfile:bar.cs";
+            var commandLine = @"goo.cs /additionalfile:bar.cs";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var firstDoc = info.Documents.Single();
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pathToAssembly = typeof(object).Assembly.Location;
             var assemblyBaseDir = Path.GetDirectoryName(pathToAssembly);
             var relativePath = Path.Combine(".", Path.GetFileName(pathToAssembly));
-            string commandLine = @"goo.cs /a:" + relativePath;
+            var commandLine = @"goo.cs /a:" + relativePath;
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, assemblyBaseDir);
 
             var firstDoc = info.Documents.Single();

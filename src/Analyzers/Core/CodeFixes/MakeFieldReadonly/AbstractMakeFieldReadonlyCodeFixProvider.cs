@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -45,10 +47,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
-
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
                 declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>());
@@ -67,7 +68,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 if (declarationDeclarators.Count == fieldDeclarators.Count())
                 {
-                    editor.SetModifiers(fieldDeclarators.Key, editor.Generator.GetModifiers(fieldDeclarators.Key) | DeclarationModifiers.ReadOnly);
+                    var modifiers = WithReadOnly(editor.Generator.GetModifiers(fieldDeclarators.Key));
+
+                    editor.SetModifiers(fieldDeclarators.Key, modifiers);
                 }
                 else
                 {
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                                                         generator.TypeExpression(symbol.Type),
                                                                         Accessibility.Private,
                                                                         fieldDeclarators.Contains(declarator)
-                                                                            ? modifiers | DeclarationModifiers.ReadOnly
+                                                                            ? WithReadOnly(modifiers)
                                                                             : modifiers,
                                                                         GetInitializerNode(declarator))
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
@@ -95,6 +98,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
             }
         }
+
+        private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
+            => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {

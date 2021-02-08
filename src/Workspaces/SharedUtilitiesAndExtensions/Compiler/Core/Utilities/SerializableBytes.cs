@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             return stream;
         }
 
-        internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
+        internal static async Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
         {
             var length = stream.Length;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // free any chunks remaining
-        private static void BlowChunks(byte[][] chunks)
+        private static void BlowChunks(byte[][]? chunks)
         {
             if (chunks != null)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                     if (chunks[c] != null)
                     {
                         SharedPools.ByteArray.Free(chunks[c]);
-                        chunks[c] = null;
+                        chunks[c] = null!;
                     }
                 }
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
                         SharedPools.ByteArray.Free(chunk);
                     }
 
-                    chunks = null;
+                    chunks = null!;
                 }
             }
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                     Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
 
                     var trimIndex = chunkIndex + 1;
-                    for (int i = trimIndex; i < chunks.Count; i++)
+                    for (var i = trimIndex; i < chunks.Count; i++)
                     {
                         SharedPools.ByteArray.Free(chunks[i]);
                     }

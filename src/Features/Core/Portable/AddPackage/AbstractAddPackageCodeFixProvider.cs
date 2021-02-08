@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected abstract bool IncludePrerelease { get; }
 
-        public override abstract FixAllProvider GetFixAllProvider();
+        public abstract override FixAllProvider GetFixAllProvider();
 
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
@@ -58,7 +60,9 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.GetPackageSources())
+                var packageSources = installerService.TryGetPackageSources();
+
+                foreach (var packageSource in packageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             return codeActions.ToImmutableAndFree();
         }
 
-        private async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
+        private static async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
             PackageSource source,
             ISymbolSearchService searchService,
             ISet<string> assemblyNames,

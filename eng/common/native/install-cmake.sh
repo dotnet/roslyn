@@ -101,7 +101,7 @@ fi
 DownloadAndExtract $uri $tool_install_directory $force $download_retries $retry_wait_time_seconds
 
 if [[ $? != 0 ]]; then
-  Write-PipelineTelemetryError -category 'NativeToolsBootstrap' 'Installation failed'
+  echo "Installation failed" >&2
   exit 1
 fi
 
@@ -110,7 +110,7 @@ fi
 NewScriptShim $shim_path $tool_file_path true
 
 if [[ $? != 0 ]]; then
-  Write-PipelineTelemetryError -category 'NativeToolsBootstrap' 'Shim generation failed'
+  echo "Shim generation failed" >&2
   exit 1
 fi
 

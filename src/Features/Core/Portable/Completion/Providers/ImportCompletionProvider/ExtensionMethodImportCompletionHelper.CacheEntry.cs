@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -28,39 +24,35 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public string Language { get; }
 
             /// <summary>
-            /// Mapping from the name of target type to extension method symbol infos.
+            /// Mapping from the name of receiver type to extension method symbol infos.
             /// </summary>
-            public readonly MultiDictionary<string, DeclaredSymbolInfo> SimpleExtensionMethodInfo { get; }
+            public readonly MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
 
-            public readonly ImmutableArray<DeclaredSymbolInfo> ComplexExtensionMethodInfo { get; }
+            public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
             private CacheEntry(
                 Checksum checksum,
                 string language,
-                MultiDictionary<string, DeclaredSymbolInfo> simpleExtensionMethodInfo,
-                ImmutableArray<DeclaredSymbolInfo> complexExtensionMethodInfo)
+                MultiDictionary<string, DeclaredSymbolInfo> receiverTypeNameToExtensionMethodMap)
             {
                 Checksum = checksum;
                 Language = language;
-                SimpleExtensionMethodInfo = simpleExtensionMethodInfo;
-                ComplexExtensionMethodInfo = complexExtensionMethodInfo;
+                ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
             }
 
-            public class Builder : IDisposable
+            public class Builder
             {
                 private readonly Checksum _checksum;
                 private readonly string _language;
 
-                private readonly MultiDictionary<string, DeclaredSymbolInfo> _simpleItemBuilder;
-                private readonly ArrayBuilder<DeclaredSymbolInfo> _complexItemBuilder;
+                private readonly MultiDictionary<string, DeclaredSymbolInfo> _mapBuilder;
 
                 public Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
                 {
                     _checksum = checksum;
                     _language = langauge;
 
-                    _simpleItemBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
-                    _complexItemBuilder = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
+                    _mapBuilder = new MultiDictionary<string, DeclaredSymbolInfo>(comparer);
                 }
 
                 public CacheEntry ToCacheEntry()
@@ -68,28 +60,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return new CacheEntry(
                         _checksum,
                         _language,
-                        _simpleItemBuilder,
-                        _complexItemBuilder.ToImmutable());
+                        _mapBuilder);
                 }
 
                 public void AddItem(SyntaxTreeIndex syntaxIndex)
                 {
-                    foreach (var (targetType, symbolInfoIndices) in syntaxIndex.SimpleExtensionMethodInfo)
+                    foreach (var (receiverType, symbolInfoIndices) in syntaxIndex.ReceiverTypeNameToExtensionMethodMap)
                     {
                         foreach (var index in symbolInfoIndices)
                         {
-                            _simpleItemBuilder.Add(targetType, syntaxIndex.DeclaredSymbolInfos[index]);
+                            _mapBuilder.Add(receiverType, syntaxIndex.DeclaredSymbolInfos[index]);
                         }
                     }
-
-                    foreach (var index in syntaxIndex.ComplexExtensionMethodInfo)
-                    {
-                        _complexItemBuilder.Add(syntaxIndex.DeclaredSymbolInfos[index]);
-                    }
                 }
-
-                public void Dispose()
-                    => _complexItemBuilder.Free();
             }
         }
 
@@ -125,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheEntry.Language != project.Language)
             {
                 var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-                using var builder = new CacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
+                var builder = new CacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
 
                 foreach (var document in project.Documents)
                 {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -91,12 +93,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, pullMemberUpOptions.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
             var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.
                 SelectAsArray(analysisResult => GetSymbolsToPullUp(analysisResult));
 
             // Add members to interface
-            var codeGenerationOptions = new CodeGenerationOptions(generateMethodBodies: false, generateMembers: false);
+            var codeGenerationOptions = new CodeGenerationOptions(
+                generateMethodBodies: false,
+                generateMembers: false,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var destinationWithMembersAdded = codeGenerationService.AddMembers(destinationSyntaxNode, symbolsToPullUp, options: codeGenerationOptions, cancellationToken: cancellationToken);
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
                 solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
@@ -237,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, solution, solutionEditor, destinationSyntaxNode, cancellationToken).ConfigureAwait(false);
+            var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
                 memberResult =>
@@ -252,8 +257,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         return memberResult.Member;
                     }
                 });
-            var options = new CodeGenerationOptions(reuseSyntax: true, generateMethodBodies: false);
-            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
+            var options = new CodeGenerationOptions(
+                reuseSyntax: true,
+                generateMethodBodies: false,
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
@@ -322,9 +330,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static async Task<ImmutableDictionary<ISymbol, ImmutableArray<SyntaxNode>>> InitializeSymbolToDeclarationsMapAsync(
             PullMembersUpOptions result,
-            Solution solution,
-            SolutionEditor solutionEditor,
-            SyntaxNode destinationSyntaxNode,
             CancellationToken cancellationToken)
         {
             // One member may have multiple syntax nodes (e.g partial method).
@@ -368,10 +373,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             else
             {
                 var overrideMembersSet = new HashSet<ISymbol>();
-                for (var symbol = selectedMember; symbol != null; symbol = symbol.OverriddenMember())
-                {
+                for (var symbol = selectedMember; symbol != null; symbol = symbol.GetOverriddenMember())
                     overrideMembersSet.Add(symbol);
-                }
 
                 // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
                 return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();

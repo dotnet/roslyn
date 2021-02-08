@@ -27,9 +27,14 @@
         <target state="translated">新增 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">'If' 陳述式可簡化</target>
+      <trans-unit id="Change_to_DirectCast">
+        <source>Change to 'DirectCast'</source>
+        <target state="translated">變更為 'DirectCast'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_TryCast">
+        <source>Change to 'TryCast'</source>
+        <target state="translated">變更為 'TryCast'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -92,6 +97,11 @@
         <target state="translated">&lt;多項類型&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_shared_keyword_from_module_member">
+        <source>Remove 'Shared' keyword from Module member</source>
+        <target state="translated">從模組成員移除 'Shared' 關鍵字</target>
+        <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">於此輸入名稱以宣告新的欄位。</target>
@@ -100,6 +110,11 @@
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
         <target state="translated">注意: 空格完成的功能已停用，以免造成可能的干擾。若要插入清單中的名稱，請使用 Tab 鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -264,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement">
         <source>Implicit member access can't be included in the selection without containing statement</source>
-        <target state="translated">沒有包含陳述式的選取範圍中，不可包含隱含成員存取。</target>
+        <target state="translated">沒有包含陳述式的選取範圍中，不可包含隱含成員存取</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_must_be_part_of_executable_statements">
@@ -1472,11 +1487,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">讓 {0} 成為非同步函式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">插入遺漏的 Cast</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
         <target state="translated">將 {0} 轉換為 Iterator</target>
@@ -1684,7 +1694,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}' 的引數太多。</target>
+        <target state="translated">'{0}' 的引數太多。</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">

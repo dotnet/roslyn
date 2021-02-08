@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -102,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterCount;
                 case SymbolKind.Event:
+                case SymbolKind.Field:
                     return 0;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -221,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
                 case SymbolKind.TypeParameter:
+                case SymbolKind.FunctionPointerType:
                     return ((TypeSymbol)m).CustomModifierCount();
                 case SymbolKind.Event:
                     return ((EventSymbol)m).CustomModifierCount();
@@ -364,6 +368,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if the method is a constructor and has a this() constructor initializer.
+        /// </summary>
+        internal static bool HasThisConstructorInitializer(this MethodSymbol method)
+        {
+            if ((object)method != null && method.MethodKind == MethodKind.Constructor)
+            {
+                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
+                if ((object)sourceMethod != null)
+                {
+                    ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+                    if (constructorSyntax != null)
+                    {
+                        ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
+                        if (initializerSyntax != null)
+                        {
+                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool IncludeFieldInitializersInBody(this MethodSymbol methodSymbol)
+        {
+            return methodSymbol.IsConstructor()
+                && !methodSymbol.HasThisConstructorInitializer()
+                && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
+        }
+
+        /// <summary>
         /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>
         internal static bool IsParameterlessConstructor(this MethodSymbol method)
@@ -381,6 +418,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.IsImplicitlyDeclared &&
                    method.ContainingType.IsValueType &&
                    method.IsParameterlessConstructor();
+        }
+
+        /// <summary>
+        /// Indicates whether the method should be emitted.
+        /// </summary>
+        internal static bool ShouldEmit(this MethodSymbol method)
+        {
+            // Don't emit the default value type constructor - the runtime handles that
+            if (method.IsDefaultValueTypeConstructor())
+            {
+                return false;
+            }
+
+            if (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit())
+            {
+                return false;
+            }
+
+            // Don't emit partial methods without an implementation part.
+            if (method.IsPartialMethod() && method.PartialImplementationPart is null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -517,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt);
+                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt, requireSameReturnType: false);
 
                 case SymbolKind.Property:
                     var property = (PropertySymbol)member;

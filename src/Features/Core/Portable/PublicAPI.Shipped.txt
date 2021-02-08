@@ -40,9 +40,12 @@ const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Captures = "Capture
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Description = "Description" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.DocumentationComments = "DocumentationComments" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Exception = "Exception" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.RemarksDocumentationComments = "RemarksDocumentationComments" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ReturnsDocumentationComments = "ReturnsDocumentationComments" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Text = "Text" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.TypeParameters = "TypeParameters" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Usage = "Usage" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ValueDocumentationComments = "ValueDocumentationComments" -> string
 const Microsoft.CodeAnalysis.TextTags.Alias = "Alias" -> string
 const Microsoft.CodeAnalysis.TextTags.AnonymousTypeIndicator = "AnonymousTypeIndicator" -> string
 const Microsoft.CodeAnalysis.TextTags.Assembly = "Assembly" -> string
@@ -82,6 +85,7 @@ Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Remove = 1 -> Mic
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind.Replace = 2 -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Characters.get -> System.Collections.Immutable.ImmutableArray<char>
+Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.CharacterSetModificationRule() -> void
 Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Kind.get -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind
 Microsoft.CodeAnalysis.Completion.CompletionChange
 Microsoft.CodeAnalysis.Completion.CompletionChange.IncludesCommitCharacter.get -> bool
@@ -184,6 +188,7 @@ Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders.GetProviders(Sy
 Microsoft.CodeAnalysis.Completion.CompletionTags
 Microsoft.CodeAnalysis.Completion.CompletionTrigger
 Microsoft.CodeAnalysis.Completion.CompletionTrigger.Character.get -> char
+Microsoft.CodeAnalysis.Completion.CompletionTrigger.CompletionTrigger() -> void
 Microsoft.CodeAnalysis.Completion.CompletionTrigger.Kind.get -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Deletion = 2 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
@@ -223,6 +228,7 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
 Microsoft.CodeAnalysis.TaggedText
 Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
+Microsoft.CodeAnalysis.TaggedText.TaggedText() -> void
 Microsoft.CodeAnalysis.TaggedText.TaggedText(string tag, string text) -> void
 Microsoft.CodeAnalysis.TaggedText.Text.get -> string
 Microsoft.CodeAnalysis.TextTags

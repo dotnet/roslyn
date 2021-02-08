@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -187,20 +188,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         internal static ImmutableArray<BlockSpan> CreateCommentBlockSpan(
             SyntaxTriviaList triviaList)
         {
-            var result = ArrayBuilder<BlockSpan>.GetInstance();
-            CollectCommentBlockSpans(triviaList, result);
-            return result.ToImmutableAndFree();
+            using var result = TemporaryArray<BlockSpan>.Empty;
+            CollectCommentBlockSpans(triviaList, ref result.AsRef());
+            return result.ToImmutableAndClear();
         }
 
         public static void CollectCommentBlockSpans(
-            SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
+            SyntaxTriviaList triviaList, ref TemporaryArray<BlockSpan> spans)
         {
             if (triviaList.Count > 0)
             {
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                void completeSingleLineCommentGroup()
+                void completeSingleLineCommentGroup(ref TemporaryArray<BlockSpan> spans)
                 {
                     if (startComment != null)
                     {
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     }
                     else if (trivia.IsMultiLineComment())
                     {
-                        completeSingleLineCommentGroup();
+                        completeSingleLineCommentGroup(ref spans);
 
                         var multilineCommentRegion = CreateCommentBlockSpan(trivia, trivia);
                         spans.Add(multilineCommentRegion);
@@ -232,32 +233,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                                                  SyntaxKind.EndOfLineTrivia,
                                                  SyntaxKind.EndOfFileToken))
                     {
-                        completeSingleLineCommentGroup();
+                        completeSingleLineCommentGroup(ref spans);
                     }
                 }
 
-                completeSingleLineCommentGroup();
+                completeSingleLineCommentGroup(ref spans);
             }
         }
 
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource)
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (isMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }
             else
             {
                 var triviaList = node.GetLeadingTrivia();
-                CollectCommentBlockSpans(triviaList, spans);
+                CollectCommentBlockSpans(triviaList, ref spans);
             }
 
             return;
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
                 }
                 else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
+                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
                 {
@@ -370,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return enumDeclaration.OpenBraceToken.GetPreviousToken();
                 }
                 else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
+                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
                     || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
                 {

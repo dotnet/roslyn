@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -122,9 +121,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
+
+                if (binder.IsLastBinderWithinMember())
+                {
+                    // Declarations within a member do not conflict with declarations outside.
+                    return false;
+                }
             }
 
             return false;
+        }
+
+        private bool IsLastBinderWithinMember()
+        {
+            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+
+            switch (containingMemberOrLambda?.Kind)
+            {
+                case null:
+                case SymbolKind.NamedType:
+                case SymbolKind.Namespace:
+                    return true;
+                default:
+                    return containingMemberOrLambda.ContainingSymbol?.Kind == SymbolKind.NamedType &&
+                           this.Next?.ContainingMemberOrLambda != containingMemberOrLambda;
+            }
         }
     }
 }

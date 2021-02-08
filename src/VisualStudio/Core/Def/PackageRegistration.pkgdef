@@ -1,0 +1,15 @@
+﻿[$RootKey$\Menus]
+"{6cf2e545-6109-4730-8883-cf43d7aec3e1}"=", Menus.ctmenu, 18"
+
+// [ProvideUIContextRule(
+//      Guids.EncCapableProjectExistsInWorkspaceUIContextString,
+//      name: "Managed Edit and Continue capability",
+//      expression: "CS | VB",
+//      termNames: new[] { "CS", "VB" },
+//      termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
+[$RootKey$\UIContextRules\{0c89ae24-6d19-474c-a3aa-dc3b66fdbb5f}]
+@="Managed Edit and Continue capability"
+"Expression"="CS | VB"
+"CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
+"VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
+

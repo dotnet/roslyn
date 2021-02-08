@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,7 +20,10 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
             _languagesProvider = languagesProvider;
             SyntaxTokenKinds =
-                languagesProvider.Languages.SelectMany(p => p.Classifier.SyntaxTokenKinds).Distinct().ToImmutableArray();
+                languagesProvider.Languages.Where(p => p.Classifier != null)
+                                           .SelectMany(p => p.Classifier.SyntaxTokenKinds)
+                                           .Distinct()
+                                           .ToImmutableArray();
         }
 
         public override void AddClassifications(Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

@@ -6,7 +6,7 @@
 set -u
 
 # Stop script if subcommand fails
-set -e 
+set -e
 
 usage()
 {
@@ -23,15 +23,17 @@ usage()
   echo "  --publish                  Publish build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"     
+  echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
+  echo "  --testIOperation           Run unit tests with the IOperation test hook"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
   echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
-  echo "  --skipAnalyzers            Do not run analyzers during build operations"
+  echo "  --runAnalyzers             Run analyzers during build operations"
+  echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
@@ -58,17 +60,20 @@ pack=false
 publish=false
 test_core_clr=false
 test_mono=false
+test_ioperation=false
 
 configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
+helix=false
+helix_queue_name=""
 bootstrap=false
-skip_analyzers=false
+run_analyzers=false
+skip_documentation=false
 prepare_machine=false
 warn_as_error=false
 properties=""
-disable_parallel_restore=false
 source_build=false
 
 docker=false
@@ -121,16 +126,30 @@ while [[ $# > 0 ]]; do
     --testmono)
       test_mono=true
       ;;
+    --testioperation)
+      test_ioperation=true
+      ;;
     --ci)
       ci=true
+      ;;
+    --helix)
+      helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
       ;;
     --bootstrap)
       bootstrap=true
       # Bootstrap requires restore
       restore=true
       ;;
-    --skipanalyzers)
-      skip_analyzers=true
+    --runanalyzers)
+      run_analyzers=true
+      ;;
+    --skipdocumentation)
+      skip_documentation=true
       ;;
     --preparemachine)
       prepare_machine=true
@@ -215,25 +234,28 @@ function BuildSolution {
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
-  
+
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
-  fi
-  
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  local enable_analyzers=!$skip_analyzers
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    enable_analyzers=false
+    export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
 
+  local projects="$repo_root/$solution"
+
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    disable_parallel_restore=true
+    ulimit -n 6500 || echo "Cannot change ulimit"
+  fi
+
+  if [[ "$test_ioperation" == true ]]; then
+    export ROSLYN_TEST_IOPERATION="true"
+
+    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
+      test_core_clr=true
+    fi
   fi
 
   local test=false
@@ -252,10 +274,16 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
     test_runtime_args="--debug"
-  elif [[ "$test_core_clr" == true ]]; then
-    test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.1"
-    mono_tool=""
+  fi
+
+  local generate_documentation_file=""
+  if [[ "$skip_documentation" == true ]]; then
+    generate_documentation_file="/p:GenerateDocumentationFile=false"
+  fi
+
+  local roslyn_use_hard_links=""
+  if [[ "$ci" == true ]]; then
+    roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
@@ -273,19 +301,27 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$enable_analyzers \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
-    /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
+    $generate_documentation_file \
+    $roslyn_use_hard_links \
     $properties
 }
 
-InitializeDotNetCli $restore
+install=false
+if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+  install=true
+fi
+InitializeDotNetCli $install
+if [[ "$restore" == true ]]; then
+  dotnet tool restore
+fi
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
@@ -293,5 +329,23 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-BuildSolution
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  BuildSolution
+fi
+
+if [[ "$test_core_clr" == true ]]; then
+  runtests_args=""
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
+  if [[ "$helix" == true ]]; then
+    runtests_args="$runtests_args --helix"
+  fi
+
+  if [[ "$ci" != true ]]; then
+    runtests_args="$runtests_args --html"
+  fi
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/netcoreapp3.1/RunTests.dll" --tfm netcoreapp3.1 --tfm net5.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+fi
 ExitWithExitCode 0

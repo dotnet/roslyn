@@ -2,32 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 {
     internal class TypingFormattingRule : BaseFormattingRule
     {
-        public readonly static TypingFormattingRule Instance = new TypingFormattingRule();
+        public static readonly TypingFormattingRule Instance = new();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
             {
                 return;
             }
 
-            base.AddSuppressOperations(list, node, options, in nextOperation);
+            base.AddSuppressOperations(list, node, in nextOperation);
         }
 
-        private bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
+        private static bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return true;
         }
 
-        private bool SomeParentHasMissingCloseBrace(SyntaxNode node)
+        private static bool SomeParentHasMissingCloseBrace(SyntaxNode node)
         {
             while (node != null && node.Kind() != SyntaxKind.CompilationUnit)
             {

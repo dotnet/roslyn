@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -264,9 +266,9 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (3,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,9): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int P { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithArguments("I.P").WithLocation(3, 9));
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P").WithArguments("I.P").WithLocation(3, 9));
         }
 
         [Fact]
@@ -293,10 +295,10 @@ struct S
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-// (4,20): error CS8034: Auto-implemented properties must have get accessors.
+// (4,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int Q { set; } = 0;
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.Q.set").WithLocation(4, 20),
-// (5,20): error CS8034: Auto-implemented properties must have get accessors.
+// (5,20): error CS8051: Auto-implemented properties must have get accessors.
 //     public int R { set; }
 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.R.set").WithLocation(5, 20));
         }
@@ -1163,7 +1165,7 @@ class B {
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+    // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
     //     B y = A.Goo; 
     Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
     // (5,11): error CS0029: Cannot implicitly convert type 'E' to 'B'
@@ -1171,7 +1173,7 @@ class B {
     Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("E", "B")
                 );
             // Dev10 errors:
-            // error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
+            // error CS0268: Imported type 'E' is invalid. It contains a circular base type dependency.
             // error CS0570: 'A.Goo' is not supported by the language
         }
 
@@ -1451,36 +1453,43 @@ class B {
         public void CanNotReadPropertyOfUnsupportedType()
         {
             const string ilSource = @"
-.class public B
+.class public auto ansi beforefieldinit Indexers
+       extends [mscorlib]System.Object
 {
-  .method public instance void .ctor()
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string)
+           = {string('Item')}
+  .method public hidebysig specialname instance int32 
+          get_Item(string modreq(int16) x) cil managed
+  {
+    ldc.i4.0
+    ret
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
   {
     ldarg.0
-    call instance void class System.Object::.ctor()
+    call       instance void [mscorlib]System.Object::.ctor()
     ret
   }
-  .method public static method void*()[] get_Goo()
+
+  .property instance int32 Item(string modreq(int16))
   {
-    ldnull
-    ret
+    .get instance int32 Indexers::get_Item(string modreq(int16))
   }
-  .property method void*()[] Goo()
-  {
-    .get method void*()[] B::get_Goo()
-  }
-}
+} // end of class Indexers
 ";
             const string cSharpSource = @"
 class C {
     static void Main() {
-        object goo = B.Goo;
+        object goo = new Indexers()[null];
     }
 }
 ";
             CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,24): error CS1546: Property, indexer, or event 'B.Goo' is not supported by the language; try directly calling accessor method 'B.get_Goo()'
-                //         object goo = B.Goo;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("B.Goo", "B.get_Goo()"));
+                // (4,22): error CS1546: Property, indexer, or event 'Indexers.this[string]' is not supported by the language; try directly calling accessor method 'Indexers.get_Item(string)'
+                //         object goo = new Indexers()[null];
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "new Indexers()[null]").WithArguments("Indexers.this[string]", "Indexers.get_Item(string)").WithLocation(4, 22));
         }
 
         [WorkItem(538791, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538791")]
@@ -1561,6 +1570,11 @@ class B {
         public void CanNotReadPropertyFromAmbiguousGenericClass()
         {
             const string ilSource = @"
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '09f9df97-a228-4ca4-9b71-151909f205e6'
+{
+}
+
 .class public A`1<T> {
   .method public static int32 get_Goo() { ldnull throw }
   .property int32 Goo() { .get int32 A`1::get_Goo() }
@@ -1571,6 +1585,8 @@ class B {
   .property int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
+            var ref0 = CompileIL(ilSource, prependDefaultHeader: false);
+
             const string cSharpSource = @"
 class B {
   static void Main() {
@@ -1578,10 +1594,10 @@ class B {
   }
 }
 ";
-            CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
+            CreateCompilation(cSharpSource, references: new[] { ref0 }).VerifyDiagnostics(
+                // (4,16): error CS0433: The type 'A<T>' exists in both '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //     object x = A<int>.Goo;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "A<int>").WithArguments("09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A<T>", "09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 16));
         }
 
         [WorkItem(538789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]
@@ -2483,24 +2499,24 @@ End Class";
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
             Assert.Equal(interfacePropertySetter, classPropertySetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.First();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
 
             var setterOverride = explicitOverrides.Last();
-            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertySetter, setterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertySetter.ContainingType, setterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertySetter.Name, setterOverride.ImplementedMethod.Name);
             context.Diagnostics.Verify();
         }
@@ -2521,19 +2537,19 @@ End Class";
 
             Assert.Equal(interfacePropertyGetter, classPropertyGetter.ExplicitInterfaceImplementations.Single());
 
-            var typeDef = (Microsoft.Cci.ITypeDefinition)@class;
+            var typeDef = (Microsoft.Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
-            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
+            Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType.GetInternalSymbol())));
 
             // We're not actually asserting that the overrides are in this order - set comparison just seems like overkill for two elements
             var getterOverride = explicitOverrides.Single();
-            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod);
-            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context));
+            Assert.Equal(classPropertyGetter, getterOverride.ImplementingMethod.GetInternalSymbol());
+            Assert.Equal(interfacePropertyGetter.ContainingType, getterOverride.ImplementedMethod.GetContainingType(context).GetInternalSymbol());
             Assert.Equal(interfacePropertyGetter.Name, getterOverride.ImplementedMethod.Name);
         }
 
@@ -2584,7 +2600,7 @@ public interface IA
     string M2();
 }";
             var refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new MetadataReference[] { MscorlibRef });
 
@@ -2676,7 +2692,7 @@ public interface IA
 }";
 
             refComp = CSharpCompilation.Create("DLL",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 syntaxTrees: new[] { SyntaxFactory.ParseSyntaxTree(refSrc) },
                 references: new[] { MscorlibRef });
 
@@ -2875,7 +2891,7 @@ unsafe class Test
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,30): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //     int* property { get; } = stackalloc int[256];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[256]").WithArguments("int", "int*").WithLocation(4, 30)

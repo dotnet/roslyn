@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// Synthesized local variables are either 
     /// 1) Short-lived (temporary)
-    ///    The lifespan of an temporary variable shall not cross a statement boundary (a PDB sequence point).
+    ///    The lifespan of a temporary variable shall not cross a statement boundary (a PDB sequence point).
     ///    These variables are not tracked by EnC and don't have names.
     ///  
     /// 2) Long-lived

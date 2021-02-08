@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             private readonly IPersistentStorageService _persistentStorageService;
-            private readonly HostDiagnosticAnalyzers _hostAnalyzers;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -43,9 +40,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(HostDiagnosticAnalyzers hostAnalyzers, IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _hostAnalyzers = hostAnalyzers;
                 _persistentStorageService = persistentStorageService;
                 _analyzerInfoCache = analyzerInfoCache;
 
@@ -92,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
             {
                 var projectStateSets = GetOrUpdateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project.Language, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
             {
                 var projectStateSets = GetOrCreateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project.Language, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return stateSet;
                 }
 
-                var hostStateSetMap = GetOrCreateHostStateSets(project.Language, projectStateSets).StateSetMap;
+                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).StateSetMap;
                 if (hostStateSetMap.TryGetValue(analyzer, out stateSet))
                 {
                     return stateSet;
@@ -139,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var projectStateSets = project.SupportsCompilation ?
                     GetOrUpdateProjectStateSets(project) :
                     ProjectAnalyzerStateSets.Default;
-                var hostStateSets = GetOrCreateHostStateSets(project.Language, projectStateSets);
+                var hostStateSets = GetOrCreateHostStateSets(project, projectStateSets);
 
                 if (!project.SupportsCompilation)
                 {
@@ -159,7 +155,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // include compiler analyzer in build only state, if available
                 StateSet? compilerStateSet = null;
-                var compilerAnalyzer = _hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                var hostAnalyzers = project.Solution.State.Analyzers;
+                var compilerAnalyzer = hostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
                 if (compilerAnalyzer != null && hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
@@ -169,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets.AddRange(projectStateSets.StateSetMap.Values);
 
                 // now add analyzers that exist in both host and project
-                var hostAnalyzersById = _hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
+                var hostAnalyzersById = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var (identity, analyzers) in hostAnalyzersById)
                 {
                     if (!projectAnalyzerReferenceIds.Contains(identity))
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, Document document)
+            public static bool OnDocumentReset(IEnumerable<StateSet> stateSets, TextDocument document)
             {
                 // can not be cancelled
                 var removed = false;
@@ -205,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return removed;
             }
 
-            public async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, Document document)
+            public async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
             {
                 // can not be cancelled
                 var opened = false;
@@ -217,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return opened;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, Document document)
+            public async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
             {
                 // can not be cancelled
                 var removed = false;
@@ -229,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return removed;
             }
 
-            public bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            public static bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
             {
                 var removed = false;
                 foreach (var stateSet in stateSets)

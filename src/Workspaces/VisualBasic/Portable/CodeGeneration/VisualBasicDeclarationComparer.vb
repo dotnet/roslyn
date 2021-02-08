@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -413,17 +412,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Shared Function EqualParameterLists(x As ParameterListSyntax, y As ParameterListSyntax, ByRef comparisonResult As Integer) As Boolean
             Dim result = 0
             If NeitherNull(x, y, result) Then
-                Dim xParameterCount = x.Parameters.Count
-                Dim yParameterCount = y.Parameters.Count
-
-                comparisonResult = If(xParameterCount = yParameterCount, 0, If(x.Parameters.Count < y.Parameters.Count, -1, 1))
-            End If
-
-            Return comparisonResult = 0
-        End Function
-
-        Private Shared Function EqualTypeParameterCount(x As TypeParameterListSyntax, y As TypeParameterListSyntax, ByRef comparisonResult As Integer) As Boolean
-            If NeitherNull(x, y, comparisonResult) Then
                 Dim xParameterCount = x.Parameters.Count
                 Dim yParameterCount = y.Parameters.Count
 

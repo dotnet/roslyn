@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
@@ -12,6 +13,7 @@ using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingServic
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using FormatterState = Microsoft.CodeAnalysis.Workspace;
 #endif
 

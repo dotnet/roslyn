@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -312,10 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
             => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_local_function, createChangedDocument, FeaturesResources.Use_local_function)
+                : base(CSharpAnalyzersResources.Use_local_function, createChangedDocument, CSharpAnalyzersResources.Use_local_function)
             {
             }
         }

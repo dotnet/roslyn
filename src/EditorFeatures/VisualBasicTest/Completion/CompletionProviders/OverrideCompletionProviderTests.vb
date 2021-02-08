@@ -12,10 +12,6 @@ Namespace Tests
     Public Class OverrideCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(OverrideCompletionProvider)
         End Function
@@ -938,7 +934,6 @@ Public Class derived
 
     Overrides $$
 End Class</a>
-
 
             Dim expectedCode = <a>Public Class base
     Public Overridable Property goo As String

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -78,7 +76,7 @@ namespace Roslyn.Utilities
             _pending = Pending.None;
         }
 
-        public void Write(string key, string value)
+        public void Write(string key, string? value)
         {
             WriteKey(key);
             Write(value);
@@ -96,7 +94,7 @@ namespace Roslyn.Utilities
             Write(value);
         }
 
-        public void Write(string value)
+        public void Write(string? value)
         {
             WritePending();
             _output.Write('"');

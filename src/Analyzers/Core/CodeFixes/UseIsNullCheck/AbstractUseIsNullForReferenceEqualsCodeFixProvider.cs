@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
-    internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider<TExpressionSyntax>
+        : SyntaxEditorBasedCodeFixProvider
+        where TExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
@@ -26,8 +30,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();
-        protected abstract SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric);
-        protected abstract SyntaxNode CreateNotNullCheck(SyntaxNode argument);
+        protected abstract SyntaxNode CreateNullCheck(TExpressionSyntax argument, bool isUnconstrainedGeneric);
+        protected abstract SyntaxNode CreateNotNullCheck(TExpressionSyntax argument);
 
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.ReferenceEqualsKey;
@@ -70,8 +74,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
                 var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
                 var argument = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(arguments[0]))
-                    ? syntaxFacts.GetExpressionOfArgument(arguments[1])
-                    : syntaxFacts.GetExpressionOfArgument(arguments[0]);
+                    ? (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[1])
+                    : (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(arguments[0]);
 
                 var toReplace = negate ? invocation.Parent : invocation;
                 var replacement = negate

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -999,7 +1001,7 @@ namespace System
             Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
-            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
+            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, new MetadataDecoder(peModule), ignoreByRefLikeMarker: false);
 
             if (hasObsolete)
             {

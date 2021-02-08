@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return -1;
         }
 
-        public IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>> TokenIterator
+        public IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> TokenIterator
         {
             get
             {
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {
-            public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
+            public static readonly TokenOrderComparer Instance = new();
 
             private TokenOrderComparer() { }
 

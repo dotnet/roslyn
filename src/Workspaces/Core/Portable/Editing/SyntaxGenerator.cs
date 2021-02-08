@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,12 +38,15 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
+
+        internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
+        internal abstract SyntaxToken CreateInterpolatedStringEndToken();
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
@@ -216,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return decl;
         }
 
-        private OperatorKind GetOperatorKind(IMethodSymbol method)
+        private static OperatorKind GetOperatorKind(IMethodSymbol method)
             => method.Name switch
             {
                 WellKnownMemberNames.ImplicitConversionName => OperatorKind.ImplicitConversion,
@@ -276,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// langword="false"/>.
         /// </summary>
         /// <remarks>
-        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// In C# there is a distinction between passing in <see langword="null"/> for <paramref
         /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
         /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
         /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
@@ -509,6 +514,16 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
+        /// Creates an enum declaration
+        /// </summary>
+        internal abstract SyntaxNode EnumDeclaration(
+            string name,
+            SyntaxNode underlyingType,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default,
+            IEnumerable<SyntaxNode> members = null);
+
+        /// <summary>
         /// Creates an enum member
         /// </summary>
         public abstract SyntaxNode EnumMember(string name, SyntaxNode expression = null);
@@ -601,8 +616,9 @@ namespace Microsoft.CodeAnalysis.Editing
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
+                                type.EnumUnderlyingType?.SpecialType == SpecialType.System_Int32 ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -1168,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
         }
 
-        internal SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
+        internal static SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
             => root.ReplaceNode(node, newDeclarations);
 
         /// <summary>
@@ -1214,6 +1230,8 @@ namespace Microsoft.CodeAnalysis.Editing
         #region Utility
 
         internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list) where TElement : SyntaxNode;
+
+        internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators) where TElement : SyntaxNode;
 
         internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
         {
@@ -1289,7 +1307,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
+#pragma warning disable CA1822 // Mark members as static - shipped public API
         protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+#pragma warning restore CA1822 // Mark members as static
         {
             for (int i = 0, count = list.Count; i < count; i++)
             {
@@ -1353,7 +1373,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that can be used to yield a value from an iterator method.
         /// </summary>
         /// <param name="expression">An expression that can be yielded.</param>
-        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+        internal SyntaxNode YieldReturnStatement(SyntaxNode expression)
+            => SyntaxGeneratorInternal.YieldReturnStatement(expression);
 
         /// <summary>
         /// Creates a statement that can be used to throw an exception.
@@ -1377,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
-        internal abstract bool RequiresLocalDeclarationType();
+        internal bool RequiresLocalDeclarationType() => SyntaxGeneratorInternal.RequiresLocalDeclarationType();
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1530,12 +1551,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
-        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
-        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
-        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
-        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
-        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
-        internal abstract SyntaxNode InterpolationFormatClause(string format);
+        internal SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxGeneratorInternal.InterpolatedStringTextToken(content);
+        internal SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxGeneratorInternal.InterpolatedStringText(textToken);
+        internal SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxGeneratorInternal.Interpolation(syntaxNode);
+        internal SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxGeneratorInternal.InterpolatedStringExpression(startToken, content, endToken);
+        internal SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxGeneratorInternal.InterpolationAlignmentClause(alignment);
+        internal SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxGeneratorInternal.InterpolationFormatClause(format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
@@ -1722,6 +1749,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 throw new ArgumentNullException(nameof(elements));
             }
+
             if (elements.Count() <= 1)
             {
                 throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
@@ -1924,7 +1952,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
-        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
+        internal SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxGeneratorInternal.RefExpression(expression);
 
         /// <summary>
         /// Creates a member access expression.
@@ -1946,6 +1975,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an object creation expression.
         /// </summary>
         public abstract SyntaxNode ObjectCreationExpression(SyntaxNode namedType, IEnumerable<SyntaxNode> arguments);
+
+        internal abstract SyntaxNode ObjectCreationExpression(
+            SyntaxNode namedType, SyntaxToken openParen, SeparatedSyntaxList<SyntaxNode> arguments, SyntaxToken closeParen);
 
         /// <summary>
         /// Creates an object creation expression.
@@ -2140,7 +2172,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Wraps with parens.
         /// </summary>
-        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+        internal SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+            => SyntaxGeneratorInternal.AddParentheses(expression, includeElasticTrivia, addSimplifierAnnotation);
 
         /// <summary>
         /// Creates an nameof expression.
@@ -2152,14 +2185,16 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
 
-        #endregion
+        /// <summary>
+        /// Parses an expression from string
+        /// </summary>
+        internal abstract SyntaxNode ParseExpression(string stringToParse);
 
-        #region Patterns
+        internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
-        internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
-        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
-        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
+
+        internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
         #endregion
     }

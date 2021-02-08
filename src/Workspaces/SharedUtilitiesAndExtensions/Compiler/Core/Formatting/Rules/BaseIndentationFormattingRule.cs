@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal class BaseIndentationFormattingRule : AbstractFormattingRule
     {
-        private readonly AbstractFormattingRule _vbHelperFormattingRule;
+        private readonly AbstractFormattingRule? _vbHelperFormattingRule;
         private readonly int _baseIndentation;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly SyntaxNode _commonNode;
+        private readonly SyntaxNode? _commonNode;
         private readonly TextSpan _span;
 
-        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, AbstractFormattingRule vbHelperFormattingRule = null)
+        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             _span = span;
             SetInnermostNodeForSpan(root, ref _span, out _token1, out _token2, out _commonNode);
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -47,21 +47,21 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             }
 
             // Add everything to the list.
-            AddNextIndentBlockOperations(list, node, options, in nextOperation);
+            AddNextIndentBlockOperations(list, node, in nextOperation);
 
             // Filter out everything that encompasses our span.
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {
-                base.AddIndentBlockOperations(list, node, options, in nextOperation);
+                base.AddIndentBlockOperations(list, node, in nextOperation);
                 return;
             }
 
-            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, options, in nextOperation);
+            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, in nextOperation);
         }
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private IndentBlockOperation CloneAndAdjustFormattingOperation(IndentBlockOperation operation)
         {
-            switch (operation.Option)
+            switch (operation.Option & IndentBlockOption.PositionMask)
             {
                 case IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine:
                     return FormattingOperations.CreateRelativeIndentBlockOperation(operation.BaseToken, operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private TextSpan AdjustTextSpan(TextSpan textSpan)
             => TextSpan.FromBounds(Math.Max(_span.Start, textSpan.Start), Math.Min(_span.End, textSpan.End));
 
-        private void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode commonNode)
+        private static void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode? commonNode)
         {
             commonNode = null;
 
@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private static TextSpan GetSpanFromTokens(TextSpan span, SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
+            RoslynDebug.AssertNotNull(tree);
 
             // adjust span to include all whitespace before and after the given span.
             var start = token1.Span.End;

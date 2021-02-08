@@ -6,13 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
-using INavigateToSearchService = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService;
-using INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate = Microsoft.CodeAnalysis.NavigateTo.INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 var result = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
-                    var navigateToSearchService = TryGetNavigateToSearchService(project);
+                    var navigateToSearchService = project.GetLanguageService<INavigateToSearchService>();
                     if (navigateToSearchService != null)
                     {
                         result = result.Union(navigateToSearchService.KindsProvided);
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 foreach (var project in _workspace.CurrentSolution.Projects)
                 {
-                    var navigateToSearchService = TryGetNavigateToSearchService(project);
+                    var navigateToSearchService = project.GetLanguageService<INavigateToSearchService>();
                     if (navigateToSearchService is null)
                     {
                         // If we reach here, it means the current project does not support Navigate To, which is
@@ -115,57 +113,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             var searchCurrentDocument = (callback.Options as INavigateToOptions2)?.SearchCurrentDocument ?? false;
-            var searcher = new Searcher(
+
+            var roslynCallback = new NavigateToItemProviderCallback(_displayFactory, callback);
+            var searcher = new NavigateToSearcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
-                _displayFactory,
-                callback,
+                roslynCallback,
                 searchValue,
                 searchCurrentDocument,
                 kinds,
                 _cancellationTokenSource.Token);
 
             _ = searcher.SearchAsync();
-        }
-
-        private static INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate TryGetNavigateToSearchService(Project project)
-        {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-            if (service != null)
-            {
-                return service;
-            }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable CS0612 // Type or member is obsolete
-            var legacyService = project.LanguageServices.GetService<INavigateToSearchService>();
-            if (legacyService != null)
-            {
-                return new ShimNavigateToSearchService(legacyService);
-            }
-#pragma warning restore CS0612 // Type or member is obsolete
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            return null;
-        }
-
-        [Obsolete("https://github.com/dotnet/roslyn/issues/28343")]
-        private class ShimNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
-        {
-            private readonly INavigateToSearchService _navigateToSearchService;
-
-            public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-                => _navigateToSearchService = navigateToSearchService;
-
-            public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
-
-            public bool CanFilter => false;
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchDocumentAsync(document, searchPattern, cancellationToken);
-
-            public Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
-                => _navigateToSearchService.SearchProjectAsync(project, searchPattern, cancellationToken);
         }
     }
 }

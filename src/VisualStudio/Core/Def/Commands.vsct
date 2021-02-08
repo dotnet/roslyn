@@ -346,7 +346,7 @@
           <ButtonText>Go To Implementation</ButtonText>
           <CanonicalName>GoToImplementation</CanonicalName>
           <LocCanonicalName>GoToImplementation</LocCanonicalName>
-          <CommandName>GoToImplementation</CommandName>
+          <CommandName>Go To Implementation</CommandName>
         </Strings>
       </Button>
 

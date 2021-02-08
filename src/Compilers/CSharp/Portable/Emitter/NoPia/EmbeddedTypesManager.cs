@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,10 +15,25 @@ using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 
+#if !DEBUG
+using SymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbol;
+using NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol;
+using FieldSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.FieldSymbol;
+using MethodSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol;
+using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+using ParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol;
+using TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypesManager :
-        EmbeddedTypesManager<PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, SyntaxNode, CSharpAttributeData, Symbol, AssemblySymbol, NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol, EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
+        EmbeddedTypesManager<PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, SyntaxNode, CSharpAttributeData,
+            SymbolAdapter,
+            AssemblySymbol,
+            NamedTypeSymbolAdapter, FieldSymbolAdapter, MethodSymbolAdapter, EventSymbolAdapter, PropertySymbolAdapter, ParameterSymbolAdapter, TypeParameterSymbolAdapter,
+            EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
     {
         private readonly ConcurrentDictionary<AssemblySymbol, string> _assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
         private readonly ConcurrentDictionary<Symbol, bool> _reportedSymbolsMap = new ConcurrentDictionary<Symbol, bool>(ReferenceEqualityComparer.Instance);
@@ -98,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return lazyMethod;
         }
 
-        internal override int GetTargetAttributeSignatureIndex(Symbol underlyingSymbol, CSharpAttributeData attrData, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(SymbolAdapter underlyingSymbol, CSharpAttributeData attrData, AttributeDescription description)
         {
-            return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol, description);
+            return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description);
         }
 
         internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, CSharpAttributeData attrData, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
@@ -157,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             foreach (EmbeddedType t in types)
             {
                 // Note, once we reached this point we are no longer interested in guid values, using null.
-                _assemblyGuidMap.TryAdd(t.UnderlyingNamedType.ContainingAssembly, null);
+                _assemblyGuidMap.TryAdd(t.UnderlyingNamedType.AdaptedSymbol.ContainingAssembly, null);
             }
 
             foreach (AssemblySymbol a in ModuleBeingBuilt.GetReferencedAssembliesUsedSoFar())
@@ -171,17 +188,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             var underlyingTypeA = typeA.UnderlyingNamedType;
             var underlyingTypeB = typeB.UnderlyingNamedType;
             Error(diagnostics, ErrorCode.ERR_InteropTypesWithSameNameAndGuid, null,
-                                underlyingTypeA,
-                                underlyingTypeA.ContainingAssembly,
-                                underlyingTypeB.ContainingAssembly);
+                                underlyingTypeA.AdaptedNamedTypeSymbol,
+                                underlyingTypeA.AdaptedSymbol.ContainingAssembly,
+                                underlyingTypeB.AdaptedSymbol.ContainingAssembly);
         }
 
         protected override void ReportNameCollisionWithAlreadyDeclaredType(EmbeddedType type, DiagnosticBag diagnostics)
         {
             var underlyingType = type.UnderlyingNamedType;
             Error(diagnostics, ErrorCode.ERR_LocalTypeNameClash, null,
-                            underlyingType,
-                            underlyingType.ContainingAssembly);
+                            underlyingType.AdaptedNamedTypeSymbol,
+                            underlyingType.AdaptedSymbol.ContainingAssembly);
         }
 
         internal override void ReportIndirectReferencesToLinkedAssemblies(AssemblySymbol a, DiagnosticBag diagnostics)
@@ -325,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 return EmbedType(namedType, fromImplements, syntaxNodeOpt, diagnostics);
             }
 
-            return namedType;
+            return null;
         }
 
         private EmbeddedType EmbedType(
@@ -336,8 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(namedType.IsDefinition);
 
-            EmbeddedType embedded = new EmbeddedType(this, namedType);
-            EmbeddedType cached = EmbeddedTypesMap.GetOrAdd(namedType, embedded);
+            var adapter = namedType.GetCciAdapter();
+            EmbeddedType embedded = new EmbeddedType(this, adapter);
+            EmbeddedType cached = EmbeddedTypesMap.GetOrAdd(adapter, embedded);
 
             bool isInterface = (namedType.IsInterface);
 
@@ -375,14 +393,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 foreach (FieldSymbol f in namedType.GetFieldsToEmit())
                 {
-                    EmbedField(embedded, f, syntaxNodeOpt, diagnostics);
+                    EmbedField(embedded, f.GetCciAdapter(), syntaxNodeOpt, diagnostics);
                 }
 
                 foreach (MethodSymbol m in namedType.GetMethodsToEmit())
                 {
                     if ((object)m != null)
                     {
-                        EmbedMethod(embedded, m, syntaxNodeOpt, diagnostics);
+                        EmbedMethod(embedded, m.GetCciAdapter(), syntaxNodeOpt, diagnostics);
                     }
                 }
 
@@ -395,11 +413,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedField EmbedField(
             EmbeddedType type,
-            FieldSymbol field,
+            FieldSymbolAdapter field,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(field.IsDefinition);
+            Debug.Assert(field.AdaptedSymbol.IsDefinition);
 
             EmbeddedField embedded = new EmbeddedField(type, field);
             EmbeddedField cached = EmbeddedFieldsMap.GetOrAdd(field, embedded);
@@ -416,14 +434,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Embed types referenced by this field declaration.
             EmbedReferences(embedded, syntaxNodeOpt, diagnostics);
 
-            var containerKind = field.ContainingType.TypeKind;
+            var containerKind = field.AdaptedFieldSymbol.ContainingType.TypeKind;
 
             // Structures may contain only public instance fields. 
             if (containerKind == TypeKind.Interface || containerKind == TypeKind.Delegate ||
-                (containerKind == TypeKind.Struct && (field.IsStatic || field.DeclaredAccessibility != Accessibility.Public)))
+                (containerKind == TypeKind.Struct && (field.AdaptedFieldSymbol.IsStatic || field.AdaptedFieldSymbol.DeclaredAccessibility != Accessibility.Public)))
             {
                 // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods 
-                ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, field.ContainingType, syntaxNodeOpt, diagnostics, this);
+                ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, field.AdaptedFieldSymbol.ContainingType, syntaxNodeOpt, diagnostics, this);
             }
 
             return embedded;
@@ -431,12 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedMethod EmbedMethod(
             EmbeddedType type,
-            MethodSymbol method,
+            MethodSymbolAdapter method,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(method.IsDefinition);
-            Debug.Assert(!method.IsDefaultValueTypeConstructor());
+            Debug.Assert(method.AdaptedSymbol.IsDefinition);
+            Debug.Assert(!method.AdaptedMethodSymbol.IsDefaultValueTypeConstructor());
 
             EmbeddedMethod embedded = new EmbeddedMethod(type, method);
             EmbeddedMethod cached = EmbeddedMethodsMap.GetOrAdd(method, embedded);
@@ -453,34 +471,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Embed types referenced by this method declaration.
             EmbedReferences(embedded, syntaxNodeOpt, diagnostics);
 
-            switch (type.UnderlyingNamedType.TypeKind)
+            switch (type.UnderlyingNamedType.AdaptedNamedTypeSymbol.TypeKind)
             {
                 case TypeKind.Struct:
                 case TypeKind.Enum:
                     // ERRID.ERR_InvalidStructMemberNoPIA1/ERR_InteropStructContainsMethods
-                    ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, type.UnderlyingNamedType, syntaxNodeOpt, diagnostics, this);
+                    ReportNotEmbeddableSymbol(ErrorCode.ERR_InteropStructContainsMethods, type.UnderlyingNamedType.AdaptedNamedTypeSymbol, syntaxNodeOpt, diagnostics, this);
                     break;
 
                 default:
                     if (Cci.Extensions.HasBody(embedded))
                     {
                         // ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
-                        Error(diagnostics, ErrorCode.ERR_InteropMethodWithBody, syntaxNodeOpt, method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                        Error(diagnostics, ErrorCode.ERR_InteropMethodWithBody, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
                     }
                     break;
             }
 
             // If this proc happens to belong to a property/event, we should include the property/event as well.
-            Symbol propertyOrEvent = method.AssociatedSymbol;
+            Symbol propertyOrEvent = method.AdaptedMethodSymbol.AssociatedSymbol;
             if ((object)propertyOrEvent != null)
             {
                 switch (propertyOrEvent.Kind)
                 {
                     case SymbolKind.Property:
-                        EmbedProperty(type, (PropertySymbol)propertyOrEvent, syntaxNodeOpt, diagnostics);
+                        EmbedProperty(type, ((PropertySymbol)propertyOrEvent).GetCciAdapter(), syntaxNodeOpt, diagnostics);
                         break;
                     case SymbolKind.Event:
-                        EmbedEvent(type, (EventSymbol)propertyOrEvent, syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding: false);
+                        EmbedEvent(type, ((EventSymbol)propertyOrEvent).GetCciAdapter(), syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding: false);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(propertyOrEvent.Kind);
@@ -492,15 +510,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedProperty EmbedProperty(
             EmbeddedType type,
-            PropertySymbol property,
+            PropertySymbolAdapter property,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(property.IsDefinition);
+            Debug.Assert(property.AdaptedPropertySymbol.IsDefinition);
 
             // Make sure accessors are embedded.
-            MethodSymbol getMethod = property.GetMethod;
-            MethodSymbol setMethod = property.SetMethod;
+            var getMethod = property.AdaptedPropertySymbol.GetMethod?.GetCciAdapter();
+            var setMethod = property.AdaptedPropertySymbol.SetMethod?.GetCciAdapter();
 
             EmbeddedMethod embeddedGet = (object)getMethod != null ? EmbedMethod(type, getMethod, syntaxNodeOpt, diagnostics) : null;
             EmbeddedMethod embeddedSet = (object)setMethod != null ? EmbedMethod(type, setMethod, syntaxNodeOpt, diagnostics) : null;
@@ -526,16 +544,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedEvent EmbedEvent(
             EmbeddedType type,
-            EventSymbol @event,
+            EventSymbolAdapter @event,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool isUsedForComAwareEventBinding)
         {
-            Debug.Assert(@event.IsDefinition);
+            Debug.Assert(@event.AdaptedSymbol.IsDefinition);
 
             // Make sure accessors are embedded.
-            MethodSymbol addMethod = @event.AddMethod;
-            MethodSymbol removeMethod = @event.RemoveMethod;
+            var addMethod = @event.AdaptedEventSymbol.AddMethod?.GetCciAdapter();
+            var removeMethod = @event.AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
 
             EmbeddedMethod embeddedAdd = (object)addMethod != null ? EmbedMethod(type, addMethod, syntaxNodeOpt, diagnostics) : null;
             EmbeddedMethod embeddedRemove = (object)removeMethod != null ? EmbedMethod(type, removeMethod, syntaxNodeOpt, diagnostics) : null;
@@ -566,12 +584,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return embedded;
         }
 
-        protected override EmbeddedType GetEmbeddedTypeForMember(Symbol member, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        protected override EmbeddedType GetEmbeddedTypeForMember(SymbolAdapter member, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            Debug.Assert(member.IsDefinition);
+            Debug.Assert(member.AdaptedSymbol.IsDefinition);
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked);
 
-            NamedTypeSymbol namedType = member.ContainingType;
+            NamedTypeSymbol namedType = member.AdaptedSymbol.ContainingType;
 
             if (IsValidEmbeddableType(namedType, syntaxNodeOpt, diagnostics, this))
             {
@@ -588,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             CommonEmbeddedMember containingPropertyOrMethod,
             ImmutableArray<ParameterSymbol> underlyingParameters)
         {
-            return underlyingParameters.SelectAsArray((p, c) => new EmbeddedParameter(c, p), containingPropertyOrMethod);
+            return underlyingParameters.SelectAsArray((p, c) => new EmbeddedParameter(c, p.GetCciAdapter()), containingPropertyOrMethod);
         }
 
         protected override CSharpAttributeData CreateCompilerGeneratedAttribute()

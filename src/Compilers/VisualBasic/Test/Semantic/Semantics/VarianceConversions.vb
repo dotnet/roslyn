@@ -888,7 +888,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
-                                                                                     {SystemCoreRef},
+                                                                                     {TestMetadata.Net40.SystemCore},
                                                                                      TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,

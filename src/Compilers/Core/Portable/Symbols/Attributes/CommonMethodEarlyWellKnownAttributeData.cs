@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         #region ObsoleteAttribute
         private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        public ObsoleteAttributeData ObsoleteAttributeData
+        public ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {

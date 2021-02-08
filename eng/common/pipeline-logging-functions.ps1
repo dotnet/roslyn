@@ -12,7 +12,6 @@ $script:loggingCommandEscapeMappings = @( # TODO: WHAT ABOUT "="? WHAT ABOUT "%"
 # TODO: BUG: Escape % ???
 # TODO: Add test to verify don't need to escape "=".
 
-# Specify "-Force" to force pipeline formatted output even if "$ci" is false or not set
 function Write-PipelineTelemetryError {
     [CmdletBinding()]
     param(
@@ -26,55 +25,49 @@ function Write-PipelineTelemetryError {
         [string]$SourcePath,
         [string]$LineNumber,
         [string]$ColumnNumber,
-        [switch]$AsOutput,
-        [switch]$Force)
+        [switch]$AsOutput)
 
-        $PSBoundParameters.Remove('Category') | Out-Null
+        $PSBoundParameters.Remove("Category") | Out-Null
 
-        if($Force -Or ((Test-Path variable:ci) -And $ci)) {
-            $Message = "(NETCORE_ENGINEERING_TELEMETRY=$Category) $Message"
-        }
-        $PSBoundParameters.Remove('Message') | Out-Null
-        $PSBoundParameters.Add('Message', $Message)
+        $Message = "(NETCORE_ENGINEERING_TELEMETRY=$Category) $Message"
+        $PSBoundParameters.Remove("Message") | Out-Null
+        $PSBoundParameters.Add("Message", $Message)
+
         Write-PipelineTaskError @PSBoundParameters
 }
 
-# Specify "-Force" to force pipeline formatted output even if "$ci" is false or not set
 function Write-PipelineTaskError {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Message,
-        [Parameter(Mandatory = $false)]
-        [string]$Type = 'error',
-        [string]$ErrCode,
-        [string]$SourcePath,
-        [string]$LineNumber,
-        [string]$ColumnNumber,
-        [switch]$AsOutput,
-        [switch]$Force
-    )
-
-    if(!$Force -And (-Not (Test-Path variable:ci) -Or !$ci)) {
+      [Parameter(Mandatory = $true)]
+      [string]$Message,
+      [Parameter(Mandatory = $false)]
+      [string]$Type = 'error',
+      [string]$ErrCode,
+      [string]$SourcePath,
+      [string]$LineNumber,
+      [string]$ColumnNumber,
+      [switch]$AsOutput)
+  
+      if(!$ci) {
         if($Type -eq 'error') {
-            Write-Host $Message -ForegroundColor Red
-            return
+          Write-Host $Message -ForegroundColor Red
+          return
         }
         elseif ($Type -eq 'warning') {
-            Write-Host $Message -ForegroundColor Yellow
-            return
+          Write-Host $Message -ForegroundColor Yellow
+          return
         }
-    }
-
-    if(($Type -ne 'error') -and ($Type -ne 'warning')) {
-    Write-Host $Message
-    return
-    }
-    $PSBoundParameters.Remove('Force') | Out-Null      
-    if(-not $PSBoundParameters.ContainsKey('Type')) {
-    $PSBoundParameters.Add('Type', 'error')
-    }
-    Write-LogIssue @PSBoundParameters
+      }
+  
+      if(($Type -ne 'error') -and ($Type -ne 'warning')) {
+        Write-Host $Message
+        return
+      }
+      if(-not $PSBoundParameters.ContainsKey('Type')) {
+        $PSBoundParameters.Add('Type', 'error')
+      }
+      Write-LogIssue @PSBoundParameters
   }
   
   function Write-PipelineSetVariable {
@@ -87,7 +80,7 @@ function Write-PipelineTaskError {
       [switch]$AsOutput,
       [bool]$IsMultiJobVariable=$true)
 
-      if((Test-Path variable:ci) -And $ci) {
+      if($ci) {
         Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
           'variable' = $Name
           'isSecret' = $Secret
@@ -102,8 +95,7 @@ function Write-PipelineTaskError {
       [Parameter(Mandatory=$true)]
       [string]$Path,
       [switch]$AsOutput)
-
-      if((Test-Path variable:ci) -And $ci) {
+      if($ci) {
         Write-LoggingCommand -Area 'task' -Event 'prependpath' -Data $Path -AsOutput:$AsOutput
       }
   }

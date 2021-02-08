@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -350,7 +352,133 @@ switch (i)
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeLambdaInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = $$ (x) => { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAnonymousMethodInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = $$ delegate(x) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAsyncInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = async $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAsyncInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = $$ async"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAsyncLambdaInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = $$ async (x) => { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAsyncBeforeLambdaInAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+System.Action x = async $$ (x) => { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAsyncLambdaParamInAssignment()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(@"
+System.Action x = async async $$ (x) => { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCall()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+M($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInIndexer()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+this[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCallAfterArgumentLabel()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+M(param: $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCallAfterRef()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+M(ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCallAfterIn()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+M(in $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCallAfterOut()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"
+M(in $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttribute()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [$$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeArgument()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [Attr($$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInFor()
-            => await VerifyAbsenceAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
+            => await VerifyKeywordAsync(AddInsideMethod(@" for (int i = 0; i < 0; $$) "));
     }
 }

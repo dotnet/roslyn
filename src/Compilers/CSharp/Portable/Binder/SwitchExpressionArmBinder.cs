@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder armBinder = this.GetBinder(node);
             bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, _switchExpressionBinder.SwitchGoverningValEscape, hasErrors, diagnostics);
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, _switchExpressionBinder.SwitchGoverningValEscape, permitDesignations: true, hasErrors, diagnostics);
             BoundExpression whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;

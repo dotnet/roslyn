@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,17 +27,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed partial class GraphBuilder
     {
-        private readonly Graph _graph = new Graph();
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+        private readonly Graph _graph = new();
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
         private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
 
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new Dictionary<GraphNode, Project>();
-        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new Dictionary<GraphNode, Document>();
-        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new Dictionary<GraphNode, ISymbol>();
+        private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new();
+        private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new();
+        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new();
 
         /// <summary>
         /// The input solution. Never null.
@@ -169,14 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
-            return AddNodeForSymbolAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
+            return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
         }
 
-        public async Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(ISymbol symbol, Project contextProject, Document contextDocument)
         {
             // Figure out what the location for this node should be. We'll arbitrarily pick the
             // first one, unless we have a contextDocument to restrict it

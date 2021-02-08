@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -30,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (obj == (object)this)
             {
                 return true;
+            }
+
+            if (obj is NativeIntegerParameterSymbol nps)
+            {
+                return nps.Equals(this, compareKind);
             }
 
             var symbol = obj as SourceParameterSymbolBase;
@@ -85,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.Type.ContainsNativeInteger())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
             if (type.Type.ContainsTupleNames())

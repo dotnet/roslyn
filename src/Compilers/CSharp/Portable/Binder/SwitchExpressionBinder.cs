@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -68,9 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
+            bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
-                if (!reachableLabels.Contains(arm.Label))
+                hasErrors |= arm.HasErrors;
+                if (!hasErrors && !reachableLabels.Contains(arm.Label))
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
                 }
@@ -83,14 +87,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (hasErrors)
+                return true;
+
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
-            foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
+            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors, out var nodes);
+            // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
+            Debug.Assert(wasAcyclic);
+            foreach (var n in nodes)
             {
                 if (n is BoundLeafDecisionDagNode leaf && leaf.Label == defaultLabel)
                 {
-                    diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+                    var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
+                        BoundDagTemp.ForOriginalInput(boundInputExpression), nodes, n, nullPaths: false, out bool requiresFalseWhenClause, out bool unnamedEnumValue);
+                    ErrorCode warningCode =
+                        requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen :
+                        unnamedEnumValue ? ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue :
+                        ErrorCode.WRN_SwitchExpressionNotExhaustive;
+                    diagnostics.Add(
+                        warningCode,
+                        node.SwitchKeyword.GetLocation(),
+                        samplePattern);
                     return true;
                 }
             }

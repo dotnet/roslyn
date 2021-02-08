@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Return New ProgressionTestState(workspace)
         End Function
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End If
 
             Dim graphBuilder As New GraphBuilder(_workspace.CurrentSolution, CancellationToken.None)
-            graphBuilder.AddNodeForSymbolAsync(symbol, document.Project, document).Wait(CancellationToken.None)
+            graphBuilder.AddNodeAsync(symbol, document.Project, document).Wait(CancellationToken.None)
             Return graphBuilder.Graph
         End Function
 

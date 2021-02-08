@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -36,21 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         {
             const string code = @"
 {|hint:{|textspan:[Bar]
-|}enum $$E|}
+|}{|#0:enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(15, 36),
-                    hintSpan: TextSpan.FromBounds(9, 36),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: false));
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -60,21 +55,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 {|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
-|}enum $$E|}
+|}{|#0:enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(55, 76),
-                    hintSpan: TextSpan.FromBounds(49, 76),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: false));
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -84,21 +73,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 {|hint:{|textspan:// Summary:
 //     This is a summary.
 [Bar]
-|}public enum $$E|}
+|}{|#0:public enum $$E|}{|textspan2:
 {
     A,
     B
-}";
+}|}|#0}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(62, 83),
-                    hintSpan: TextSpan.FromBounds(49, 83),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: false));
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        public async Task TestEnum3(string typeKind)
+        {
+            var code = $@"
+{{|#0:$$enum E{{|textspan:
+{{
+}}|#0}}
+|}}
+{typeKind} Following
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

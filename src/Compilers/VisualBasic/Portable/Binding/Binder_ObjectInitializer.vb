@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Binder
+    Partial Friend Class Binder
         Private Function BindObjectCreationExpression(
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
@@ -663,12 +663,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       target,
                                                       diagnostics)
 
+                        Dim propertyAccess = TryCast(target, BoundPropertyAccess)
+
+                        If propertyAccess IsNot Nothing Then
+                            Debug.Assert(propertyAccess.AccessKind = PropertyAccessKind.Unknown)
+                            ' See if we can reclassify access as writable given that this is an object initializer.
+                            ' This is needed to accommodate init-only properties.
+                            If propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso Not propertyAccess.IsWriteable AndAlso
+                               propertyAccess.PropertySymbol.IsWritable(propertyAccess.ReceiverOpt, Me, isKnownTargetOfObjectMemberInitializer:=True) Then
+
+                                propertyAccess = propertyAccess.Update(propertyAccess.PropertySymbol, propertyAccess.PropertyGroupOpt, propertyAccess.AccessKind, isWriteable:=True,
+                                                                       propertyAccess.IsLValue, propertyAccess.ReceiverOpt, propertyAccess.Arguments, propertyAccess.DefaultArguments,
+                                                                       propertyAccess.Type)
+                                target = propertyAccess
+                            End If
+                        End If
+
                         If Not target.HasErrors Then
                             Dim isShared As Boolean
                             If target.Kind = BoundKind.FieldAccess Then
                                 isShared = DirectCast(target, BoundFieldAccess).FieldSymbol.IsShared
                             Else
-                                Dim [property] = DirectCast(target, BoundPropertyAccess).PropertySymbol
+                                Dim [property] = propertyAccess.PropertySymbol
                                 ' Treat extension properties as Shared in this context so we generate
                                 ' an error (BC30991) that such properties cannot be used in an initializer.
                                 ' Currently, there is only one extension property, InternalXmlHelper.Value:
@@ -927,7 +943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Special binder for binding ObjectInitializers. 
     ''' This binder stores a reference to the receiver of the initialization, because fields in an object initializer can be 
-    ''' referenced with an omitted left expression in an member access expression (e.g. .Fieldname = .OtherFieldname).
+    ''' referenced with an omitted left expression in a member access expression (e.g. .Fieldname = .OtherFieldname).
     ''' </summary>
     Friend Class ObjectInitializerBinder
         Inherits Binder

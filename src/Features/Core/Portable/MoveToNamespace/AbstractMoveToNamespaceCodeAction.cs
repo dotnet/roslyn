@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -60,7 +57,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             Debug.Assert(moveToNamespaceResult.Succeeded);
 
-            var operations = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance();
+            using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
 
             var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
@@ -81,7 +78,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 }
             }
 
-            return operations.ToImmutableAndFree();
+            return operations.ToImmutable();
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)

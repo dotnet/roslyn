@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -43,13 +45,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitUserDefined:
                 case AnonymousFunction:
                 case ConversionKind.MethodGroup:
-                case PointerToVoid:
-                case NullToPointer:
+                case ImplicitPointerToVoid:
+                case ImplicitNullToPointer:
                 case InterpolatedString:
                 case SwitchExpression:
+                case ConditionalExpression:
                 case Deconstruction:
                 case StackAllocToPointerType:
                 case StackAllocToSpanType:
+                case ImplicitPointer:
+                case ObjectCreation:
                     return true;
 
                 case ExplicitNumeric:
@@ -61,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Unboxing:
                 case ExplicitDynamic:
                 case ExplicitUserDefined:
-                case PointerToPointer:
-                case PointerToInteger:
-                case IntegerToPointer:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
                 case IntPtr:
                     return false;
 
@@ -90,11 +95,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                case PointerToVoid:
-                case PointerToPointer:
-                case PointerToInteger:
-                case IntegerToPointer:
-                case NullToPointer:
+                case ImplicitPointerToVoid:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case ImplicitNullToPointer:
+                case ImplicitPointer:
                     return true;
                 default:
                     return false;

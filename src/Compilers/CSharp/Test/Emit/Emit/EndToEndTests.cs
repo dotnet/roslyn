@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using System;
 using System.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+                    var options = TestOptions.DebugDll.WithConcurrentBuild(false);
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
@@ -152,13 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                _ when ExecutionConditionUtil.IsMacOS => 100,
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
-                _ when ExecutionConditionUtil.IsMonoDesktop => 730,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730,
+                // Legacy baselines are indicated by comments
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 180, // 100
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
+                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
+                _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
@@ -213,7 +219,7 @@ public class Test
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
                     compilation.VerifyDiagnostics();
 
                     // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
@@ -223,7 +229,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -262,8 +268,51 @@ $@"        if (F({i}))
                 var source = builder.ToString();
                 RunInThread(() =>
                 {
-                    var comp = CreateCompilation(source);
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
+                });
+            }
+        }
+
+        [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        public void Constraints()
+        {
+            int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 420,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1100,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 180,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 480,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            RunTest(n, runTest);
+
+            static void runTest(int n)
+            {
+                // class C0<T> where T : C1<T> { }
+                // class C1<T> where T : C2<T> { }
+                // ...
+                // class CN<T> where T : C0<T> { }
+                var sourceBuilder = new StringBuilder();
+                var diagnosticsBuilder = ArrayBuilder<DiagnosticDescription>.GetInstance();
+                for (int i = 0; i <= n; i++)
+                {
+                    int next = (i == n) ? 0 : i + 1;
+                    sourceBuilder.AppendLine($"class C{i}<T> where T : C{next}<T> {{ }}");
+                    diagnosticsBuilder.Add(Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "T").WithArguments($"C{i}<T>", $"C{next}<T>", "T", "T"));
+                }
+                var source = sourceBuilder.ToString();
+                var diagnostics = diagnosticsBuilder.ToArrayAndFree();
+
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                    var type = comp.GetMember<NamedTypeSymbol>("C0");
+                    var typeParameter = type.TypeParameters[0];
+                    Assert.True(typeParameter.IsReferenceType);
+                    comp.VerifyDiagnostics(diagnostics);
                 });
             }
         }

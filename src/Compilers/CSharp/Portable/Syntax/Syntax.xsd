@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Tree">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element maxOccurs="unbounded" name="PredefinedNode">
+            <xs:complexType>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="Base" type="xs:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element maxOccurs="unbounded" name="AbstractNode">
+            <xs:complexType mixed="true">
+              <xs:sequence minOccurs="0">
+                <xs:choice maxOccurs="unbounded">
+                  <xs:element name="Field">
+                    <xs:complexType mixed="true">
+                      <xs:sequence minOccurs="0">
+                        <xs:choice maxOccurs="unbounded">
+                          <xs:element name="PropertyComment">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="summary" type="xs:string" />
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="Kind">
+                            <xs:complexType>
+                              <xs:attribute name="Name" type="xs:string" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:choice>
+                      </xs:sequence>
+                      <xs:attribute name="Name" type="xs:string" use="required" />
+                      <xs:attribute name="Type" type="xs:string" use="required" />
+                      <xs:attribute name="Optional" type="xs:boolean" use="optional" />
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="TypeComment">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="summary" type="xs:string" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="Choice">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="Field">
+                          <xs:complexType>
+                            <xs:sequence minOccurs="0">
+                              <xs:element name="PropertyComment">
+                                <xs:complexType>
+                                  <xs:sequence>
+                                    <xs:element name="summary" type="xs:string" />
+                                  </xs:sequence>
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute name="Name" type="xs:string" use="required" />
+                            <xs:attribute name="Type" type="xs:string" use="required" />
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element minOccurs="0" name="Sequence">
+                          <xs:complexType>
+                            <xs:sequence>
+                              <xs:element maxOccurs="unbounded" name="Field">
+                                <xs:complexType>
+                                  <xs:sequence minOccurs="0">
+                                    <xs:element name="PropertyComment">
+                                      <xs:complexType>
+                                        <xs:sequence>
+                                          <xs:element name="summary" type="xs:string" />
+                                        </xs:sequence>
+                                      </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name="Kind">
+                                      <xs:complexType>
+                                        <xs:attribute name="Name" type="xs:string" use="required" />
+                                      </xs:complexType>
+                                    </xs:element>
+                                  </xs:sequence>
+                                  <xs:attribute name="Name" type="xs:string" use="required" />
+                                  <xs:attribute name="Type" type="xs:string" use="required" />
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:choice>
+              </xs:sequence>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="Base" type="xs:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element maxOccurs="unbounded" name="Node">
+            <xs:complexType mixed="true">
+              <xs:sequence>
+                <xs:choice maxOccurs="unbounded">
+                  <xs:element name="Kind">
+                    <xs:complexType>
+                      <xs:attribute name="Name" type="xs:string" use="required" />
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element maxOccurs="unbounded" name="Field">
+                    <xs:complexType mixed="true">
+                      <xs:sequence minOccurs="0">
+                        <xs:choice maxOccurs="unbounded">
+                          <xs:element maxOccurs="unbounded" name="Kind">
+                            <xs:complexType>
+                              <xs:attribute name="Name" type="xs:string" use="required" />
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="PropertyComment">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="summary" type="xs:string" />
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element name="summary" type="xs:string" />
+                        </xs:choice>
+                      </xs:sequence>
+                      <xs:attribute name="Name" type="xs:string" use="required" />
+                      <xs:attribute name="Type" type="xs:string" use="required" />
+                      <xs:attribute name="Override" type="xs:boolean" use="optional" />
+                      <xs:attribute name="MinCount" type="xs:unsignedByte" use="optional" />
+                      <xs:attribute name="Optional" type="xs:boolean" use="optional" />
+                      <xs:attribute name="AllowTrailingSeparator" type="xs:boolean" use="optional" />
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="TypeComment">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="summary" type="xs:string" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="FactoryComment">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="summary" type="xs:string" />
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:element name="Choice">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element maxOccurs="unbounded" name="Field">
+                          <xs:complexType>
+                            <xs:sequence minOccurs="0">
+                              <xs:element minOccurs="0" name="Kind">
+                                <xs:complexType>
+                                  <xs:attribute name="Name" type="xs:string" use="required" />
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element minOccurs="0" name="PropertyComment">
+                                <xs:complexType>
+                                  <xs:sequence>
+                                    <xs:element name="summary" type="xs:string" />
+                                  </xs:sequence>
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                            <xs:attribute name="Name" type="xs:string" use="required" />
+                            <xs:attribute name="Type" type="xs:string" use="required" />
+                            <xs:attribute name="Override" type="xs:boolean" use="optional" />
+                            <xs:attribute name="Optional" type="xs:boolean" use="optional" />
+                          </xs:complexType>
+                        </xs:element>
+                        <xs:element minOccurs="0" name="Sequence">
+                          <xs:complexType>
+                            <xs:sequence>
+                              <xs:element minOccurs="0" name="Choice">
+                                <xs:complexType>
+                                  <xs:sequence>
+                                    <xs:element maxOccurs="unbounded" name="Field">
+                                      <xs:complexType>
+                                        <xs:attribute name="Name" type="xs:string" use="required" />
+                                        <xs:attribute name="Type" type="xs:string" use="required" />
+                                      </xs:complexType>
+                                    </xs:element>
+                                  </xs:sequence>
+                                </xs:complexType>
+                              </xs:element>
+                              <xs:element maxOccurs="unbounded" name="Field">
+                                <xs:complexType>
+                                  <xs:sequence minOccurs="0">
+                                    <xs:element minOccurs="0" name="PropertyComment">
+                                      <xs:complexType>
+                                        <xs:sequence>
+                                          <xs:element name="summary" type="xs:string" />
+                                        </xs:sequence>
+                                      </xs:complexType>
+                                    </xs:element>
+                                    <xs:element minOccurs="0" name="Kind">
+                                      <xs:complexType>
+                                        <xs:attribute name="Name" type="xs:string" use="required" />
+                                      </xs:complexType>
+                                    </xs:element>
+                                  </xs:sequence>
+                                  <xs:attribute name="Name" type="xs:string" use="required" />
+                                  <xs:attribute name="Type" type="xs:string" use="required" />
+                                  <xs:attribute name="Override" type="xs:boolean" use="optional" />
+                                </xs:complexType>
+                              </xs:element>
+                            </xs:sequence>
+                          </xs:complexType>
+                        </xs:element>
+                      </xs:sequence>
+                      <xs:attribute name="Optional" type="xs:boolean" use="optional" />
+                    </xs:complexType>
+                  </xs:element>
+                </xs:choice>
+              </xs:sequence>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="Base" type="xs:string" use="required" />
+              <xs:attribute name="SkipConvenienceFactories" type="xs:boolean" use="optional" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="Root" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

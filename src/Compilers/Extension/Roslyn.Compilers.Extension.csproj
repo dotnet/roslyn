@@ -14,10 +14,13 @@
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\VisualStudio\Setup\ProvideRoslynBindingRedirection.cs">
-      <Link>ProvideRoslynBindingRedirection.cs</Link>
-    </Compile>
+  <ItemGroup Label="PkgDef">
+    <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
+                               Name="CompilerPackage"
+                               Class="Roslyn.Compilers.Extension.CompilerPackage"
+                               AllowsBackgroundLoad="true"/>
+    <PkgDefBindingRedirect Include="$(TargetPath)" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -61,6 +64,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\Core\Portable\Microsoft.CodeAnalysis.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

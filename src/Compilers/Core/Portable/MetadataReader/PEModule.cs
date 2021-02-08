@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -93,7 +96,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<byte>> s_attributeByteArrayValueExtractor = CrackByteArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
-        private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeObsoleteDataExtractor = CrackObsoleteAttributeData;
         private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis
                 _peReader = peReader;
             }
 
-            internal unsafe override ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
+            internal override unsafe ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
             {
                 PEMemoryBlock block = _peReader.GetEntireImage();
                 byte[] hash;
@@ -512,7 +514,7 @@ namespace Microsoft.CodeAnalysis
             string name = MetadataReader.GetString(typeDefinition.Name);
             Debug.Assert(name.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(name)); // Obfuscated assemblies can have types with empty names.
 
-            // The problem is that the mangled name for an static machine type looks like 
+            // The problem is that the mangled name for a static machine type looks like 
             // "<" + methodName + ">d__" + uniqueId.However, methodName will have dots in 
             // it for explicit interface implementations (e.g. "<I.F>d__0").  Unfortunately, 
             // the native compiler emits such names in a very strange way: everything before 
@@ -1035,26 +1037,46 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, description).Handle;
         }
 
-        private static readonly ImmutableArray<bool> s_simpleDynamicTransforms = ImmutableArray.Create(true);
+        private static readonly ImmutableArray<bool> s_simpleTransformFlags = ImmutableArray.Create(true);
 
-        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> dynamicTransforms)
+        internal bool HasDynamicAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.DynamicAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
 
             if (!info.HasValue)
             {
-                dynamicTransforms = default(ImmutableArray<bool>);
+                transformFlags = default;
                 return false;
             }
 
             if (info.SignatureIndex == 0)
             {
-                dynamicTransforms = s_simpleDynamicTransforms;
+                transformFlags = s_simpleTransformFlags;
                 return true;
             }
 
-            return TryExtractBoolArrayValueFromAttribute(info.Handle, out dynamicTransforms);
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
+        }
+
+        internal bool HasNativeIntegerAttribute(EntityHandle token, out ImmutableArray<bool> transformFlags)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NativeIntegerAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0 || info.SignatureIndex == 1);
+
+            if (!info.HasValue)
+            {
+                transformFlags = default;
+                return false;
+            }
+
+            if (info.SignatureIndex == 0)
+            {
+                transformFlags = s_simpleTransformFlags;
+                return true;
+            }
+
+            return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
         internal bool HasTupleElementNamesAttribute(EntityHandle token, out ImmutableArray<string> tupleElementNames)
@@ -1080,6 +1102,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
+            IAttributeNamedArgumentDecoder decoder,
             bool ignoreByRefLikeMarker)
         {
             AttributeInfo info;
@@ -1093,7 +1116,7 @@ namespace Microsoft.CodeAnalysis
             info = FindTargetAttribute(token, AttributeDescription.ObsoleteAttribute);
             if (info.HasValue)
             {
-                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info);
+                ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info, decoder);
                 switch (obsoleteData?.Message)
                 {
                     case ByRefLikeMarker when ignoreByRefLikeMarker:
@@ -1112,6 +1135,53 @@ namespace Microsoft.CodeAnalysis
 
             return null;
         }
+
+#nullable enable
+        internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
+            EntityHandle token,
+            IAttributeNamedArgumentDecoder attributeArgumentDecoder,
+            Func<string, TypedConstant, bool, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs)> unmanagedCallersOnlyDecoder)
+        {
+            // We don't want to load all attributes and their public data just to answer whether a PEMethodSymbol has an UnmanagedCallersOnly
+            // attached. It would create unnecessary memory pressure that isn't going to be needed 99% of the time, so we just crack this 1
+            // attribute.
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.UnmanagedCallersOnlyAttribute);
+            if (!info.HasValue || info.SignatureIndex != 0 || !TryGetAttributeReader(info.Handle, out BlobReader sigReader))
+            {
+                return null;
+            }
+
+            var unmanagedConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+
+            if (sigReader.RemainingBytes > 0)
+            {
+                try
+                {
+                    var numNamed = sigReader.ReadUInt16();
+                    for (int i = 0; i < numNamed; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, elementTypeCode) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        if (typeCode != SerializationTypeCode.SZArray || elementTypeCode != SerializationTypeCode.Type)
+                        {
+                            continue;
+                        }
+
+                        var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value, !isProperty);
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            unmanagedConventionTypes = namedArgumentDecoded.CallConvs;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
+                {
+                }
+            }
+
+            return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
+        }
+#nullable disable
 
         internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
@@ -1332,36 +1402,73 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private ObsoleteAttributeData TryExtractObsoleteDataFromAttribute(AttributeInfo attributeInfo)
+#nullable enable
+        private ObsoleteAttributeData? TryExtractObsoleteDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
         {
             Debug.Assert(attributeInfo.HasValue);
+            if (!TryGetAttributeReader(attributeInfo.Handle, out var sig))
+            {
+                return null;
+            }
 
+            string? message = null;
+            bool isError = false;
             switch (attributeInfo.SignatureIndex)
             {
                 case 0:
                     // ObsoleteAttribute()
-                    return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message: null, isError: false);
-
+                    break;
                 case 1:
                     // ObsoleteAttribute(string)
-                    string message;
-                    if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out message))
+                    if (sig.RemainingBytes > 0 && CrackStringInAttributeValue(out message, ref sig))
                     {
-                        return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError: false);
+                        break;
                     }
 
                     return null;
-
                 case 2:
                     // ObsoleteAttribute(string, bool)
-                    return TryExtractValueFromAttribute(attributeInfo.Handle, out var obsoleteData, s_attributeObsoleteDataExtractor) ?
-                        obsoleteData :
-                        null;
+                    if (sig.RemainingBytes > 0 && CrackStringInAttributeValue(out message, ref sig) &&
+                        sig.RemainingBytes > 0 && CrackBooleanInAttributeValue(out isError, ref sig))
+                    {
+                        break;
+                    }
 
+                    return null;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attributeInfo.SignatureIndex);
             }
+
+            (string? diagnosticId, string? urlFormat) = sig.RemainingBytes > 0 ? CrackObsoleteProperties(ref sig, decoder) : default;
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
         }
+
+        private bool TryGetAttributeReader(CustomAttributeHandle handle, out BlobReader blobReader)
+        {
+            Debug.Assert(!handle.IsNil);
+            try
+            {
+                var valueBlob = GetCustomAttributeValueOrThrow(handle);
+                if (!valueBlob.IsNil)
+                {
+                    blobReader = MetadataReader.GetBlobReader(valueBlob);
+                    if (blobReader.Length >= 4)
+                    {
+                        // check prolog
+                        if (blobReader.ReadInt16() == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (BadImageFormatException)
+            { }
+
+            blobReader = default;
+            return false;
+        }
+#nullable disable
 
         private ObsoleteAttributeData TryExtractDeprecatedDataFromAttribute(AttributeInfo attributeInfo)
         {
@@ -1643,26 +1750,56 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool CrackObsoleteAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+#nullable enable
+        /// <summary>
+        /// Gets the well-known optional named properties on ObsoleteAttribute, if present.
+        /// Both 'diagnosticId' and 'urlFormat' may be present, or only one, or neither.
+        /// </summary>
+        /// <remarks>
+        /// Failure to find any of these properties does not imply failure to decode the ObsoleteAttribute,
+        /// so we don't return a value indicating success or failure.
+        /// </remarks>
+        private static (string? diagnosticId, string? urlFormat) CrackObsoleteProperties(ref BlobReader sig, IAttributeNamedArgumentDecoder decoder)
         {
-            string message;
-            if (CrackStringInAttributeValue(out message, ref sig) && sig.RemainingBytes >= 1)
-            {
-                bool isError = sig.ReadBoolean();
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
-                return true;
-            }
+            string? diagnosticId = null;
+            string? urlFormat = null;
 
-            value = null;
-            return false;
+            try
+            {
+                // See CIL spec section II.23.3 Custom attributes
+                //
+                // Next is a description of the optional “named” fields and properties.
+                // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
+                var numNamed = sig.ReadUInt16();
+                for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
+                {
+                    var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
+                    {
+                        if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName)
+                        {
+                            diagnosticId = stringValue;
+                        }
+                        else if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName)
+                        {
+                            urlFormat = stringValue;
+                        }
+                    }
+                }
+            }
+            catch (BadImageFormatException) { }
+            catch (UnsupportedSignatureContent) { }
+
+            return (diagnosticId, urlFormat);
         }
+#nullable disable
 
         private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
         {
             StringAndInt args;
             if (CrackStringAndIntInAttributeValue(out args, ref sig))
             {
-                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1);
+                value = new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, args.StringValue, args.IntValue == 1, diagnosticId: null, urlFormat: null);
                 return true;
             }
 
@@ -1927,7 +2064,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
+        internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {
             return FindTargetAttribute(MetadataReader, hasAttribute, description);
         }
@@ -3337,7 +3474,7 @@ namespace Microsoft.CodeAnalysis
 
             private StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
 
-            public unsafe override string GetString(byte* bytes, int byteCount)
+            public override unsafe string GetString(byte* bytes, int byteCount)
             {
                 return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
             }

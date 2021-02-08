@@ -137,6 +137,13 @@ Options:
   /lib:<path list>               List of directories where to look for libraries specified by #r directive. 
                                  (alternative forms: /libPath /libPaths)
   /u:<namespace>                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:<string>          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
   @<file>                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 ]]></value>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             builder.AddLineBreak();
-            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_context);
+            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts);
 
             return builder;
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   EnforceOnBuildValues.UseThrowExpression,
                    preferThrowExpressionOption,
                    language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_throw_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
+            if (!(ifOperation.Parent is IBlockOperation containingBlock))
             {
                 return;
             }
@@ -266,13 +269,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool IsNull(IOperation operation)
+        private static bool IsNull(IOperation operation)
         {
             return operation.ConstantValue.HasValue &&
                    operation.ConstantValue.Value == null;
         }
 
-        private IConditionalOperation GetContainingIfOperation(
+        private static IConditionalOperation GetContainingIfOperation(
             SemanticModel semanticModel, IThrowOperation throwOperation,
             CancellationToken cancellationToken)
         {

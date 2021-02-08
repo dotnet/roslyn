@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 using static Microsoft.CodeAnalysis.LinkedFileDiffMergingSession;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal class LinkedFileDiffMergingLogger
     {
-        private static LogAggregator LogAggregator = new LogAggregator();
+        private static readonly LogAggregator LogAggregator = new();
 
         internal enum MergeInfo
         {
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             InsertedMergeConflictCommentsAtAdjustedLocation
         }
 
-        internal static void LogSession(Workspace workspace, LinkedFileDiffMergingSessionInfo sessionInfo)
+        internal static void LogSession(LinkedFileDiffMergingSessionInfo sessionInfo)
         {
             if (sessionInfo.LinkedFileGroups.Count > 1)
             {

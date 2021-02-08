@@ -1,8 +1,6 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable enable
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -21,11 +19,11 @@ namespace Roslyn.Utilities
             => LazyInitializer.EnsureInitialized<T>(ref target!, valueFactory);
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object)"/>
-        public static T EnsureInitialized<T>([AllowNull] ref T target, ref bool initialized, [NotNull] ref object? syncLock)
+        public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNull] ref object? syncLock)
             => LazyInitializer.EnsureInitialized<T>(ref target!, ref initialized, ref syncLock);
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object, Func{T})"/>
-        public static T EnsureInitialized<T>([AllowNull] ref T target, ref bool initialized, [NotNull] ref object? syncLock, Func<T> valueFactory)
+        public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNull] ref object? syncLock, Func<T> valueFactory)
             => LazyInitializer.EnsureInitialized<T>(ref target!, ref initialized, ref syncLock, valueFactory);
     }
 }

@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((method as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SourcePropertyAccessorSymbol sourceAccessor &&
-                (propertyOpt as Symbols.PublicModel.PropertySymbol)?.UnderlyingSymbol is SourcePropertySymbol sourceProperty)
+                (propertyOpt as Symbols.PublicModel.PropertySymbol)?.UnderlyingSymbol is SourcePropertySymbolBase sourceProperty)
             {
                 // only display if the accessor is explicitly readonly
                 return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
@@ -160,11 +164,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBraceToken);
 
                 AddAccessor(symbol, symbol.GetMethod, SyntaxKind.GetKeyword);
-                AddAccessor(symbol, symbol.SetMethod, SyntaxKind.SetKeyword);
+                var keywordForSetAccessor = IsInitOnly(symbol.SetMethod) ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword;
+                AddAccessor(symbol, symbol.SetMethod, keywordForSetAccessor);
 
                 AddSpace();
                 AddPunctuation(SyntaxKind.CloseBraceToken);
             }
+        }
+
+        private static bool IsInitOnly(IMethodSymbol symbol)
+        {
+            return symbol?.IsInitOnly == true;
         }
 
         private void AddPropertyNameAndParameters(IPropertySymbol symbol)
@@ -264,6 +274,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(SymbolDisplayPartKind.NumericLiteral, symbol, symbol.Name));
                 return;
             }
+            else if (symbol.MethodKind == MethodKind.FunctionPointerSignature)
+            {
+                visitFunctionPointerSignature(symbol);
+                return;
+            }
 
             if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
             {
@@ -278,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Method members always have a type unless (1) this is a lambda method symbol, which we 
+            // Method members always have a type unless (1) this is a lambda method symbol, which we
             // have dealt with already, or (2) this is an error method symbol. If we have an error method
             // symbol then we do not know its accessibility, modifiers, etc, all of which require knowing
             // the containing type, so we'll skip them.
@@ -302,8 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case MethodKind.Destructor:
                         case MethodKind.Conversion:
-                            // If we're using the metadata format, then include the return type.  
-                            // Otherwise we eschew it since it is redundant in an conversion
+                            // If we're using the metadata format, then include the return type.
+                            // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
                             if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
                             {
@@ -313,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         default:
                             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
-                            // to visualize a symbol *during its construction*, the parameters and return type might 
-                            // still be null. 
+                            // to visualize a symbol *during its construction*, the parameters and return type might
+                            // still be null.
 
                             if (symbol.ReturnsByRef)
                             {
@@ -410,7 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         AddPropertyNameAndParameters(associatedProperty);
                         AddPunctuation(SyntaxKind.DotToken);
-                        AddKeyword(symbol.MethodKind == MethodKind.PropertyGet ? SyntaxKind.GetKeyword : SyntaxKind.SetKeyword);
+                        AddKeyword(symbol.MethodKind == MethodKind.PropertyGet ? SyntaxKind.GetKeyword :
+                            IsInitOnly(symbol) ? SyntaxKind.InitKeyword : SyntaxKind.SetKeyword);
                         break;
                     }
                 case MethodKind.EventAdd:
@@ -533,6 +549,88 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameters(symbol);
                 AddTypeParameterConstraints(symbol);
             }
+
+            void visitFunctionPointerSignature(IMethodSymbol symbol)
+            {
+                AddKeyword(SyntaxKind.DelegateKeyword);
+                AddPunctuation(SyntaxKind.AsteriskToken);
+
+                if (symbol.CallingConvention != SignatureCallingConvention.Default)
+                {
+                    AddSpace();
+                    AddKeyword(SyntaxKind.UnmanagedKeyword);
+
+                    var conventionTypes = symbol.UnmanagedCallingConventionTypes;
+
+                    if (symbol.CallingConvention != SignatureCallingConvention.Unmanaged || !conventionTypes.IsEmpty)
+                    {
+                        AddPunctuation(SyntaxKind.OpenBracketToken);
+
+                        switch (symbol.CallingConvention)
+                        {
+                            case SignatureCallingConvention.CDecl:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Cdecl"));
+                                break;
+                            case SignatureCallingConvention.StdCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Stdcall"));
+                                break;
+                            case SignatureCallingConvention.ThisCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Thiscall"));
+                                break;
+                            case SignatureCallingConvention.FastCall:
+                                builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, "Fastcall"));
+                                break;
+
+                            case SignatureCallingConvention.Unmanaged:
+                                Debug.Assert(!conventionTypes.IsDefaultOrEmpty);
+                                bool isFirst = true;
+                                foreach (var conventionType in conventionTypes)
+                                {
+                                    if (!isFirst)
+                                    {
+                                        AddPunctuation(SyntaxKind.CommaToken);
+                                        AddSpace();
+                                    }
+
+                                    isFirst = false;
+                                    Debug.Assert(conventionType.Name.StartsWith("CallConv"));
+                                    const int CallConvLength = 8;
+                                    builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, conventionType, conventionType.Name[CallConvLength..]));
+                                }
+
+                                break;
+                        }
+
+                        AddPunctuation(SyntaxKind.CloseBracketToken);
+                    }
+                }
+
+                AddPunctuation(SyntaxKind.LessThanToken);
+
+                foreach (var param in symbol.Parameters)
+                {
+                    param.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                if (symbol.ReturnsByRef)
+                {
+                    AddRefIfRequired();
+                }
+                else if (symbol.ReturnsByRefReadonly)
+                {
+                    AddRefReadonlyIfRequired();
+                }
+
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
+                symbol.ReturnType.Accept(this.NotFirstVisitor);
+
+                AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
+
+                AddPunctuation(SyntaxKind.GreaterThanToken);
+            }
         }
 
         private static SymbolDisplayPartKind GetPartKindForConstructorOrDestructor(IMethodSymbol symbol)
@@ -581,7 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName);
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
+                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
             if (includeBrackets && symbol.IsOptional)
@@ -734,8 +833,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var first = true;
 
             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
-            // to visualize a symbol *during its construction*, the parameters and return type might 
-            // still be null. 
+            // to visualize a symbol *during its construction*, the parameters and return type might
+            // still be null.
 
             if (!parameters.IsDefault)
             {
@@ -792,14 +891,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddExplicitInterfaceIfRequired<T>(ImmutableArray<T> implementedMethods) where T : ISymbol
+        private void AddExplicitInterfaceIfRequired<T>(ImmutableArray<T> implementedMembers) where T : ISymbol
         {
-            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMethods.IsEmpty)
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMembers.IsEmpty)
             {
-                var implementedMethod = implementedMethods[0];
-                Debug.Assert(implementedMethod.ContainingType != null);
+                var implementedMember = implementedMembers[0];
+                Debug.Assert(implementedMember.ContainingType != null);
 
-                INamedTypeSymbol containingType = implementedMethod.ContainingType;
+                INamedTypeSymbol containingType = implementedMember.ContainingType;
                 if (containingType != null)
                 {
                     containingType.Accept(this.NotFirstVisitor);

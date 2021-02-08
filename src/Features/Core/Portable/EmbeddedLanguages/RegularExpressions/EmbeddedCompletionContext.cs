@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         private readonly struct EmbeddedCompletionContext
         {
-            private readonly RegexEmbeddedLanguageFeatures _language;
+            private readonly RegexEmbeddedLanguage _language;
             private readonly CompletionContext _context;
             private readonly HashSet<string> _names;
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             public readonly List<RegexItem> Items;
 
             public EmbeddedCompletionContext(
-                RegexEmbeddedLanguageFeatures language,
+                RegexEmbeddedLanguage language,
                 CompletionContext context,
                 RegexTree tree,
                 SyntaxToken stringToken)

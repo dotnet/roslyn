@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             End Get
         End Property
 
-        Private Function ComputeAllowableDeclarationTypes(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As PossibleDeclarationTypes
+        Private Shared Function ComputeAllowableDeclarationTypes(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As PossibleDeclarationTypes
             Dim declarationTypes As PossibleDeclarationTypes
 
             If syntaxTree.IsTypeMemberDeclarationKeywordContext(position, token, cancellationToken) Then

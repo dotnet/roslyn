@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             using (analysisData = OperationTreeAnalysisData.Create(owningSymbol, AnalyzeLocalFunction))
             {
                 var operations = SpecializedCollections.SingletonEnumerable(rootOperation);
-                Walker.AnalyzeOperationsAndUpdateData(operations, analysisData, cancellationToken);
+                Walker.AnalyzeOperationsAndUpdateData(owningSymbol, operations, analysisData, cancellationToken);
                 return analysisData.ToResult();
             }
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 if (localFunctionOperation != null)
                 {
                     var operations = SpecializedCollections.SingletonEnumerable(localFunctionOperation);
-                    Walker.AnalyzeOperationsAndUpdateData(operations, analysisData, cancellationToken);
+                    Walker.AnalyzeOperationsAndUpdateData(localFunction, operations, analysisData, cancellationToken);
                 }
 
                 return analysisData.CurrentBlockAnalysisData;

@@ -2240,7 +2240,7 @@ Unify Enum declarations with other block type declarations.
       -  ObjectCreationInitializerNode
       **********************-->
     <node-structure name="ObjectCreationInitializerSyntax" parent="VisualBasicSyntaxNode" abstract="true">
-      <description>An abstract node class that represents a "With" or "From" clause used to initializer an new object.</description>
+      <description>An abstract node class that represents a "With" or "From" clause used to initialize a new object.</description>
     </node-structure>
 
     <node-structure name="ObjectMemberInitializerSyntax" parent="ObjectCreationInitializerSyntax">
@@ -3386,7 +3386,7 @@ Unify Enum declarations with other block type declarations.
       <description>
         Represents a "Try ... Catch ... Finally ... End Try" block.
       </description>
-      <lm-equiv name="TryNode">A TryBlock corresponds to an TryNode -- the Try statement and its following body.</lm-equiv>
+      <lm-equiv name="TryNode">A TryBlock corresponds to a TryNode -- the Try statement and its following body.</lm-equiv>
       <native-equiv name="ExecutableBlockStatement">A TryBlock corresponds to a Try statement and its following body.</native-equiv>
       <spec-section>10.10.1</spec-section>
       <grammar>TryStatement</grammar>
@@ -3447,7 +3447,7 @@ Unify Enum declarations with other block type declarations.
       <description>
         Represents a "Catch ..." block.
       </description>
-      <lm-equiv name="CatchNode">A CatchBlock exactly corresponds to an CatchNode -- the Catch statement and its following body.</lm-equiv>
+      <lm-equiv name="CatchNode">A CatchBlock exactly corresponds to a CatchNode -- the Catch statement and its following body.</lm-equiv>
       <native-equiv name="CatchStatement">A CatchBlock exactly corresponds to an ElseIfStatement -- the ElseIf statement and its following body.</native-equiv>
       <spec-section>10.10.1</spec-section>
       <grammar>TryStatement&gt;</grammar>
@@ -3543,8 +3543,8 @@ Unify Enum declarations with other block type declarations.
       <description>
         Represents a "Finally ..." block of a "Try" block.
       </description>
-      <lm-equiv name="FinallyNode">A FinallyBlock exactly corresponds to an FinallyNode -- the Finally statement and its following body.</lm-equiv>
-      <native-equiv name="FinallyStatement">A FinallyBlock exactly corresponds to an FinallyStatement -- the Finally statement and its following body.</native-equiv>
+      <lm-equiv name="FinallyNode">A FinallyBlock exactly corresponds to a FinallyNode -- the Finally statement and its following body.</lm-equiv>
+      <native-equiv name="FinallyStatement">A FinallyBlock exactly corresponds to a FinallyStatement -- the Finally statement and its following body.</native-equiv>
       <spec-section>10.10.1</spec-section>
       <grammar>TryStatement&gt;</grammar>
 
@@ -4684,7 +4684,7 @@ Unify Enum declarations with other block type declarations.
       -  CallStatement
       ******************-->
     <node-structure name="CallStatementSyntax" parent="ExecutableStatementSyntax">
-      <description>Represent an call statement (also known as a invocation statement).</description>
+      <description>Represent a call statement (also known as a invocation statement).</description>
       <lm-equiv name="CallStatementNode"></lm-equiv>
       <native-equiv name="CallStatement"></native-equiv>
       <spec-section>10.7</spec-section>
@@ -6367,8 +6367,8 @@ Unify Enum declarations with other block type declarations.
 
       <child name="AsClause" optional="true" kind="SimpleAsClause">
         <description>Describes the type of the variable being defined.</description>
-        <lm-equiv name="VariableGroup.VariableType">In an Let or From query operator.</lm-equiv>
-        <native-equiv name="VariableDeclaration.Type">In an Let or From query operator.</native-equiv>
+        <lm-equiv name="VariableGroup.VariableType">In a Let or From query operator.</lm-equiv>
+        <native-equiv name="VariableDeclaration.Type">In a Let or From query operator.</native-equiv>
       </child>
 
       <child name="InKeyword" kind="InKeyword">
@@ -6477,8 +6477,8 @@ Unify Enum declarations with other block type declarations.
 
       <child name="AsClause" optional="true" kind="SimpleAsClause">
         <description>Describes the type of the variable being defined.</description>
-        <lm-equiv name="VariableGroup.VariableType">In an Let or From query operator.</lm-equiv>
-        <native-equiv name="VariableDeclaration.Type">In an Let or From query operator.</native-equiv>
+        <lm-equiv name="VariableGroup.VariableType">In a Let or From query operator.</lm-equiv>
+        <native-equiv name="VariableDeclaration.Type">In a Let or From query operator.</native-equiv>
       </child>
 
       <child name="EqualsToken" kind="EqualsToken">
@@ -9025,7 +9025,7 @@ Unify Enum declarations with other block type declarations.
       -  FloatingLiteralToken
       **********************-->
     <node-structure name="FloatingLiteralTokenSyntax" parent="SyntaxToken" no-factory="true">
-      <description>Represents an floating literal token.</description>
+      <description>Represents a floating literal token.</description>
       <native-equiv name="FloatingLiteralExpression" />
 
       <node-kind name="FloatingLiteralToken">
@@ -9077,7 +9077,7 @@ Unify Enum declarations with other block type declarations.
       -  DecimalLiteralToken
       **********************-->
     <node-structure name="DateLiteralTokenSyntax" parent="SyntaxToken">
-      <description>Represents an Date literal token.</description>
+      <description>Represents a Date literal token.</description>
       <native-equiv name="DateLiteralExpression" />
 
       <node-kind name="DateLiteralToken">
@@ -9095,7 +9095,7 @@ Unify Enum declarations with other block type declarations.
       -  StringLiteralToken
       **********************-->
     <node-structure name="StringLiteralTokenSyntax" parent="SyntaxToken">
-      <description>Represents an string literal token.</description>
+      <description>Represents a string literal token.</description>
       <native-equiv name="StringLiteralExpression" />
 
       <node-kind name="StringLiteralToken">
@@ -9114,7 +9114,7 @@ Unify Enum declarations with other block type declarations.
       -  CharacterLiteralToken
       **********************-->
     <node-structure name="CharacterLiteralTokenSyntax" parent="SyntaxToken">
-      <description>Represents an string literal token.</description>
+      <description>Represents a string literal token.</description>
       <native-equiv name="CharLiteralExpression" />
 
       <node-kind name="CharacterLiteralToken">

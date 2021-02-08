@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return map;
         }
 
-        override protected ImmutableArray<LocalSymbol> BuildLocals()
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
 
@@ -207,15 +209,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // compute the constant value to place in the label symbol
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
-                        var boundLabelExpression = sectionBinder.BindRValueWithoutTargetType(caseLabel.Value, tempDiagnosticBag);
-                        boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                        var boundLabelExpression = sectionBinder.BindTypeOrRValue(caseLabel.Value, tempDiagnosticBag);
+                        if (boundLabelExpression is BoundTypeExpression type)
+                        {
+                            // Nothing to do at this point.  The label will be bound later.
+                        }
+                        else
+                        {
+                            _ = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
+                        }
                         break;
 
                     case SyntaxKind.CasePatternSwitchLabel:
                         // bind the pattern, to cause its pattern variables to be inferred if necessary
                         var matchLabel = (CasePatternSwitchLabelSyntax)labelSyntax;
-                        var pattern = sectionBinder.BindPattern(
-                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, labelSyntax.HasErrors, tempDiagnosticBag);
+                        _ = sectionBinder.BindPattern(
+                            matchLabel.Pattern, SwitchGoverningType, SwitchGoverningValEscape, permitDesignations: true, labelSyntax.HasErrors, tempDiagnosticBag);
                         break;
 
                     default:
@@ -498,6 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_ConstantExpected, node.Location);
                         hasErrors = true;
                     }
+
+                    ConstantValueUtils.CheckLangVersionForConstantValue(gotoCaseExpressionOpt, diagnostics);
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().
                     // Fetch the matching switch case label symbols

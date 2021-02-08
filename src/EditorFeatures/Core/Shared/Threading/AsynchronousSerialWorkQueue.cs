@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         private readonly IAsynchronousOperationListener _asyncListener;
 
         // Lock for serializing access to these objects.
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         // The current task we are executing on the background.  Kept around so we can serialize
         // background tasks by continually calling 'SafeContinueWith' on this task.
         private Task _currentBackgroundTask;
 
         // The cancellation source for the current chain of work.
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         #endregion
 
@@ -159,20 +159,35 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
             _currentBackgroundTask.Wait();
         }
 
-        /// <summary>
-        /// Wait until all tasks have been completed.  NOTE that this will do a pumping wait if
-        /// called on the UI thread. Also, it isn't guaranteed to be stable in the case of tasks
-        /// enqueuing other tasks in arbitrary orders, though it does support our common pattern of
-        /// "timer task->background task->foreground task with results"
-        /// 
-        /// Use this method very judiciously.  Most of the time, we should be able to just use 
-        /// IAsynchronousOperationListener for tests.
-        /// </summary>
-        public void WaitUntilCompletion_ForTestingPurposesOnly()
+        internal TestAccessor GetTestAccessor()
         {
-            AssertIsForeground();
+            return new TestAccessor(this);
+        }
 
-            WaitForPendingBackgroundWork();
+        internal readonly struct TestAccessor
+        {
+            private readonly AsynchronousSerialWorkQueue _asynchronousSerialWorkQueue;
+
+            internal TestAccessor(AsynchronousSerialWorkQueue asynchronousSerialWorkQueue)
+            {
+                _asynchronousSerialWorkQueue = asynchronousSerialWorkQueue;
+            }
+
+            /// <summary>
+            /// Wait until all tasks have been completed.  NOTE that this will do a pumping wait if
+            /// called on the UI thread. Also, it isn't guaranteed to be stable in the case of tasks
+            /// enqueuing other tasks in arbitrary orders, though it does support our common pattern of
+            /// "timer task->background task->foreground task with results"
+            /// 
+            /// Use this method very judiciously.  Most of the time, we should be able to just use 
+            /// IAsynchronousOperationListener for tests.
+            /// </summary>
+            public void WaitUntilCompletion()
+            {
+                _asynchronousSerialWorkQueue.AssertIsForeground();
+
+                _asynchronousSerialWorkQueue.WaitForPendingBackgroundWork();
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
 
         public static ImageId GetImageCatalogImageId(int imageId)
-            => new ImageId(ImageCatalogGuid, imageId);
+            => new(ImageCatalogGuid, imageId);
 
         public static ImageId GetImageId(this Glyph glyph)
         {
@@ -219,5 +220,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     throw new ArgumentException(nameof(glyph));
             }
         }
+
+        public static ImageElement GetImageElement(this Glyph glyph)
+            => new ImageElement(glyph.GetImageId());
     }
 }

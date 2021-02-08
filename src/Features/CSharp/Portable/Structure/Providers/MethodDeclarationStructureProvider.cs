@@ -4,8 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -14,12 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             MethodDeclarationSyntax methodDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(methodDeclaration, ref spans, optionProvider);
 
             // fault tolerance
             if (methodDeclaration.Body == null ||
@@ -33,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var nextSibling = current.GetNextSibling();
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.MethodDeclaration);
+            //
+            // Whitespace between methods is collapsed in Metadata as Source.
+            var compressEmptyLines = optionProvider.IsMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.MethodDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 methodDeclaration,

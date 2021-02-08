@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
         ''' by calling AssignAsyncStateMachineType(...).
         ''' </summary>
-        Private _asyncStateMachineType As NamedTypeSymbol = Nothing
+        Private ReadOnly _asyncStateMachineType As NamedTypeSymbol = Nothing
 
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer
@@ -663,9 +663,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                If witheventsProperty.IsShared AndAlso Not Me.IsShared Then
-                    'Events of shared WithEvents variables cannot be handled by non-shared methods.
-                    Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_SharedEventNeedsSharedHandler)
+                Dim isFromBase = Not TypeSymbol.Equals(witheventsProperty.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything)
+
+                If witheventsProperty.IsShared Then
+                    Debug.Assert(Not witheventsProperty.IsOverridable)
+
+                    If Not Me.IsShared Then
+                        'Events of shared WithEvents variables cannot be handled by non-shared methods.
+                        Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_SharedEventNeedsSharedHandler)
+
+                    End If
+
+                    If isFromBase Then
+                        Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_SharedEventNeedsHandlerInTheSameType)
+                    End If
                 End If
 
                 If eventContainerKind = SyntaxKind.WithEventsPropertyEventContainer Then
@@ -688,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' if was found in one of bases, need to override it
-                If Not TypeSymbol.Equals(witheventsProperty.ContainingType, Me.ContainingType, TypeCompareKind.ConsiderEverything) Then
+                If isFromBase Then
                     witheventsPropertyInCurrentClass = DirectCast(Me.ContainingType, SourceNamedTypeSymbol).GetOrAddWithEventsOverride(witheventsProperty)
                 Else
                     witheventsPropertyInCurrentClass = witheventsProperty

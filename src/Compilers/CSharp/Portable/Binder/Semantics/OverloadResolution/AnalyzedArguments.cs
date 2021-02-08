@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -137,6 +139,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             instance.RefKinds.AddRange(original.RefKinds);
             instance.IsExtensionMethodInvocation = original.IsExtensionMethodInvocation;
             instance._lazyHasDynamicArgument = original._lazyHasDynamicArgument;
+            return instance;
+        }
+
+        public static AnalyzedArguments GetInstance(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+        {
+            var instance = GetInstance();
+            instance.Arguments.AddRange(arguments);
+            if (!argumentRefKindsOpt.IsDefault)
+            {
+                instance.RefKinds.AddRange(argumentRefKindsOpt);
+            }
+
+            if (!argumentNamesOpt.IsDefault)
+            {
+                instance.Names.AddRange(argumentNamesOpt);
+            }
+
             return instance;
         }
 

@@ -2774,7 +2774,6 @@ class C
 end class", index:=1)
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGenerateSimplePropertyInSyncLock() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
@@ -2977,6 +2976,19 @@ Class Program
     End Sub
 End Class",
 count:=5)
+        End Function
+
+        <WorkItem(45367, "https://github.com/dotnet/roslyn/issues/45367")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestCrashInNamespace() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Namespace ConsoleApp5
+    Friend Sub New(errNum As Integer, offset As Integer, message As String)
+        MyBase.New(message)
+
+        Me.[|Error|] = errNum
+    End Sub
+End Namespace")
         End Function
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -129,12 +131,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public EnvDTE.CodeElements PartialClasses
         {
-            get { return PartialTypeCollection.Create(State, FileCodeModel, this); }
+            get { return PartialTypeCollection.Create(State, this); }
         }
 
         public EnvDTE.CodeElements Parts
         {
-            get { return PartialTypeCollection.Create(State, FileCodeModel, this); }
+            get { return PartialTypeCollection.Create(State, this); }
         }
 
         public EnvDTE.CodeClass AddClass(string name, object position, object bases, object implementedInterfaces, EnvDTE.vsCMAccess access)

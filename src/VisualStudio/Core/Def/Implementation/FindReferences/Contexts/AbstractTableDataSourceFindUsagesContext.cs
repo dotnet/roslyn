@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -35,7 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             protected readonly IWpfTableControl2 TableControl;
 
-            protected readonly object Gate = new object();
+            private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
+
+            protected readonly object Gate = new();
 
             #region Fields that should be locked by _gate
 
@@ -52,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -63,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// and then always return that for all future references found.
             /// </summary>
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
+                new();
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -76,19 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
+
+            public sealed override CancellationToken CancellationToken { get; }
 
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn)
+                 bool includeKindColumn,
+                 CancellationToken cancellationToken)
             {
                 presenter.AssertIsForeground();
+
+                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+                // caller can cancel our work or we can cancel the work.
+                _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                CancellationToken = _cancellationTokenSource.Token;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -110,7 +122,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
+
+                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
+                // VS actually responds to each SetProgess call by queuing a UI task to do the
+                // progress bar update.  This can made FindReferences feel extremely slow when
+                // thousands of SetProgress calls are made.
+                //
+                // To ensure a reasonable experience, we instead add the progress into a queue and
+                // only update the UI a few times a second so as to not overload it.
+                _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
+                    TimeSpan.FromMilliseconds(250),
+                    this.UpdateTableProgressAsync,
+                    this.CancellationToken);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -139,6 +163,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             break;
                     }
                 }
+
+                customColumnsToInclude.Add(StandardTableKeyNames.Repository);
+                customColumnsToInclude.Add(StandardTableKeyNames.ItemOrigin);
 
                 return customColumnsToInclude.ToImmutableAndFree();
             }
@@ -199,10 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-                _cancellationTokenSource.Cancel();
-            }
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+                // Cancel any in flight find work that is going on.
+                if (_cancellationTokenSource != null)
+                {
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
+                }
+            }
 
             public void Clear()
             {
@@ -257,14 +289,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region FindUsagesContext overrides.
 
-            public sealed override Task SetSearchTitleAsync(string title)
+            public sealed override ValueTask SetSearchTitleAsync(string title)
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
-                return Task.CompletedTask;
+                return default;
             }
 
-            public sealed override async Task OnCompletedAsync()
+            public sealed override async ValueTask OnCompletedAsync()
             {
                 await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
 
@@ -273,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnCompletedAsyncWorkerAsync();
 
-            public sealed override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 lock (Gate)
                 {
@@ -283,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return OnDefinitionFoundWorkerAsync(definition);
             }
 
-            protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
             protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
             {
@@ -302,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
@@ -321,8 +353,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                    this,
+                    definitionBucket,
+                    spanKind,
+                    projectName,
+                    guid,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -350,23 +390,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
                 => OnReferenceFoundWorkerAsync(reference);
 
-            protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
 
-            public sealed override Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
-                => OnExternalReferenceFoundWorkerAsync(reference);
-
-            protected abstract Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference);
-
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = new RoslynDefinitionBucket(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -374,27 +409,34 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportMessageAsync(string message)
+            public sealed override ValueTask ReportMessageAsync(string message)
                 => throw new InvalidOperationException("This should never be called in the streaming case.");
 
-            protected sealed override Task ReportProgressAsync(int current, int maximum)
+            protected sealed override ValueTask ReportProgressAsync(int current, int maximum)
             {
-                // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
-                // Right now VS actually responds to each SetProgess call by enqueueing a UI task
-                // to do the progress bar update.  This can made FindReferences feel extremely slow
-                // when thousands of SetProgress calls are made.  So, for now, we're removing
-                // the progress update until the FindRefs window fixes that perf issue.
-#if false
-                try
+                _progressQueue.AddWork((current, maximum));
+                return default;
+            }
+
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            {
+                if (!nextBatch.IsEmpty)
                 {
-                    // The original FAR window exposed a SetProgress(double). Ensure that we 
-                    // don't crash if this code is running on a machine without the new API.
-                    _findReferencesWindow.SetProgress(current, maximum);
+                    var (current, maximum) = nextBatch.Last();
+
+                    // Do not update the UI if the current progress is zero.  It will switch us from the indeterminate
+                    // progress bar (which conveys to the user that we're working) to showing effectively nothing (which
+                    // makes it appear as if the search is complete).  So the user sees:
+                    //
+                    //      indeterminate->complete->progress
+                    //
+                    // instead of:
+                    //
+                    //      indeterminate->progress
+
+                    if (current > 0)
+                        _findReferencesWindow.SetProgress(current, maximum);
                 }
-                catch
-                {
-                }
-#endif
 
                 return Task.CompletedTask;
             }
@@ -428,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

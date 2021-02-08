@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -43,10 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ExpressionStatement:
                         if (expression != null)
                         {
-                            // We only allow assignment-only or declaration-only deconstructions at this point.
-                            // Issue https://github.com/dotnet/roslyn/issues/15050 tracks allowing mixed deconstructions.
-                            // For now we give an error when you mix.
-                            Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
+                            MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction
+                                .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
                         }
                         break;
                     case SyntaxKind.ForStatement:
@@ -54,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (expression != null)
                             {
-                                Error(diagnostics, ErrorCode.ERR_MixedDeconstructionUnsupported, left);
+                                MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction
+                                    .CheckFeatureAvailability(diagnostics, Compilation, node.Location);
                             }
                         }
                         else

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             _comparer = comparer;
 
             var labelCount = comparer.LabelCount;
-            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var count1);
-            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out _);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out _);
 
             _oneToTwo = new Dictionary<TNode, TNode>();
             _twoToOne = new Dictionary<TNode, TNode>();
@@ -352,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
         public EditScript<TNode> GetTreeEdits()
-            => new EditScript<TNode>(this);
+            => new(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>

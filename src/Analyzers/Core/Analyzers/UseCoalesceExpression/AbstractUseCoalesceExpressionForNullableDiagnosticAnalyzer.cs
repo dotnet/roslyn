@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -28,6 +26,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     {
         protected AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceExpressionForNullableDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceExpressionForNullable,
                    CodeStyleOptions2.PreferCoalesceExpression,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_coalesce_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             // actually looking at something Nullable (and not some type that uses a similar 
             // syntactic pattern).
             var semanticModel = context.SemanticModel;
-            var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName);
+            var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName!);
             if (nullableType == null)
             {
                 return;

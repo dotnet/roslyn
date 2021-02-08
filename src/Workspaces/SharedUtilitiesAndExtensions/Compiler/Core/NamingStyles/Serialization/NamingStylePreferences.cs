@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -17,8 +21,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 2. Name Style
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
-    internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
+    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>, IObjectWritable
     {
+        static NamingStylePreferences()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(NamingStylePreferences), ReadFrom);
+        }
+
         private const int s_serializationVersion = 5;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
@@ -52,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public NamingStyleRules Rules => _lazyRules.Value;
 
         public NamingStyleRules CreateRules()
-            => new NamingStyleRules(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
+            => new(NamingRules.Select(r => r.GetRule(this)).ToImmutableArray());
 
         internal XElement CreateXElement()
         {
@@ -76,14 +85,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                        .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
         }
 
+        public bool ShouldReuseInSerialization => false;
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            writer.WriteArray(SymbolSpecifications, (w, v) => v.WriteTo(w));
+            writer.WriteArray(NamingStyles, (w, v) => v.WriteTo(w));
+            writer.WriteArray(NamingRules, (w, v) => v.WriteTo(w));
+        }
+
+        public static NamingStylePreferences ReadFrom(ObjectReader reader)
+        {
+            return new NamingStylePreferences(
+                reader.ReadArray(r => SymbolSpecification.ReadFrom(r)),
+                reader.ReadArray(r => NamingStyle.ReadFrom(r)),
+                reader.ReadArray(r => SerializableNamingRule.ReadFrom(r)));
+        }
+
         public override bool Equals(object obj)
             => Equals(obj as NamingStylePreferences);
 
         public bool Equals(NamingStylePreferences other)
         {
-            return other == null
-                ? false
-                : CreateXElement().ToString() == other.CreateXElement().ToString();
+            if (other is null)
+                return false;
+
+            return SymbolSpecifications.SequenceEqual(other.SymbolSpecifications)
+                && NamingStyles.SequenceEqual(other.NamingStyles)
+                && NamingRules.SequenceEqual(other.NamingRules);
         }
 
         public static bool operator ==(NamingStylePreferences left, NamingStylePreferences right)
@@ -104,7 +133,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => !(left == right);
 
         public override int GetHashCode()
-            => CreateXElement().ToString().GetHashCode();
+        {
+            return Hash.Combine(Hash.CombineValues(SymbolSpecifications),
+                Hash.Combine(Hash.CombineValues(NamingStyles),
+                    Hash.CombineValues(NamingRules)));
+        }
 
         private static readonly string _defaultNamingPreferencesString = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">

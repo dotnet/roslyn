@@ -6,9 +6,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
@@ -26,15 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal sealed class VsLanguageDebugInfo
+        internal sealed class VsLanguageDebugInfo : IVsLanguageDebugInfo
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
-            private readonly ILanguageDebugInfoService _languageDebugInfo;
-            private readonly IBreakpointResolutionService _breakpointService;
-            private readonly IProximityExpressionsService _proximityExpressionsService;
+            private readonly ILanguageDebugInfoService? _languageDebugInfo;
+            private readonly IBreakpointResolutionService? _breakpointService;
+            private readonly IProximityExpressionsService? _proximityExpressionsService;
             private readonly IWaitIndicator _waitIndicator;
-            private readonly CachedProximityExpressionsGetter _cachedProximityExpressionsGetter;
 
             public VsLanguageDebugInfo(
                 Guid languageId,
@@ -50,12 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
                 _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
                 _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
-                _cachedProximityExpressionsGetter = new CachedProximityExpressionsGetter(_proximityExpressionsService);
                 _waitIndicator = waitIndicator;
             }
-
-            internal void OnDebugModeChanged(DebugMode debugMode)
-                => _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
 
             public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
             {
@@ -63,20 +57,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
-            public int GetLocationOfName(string pszName, out string pbstrMkDoc, out VsTextSpan pspanLocation)
+            public int GetLocationOfName(string pszName, out string? pbstrMkDoc, out VsTextSpan pspanLocation)
             {
                 pbstrMkDoc = null;
                 pspanLocation = default;
                 return VSConstants.E_NOTIMPL;
             }
 
-            public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string pbstrName, out int piLineOffset)
+            public int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, out string? pbstrName, out int piLineOffset)
             {
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetNameOfLocation, CancellationToken.None))
                 {
-                    string name = null;
+                    string? name = null;
                     var lineOffset = 0;
-                    var succeeded = false;
 
                     if (_languageDebugInfo != null)
                     {
@@ -105,7 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                                         if (!debugLocationInfo.IsDefault)
                                         {
-                                            succeeded = true;
                                             name = debugLocationInfo.Name;
                                             lineOffset = debugLocationInfo.LineOffset;
                                         }
@@ -114,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             }
                         });
 
-                        if (succeeded)
+                        if (name != null)
                         {
                             pbstrName = name;
                             piLineOffset = lineOffset;
@@ -130,58 +122,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum)
+            public int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum)
             {
                 // NOTE(cyrusn): cLines is ignored.  This is to match existing dev10 behavior.
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetProximityExpressions, CancellationToken.None))
                 {
-                    VsEnumBSTR enumBSTR = null;
-                    var succeeded = false;
-                    _waitIndicator.Wait(
-                        title: ServicesVSResources.Debugger,
-                        message: ServicesVSResources.Determining_autos,
-                        allowCancel: true,
-                        action: waitContext =>
+                    VsEnumBSTR? enumBSTR = null;
+
+                    if (_proximityExpressionsService != null)
                     {
-                        var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
-
-                        if (textBuffer != null)
+                        _waitIndicator.Wait(
+                            title: ServicesVSResources.Debugger,
+                            message: ServicesVSResources.Determining_autos,
+                            allowCancel: true,
+                            action: waitContext =>
                         {
-                            var snapshot = textBuffer.CurrentSnapshot;
-                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                            if (nullablePoint.HasValue)
-                            {
-                                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                                if (document != null)
-                                {
-                                    var point = nullablePoint.Value;
-                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
 
-                                    if (proximityExpressions != null)
+                            if (textBuffer != null)
+                            {
+                                var snapshot = textBuffer.CurrentSnapshot;
+                                var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                                if (nullablePoint.HasValue)
+                                {
+                                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                    if (document != null)
                                     {
-                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
-                                        succeeded = true;
+                                        var point = nullablePoint.Value;
+                                        var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+
+                                        if (proximityExpressions != null)
+                                        {
+                                            enumBSTR = new VsEnumBSTR(proximityExpressions);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
-
-                    if (succeeded)
-                    {
-                        ppEnum = enumBSTR;
-                        return VSConstants.S_OK;
+                        });
                     }
 
-                    ppEnum = null;
-                    return VSConstants.E_FAIL;
+                    ppEnum = enumBSTR;
+                    return ppEnum != null ? VSConstants.S_OK : VSConstants.E_FAIL;
                 }
             }
 
             public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
                 => VSConstants.E_NOTIMPL;
 
-            public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
+            public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName? ppNames)
             {
                 using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_ResolveName, CancellationToken.None))
                 {
@@ -195,8 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         return VSConstants.S_FALSE;
                     }
 
-                    VsEnumDebugName enumName = null;
-                    var succeeded = false;
+                    VsEnumDebugName? enumName = null;
                     _waitIndicator.Wait(
                         title: ServicesVSResources.Debugger,
                         message: ServicesVSResources.Resolving_breakpoint_location,
@@ -216,19 +203,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 var debugNames = breakpoints.Select(bp => CreateDebugName(bp, solution, cancellationToken)).WhereNotNull().ToList();
 
                                 enumName = new VsEnumDebugName(debugNames);
-                                succeeded = true;
                             }
                         }
                     });
 
-                    if (succeeded)
-                    {
-                        ppNames = enumName;
-                        return VSConstants.S_OK;
-                    }
-
-                    ppNames = null;
-                    return VSConstants.E_NOTIMPL;
+                    ppNames = enumName;
+                    return ppNames != null ? VSConstants.S_OK : VSConstants.E_NOTIMPL;
                 }
             }
 
@@ -317,6 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             if (initialBreakpointSpan.Length > 0 && document.SupportsSyntaxTree)
                             {
                                 var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                                Contract.ThrowIfNull(tree);
                                 if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                                 {
                                     // Keep the span as is.

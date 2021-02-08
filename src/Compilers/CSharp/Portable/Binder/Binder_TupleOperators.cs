@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
                     if (multiple.Operators.Length == 0)
                     {
-                        return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
+                        return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
                     }
 
                     ImmutableArray<BoundExpression> arguments = tuple.Arguments;
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // This element isn't getting a converted type
-                return BindToNaturalType(expr, diagnostics, reportDefaultMissingType: false);
+                return BindToNaturalType(expr, diagnostics, reportNoTargetType: false);
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
@@ -196,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
             right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
 
-            if ((left.Type is null && left.IsLiteralDefault()) ||
-                (right.Type is null && right.IsLiteralDefault()))
+            if (left.IsLiteralDefaultOrImplicitObjectCreation() ||
+                right.IsLiteralDefaultOrImplicitObjectCreation())
             {
-                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
@@ -326,14 +328,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
         {
-            bool leftDefault = left.IsLiteralDefault();
-            bool rightDefault = right.IsLiteralDefault();
-            if (leftDefault && rightDefault)
+            bool leftDefaultOrNew = left.IsLiteralDefaultOrImplicitObjectCreation();
+            bool rightDefaultOrNew = right.IsLiteralDefaultOrImplicitObjectCreation();
+            if (leftDefaultOrNew && rightDefaultOrNew)
             {
                 return false;
             }
 
-            return (GetTupleCardinality(left) > 1 || leftDefault) && (GetTupleCardinality(right) > 1 || rightDefault);
+            return (GetTupleCardinality(left) > 1 || leftDefaultOrNew) &&
+                   (GetTupleCardinality(right) > 1 || rightDefaultOrNew);
         }
 
         private static int GetTupleCardinality(BoundExpression expr)

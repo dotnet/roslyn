@@ -1881,6 +1881,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property IsInitOnly As Boolean
+                Get
+                    Return _originalDefinition.IsInitOnly
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property IsVararg As Boolean
                 Get
                     Return _originalDefinition.IsVararg

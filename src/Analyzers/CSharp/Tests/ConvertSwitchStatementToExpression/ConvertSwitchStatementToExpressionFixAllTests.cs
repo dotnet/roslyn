@@ -3,16 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
+        ConvertSwitchStatementToExpressionCodeFixProvider>;
+
     public class ConvertSwitchStatementToExpressionFixAllTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
@@ -257,7 +259,7 @@ class Program
     public short Value => 0;
     public bool ValueBoolean()
     {
-        var value = (StatusValue()) switch
+        var value = StatusValue() switch
         {
             DayOfWeek.Monday => Value switch
             {
@@ -268,6 +270,48 @@ class Program
             _ => throw new Exception(),
         };
         return value;
+    }
+}");
+        }
+        [WorkItem(44572, "https://github.com/dotnet/roslyn/issues/44572")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestImplicitConversion()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"using System;
+
+class C
+{
+    public C(String s) => _s = s;
+    private readonly String _s;
+    public static implicit operator String(C value) => value._s;
+    public static implicit operator C(String value) => new C(value);
+    
+    public bool method(C c)
+    {
+        [|switch|] (c)
+        {
+            case ""A"": return true;
+            default: return false;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public C(String s) => _s = s;
+    private readonly String _s;
+    public static implicit operator String(C value) => value._s;
+    public static implicit operator C(String value) => new C(value);
+    
+    public bool method(C c)
+    {
+        return (string)c switch
+        {
+            ""A"" => true,
+            _ => false,
+        };
     }
 }");
         }

@@ -693,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Select Case context
                             Case VarianceContext.ByVal
                                 ' "Type '|1' cannot be used as a ByVal parameter type because '|1' is an 'Out' type parameter."
-                                Debug.Assert(inappropriateOut, "unexpected: an variance error in ByVal must be due to an inappropriate out")
+                                Debug.Assert(inappropriateOut, "unexpected: a variance error in ByVal must be due to an inappropriate out")
                                 AppendVarianceDiagnosticInfo(diagnostics, ErrorFactory.ErrorInfo(ERRID.ERR_VarianceOutByValDisallowed1, type.Name))
 
                             Case VarianceContext.ByRef
@@ -2717,7 +2717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If TypeKind = TypeKind.Submission Then
 
-                ' Only add an constructor if it is not shared OR if there are shared initializers
+                ' Only add a constructor if it is not shared OR if there are shared initializers
                 If Not isShared OrElse Me.AnyInitializerToBeInjectedIntoConstructor(initializers, False) Then
 
                     ' a submission can only have a single declaration:
@@ -3175,7 +3175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
-            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name) Then
+            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name, IdentifierComparison.Comparer) Then
                 Return GetMembers(name)
             End If
 
@@ -3559,6 +3559,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         nextMember,
                                         SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
 
+                                    Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
                                     ' only report diagnostics if the signature is considered equal following VB rules.
                                     If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
                                         ReportOverloadsErrors(comparisonResults, member, nextMember, member.Locations(0), diagnostics)
@@ -3738,6 +3740,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          SymbolComparisonResults.CustomModifierMismatch Or
                          SymbolComparisonResults.NameMismatch))
 
+                Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
                 ' only report diagnostics if the signature is considered equal following VB rules.
                 If (comparisonResults And significantDiff) = 0 Then
                     ReportOverloadsErrors(comparisonResults, method, nextMethod, method.Locations(0), diagnostics)
@@ -3820,6 +3824,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ReportOverloadsErrors(comparisonResults As SymbolComparisonResults, firstMember As Symbol, secondMember As Symbol, location As Location, diagnostics As DiagnosticBag)
+            Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
             If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then

@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LargeAddressAware>true</LargeAddressAware>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <UseAppHost>false</UseAppHost>
@@ -25,10 +25,7 @@
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
-    <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

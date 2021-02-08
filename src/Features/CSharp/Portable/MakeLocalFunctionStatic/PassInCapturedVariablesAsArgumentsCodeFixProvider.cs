@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 (document, localFunction, captures) =>
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
+                        new MyCodeAction(c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
                             document,
                             localFunction,
                             captures,
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => WrapFixAsync(
                 document,
                 diagnostics,
-                (d, localFunction, captures) => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(
+                (d, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
                         d,
                         localFunction,
                         captures,
@@ -101,18 +99,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             foreach (var localFunction in localFunctions)
             {
-
-                if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
+                if (MakeLocalFunctionStaticHelper.CanMakeLocalFunctionStaticByRefactoringCaptures(localFunction, semanticModel, out var captures))
                 {
                     await fixer(document, localFunction, captures).ConfigureAwait(false);
                 }
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpFeaturesResources.Pass_in_captured_variables_as_arguments)
+                : base(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments, createChangedDocument, CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)
             {
             }
         }

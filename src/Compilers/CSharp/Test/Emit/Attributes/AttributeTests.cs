@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : WellKnownAttributesTestBase
     {
-        static string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
-        static string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+        static readonly string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
+        static readonly string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                 "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
 
         #region Function Tests
@@ -529,6 +531,27 @@ static class Program
                 // (12,7): error CS8323: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 // [Mark(b: "Hello", true)]
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        public void TestNullAsParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(params object[] b)
+    {
+    }
+}
+
+[Mark(null)]
+static class Program
+{
+}");
+            comp.VerifyDiagnostics(
                 );
         }
 
@@ -7653,6 +7676,82 @@ class Goo: Attribute
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
         }
 
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Container()
+        {
+            var source1 =
+@"using System;
+public class A : Attribute { }
+namespace N1
+{
+    public class B : Attribute { }
+    public class C : Attribute { }
+}";
+            var comp = CreateCompilation(source1, assemblyName: "A");
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"using System;
+using N1;
+using N2;
+namespace N1
+{
+    class A : Attribute { }
+    class B : Attribute { }
+}
+namespace N2
+{
+    class C : Attribute { }
+}
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (14,2): warning CS0436: The type 'B' in '' conflicts with the imported type 'B' in 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // [B]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "B").WithArguments("", "N1.B", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "N1.B").WithLocation(14, 2),
+                // (15,2): error CS0104: 'C' is an ambiguous reference between 'N2.C' and 'N1.C'
+                // [C]
+                Diagnostic(ErrorCode.ERR_AmbigContext, "C").WithArguments("C", "N2.C", "N1.C").WithLocation(15, 2));
+        }
+
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Generic()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> { }
+public class C<T, U> { }";
+            var comp = CreateCompilation(source1);
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class A<U> { }
+class B<U> { }
+class C<U> { }
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 });
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (5,2): error CS0404: Cannot apply attribute class 'B<U>' because it is generic
+                // [B]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<U>").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
+                // [C]
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<U>", "type", "1").WithLocation(6, 2));
+        }
+
         [WorkItem(546283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546283")]
         [Fact]
         public void ApplyIndexerNameAttributeTwice()
@@ -9012,6 +9111,97 @@ public class C2
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void ObsoleteAttribute_Delegate()
+        {
+            string source = @"
+using System;
+public class C
+{
+    [Obsolete]
+    public void M()
+    {
+    }
+    
+    void M2()
+    {
+        Action a = M;
+        a = new Action(M);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,20): warning CS0612: 'C.M()' is obsolete
+                //         Action a = M;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M").WithArguments("C.M()").WithLocation(12, 20),
+                // (13,24): warning CS0612: 'C.M()' is obsolete
+                //         a = new Action(M);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M").WithArguments("C.M()").WithLocation(13, 24)
+            );
+        }
+
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void ObsoleteAttributeWithUnsafeError()
+        {
+            string source = @"
+using System;
+unsafe delegate byte* D();
+class C
+{
+    [Obsolete(null, true)] unsafe static byte* F() => default;
+    unsafe static D M1() => new D(F);
+    static D M2() => new D(F);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,35): warning CS0612: 'C.F()' is obsolete
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F").WithArguments("C.F()").WithLocation(7, 35),
+                // (8,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(8, 28)
+            );
+        }
+
+        [Fact]
+        [WorkItem(47308, "https://github.com/dotnet/roslyn/issues/47308")]
+        public void UnmanagedAttributeWithUnsafeError()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+unsafe delegate byte* D();
+class C
+{
+    [UnmanagedCallersOnly]
+    unsafe static byte* F() => default;
+    unsafe static D M1() => new D(F);
+    static D M2() => new D(F);
+}
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute()
+        {
+        }
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //     unsafe static D M1() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("C.F()").WithLocation(8, 35),
+                // (9,28): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     static D M2() => new D(F);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
+            );
+        }
         #endregion
     }
 }

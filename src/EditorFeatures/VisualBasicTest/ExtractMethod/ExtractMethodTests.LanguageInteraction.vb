@@ -3371,18 +3371,14 @@ End Namespace"
             <Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <Trait(Traits.Feature, Traits.Features.Interactive)>
             Public Sub TestExtractMethodCommandDisabledInSubmission()
-                Dim exportProvider = ExportProviderCache _
-                    .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
-                    .CreateExportProvider()
-
                 Using workspace = TestWorkspace.Create(
-                <Workspace>
-                    <Submission Language="Visual Basic" CommonReferences="true">  
-                        GetType(String).$$Name
-                    </Submission>
-                </Workspace>,
-                workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                    <Workspace>
+                        <Submission Language="Visual Basic" CommonReferences="true">  
+                            GetType(String).$$Name
+                        </Submission>
+                    </Workspace>,
+                    workspaceKind:=WorkspaceKind.Interactive,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                     ' Force initialization.
                     workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()

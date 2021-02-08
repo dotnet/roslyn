@@ -111,6 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_IsInitOnly As Boolean Implements IMethodSymbol.IsInitOnly
+            Get
+                Return IsInitOnly
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>
@@ -127,6 +133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Metadata: Returns False; methods from metadata cannot be an iterator.
         ''' </summary>
         Public MustOverride ReadOnly Property IsIterator As Boolean
+
+        ''' <summary>
+        ''' Indicates whether the accessor is marked with the 'init' modifier.
+        ''' </summary>
+        Public MustOverride ReadOnly Property IsInitOnly As Boolean
 
         ''' <summary>
         ''' Source: Returns False; methods from source cannot return by reference.
@@ -561,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typeArguments.CheckTypeArguments(Me.Arity)
         End Sub
 
-        ' Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
+        ' Apply type substitution to a generic method to create a method symbol with the given type parameters supplied.
         Public Overridable Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As MethodSymbol
             CheckCanConstructAndTypeArguments(typeArguments)
 
@@ -635,7 +646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return refModifiersErrorInfo
             End If
 
-            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers)
+            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.ReturnTypeCustomModifiers, allowIsExternalInit:=IsInitOnly)
 
             If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedMethod1 Then
                 Return typeModifiersErrorInfo
@@ -1000,6 +1011,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
             Get
                 Return NullableAnnotation.None
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_CallingConvention As Reflection.Metadata.SignatureCallingConvention Implements IMethodSymbol.CallingConvention
+            Get
+                Return Cci.CallingConventionUtils.ToSignatureConvention(CallingConvention)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_UnmanagedCallingConventionTypes As ImmutableArray(Of INamedTypeSymbol) Implements IMethodSymbol.UnmanagedCallingConventionTypes
+            Get
+                Return ImmutableArray(Of INamedTypeSymbol).Empty
             End Get
         End Property
 

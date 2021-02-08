@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -46,6 +45,44 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         Release = 1
     }
+
+    internal static class OptimizationLevelFacts
+    {
+        public static string ToPdbSerializedString(this OptimizationLevel optimization, bool debugPlusMode)
+        => optimization switch
+        {
+            OptimizationLevel.Release => "release",
+            OptimizationLevel.Debug => debugPlusMode ? "debug-plus" : "debug",
+            _ => throw ExceptionUtilities.UnexpectedValue(optimization)
+        };
+
+        public static bool TryParsePdbSerializedString(string value, out OptimizationLevel optimizationLevel, out bool debugPlusMode)
+        {
+            if (value == "release")
+            {
+                optimizationLevel = OptimizationLevel.Release;
+                debugPlusMode = false;
+                return true;
+            }
+            else if (value == "debug")
+            {
+                optimizationLevel = OptimizationLevel.Debug;
+                debugPlusMode = false;
+                return true;
+            }
+            else if (value == "debug-plus")
+            {
+                optimizationLevel = OptimizationLevel.Debug;
+                debugPlusMode = true;
+                return true;
+            }
+
+            optimizationLevel = default;
+            debugPlusMode = default;
+            return false;
+        }
+    }
+
 
     internal static partial class EnumBounds
     {

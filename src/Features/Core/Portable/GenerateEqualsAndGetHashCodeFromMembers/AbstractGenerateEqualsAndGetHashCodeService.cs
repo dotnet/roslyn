@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IGenerateEqualsAndGetHashCodeService
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
-        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new();
 
         protected abstract bool TryWrapWithUnchecked(
             ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements);
@@ -67,14 +69,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
-                if (generator.SupportsPatterns(tree.Options))
+                if (generator.SyntaxGeneratorInternal.SupportsPatterns(tree.Options))
                 {
                     // return obj is T t && this.Equals(t);
                     var localName = containingType.GetLocalName();
 
                     expressions.Add(
-                        generator.IsPatternExpression(objName,
-                            generator.DeclarationPattern(containingType, localName)));
+                        generator.SyntaxGeneratorInternal.IsPatternExpression(objName,
+                            generator.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
                     expressions.Add(
                         generator.InvocationExpression(
                             generator.MemberAccessExpression(
@@ -155,12 +157,13 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             if (components.Length > 0 && hashCodeType != null)
             {
-                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(hashCodeType, components);
+                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(
+                    factory.SyntaxGeneratorInternal, hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
             var statements = factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: false);
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: false);
 
             // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
             // C# can handle this by adding 'checked{}' around the code, VB has to jump
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             //
             // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
             return factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: true);
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: true);
         }
     }
 }

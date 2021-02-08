@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.Options;
 
@@ -14,15 +12,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Option to turn configure background analysis scope.
         /// </summary>
-        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption2<BackgroundAnalysisScope>(
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
         /// <summary>
         /// This option is used by TypeScript and F#.
         /// </summary>
-        [Obsolete("Currently used by TypeScript and F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
+        [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
+        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new(
             "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
 
@@ -43,22 +41,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             switch (language)
             {
-                case LanguageNames.CSharp:
-                case LanguageNames.VisualBasic:
-                    return options.GetOption(BackgroundAnalysisScopeOption, language);
-
-                default:
-#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
+                case LanguageNames.FSharp:
+#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
                     var option = options.GetOption(ClosedFileDiagnostic, language);
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                    // Note that the default value for this option is 'true' for these languages.
+                    // Note that the default value for this option is 'true' for this language.
                     if (!option.HasValue || option.Value)
                     {
                         return BackgroundAnalysisScope.FullSolution;
                     }
 
                     return BackgroundAnalysisScope.Default;
+                default:
+                    return options.GetOption(BackgroundAnalysisScopeOption, language);
             }
         }
     }

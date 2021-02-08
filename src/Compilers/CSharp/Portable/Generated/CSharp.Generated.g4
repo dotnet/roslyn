@@ -98,6 +98,7 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
+  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -207,6 +208,7 @@ type_parameter_constraint_clause
 type_parameter_constraint
   : class_or_struct_constraint
   | constructor_constraint
+  | default_constraint
   | type_constraint
   ;
 
@@ -217,6 +219,10 @@ class_or_struct_constraint
 
 constructor_constraint
   : 'new' '(' ')'
+  ;
+
+default_constraint
+  : 'default'
   ;
 
 type_constraint
@@ -242,7 +248,7 @@ accessor_list
   ;
 
 accessor_declaration
-  : attribute_list* modifier* ('get' | 'set' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('get' | 'set' | 'init' | 'add' | 'remove' | identifier_token) (block | (arrow_expression_clause ';'))
   ;
 
 indexer_declaration
@@ -271,7 +277,12 @@ base_list
   ;
 
 base_type
-  : simple_base_type
+  : primary_constructor_base_type
+  | simple_base_type
+  ;
+
+primary_constructor_base_type
+  : type argument_list
   ;
 
 simple_base_type
@@ -285,6 +296,7 @@ enum_member_declaration
 type_declaration
   : class_declaration
   | interface_declaration
+  | record_declaration
   | struct_declaration
   ;
 
@@ -294,6 +306,10 @@ class_declaration
 
 interface_declaration
   : attribute_list* modifier* 'interface' identifier_token type_parameter_list? base_list? type_parameter_constraint_clause* '{' member_declaration* '}' ';'?
+  ;
+
+record_declaration
+  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration
@@ -318,6 +334,7 @@ namespace_declaration
 
 type
   : array_type
+  | function_pointer_type
   | name
   | nullable_type
   | omitted_type_argument
@@ -333,6 +350,31 @@ array_type
 
 array_rank_specifier
   : '[' (expression (',' expression)*)? ']'
+  ;
+
+function_pointer_type
+  : 'delegate' '*' function_pointer_calling_convention? function_pointer_parameter_list
+  ;
+
+function_pointer_calling_convention
+  : 'managed' function_pointer_unmanaged_calling_convention_list?
+  | 'unmanaged' function_pointer_unmanaged_calling_convention_list?
+  ;
+
+function_pointer_unmanaged_calling_convention_list
+  : '[' function_pointer_unmanaged_calling_convention (',' function_pointer_unmanaged_calling_convention)* ']'
+  ;
+
+function_pointer_unmanaged_calling_convention
+  : identifier_token
+  ;
+
+function_pointer_parameter_list
+  : '<' function_pointer_parameter (',' function_pointer_parameter)* '>'
+  ;
+
+function_pointer_parameter
+  : attribute_list* modifier* type
   ;
 
 nullable_type
@@ -501,11 +543,20 @@ case_pattern_switch_label
   ;
 
 pattern
-  : constant_pattern
+  : binary_pattern
+  | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | parenthesized_pattern
   | recursive_pattern
+  | relational_pattern
+  | type_pattern
+  | unary_pattern
   | var_pattern
+  ;
+
+binary_pattern
+  : pattern ('or' | 'and') pattern
   ;
 
 constant_pattern
@@ -538,6 +589,10 @@ discard_pattern
   : '_'
   ;
 
+parenthesized_pattern
+  : '(' pattern ')'
+  ;
+
 recursive_pattern
   : type? positional_pattern_clause? property_pattern_clause? variable_designation?
   ;
@@ -552,6 +607,23 @@ subpattern
 
 property_pattern_clause
   : '{' (subpattern (',' subpattern)* ','?)? '}'
+  ;
+
+relational_pattern
+  : '!=' expression
+  | '<' expression
+  | '<=' expression
+  | '==' expression
+  | '>' expression
+  | '>=' expression
+  ;
+
+type_pattern
+  : type
+  ;
+
+unary_pattern
+  : 'not' pattern
   ;
 
 var_pattern
@@ -616,6 +688,7 @@ expression
   | array_creation_expression
   | assignment_expression
   | await_expression
+  | base_object_creation_expression
   | binary_expression
   | cast_expression
   | checked_expression
@@ -637,7 +710,6 @@ expression
   | make_ref_expression
   | member_access_expression
   | member_binding_expression
-  | object_creation_expression
   | omitted_array_size_expression
   | parenthesized_expression
   | postfix_unary_expression
@@ -654,6 +726,7 @@ expression
   | tuple_expression
   | type
   | type_of_expression
+  | with_expression
   ;
 
 anonymous_function_expression
@@ -662,7 +735,7 @@ anonymous_function_expression
   ;
 
 anonymous_method_expression
-  : 'async'? 'delegate' parameter_list? block expression?
+  : modifier* 'delegate' parameter_list? block expression?
   ;
 
 lambda_expression
@@ -671,11 +744,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : 'async'? parameter_list '=>' (block | expression)
+  : modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : 'async'? parameter '=>' (block | expression)
+  : modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression
@@ -700,6 +773,19 @@ assignment_expression
 
 await_expression
   : 'await' expression
+  ;
+
+base_object_creation_expression
+  : implicit_object_creation_expression
+  | object_creation_expression
+  ;
+
+implicit_object_creation_expression
+  : 'new' argument_list initializer_expression?
+  ;
+
+object_creation_expression
+  : 'new' type argument_list? initializer_expression?
   ;
 
 binary_expression
@@ -819,10 +905,6 @@ member_access_expression
 
 member_binding_expression
   : '.' simple_name
-  ;
-
-object_creation_expression
-  : 'new' type argument_list? initializer_expression?
   ;
 
 omitted_array_size_expression
@@ -952,6 +1034,10 @@ tuple_expression
 
 type_of_expression
   : 'typeof' '(' type ')'
+  ;
+
+with_expression
+  : expression 'with' initializer_expression
   ;
 
 xml_node
@@ -1203,8 +1289,18 @@ base_parameter_list
   | parameter_list
   ;
 
+base_parameter
+  : function_pointer_parameter
+  | parameter
+  ;
+
 character_literal_token
   : /* see lexical specification */
+  ;
+
+expression_or_pattern
+  : expression
+  | pattern
   ;
 
 identifier_token

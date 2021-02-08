@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return applied;
         }
 
-        private TextDocument TryGetSingleChangedText(
+        private static TextDocument TryGetSingleChangedText(
             Solution oldSolution, ImmutableArray<CodeActionOperation> operationsList)
         {
             Debug.Assert(operationsList.Length > 0);
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart);
+                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken);
                     return;
                 }
 
@@ -323,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     {
                         var editorWorkspace = workspace;
                         var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                        if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span))
+                        if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken))
                         {
                             var openDocument = workspace.CurrentSolution.GetDocument(documentId);
                             var openRoot = openDocument.GetSyntaxRootSynchronously(cancellationToken);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.PooledObjects;
-
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal readonly struct TriviaList
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             => index < _list1.Count ? _list1[index] : _list2[index - _list1.Count];
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public struct Enumerator
         {

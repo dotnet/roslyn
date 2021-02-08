@@ -466,7 +466,7 @@ NotInheritable Class X : Implements IComparer
     Private x As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return Me.x.Compare(x, y)
+        Return DirectCast(Me.x, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -487,7 +487,7 @@ NotInheritable Class X : Implements IComparer
     Private a As X
 
     Public Function Compare(x As Object, y As Object) As Integer Implements IComparer.Compare
-        Return a.Compare(x, y)
+        Return DirectCast(a, IComparer).Compare(x, y)
     End Function
 End Class",
 index:=1)
@@ -539,8 +539,6 @@ End Class
 </File>
             Await TestAsync(source, expected, index:=1)
         End Function
-
-
 
         <WorkItem(540355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -1183,7 +1181,6 @@ Class B
 End Class",
 index:=1)
         End Function
-
 
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4263,7 +4260,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
 $"Imports System
 Imports System.Collections.Generic
@@ -4318,7 +4315,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
  index:=1)
         End Function
@@ -4332,7 +4329,7 @@ End Class
 
 Partial Class C
     Implements [|I(Of System.Exception, System.AggregateException)|]
-    Implements IDisposable
+    Implements System.IDisposable
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4347,7 +4344,7 @@ End Class
 
 Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
-    Implements IDisposable
+    Implements System.IDisposable
 
     Private disposedValue As Boolean
 
@@ -4475,7 +4472,6 @@ Public Class Holder
 	End Class
 End Class")
         End Function
-
 
         <WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>

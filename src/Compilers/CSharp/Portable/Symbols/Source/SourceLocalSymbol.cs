@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -169,8 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                 nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                 nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
+                nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
                 nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
-                nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
                 nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
                 nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
@@ -385,16 +388,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
             Debug.Assert(newType.Type is object);
-            TypeSymbol originalType = _type?.Value.DefaultType;
+            TypeWithAnnotations? originalType = _type?.Value;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
 
-            Debug.Assert((object)originalType == null ||
-                originalType.IsErrorType() && newType.Type.IsErrorType() ||
-                TypeSymbol.Equals(originalType, newType.Type, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert((object)originalType?.DefaultType == null ||
+                originalType.Value.DefaultType.IsErrorType() && newType.Type.IsErrorType() ||
+                originalType.Value.TypeSymbolEquals(newType, TypeCompareKind.ConsiderEverything));
 
-            if ((object)originalType == null)
+            if ((object)_type == null)
             {
                 Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }
@@ -667,8 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode deconstruction)
             : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
-                Debug.Assert(deconstruction.Kind() == SyntaxKind.SimpleAssignmentExpression || deconstruction.Kind() == SyntaxKind.ForEachVariableStatement);
-
                 _deconstruction = deconstruction;
                 _nodeBinder = nodeBinder;
             }
@@ -692,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                        return TypeWithAnnotations.Create(_nodeBinder.CreateErrorType());
                 }
 
                 return _type.Value;
@@ -713,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return null;
 
                         default:
-                            throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                            return null;
                     }
                 }
             }
@@ -740,7 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
                     nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
                     nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.ArgumentList && nodeToBind.Parent is ConstructorInitializerSyntax ||
+                    nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
+                    nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
                     nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
                     nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
                     nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
@@ -767,9 +769,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
+                    case SyntaxKind.PrimaryConstructorBaseType:
+                        _nodeBinder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)_nodeToBind, diagnostics);
+                        break;
                     case SyntaxKind.ArgumentList:
-                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
-                        _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
+                        switch (_nodeToBind.Parent)
+                        {
+                            case ConstructorInitializerSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            case PrimaryConstructorBaseTypeSyntax ctorInitializer:
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(_nodeToBind.Parent);
+                        }
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:
                         _nodeBinder.BindPatternSwitchLabelForInference((CasePatternSwitchLabelSyntax)_nodeToBind, diagnostics);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Object given as key for <see cref="HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(ProjectId, object, IEnumerable{DiagnosticData})"/>.
         /// </summary>
-        private static readonly object s_dependencyConflictErrorId = new object();
+        private static readonly object s_dependencyConflictErrorId = new();
         private static readonly IIgnorableAssemblyList s_systemPrefixList = new IgnorableAssemblyNamePrefixList("System");
         private static readonly IIgnorableAssemblyList s_codeAnalysisPrefixList = new IgnorableAssemblyNamePrefixList("Microsoft.CodeAnalysis");
         private static readonly IIgnorableAssemblyList s_explicitlyIgnoredAssemblyList = new IgnorableAssemblyIdentityList(GetExplicitlyIgnoredAssemblyIdentities());
@@ -37,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Object given to synchronize access to the mutable fields in this class.
         /// </summary>
-        private readonly object _gate = new object();
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly object _gate = new();
+        private CancellationTokenSource _cancellationTokenSource = new();
 
         /// <summary>
         /// The most recently started analysis task; if we start a new analysis we will cancel the previous one and start the next one
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private Task _task = Task.CompletedTask;
         private ImmutableHashSet<string> _previousAnalyzerPaths = ImmutableHashSet.Create<string>(StringComparer.OrdinalIgnoreCase);
 
-        private static readonly DiagnosticDescriptor s_missingAnalyzerReferenceRule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_missingAnalyzerReferenceRule = new(
             id: IDEDiagnosticIds.MissingAnalyzerReferenceId,
             title: ServicesVSResources.MissingAnalyzerReference,
             messageFormat: ServicesVSResources.Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well,
@@ -55,14 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        private static readonly DiagnosticDescriptor s_analyzerDependencyConflictRule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_analyzerDependencyConflictRule = new(
             id: IDEDiagnosticIds.AnalyzerDependencyConflictId,
             title: ServicesVSResources.AnalyzerDependencyConflict,
             messageFormat: ServicesVSResources.Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly,
             category: FeaturesResources.Roslyn_HostError,
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
-
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

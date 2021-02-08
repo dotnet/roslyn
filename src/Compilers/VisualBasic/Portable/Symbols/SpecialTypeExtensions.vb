@@ -7,23 +7,6 @@ Imports System.Runtime.CompilerServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Module SpecialTypeExtensions
         <Extension>
-        Public Function IsIntegralType(this As SpecialType) As Boolean
-            Select Case this
-                Case SpecialType.System_Byte,
-                     SpecialType.System_SByte,
-                     SpecialType.System_Int16,
-                     SpecialType.System_UInt16,
-                     SpecialType.System_Int32,
-                     SpecialType.System_UInt32,
-                     SpecialType.System_Int64,
-                     SpecialType.System_UInt64
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
-
-        <Extension>
         Public Function IsFloatingType(this As SpecialType) As Boolean
             Select Case this
                 Case SpecialType.System_Single,

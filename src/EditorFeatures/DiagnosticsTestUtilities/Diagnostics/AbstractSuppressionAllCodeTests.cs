@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -65,16 +67,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = CreateWorkspaceFromFile(code, options))
             {
+                var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
+
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
                 var existingDiagnostics = root.GetDiagnostics().ToArray();
 
-                var analyzerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
-                var analyzer = analyzerAndFixer.Item1;
-                var fixer = analyzerAndFixer.Item2;
                 var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
                 analyzer.AllNodes = descendants;
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, root.FullSpan);
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan);
 
                 foreach (var diagnostic in diagnostics)
                 {
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
+        private static CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
         {
             if (pragma)
             {

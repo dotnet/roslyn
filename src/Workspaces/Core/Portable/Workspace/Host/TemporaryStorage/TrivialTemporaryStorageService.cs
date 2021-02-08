@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TrivialTemporaryStorageService()
+        public static readonly TrivialTemporaryStorageService Instance = new();
+
+        private TrivialTemporaryStorageService()
         {
         }
 
@@ -70,7 +69,11 @@ namespace Microsoft.CodeAnalysis
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+# else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
+#endif
                 _stream = newStream;
             }
         }

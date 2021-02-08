@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/14421")>
         Public Async Function TestPickTheRightPreview_NoPreference() As Task
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile("Class D : End Class", parameters)
+            Using workspace = CreateWorkspaceFromOptions("Class D : End Class", parameters)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(parameters, workspace, document, previews)

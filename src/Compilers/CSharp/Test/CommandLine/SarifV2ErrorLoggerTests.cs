@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -106,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""defaultConfiguration"": {{
                 ""level"": ""error""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -120,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -211,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""defaultConfiguration"": {{
                 ""level"": ""error""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -225,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               ""shortDescription"": {{
                 ""text"": ""Field is never used""
               }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
                 ""category"": ""Compiler"",
                 ""tags"": [
@@ -283,10 +289,64 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
+        {
+            string expectedOutput =
+@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+{5},
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+{6}
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            return FormatOutputText(
+                expectedOutput,
+                cmd,
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void AnalyzerDiagnosticsWithAndWithoutLocation()
         {
             AnalyzerDiagnosticsWithAndWithoutLocationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithNullJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
 
         private string FormatOutputText(

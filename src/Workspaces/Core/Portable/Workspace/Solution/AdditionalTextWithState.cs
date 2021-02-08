@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly TextDocumentState _documentState;
 
         /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="documentState"/> should be non-null.
+        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>.
         /// </summary>
         public AdditionalTextWithState(TextDocumentState documentState)
             => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));

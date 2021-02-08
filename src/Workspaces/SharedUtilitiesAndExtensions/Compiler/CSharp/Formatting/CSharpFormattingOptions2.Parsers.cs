@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
 
         private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
-            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
         internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
             => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptions.NoIndent;
 
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
-            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
+            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
         internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
         {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 

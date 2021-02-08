@@ -58,6 +58,46 @@ class C
 end class")
         End Function
 
+        <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnByRefParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    public sub new([||]byref s as string)
+    end sub
+end class",
+"
+class C
+    public sub new(byref s as string)
+        If s Is Nothing Then
+            Throw New System.ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
+        <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnOutByRefParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System.Runtime.InteropServices
+class C
+    public sub new([||]<Out> byref s as string)
+    end sub
+end class",
+"
+Imports System.Runtime.InteropServices
+class C
+    public sub new(<Out> byref s as string)
+        If s Is Nothing Then
+            Throw New System.ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnValueType() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -434,13 +474,13 @@ class C
     public sub new([||]s as string)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(s as string)
         If String.IsNullOrEmpty(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}")}"", NameOf(s))
         End If
     end sub
 end class", index:=1)
@@ -456,13 +496,13 @@ class C
     public sub new([||]s as string)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException(""message"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}")}"", NameOf(s))
         End If
     end sub
 end class", index:=2)
@@ -478,21 +518,21 @@ class C
     public sub new([||]a as string, b as string, c as string)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(a as string, b as string, c as string)
         If String.IsNullOrEmpty(a) Then
-            Throw New ArgumentException(""message"", NameOf(a))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}")}"", NameOf(a))
         End If
 
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
         End If
 
         If String.IsNullOrEmpty(c) Then
-            Throw New ArgumentException(""message"", NameOf(c))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}")}"", NameOf(c))
         End If
     end sub
 end class", index:=3)
@@ -508,13 +548,13 @@ class C
     public sub new([||]a as boolean, b as string, c as object)
     end sub
 end class",
-"
+$"
 Imports System
 
 class C
     public sub new(a as boolean, b as string, c as object)
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException(""message"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
         End If
 
         If c Is Nothing Then

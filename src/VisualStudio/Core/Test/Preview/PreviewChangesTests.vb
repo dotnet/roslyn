@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Roslyn.Test.Utilities
@@ -17,8 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
+        Private Shared ReadOnly s_composition As TestComposition = VisualStudioTestCompositions.LanguageServices
 
         <WpfFact>
         Public Sub TestListStructure()
@@ -29,7 +27,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
+}</text>.Value, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -79,7 +77,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -131,7 +129,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProviderFactory.CreateExportProvider())
+}</text>.Value, composition:=s_composition)
                 Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
@@ -165,7 +163,6 @@ Class C
                     Assert.Equal(document.GetTextAsync().Result.ToString(), finalText)
                 End Using
 
-
             End Using
         End Sub
 
@@ -188,7 +185,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -272,7 +269,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=_exportProviderFactory.CreateExportProvider())
+            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
@@ -315,10 +312,6 @@ End Class
         End Sub
 
         Private Sub AssertTreeStructure(expectedItems As List(Of Tuple(Of String, Integer)), topLevelList As ChangeList)
-            Dim outChangeList As Object = Nothing
-            Dim outCanRecurse As Integer = Nothing
-            Dim outTreeList As Shell.Interop.IVsLiteTreeList = Nothing
-
             Dim flatteningResult = New List(Of Tuple(Of String, Integer))()
             FlattenTree(topLevelList, flatteningResult, 0)
 

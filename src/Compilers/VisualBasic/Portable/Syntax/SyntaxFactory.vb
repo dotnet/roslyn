@@ -614,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(ParamArray content As XmlNodeSyntax()) As XmlElementSyntax
@@ -622,7 +622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Creates the the syntax representation of an xml value element (e.g. for xml documentation comments).
+        ''' Creates the syntax representation of an xml value element (e.g. for xml documentation comments).
         ''' </summary>
         ''' <param name="content">A list of xml syntax nodes that represents the content of the value element.</param>
         Public Shared Function XmlValueElement(content As SyntaxList(Of XmlNodeSyntax)) As XmlElementSyntax
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Determines if a submission contains an LINQ query not followed by an empty line.
+        ''' Determines if a submission contains a LINQ query not followed by an empty line.
         '''
         ''' Examples:
         ''' 1. <c>Dim x = 1</c> returns false since the statement is not a LINQ query

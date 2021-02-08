@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
     internal class CSharpImplementAbstractClassCodeFixProvider :
-        AbstractImplementAbstractClassCodeFixProvider<ClassDeclarationSyntax>
+        AbstractImplementAbstractClassCodeFixProvider<TypeDeclarationSyntax>
     {
         private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'
 
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass
         {
         }
 
-        protected override SyntaxToken GetClassIdentifier(ClassDeclarationSyntax classNode)
+        protected override SyntaxToken GetClassIdentifier(TypeDeclarationSyntax classNode)
             => classNode.Identifier;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -94,20 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+                typeSyntax = typeSyntax.StripRefIfNeeded();
 
-                // We're going to be passed through the simplifier.  Tell it to not just convert
-                // this back to var (as that would defeat the purpose of this refactoring entirely).
-                var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
-                    .WithLeadingTrivia(node.GetLeadingTrivia())
-                    .WithTrailingTrivia(node.GetTrailingTrivia());
-                Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+                // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
+                // that would defeat the purpose of this refactoring entirely).
+                var newTypeSyntax =
+                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType
+                                 .GenerateTypeSyntax(allowVar: false)
+                                 .WithTriviaFrom(typeSyntax);
 
-                editor.ReplaceNode(node, typeName);
+                Debug.Assert(!newTypeSyntax.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+
+                editor.ReplaceNode(typeSyntax, newTypeSyntax);
             }
             else
             {
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
+                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
 
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));

@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -27,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IWorkspaceTelemetryService? _telemetryService;
+        private readonly IWorkspaceStatusService? _workspaceStatusService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -38,23 +41,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
         /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
         /// </summary>
         private int _activeBatchScopes = 0;
 
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = new List<(string path, MetadataReferenceProperties properties)>();
-        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = new List<(string path, MetadataReferenceProperties properties)>();
-        private readonly List<ProjectReference> _projectReferencesAddedInBatch = new List<ProjectReference>();
-        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = new List<ProjectReference>();
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesAddedInBatch = new();
+        private readonly List<(string path, MetadataReferenceProperties properties)> _metadataReferencesRemovedInBatch = new();
+        private readonly List<ProjectReference> _projectReferencesAddedInBatch = new();
+        private readonly List<ProjectReference> _projectReferencesRemovedInBatch = new();
 
-        private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new Dictionary<string, VisualStudioAnalyzer>();
-        private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new List<VisualStudioAnalyzer>();
-        private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new List<VisualStudioAnalyzer>();
+        private readonly Dictionary<string, VisualStudioAnalyzer> _analyzerPathsToAnalyzers = new();
+        private readonly List<VisualStudioAnalyzer> _analyzersAddedInBatch = new();
+        private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
-        private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new List<Func<Solution, Solution>>();
+        private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
 
         private string _assemblyName;
         private string _displayName;
@@ -62,10 +65,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
         private bool _hasAllInformation = true;
-        private string? _intermediateOutputFilePath;
+        private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
+
+        /// <summary>
+        /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
+        /// correspond to different configurations of a single project system project. <see langword="true"/> by
+        /// default.
+        /// </summary>
+        internal bool IsPrimary { get; set; } = true;
 
         // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
         // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
@@ -75,13 +85,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
         private bool _runAnalyzers = true;
 
-        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new Dictionary<string, ImmutableArray<MetadataReferenceProperties>>();
+        private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new();
 
         /// <summary>
         /// The file watching tokens for the documents in this project. We get the tokens even when we're in a batch, so the files here
         /// may not be in the actual workspace yet.
         /// </summary>
-        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
+        private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new();
 
         /// <summary>
         /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
@@ -92,18 +102,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
         /// </summary>
-        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new HashSet<IDynamicFileInfoProvider>();
+        private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = new();
 
         /// <summary>
-        /// map original dynamic file path to <see cref="DynamicFileInfo.FilePath"/>
-        /// 
-        /// original dyanmic file path points to something like xxx.cshtml that are given to project system
-        /// and <see cref="DynamicFileInfo.FilePath"/> points to a mapped file path provided by <see cref="IDynamicFileInfoProvider"/>
-        /// and how and what it got mapped to is up to the provider. 
-        /// 
-        /// Workspace will only knows about <see cref="DynamicFileInfo.FilePath"/> but not the original dynamic file path
+        /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
+        ///
+        /// For example, the key is something like Page.cshtml which is given to us from the project system calling
+        /// <see cref="AddDynamicSourceFile(string, ImmutableArray{string})"/>. The value of the map is a generated file that
+        /// corresponds to the original path, say Page.g.cs. If we were given a file by the project system but no
+        /// <see cref="IDynamicFileInfoProvider"/> provided a file for it, we will record the value as null so we still can track
+        /// the addition of the .cshtml file for a later call to <see cref="RemoveDynamicSourceFile(string)"/>.
+        ///
+        /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
+        /// original dynamic file path (the key).
         /// </summary>
-        private readonly Dictionary<string, string> _dynamicFilePathMaps = new Dictionary<string, string>();
+        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new();
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
@@ -128,15 +141,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
+            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+            _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+
             Id = id;
             Language = language;
             _displayName = displayName;
 
-            if (filePath != null)
+            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
+
+            if (filePath != null && fileExtensionToWatch != null)
             {
-                // TODO: use filePath to create a directory watcher. For now, there's perf hits due to the flood of events we'll need to sort out later.
-                // _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContextForDirectory(Path.GetDirectoryName(filePath));
-                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
+                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
+                // having to add explicit file watches everywhere.
+                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
             }
             else
             {
@@ -170,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _parseOptions = parseOptions;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
         {
             lock (_gate)
             {
@@ -182,6 +201,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
+                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                // fully loaded.
+                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+
+                // We only log telemetry during solution open
+                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                {
+                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     _projectPropertyModificationsInBatch.Add(withNewValue);
@@ -190,6 +223,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(Id, withNewValue);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reports a telemetry event if compilation information is being thrown away after being previously computed
+        /// </summary>
+        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        {
+            // We log the number of syntax trees that have been parsed even if there was no compilation created yet
+            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var parsedTrees = 0;
+            foreach (var documentState in projectState.DocumentStates.Values)
+            {
+                if (documentState.TryGetSyntaxTree(out _))
+                {
+                    parsedTrees++;
+                }
+            }
+
+            // But we also want to know if a compilation was created
+            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
+
+            if (parsedTrees > 0 || hadCompilation)
+            {
+                Logger.Log(FunctionId.Workspace_Project_CompilationThrownAway, KeyValueLogMessage.Create(m =>
+                {
+                    // Note: Not using our project Id. This is the same ProjectGuid that the project system uses
+                    // so data can be correlated
+                    m["ProjectGuid"] = projectState.ProjectInfo.Attributes.TelemetryId.ToString("B");
+                    m["SyntaxTreesParsed"] = parsedTrees;
+                    m["HadCompilation"] = hadCompilation;
+                }));
             }
         }
 
@@ -220,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string AssemblyName
         {
             get => _assemblyName;
-            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value));
+            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -229,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
-            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
+            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -238,27 +303,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ParseOptions? ParseOptions
         {
             get => _parseOptions;
-            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value));
+            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        internal string? IntermediateOutputFilePath
+        internal string? CompilationOutputAssemblyFilePath
         {
-            get => _intermediateOutputFilePath;
-            set
-            {
-                // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
-                // To work around we look for the PDB on the path specified in the PDB debug directory.
-                // https://github.com/dotnet/roslyn/issues/35065
-                _workspace.SetCompilationOutputs(Id, new CompilationOutputFilesWithImplicitPdbPath(value));
-
-                // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
-                // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
-                // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s);
-            }
+            get => _compilationOutputAssemblyFilePath;
+            set => ChangeProjectOutputPath(
+                       ref _compilationOutputAssemblyFilePath,
+                       value,
+                       s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath
@@ -345,7 +402,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             set => _workspace.SetMaxLanguageVersion(Id, value);
         }
-
 
         #region Batching
 
@@ -434,39 +490,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                         WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
-                    // Metadata reference adding...
-                    if (_metadataReferencesAddedInBatch.Count > 0)
-                    {
-                        var projectReferencesCreated = new List<ProjectReference>();
-                        var metadataReferencesCreated = new List<MetadataReference>();
-
-                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
-                        {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
-
-                            if (projectReference != null)
-                            {
-                                projectReferencesCreated.Add(projectReference);
-                            }
-                            else
-                            {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
-                                metadataReferencesCreated.Add(metadataReference);
-                            }
-                        }
-
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
-                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
-
-                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
-                    }
-
-                    // Metadata reference removing...
+                    // Metadata reference removing. Do this before adding in case this removes a project reference that
+                    // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
+                    // a different output path (say bin vs. obj vs. ref).
                     foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -489,6 +518,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_metadataReferencesRemovedInBatch);
+
+                    // Metadata reference adding...
+                    if (_metadataReferencesAddedInBatch.Count > 0)
+                    {
+                        var projectReferencesCreated = new List<ProjectReference>();
+                        var metadataReferencesCreated = new List<MetadataReference>();
+
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
+                        {
+                            var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, path, properties);
+
+                            if (projectReference != null)
+                            {
+                                projectReferencesCreated.Add(projectReference);
+                            }
+                            else
+                            {
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
+                                metadataReferencesCreated.Add(metadataReference);
+                            }
+                        }
+
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
+                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
+
+                        ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
+                    }
 
                     // Project reference adding...
                     solutionChanges.UpdateSolutionForProjectAction(
@@ -562,14 +620,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
             => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
+        /// <summary>
+        /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+        /// </summary>
+        /// <param name="textContainer">The text container that contains this file.</param>
+        /// <param name="fullPath">The file path of the document.</param>
+        /// <param name="sourceCodeKind">The kind of the source code.</param>
+        /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
+        /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
+        /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
             string fullPath,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             ImmutableArray<string> folders = default,
+            bool designTimeOnly = false,
             IDocumentServiceProvider? documentServiceProvider = null)
         {
-            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, documentServiceProvider);
+            return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
         }
 
         public bool ContainsSourceFile(string fullPath)
@@ -617,49 +685,77 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
         {
+            DynamicFileInfo? fileInfo = null;
+            IDynamicFileInfoProvider? providerForFileInfo = null;
+
             var extension = FileNameUtilities.GetExtension(dynamicFilePath)?.TrimStart('.');
             if (extension?.Length == 0)
             {
-                return;
+                fileInfo = null;
+            }
+            else
+            {
+                foreach (var provider in _dynamicFileInfoProviders)
+                {
+                    // skip unrelated providers
+                    if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    // Don't get confused by _filePath and filePath.
+                    // VisualStudioProject._filePath points to csproj/vbproj of the project
+                    // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
+                    // 
+                    // Also, provider is free-threaded. so fine to call Wait rather than JTF.
+                    fileInfo = provider.Value.GetDynamicFileInfoAsync(
+                        projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+                    if (fileInfo != null)
+                    {
+                        fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
+                        providerForFileInfo = provider.Value;
+                        break;
+                    }
+                }
             }
 
-            foreach (var provider in _dynamicFileInfoProviders)
+            lock (_gate)
             {
-                // skip unrelated providers
-                if (!provider.Metadata.Extensions.Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
+                if (_dynamicFilePathMaps.ContainsKey(dynamicFilePath))
                 {
-                    continue;
+                    // TODO: if we have a duplicate, we are not calling RemoveDynamicFileInfoAsync since we
+                    // don't want to call with that under a lock. If we are getting duplicates we have bigger problems
+                    // at that point since our workspace is generally out of sync with the project system.
+                    // Given we're taking this as a late fix prior to a release, I don't think it's worth the added
+                    // risk to handle a case that wasn't handled before either.
+                    throw new ArgumentException($"{dynamicFilePath} has already been added to this project.");
                 }
 
-                // Don't get confused by _filePath and filePath.
-                // VisualStudioProject._filePath points to csproj/vbproj of the project
-                // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
-                // 
-                // Also, provider is free-threaded. so fine to call Wait rather than JTF.
-                var fileInfo = provider.Value.GetDynamicFileInfoAsync(
-                    projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                // Record the mapping from the dynamic file path to the source file it generated. We will record
+                // 'null' if no provider was able to produce a source file for this input file. That could happen
+                // if the provider (say ASP.NET Razor) doesn't recognize the file, or the wrong type of file
+                // got passed through the system. That's not a failure from the project system's perspective:
+                // adding dynamic files is a hint at best that doesn't impact it.
+                _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo?.FilePath);
 
-                if (fileInfo == null)
+                if (fileInfo != null)
                 {
-                    continue;
+                    // If fileInfo is not null, that means we found a provider so this should be not-null as well
+                    // since we had to go through the earlier assignment.
+                    Contract.ThrowIfNull(providerForFileInfo);
+                    _sourceFiles.AddDynamicFile(providerForFileInfo, fileInfo, folders);
                 }
-
-                fileInfo = FixUpDynamicFileInfo(fileInfo, dynamicFilePath);
-
-                // remember map between original dynamic file path to DynamicFileInfo.FilePath
-                _dynamicFilePathMaps.Add(dynamicFilePath, fileInfo.FilePath);
-                _sourceFiles.AddDynamicFile(provider.Value, fileInfo, folders);
-                return;
             }
         }
 
-        private DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
+        private static DynamicFileInfo FixUpDynamicFileInfo(DynamicFileInfo fileInfo, string filePath)
         {
             // we might change contract and just throw here. but for now, we keep existing contract where one can return null for DynamicFileInfo.FilePath.
             // In this case we substitute the file being generated from so we still have some path.
             if (string.IsNullOrEmpty(fileInfo.FilePath))
             {
-                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
+                return new DynamicFileInfo(filePath, fileInfo.SourceCodeKind, fileInfo.TextLoader, fileInfo.DesignTimeOnly, fileInfo.DocumentServiceProvider);
             }
 
             return fileInfo;
@@ -667,7 +763,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RemoveDynamicSourceFile(string dynamicFilePath)
         {
-            var provider = _sourceFiles.RemoveDynamicFile(_dynamicFilePathMaps[dynamicFilePath]);
+            IDynamicFileInfoProvider provider;
+
+            lock (_gate)
+            {
+                if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var sourceFilePath))
+                {
+                    throw new ArgumentException($"{dynamicFilePath} wasn't added by a previous call to {nameof(AddDynamicSourceFile)}");
+                }
+
+                _dynamicFilePathMaps.Remove(dynamicFilePath);
+
+                // If we got a null path back, it means we never had a source file to add. In that case,
+                // we're done
+                if (sourceFilePath == null)
+                {
+                    return;
+                }
+
+                provider = _sourceFiles.RemoveDynamicFile(sourceFilePath);
+            }
 
             // provider is free-threaded. so fine to call Wait rather than JTF
             provider.RemoveDynamicFileInfoAsync(
@@ -676,14 +791,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
         {
-            if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var fileInfoPath))
+            string? fileInfoPath;
+
+            lock (_gate)
             {
-                // given file doesn't belong to this project. 
-                // this happen since the event this is handling is shared between all projects
-                return;
+                if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
+                {
+                    // given file doesn't belong to this project. 
+                    // this happen since the event this is handling is shared between all projects
+                    return;
+                }
             }
 
-            _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+            if (fileInfoPath != null)
+            {
+                _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+            }
         }
 
         #endregion
@@ -692,16 +815,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string fullPath)
         {
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                throw new ArgumentException("message", nameof(fullPath));
-            }
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
             var visualStudioAnalyzer = new VisualStudioAnalyzer(
                 fullPath,
                 _hostDiagnosticUpdateSource,
                 Id,
-                _workspace,
                 Language);
 
             lock (_gate)
@@ -789,7 +908,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryCreateConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryCreateConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         if (projectReference != null)
                         {
@@ -852,7 +971,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(w =>
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, fullPath, properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference_NoLock(Id, fullPath, properties);
 
                         // If this was converted to a project reference, we have now recorded the removal -- let's remove it here too
                         if (projectReference != null)
@@ -987,15 +1106,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 _eventSubscriptionTracker.Clear();
-
-                // Clear any file watchers we still have for references
-                foreach (PortableExecutableReference reference in _workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences)
-                {
-                    _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
-                }
             }
 
-            _workspace.ApplyChangeToWorkspace(w => w.OnProjectRemoved(Id));
+            IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
+
+            _workspace.ApplyChangeToWorkspace(w =>
+            {
+                // Acquire the remaining metadata references inside the workspace lock. This is critical
+                // as another project being removed at the same time could result in project to project
+                // references being converted to metadata references (or vice versa) and we might either
+                // miss stopping a file watcher or might end up double-stopping a file watcher.
+                remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
+                w.OnProjectRemoved(Id);
+            });
+
+            Contract.ThrowIfNull(remainingMetadataReferences);
+
+            foreach (PortableExecutableReference reference in remainingMetadataReferences)
+            {
+                _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
+            }
         }
 
         /// <summary>
@@ -1062,7 +1192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The map of file paths to the underlying <see cref="DocumentId"/>. This document may exist in <see cref="_documentsAddedInBatch"/> or has been
             /// pushed to the actual workspace.
             /// </summary>
-            private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new(StringComparer.OrdinalIgnoreCase);
 
             /// <summary>
             /// A map of explicitly-added "always open" <see cref="SourceTextContainer"/> and their associated <see cref="DocumentId"/>. This does not contain
@@ -1073,7 +1203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
             /// </summary>
-            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new Dictionary<DocumentId, IDynamicFileInfoProvider>();
+            private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = new();
 
             /// <summary>
             /// The current list of documents that are to be added in this batch.
@@ -1083,7 +1213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// The current list of documents that are being removed in this batch. Once the document is in this list, it is no longer in <see cref="_documentPathsToDocumentIds"/>.
             /// </summary>
-            private readonly List<DocumentId> _documentsRemovedInBatch = new List<DocumentId>();
+            private readonly List<DocumentId> _documentsRemovedInBatch = new();
 
             /// <summary>
             /// The current list of document file paths that will be ordered in a batch.
@@ -1153,7 +1283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return documentId;
             }
 
-            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, IDocumentServiceProvider? documentServiceProvider)
+            public DocumentId AddTextContainer(SourceTextContainer textContainer, string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders, bool designTimeOnly, IDocumentServiceProvider? documentServiceProvider)
             {
                 if (textContainer == null)
                 {
@@ -1170,6 +1300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: fullPath,
                     isGenerated: false,
+                    designTimeOnly: designTimeOnly,
                     documentServiceProvider: documentServiceProvider);
 
                 lock (_project._gate)
@@ -1460,6 +1591,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     loader: fileInfo.TextLoader,
                                     document.FilePath,
                                     document.State.Attributes.IsGenerated,
+                                    document.State.Attributes.DesignTimeOnly,
                                     documentServiceProvider: fileInfo.DocumentServiceProvider);
 
                                 w.OnDocumentReloaded(documentInfo);
@@ -1571,7 +1703,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = new DynamicFileDocumentServiceProvider(fileInfo.DocumentServiceProvider);
+                var documentServiceProvider = fileInfo.DocumentServiceProvider;
 
                 return DocumentInfo.Create(
                     documentId,
@@ -1581,31 +1713,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     loader: textLoader,
                     filePath: filePath,
                     isGenerated: false,
+                    designTimeOnly: true,
                     documentServiceProvider: documentServiceProvider);
-            }
-
-            private sealed class DynamicFileDocumentServiceProvider : IDocumentServiceProvider
-            {
-                private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
-                {
-                    public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
-                    public override bool DesignTimeOnly => true;
-                }
-
-                private readonly IDocumentServiceProvider _provider;
-
-                public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                    => _provider = provider;
-
-                TService IDocumentServiceProvider.GetService<TService>()
-                {
-                    if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
-                    {
-                        return documentPropertiesService;
-                    }
-
-                    return _provider.GetService<TService>();
-                }
             }
 
             private sealed class SourceTextLoader : TextLoader

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            private readonly AsyncBatchingWorkQueue<bool> _workQueue;
+            private readonly AsyncBatchingDelay _asyncDelay;
 
             public WorkspaceChangedEventSource(
                 ITextBuffer subjectBuffer,
@@ -25,17 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 IAsynchronousOperationListener asyncListener)
                 : base(subjectBuffer, delay)
             {
-                // Pass in an equality comparer here.  That will ensure that even if we get a flurry of workspace
-                // events that we only ever have one entry in the workqueue as all other events will dedupe against 
-                // that one.
-                _workQueue = new AsyncBatchingWorkQueue<bool>(
+                // That will ensure that even if we get a flurry of workspace events that we
+                // only process a tag change once.
+                _asyncDelay = new AsyncBatchingDelay(
                     TimeSpan.FromMilliseconds(250),
-                    processBatchAsync: (_1, _2) =>
+                    processAsync: cancellationToken =>
                     {
                         RaiseChanged();
                         return Task.CompletedTask;
                     },
-                    equalityComparer: EqualityComparer<bool>.Default,
                     asyncListener,
                     CancellationToken.None);
             }
@@ -52,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 this.RaiseChanged();
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs eventArgs)
-                => _workQueue.AddWork(true);
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
+                => _asyncDelay.RequeueWork();
         }
     }
 }

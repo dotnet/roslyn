@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _rootNode = rootNode;
             }
 
-            public (List<IndentBlockOperation> indentOperations, List<SuppressOperation> suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
+            public (List<IndentBlockOperation> indentOperations, List<SuppressOperation>? suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
             {
                 // we are formatting part of document, try to find initial context that formatting will be based on such as
                 // initial indentation and etc.
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             private List<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)
             {
                 var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-                var node = startToken.GetCommonRoot(endToken).GetParentWithBiggerSpan();
-                var previous = (SyntaxNode)null;
+                var node = startToken.GetCommonRoot(endToken)!.GetParentWithBiggerSpan();
+                var previous = (SyntaxNode?)null;
 
                 // starting from the common node, move up to the parent
                 var operations = new List<IndentBlockOperation>();
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return operations;
             }
 
-            private List<SuppressOperation> GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
+            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
             {
                 var noWrapList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoWrapping);
                 var noSpaceList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoSpacing);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return list;
             }
 
-            private List<SuppressOperation> GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask)
+            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask)
             {
                 var startList = this.GetInitialSuppressOperations(startToken, mask);
                 var endList = this.GetInitialSuppressOperations(endToken, mask);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return startList.Combine(endList);
             }
 
-            private List<SuppressOperation> GetInitialSuppressOperations(SyntaxToken token, SuppressOption mask)
+            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken token, SuppressOption mask)
             {
                 var startNode = token.Parent;
                 var startPosition = token.SpanStart;

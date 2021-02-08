@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -261,6 +259,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(original.Kind == BoundKind.SwitchStatement);
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
+            Debug.Assert(factory != null);
+            return rewrittenExpression;
+        }
+
+        /// <summary>
+        /// Instrument the expression of a switch arm of a switch expression.
+        /// </summary>
+        public virtual BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
             Debug.Assert(factory != null);
             return rewrittenExpression;
         }

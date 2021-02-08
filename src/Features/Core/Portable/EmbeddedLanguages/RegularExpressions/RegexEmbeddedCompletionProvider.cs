@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,10 +18,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    using static WorkspacesResources;
+    using static FeaturesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal partial class RegexEmbeddedCompletionProvider : CompletionProvider
+    internal partial class RegexEmbeddedCompletionProvider : LSPCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -33,10 +34,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly RegexEmbeddedLanguageFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
+        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
             => _language = language;
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(
+            '\\', // any escape
+            '[', // character class
+            '(', // any group
+            '{'); // \p{
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
@@ -48,21 +55,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                return IsTriggerCharacter(trigger.Character);
-            }
-
-            return false;
-        }
-
-        private bool IsTriggerCharacter(char ch)
-        {
-            switch (ch)
-            {
-                case '\\': // any escape
-                case '[':  // character class
-                case '(':  // any group
-                case '{':  // \p{
-                    return true;
+                return TriggerCharacters.Contains(trigger.Character);
             }
 
             return false;
@@ -211,14 +204,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // see if we have ```\p{```.  If so, offer property categories. This isn't handled 
             // in the above switch because when you just have an incomplete `\p{` then the `{` 
             // will be handled as a normal character and won't have a token for it.
-            if (previousVirtualChar.Char == '{')
+            if (previousVirtualChar == '{')
             {
                 ProvideOpenBraceCompletions(context, context.Tree, previousVirtualChar);
                 return;
             }
         }
 
-        private void ProvideTopLevelCompletions(EmbeddedCompletionContext context, bool inCharacterClass)
+        private static void ProvideTopLevelCompletions(EmbeddedCompletionContext context, bool inCharacterClass)
         {
             if (inCharacterClass)
             {
@@ -259,26 +252,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // we're providing the set of unicode categories that are legal there.
 
             var index = tree.Text.IndexOf(previousVirtualChar);
-            if (index >= 2 &&
-                tree.Text[index - 2].Char == '\\' &&
-                tree.Text[index - 1].Char == 'p')
+            if (index >= 2 && tree.Text[index - 2] == '\\')
             {
-                var slashChar = tree.Text[index - 1];
-                var result = FindToken(tree.Root, slashChar);
-                if (result == null)
+                var escapeChar = tree.Text[index - 1];
+                if (escapeChar == 'p' || escapeChar == 'P')
                 {
-                    return;
-                }
-
-                var (parent, _) = result.Value;
-                if (parent is RegexEscapeNode)
-                {
-                    ProvideEscapeCategoryCompletions(context);
+                    var token = FindToken(tree.Root, escapeChar);
+                    if (token?.parent is RegexEscapeNode)
+                        ProvideEscapeCategoryCompletions(context);
                 }
             }
         }
 
-        private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
+        private static void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
         {
             foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
@@ -305,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private void ProvideOpenParenCompletions(
+        private static void ProvideOpenParenCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
             if (inCharacterClass)
@@ -327,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?!  {Regex_subexpression}  )", Regex_zero_width_negative_lookahead_assertion_short, Regex_zero_width_negative_lookahead_assertion_long, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)");
             context.AddIfMissing($"(?<=  {Regex_subexpression}  )", Regex_zero_width_positive_lookbehind_assertion_short, Regex_zero_width_positive_lookbehind_assertion_long, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)");
             context.AddIfMissing($"(?<!  {Regex_subexpression}  )", Regex_zero_width_negative_lookbehind_assertion_short, Regex_zero_width_negative_lookbehind_assertion_long, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)");
-            context.AddIfMissing($"(?>  {Regex_subexpression}  )", Regex_nonbacktracking_subexpression_short, Regex_nonbacktracking_subexpression_long, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)");
+            context.AddIfMissing($"(?>  {Regex_subexpression}  )", Regex_atomic_group_short, Regex_atomic_group_long, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)");
 
             context.AddIfMissing($"(?(  {Regex_expression}  )  {Regex_yes}  |  {Regex_no}  )", Regex_conditional_expression_match_short, Regex_conditional_expression_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
             context.AddIfMissing($"(?(  {Regex_name_or_number}  )  {Regex_yes}  |  {Regex_no}  )", Regex_conditional_group_match_short, Regex_conditional_group_match_long, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)");
@@ -337,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"(?imnsx-imnsx:  {Regex_subexpression}  )", Regex_group_options_short, Regex_group_options_long, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)");
         }
 
-        private void ProvideOpenBracketCompletions(
+        private static void ProvideOpenBracketCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
             if (inCharacterClass)
@@ -353,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             context.AddIfMissing($"[  {Regex_base_group}  -[  {Regex_excluded_group}  ]  ]", Regex_character_class_subtraction_short, Regex_character_class_subtraction_long, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]");
         }
 
-        private void ProvideBackslashCompletions(
+        private static void ProvideBackslashCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexEscapeNode))
@@ -429,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsInCharacterClass(RegexNode start, VirtualChar ch)
+        private static bool IsInCharacterClass(RegexNode start, VirtualChar ch)
         {
             return IsInCharacterClassWorker(start, inCharacterClass: false);
 

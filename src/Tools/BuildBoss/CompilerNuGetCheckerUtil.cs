@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,7 +29,7 @@ namespace BuildBoss
     ///     - There is no project which is guaranteed to have a superset of dependencies 
     ///     - There is no syntax for using the union of DLLs in a NuSpec file
     ///
-    /// The least crazy solution that could be decided on was to manage the list of dependencies 
+    /// The most straightforward solution that could be decided on was to manage the list of dependencies 
     /// by hand in the NuSpec file and then rigorously verify the solution here.
     /// </summary>
     internal sealed class PackageContentsChecker : ICheckerUtil

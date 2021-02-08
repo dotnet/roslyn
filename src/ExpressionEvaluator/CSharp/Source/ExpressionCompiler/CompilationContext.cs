@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string typeNameBase,
             string methodName,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module)
         {
             // Create a separate synthesized type for each evaluation method.
             // (Necessary for VB in particular since the EENamedTypeSymbol.Locations
@@ -139,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<Alias> aliases,
             CompilationTestData? testData,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module,
-            [NotNullWhen(true)]out EEMethodSymbol? synthesizedMethod)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module,
+            [NotNullWhen(true)] out EEMethodSymbol? synthesizedMethod)
         {
             var synthesizedType = CreateSynthesizedType(syntax, typeName, methodName, aliases);
 
@@ -210,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<Alias> aliases,
             CompilationTestData? testData,
             DiagnosticBag diagnostics,
-            [NotNullWhen(true)]out CommonPEModuleBuilder? module,
-            [NotNullWhen(true)]out EEMethodSymbol? synthesizedMethod)
+            [NotNullWhen(true)] out CommonPEModuleBuilder? module,
+            [NotNullWhen(true)] out EEMethodSymbol? synthesizedMethod)
         {
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             var synthesizedType = new EENamedTypeSymbol(
@@ -587,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
-                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0], null);
+                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 properties = default;
                 return statement;
@@ -1122,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return true;
         }
 
-        private static bool TryParseIdentifierNameSyntax(string name, [NotNullWhen(true)]out IdentifierNameSyntax? syntax)
+        private static bool TryParseIdentifierNameSyntax(string name, [NotNullWhen(true)] out IdentifierNameSyntax? syntax)
         {
             if (name == MetadataReferenceProperties.GlobalAlias)
             {

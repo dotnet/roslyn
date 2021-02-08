@@ -202,7 +202,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.
             <Out, MarshalAs(UnmanagedType.Interface)> ByRef pFileCodeModel As EnvDTE.FileCodeModel
         ) As <MarshalAs(UnmanagedType.Error)> Integer
 
-
         ''' <summary>
         ''' Gets the proc and class for the indicated SourceFile at the indicated line number (used
         ''' by VSA) BSTR's are (potentially) allocated by the method, and, if so, it is then freed

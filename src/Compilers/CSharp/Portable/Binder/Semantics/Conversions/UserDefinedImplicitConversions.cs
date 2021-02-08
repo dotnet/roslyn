@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -564,6 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.InterpolatedString:
                 case ConversionKind.SwitchExpression:
+                case ConversionKind.ConditionalExpression:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
@@ -579,9 +582,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitIntegerToPointer:
                 case ConversionKind.IntPtr:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
@@ -594,11 +597,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitConstant:
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:

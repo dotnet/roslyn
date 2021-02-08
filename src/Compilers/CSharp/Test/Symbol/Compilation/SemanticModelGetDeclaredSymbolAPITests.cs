@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2746,7 +2749,7 @@ namespace A
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("Script"),
+                options: TestOptions.DebugExe.WithScriptClassName("Script"),
                 syntaxTrees: new[] { tree },
                 references: new[] { MscorlibRef });
 
@@ -3371,7 +3374,7 @@ class Program
         [Fact]
         public void TestGetDeclaredSymbolForIncompleteMemberNode()
         {
-            var compilation = CreateCompilation(@"u");
+            var compilation = CreateCompilation(@"private");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 
@@ -3579,7 +3582,7 @@ class void Goo()
             var model = compilation.GetSemanticModel(tree);
 
             var methodDecl = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("Goo", StringComparison.Ordinal)).Parent;
-            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.Kind());
+            Assert.Equal(SyntaxKind.LocalFunctionStatement, methodDecl.Kind());
 
             var symbol = model.GetDeclaredSymbol(methodDecl);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
@@ -5118,7 +5121,7 @@ class C
         [Fact]
         public void TestIncompleteMemberNode_Visitor()
         {
-            var compilation = CreateCompilation(@"u");
+            var compilation = CreateCompilation(@"private");
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
 
@@ -5132,7 +5135,7 @@ class C
             var x = tree.FindNodeOrTokenByKind(SyntaxKind.IncompleteMember);
             Assert.Equal(SyntaxKind.IncompleteMember, x.Kind());
             Assert.Equal("C#", x.Language);
-            Assert.Equal(1, x.Width);
+            Assert.Equal(7, x.Width);
 
             // This will call the Visitor Pattern Methods via the syntaxwalker
             var collector = new IncompleteSyntaxWalker();

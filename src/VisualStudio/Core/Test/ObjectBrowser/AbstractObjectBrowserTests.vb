@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
 
         <HandleProcessCorruptedStateExceptions()>
         Friend Function CreateLibraryManager(definition As XElement) As TestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
             Dim result As TestState = Nothing
 
             Try
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                 Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
                 Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
 
-                result = New TestState(workspace, libraryManager)
+                result = New TestState(workspace, vsWorkspace, libraryManager)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()

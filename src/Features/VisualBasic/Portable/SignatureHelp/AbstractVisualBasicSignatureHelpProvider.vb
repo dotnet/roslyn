@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.SignatureHelp
 
@@ -41,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Protected Shared Function Convert(parameter As IParameterSymbol,
                                           semanticModel As SemanticModel,
-                                          position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpSymbolParameter
+                                          position As Integer, documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpSymbolParameter
             Return New SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,

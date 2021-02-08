@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-            public override object? GetOption(OptionKey optionKey)
+            private protected override object? GetOptionCore(OptionKey optionKey)
             {
                 if (_values.TryGetValue(optionKey, out var value))
                 {
@@ -72,13 +70,11 @@ namespace Microsoft.CodeAnalysis.Options
                     yield break;
                 }
 
-                foreach (var kvp in _values)
+                foreach (var (key, value) in _values)
                 {
-                    var currentValue = optionSet?.GetOption(kvp.Key);
-                    if (!object.Equals(currentValue, kvp.Value))
-                    {
-                        yield return kvp.Key;
-                    }
+                    var currentValue = optionSet?.GetOption(key);
+                    if (!object.Equals(currentValue, value))
+                        yield return key;
                 }
             }
         }

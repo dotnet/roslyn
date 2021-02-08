@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _metadataName As String
 
         Private _lazyExportedTypes As ImmutableArray(Of Cci.ExportedType)
-        Private _lazyNumberOfTypesFromOtherModules As Integer
+        Private ReadOnly _lazyNumberOfTypesFromOtherModules As Integer
         Private _lazyTranslatedImports As ImmutableArray(Of Cci.UsedNamespaceOrType)
         Private _lazyDefaultNamespace As String
 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         location = GetSmallestSourceLocationOrNull(symbol)
                         If location IsNot Nothing Then
                             ' add this named type location
-                            AddSymbolLocation(result, location, DirectCast(symbol, Cci.IDefinition))
+                            AddSymbolLocation(result, location, DirectCast(symbol.GetCciAdapter(), Cci.IDefinition))
 
                             For Each member In symbol.GetMembers()
                                 Select Case member.Kind
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Sub AddSymbolLocation(result As MultiDictionary(Of Cci.DebugSourceDocument, Cci.DefinitionWithLocation), symbol As Symbol)
             Dim location As Location = GetSmallestSourceLocationOrNull(symbol)
             If location IsNot Nothing Then
-                AddSymbolLocation(result, location, DirectCast(symbol, Cci.IDefinition))
+                AddSymbolLocation(result, location, DirectCast(symbol.GetCciAdapter(), Cci.IDefinition))
             End If
         End Sub
 
@@ -341,7 +341,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return SpecializedCollections.EmptyEnumerable(Of Cci.INamespaceTypeDefinition)
             End If
 
+#If DEBUG Then
+            Return SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates.Select(Function(t) t.GetCciAdapter())
+#Else
             Return SourceModule.ContainingSourceAssembly.DeclaringCompilation.AnonymousTypeManager.AllCreatedTemplates
+#End If
         End Function
 
         Public Overrides Iterator Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
@@ -359,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     ' Skip unreferenced embedded types.
                     If Not sym.IsEmbedded OrElse embeddedSymbolManager.IsSymbolReferenced(sym) Then
-                        Yield DirectCast(sym, Cci.INamespaceTypeDefinition)
+                        Yield DirectCast(sym, NamedTypeSymbol).GetCciAdapter()
                     End If
                 Else
                     Debug.Assert(sym.Kind = SymbolKind.Namespace)
@@ -404,14 +408,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Next
             End If
 
-            Dim seenTopLevelForwardedTypes = New HashSet(Of NamedTypeSymbol)()
-            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builder)
+            Debug.Assert(OutputKind.IsNetModule() = sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule())
+            GetForwardedTypes(sourceAssembly, builder)
+            Return builder.ToImmutableAndFree()
+        End Function
 
-            If Not OutputKind.IsNetModule() Then
-                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builder)
+        ''' <summary>
+        ''' Returns a set of top-level forwarded types
+        ''' </summary>
+        Friend Shared Function GetForwardedTypes(sourceAssembly As SourceAssemblySymbol, builderOpt As ArrayBuilder(Of Cci.ExportedType)) As HashSet(Of NamedTypeSymbol)
+            Dim seenTopLevelForwardedTypes = New HashSet(Of NamedTypeSymbol)()
+            GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetSourceDecodedWellKnownAttributeData(), builderOpt)
+
+            If Not sourceAssembly.DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                GetForwardedTypes(seenTopLevelForwardedTypes, sourceAssembly.GetNetModuleDecodedWellKnownAttributeData(), builderOpt)
             End If
 
-            Return builder.ToImmutableAndFree()
+            Return seenTopLevelForwardedTypes
         End Function
 
         Private Sub ReportExportedTypeNameCollisions(exportedTypes As ImmutableArray(Of Cci.ExportedType), diagnostics As DiagnosticBag)
@@ -419,7 +432,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim exportedNamesMap = New Dictionary(Of String, NamedTypeSymbol)()
 
             For Each exportedType In _lazyExportedTypes
-                Dim type = DirectCast(exportedType.Type, NamedTypeSymbol)
+                Dim typeReference As Cci.ITypeReference = exportedType.Type
+                Dim type = DirectCast(typeReference.GetInternalSymbol(), NamedTypeSymbol)
 
                 Debug.Assert(type.IsDefinition)
 
@@ -428,8 +442,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
-                    DirectCast(type, Cci.INamespaceTypeReference).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type))
+                    DirectCast(typeReference, Cci.INamespaceTypeReference).NamespaceName,
+                    Cci.MetadataWriter.GetMangledName(DirectCast(typeReference, Cci.INamedTypeReference)))
 
                 ' First check against types declared in the primary module
                 If ContainsTopLevelType(fullEmittedName) Then
@@ -489,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Debug.Assert(symbol.IsDefinition)
                 index = builder.Count
-                builder.Add(New Cci.ExportedType(DirectCast(symbol, Cci.ITypeReference), parentIndex, isForwarder:=False))
+                builder.Add(New Cci.ExportedType(DirectCast(symbol, NamedTypeSymbol).GetCciAdapter(), parentIndex, isForwarder:=False))
             Else
                 index = -1
             End If
@@ -506,14 +520,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Shared Sub GetForwardedTypes(
             seenTopLevelTypes As HashSet(Of NamedTypeSymbol),
             wellKnownAttributeData As CommonAssemblyWellKnownAttributeData(Of NamedTypeSymbol),
-            builder As ArrayBuilder(Of Cci.ExportedType))
+            builderOpt As ArrayBuilder(Of Cci.ExportedType))
 
             If wellKnownAttributeData?.ForwardedTypes?.Count > 0 Then
                 ' (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
                 Dim stack = ArrayBuilder(Of (type As NamedTypeSymbol, parentIndex As Integer)).GetInstance()
 
                 ' Hashset enumeration is not guaranteed to be deterministic. Emitting in the order of fully qualified names.
-                Dim orderedForwardedTypes = wellKnownAttributeData.ForwardedTypes.OrderBy(Function(t) t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                Dim orderedForwardedTypes As IEnumerable(Of NamedTypeSymbol) = wellKnownAttributeData.ForwardedTypes
+
+                If builderOpt IsNot Nothing Then
+                    orderedForwardedTypes = orderedForwardedTypes.OrderBy(Function(t) t.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                End If
 
                 For Each forwardedType As NamedTypeSymbol In orderedForwardedTypes
                     Dim originalDefinition As NamedTypeSymbol = forwardedType.OriginalDefinition
@@ -524,31 +542,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Continue For
                     End If
 
-                    ' Return all nested types.
-                    ' Note the order: depth first, children in reverse order (to match dev10, not a requirement).
-                    Debug.Assert(stack.Count = 0)
-                    stack.Push((originalDefinition, -1))
+                    If builderOpt IsNot Nothing Then
+                        ' Return all nested types.
+                        ' Note the order: depth first, children in reverse order (to match dev10, not a requirement).
+                        Debug.Assert(stack.Count = 0)
+                        stack.Push((originalDefinition, -1))
 
-                    While stack.Count > 0
-                        Dim entry = stack.Pop()
+                        While stack.Count > 0
+                            Dim entry = stack.Pop()
 
-                        ' In general, we don't want private types to appear in the ExportedTypes table.
-                        If entry.type.DeclaredAccessibility = Accessibility.Private Then
-                            ' NOTE: this will also exclude nested types of curr.
-                            Continue While
-                        End If
+                            ' In general, we don't want private types to appear in the ExportedTypes table.
+                            If entry.type.DeclaredAccessibility = Accessibility.Private Then
+                                ' NOTE: this will also exclude nested types of curr.
+                                Continue While
+                            End If
 
-                        ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
+                            ' NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
+                            Dim index = builderOpt.Count
+                            builderOpt.Add(New Cci.ExportedType(entry.type.GetCciAdapter(), entry.parentIndex, isForwarder:=True))
 
-                        Dim index = builder.Count
-                        builder.Add(New Cci.ExportedType(entry.type, entry.parentIndex, isForwarder:=True))
-
-                        ' Iterate backwards so they get popped in forward order.
-                        Dim nested As ImmutableArray(Of NamedTypeSymbol) = entry.type.GetTypeMembers() ' Ordered.
-                        For i As Integer = nested.Length - 1 To 0 Step -1
-                            stack.Push((nested(i), index))
-                        Next
-                    End While
+                            ' Iterate backwards so they get popped in forward order.
+                            Dim nested As ImmutableArray(Of NamedTypeSymbol) = entry.type.GetTypeMembers() ' Ordered.
+                            For i As Integer = nested.Length - 1 To 0 Step -1
+                                stack.Push((nested(i), index))
+                            Next
+                        End While
+                    End If
                 Next
 
                 stack.Free()
@@ -597,11 +616,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public NotOverridable Overrides Function GetInitArrayHelper() As Cci.IMethodReference
-            Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)
+            Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)?.GetCciAdapter()
         End Function
 
         Public NotOverridable Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
-            Dim namedType = TryCast(typeRef, NamedTypeSymbol)
+            Dim namedType = TryCast(typeRef.GetInternalSymbol(), NamedTypeSymbol)
 
             If namedType IsNot Nothing Then
                 If platformType = Cci.PlatformType.SystemType Then
@@ -642,7 +661,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Protected NotOverridable Overrides Function CreatePrivateImplementationDetailsStaticConstructor(details As PrivateImplementationDetails, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.IMethodDefinition
-            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics))
+            Return New SynthesizedPrivateImplementationDetailsSharedConstructor(SourceModule, details, GetUntranslatedSpecialType(SpecialType.System_Void, syntaxOpt, diagnostics)).GetCciAdapter()
+        End Function
+
+        Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+#If DEBUG Then
+            Return GetAdditionalTopLevelTypes(context.Diagnostics).Select(Function(t) t.GetCciAdapter())
+#Else
+            Return GetAdditionalTopLevelTypes(context.Diagnostics)
+#End If
+        End Function
+
+        Public Overrides Function GetEmbeddedTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+#If DEBUG Then
+            Return GetEmbeddedTypes(context.Diagnostics).Select(Function(t) t.GetCciAdapter())
+#Else
+            Return GetEmbeddedTypes(context.Diagnostics)
+#End If
         End Function
     End Class
 End Namespace

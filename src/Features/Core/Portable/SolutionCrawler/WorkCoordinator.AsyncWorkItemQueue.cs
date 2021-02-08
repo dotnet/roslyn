@@ -15,13 +15,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
                 private readonly object _gate;
                 private readonly SemaphoreSlim _semaphore;
+                private bool _disposed;
 
                 private readonly Workspace _workspace;
                 private readonly SolutionCrawlerProgressReporter _progressReporter;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service, out WorkItem workItem);
 
                 public int WorkItemCount
                 {
@@ -78,6 +79,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     lock (_gate)
                     {
+                        if (_disposed)
+                        {
+                            // The work queue was shut down, so mark the request as complete and return false to
+                            // indicate the work was not queued.
+                            item.AsyncToken.Dispose();
+                            return false;
+                        }
+
                         if (AddOrReplace_NoLock(item))
                         {
                             // the item is new item that got added to the queue.
@@ -122,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void RequestCancellationOnRunningTasks()
                 {
-                    List<CancellationTokenSource> cancellations;
+                    List<CancellationTokenSource>? cancellations;
                     lock (_gate)
                     {
                         // request to cancel all running works
@@ -134,9 +143,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public void Dispose()
                 {
-                    List<CancellationTokenSource> cancellations;
+                    List<CancellationTokenSource>? cancellations;
                     lock (_gate)
                     {
+                        _disposed = true;
+
                         // here we don't need to care about progress reporter since
                         // it will be only called when host is shutting down.
                         // we do the below since we want to kill any pending tasks
@@ -150,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected Workspace Workspace => _workspace;
 
-                private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
+                private static void RaiseCancellation_NoLock(List<CancellationTokenSource>? cancellations)
                 {
                     if (cancellations == null)
                     {
@@ -161,7 +172,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     cancellations.Do(s => s.Cancel());
                 }
 
-                private List<CancellationTokenSource> CancelAll_NoLock()
+                private List<CancellationTokenSource>? CancelAll_NoLock()
                 {
                     // nothing to do
                     if (_cancellationMap.Count == 0)
@@ -206,10 +217,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public bool TryTakeAnyWork(
-                    ProjectId preferableProjectId,
+                    ProjectId? preferableProjectId,
                     ProjectDependencyGraph dependencyGraph,
-                    IDiagnosticAnalyzerService analyzerService,
-                    out WorkItem workItem, out CancellationToken cancellationToken)
+                    IDiagnosticAnalyzerService? analyzerService,
+                    out WorkItem workItem,
+                    out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
@@ -239,8 +251,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected ProjectId GetBestProjectId_NoLock<T>(
-                    Dictionary<ProjectId, T> workQueue, ProjectId projectId,
-                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
+                    Dictionary<ProjectId, T> workQueue, ProjectId? projectId,
+                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
                 {
                     if (projectId != null)
                     {

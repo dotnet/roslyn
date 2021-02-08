@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceMemberContainerTypeSymbol _containingType;
         private readonly TypeSymbol _resultType;
         private readonly TypeSymbol _returnType;
+        private ThreeState _lazyIsNullableAnalysisEnabled;
 
         internal SynthesizedInteractiveInitializerMethod(SourceMemberContainerTypeSymbol containingType, DiagnosticBag diagnostics)
         {
@@ -234,6 +238,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbol ResultType
         {
             get { return _resultType; }
+        }
+
+        internal override bool IsNullableAnalysisEnabled()
+        {
+            if (_lazyIsNullableAnalysisEnabled == ThreeState.Unknown)
+            {
+                // Return true if nullable is not disabled in compilation options or if enabled
+                // in any syntax tree. This could be refined to ignore top-level methods and
+                // type declarations but this simple approach matches C#8 behavior.
+                var compilation = DeclaringCompilation;
+                bool value = (compilation.Options.NullableContextOptions != NullableContextOptions.Disable) ||
+                    compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new TextSpan(0, tree.Length)) == true);
+                _lazyIsNullableAnalysisEnabled = value.ToThreeState();
+            }
+            return _lazyIsNullableAnalysisEnabled == ThreeState.True;
         }
 
         private static void CalculateReturnType(

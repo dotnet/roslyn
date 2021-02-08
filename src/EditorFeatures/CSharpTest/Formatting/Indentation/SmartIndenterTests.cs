@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
 using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
@@ -17,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public partial class SmartIndenterTests : CSharpFormatterTestsBase
     {
+        private static readonly TestComposition s_compositionWithTestFormattingRules = EditorTestCompositions.EditorFeatures
+            .AddParts(typeof(TestFormattingRuleFactoryServiceFactory));
+
+        public SmartIndenterTests(ITestOutputHelper output) : base(output) { }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void EmptyFile()
@@ -655,6 +664,32 @@ namespace NS
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
+        }
+
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [InlineData("do")]
+        [InlineData("for (;;)")]
+        [InlineData("if (true)")]
+        [InlineData("void localFunction()")]
+        [InlineData("static void localFunction()")]
+        public void EmbeddedStatement2(string statement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{statement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 4);
         }
 
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
@@ -2877,7 +2912,7 @@ return;
                 indentStyle: IndentStyle.Smart);
         }
 
-        private void AssertSmartIndentInProjection(
+        private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
             CSharpParseOptions options = null,
@@ -2887,7 +2922,7 @@ return;
             AssertSmartIndentInProjection(markup.Replace("    ", "\t"), expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndentInProjection(
+        private static void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
             bool useTabs,
@@ -2900,7 +2935,7 @@ return;
 
             foreach (var option in optionsSet)
             {
-                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option);
+                using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                     .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
@@ -2910,11 +2945,9 @@ return;
                 var projectedDocument =
                     workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents);
 
-                if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
-                {
-                    provider.BaseIndentation = BaseIndentationOfNugget;
-                    provider.TextSpan = subjectDocument.SelectedSpans.Single();
-                }
+                var provider = (TestFormattingRuleFactoryServiceFactory.Factory)workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+                provider.BaseIndentation = BaseIndentationOfNugget;
+                provider.TextSpan = subjectDocument.SelectedSpans.Single();
 
                 var indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
                 var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor);
@@ -2925,7 +2958,7 @@ return;
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2936,7 +2969,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -2959,7 +2992,7 @@ return;
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             CSharpParseOptions options = null,
@@ -2969,7 +3002,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             bool useTabs,

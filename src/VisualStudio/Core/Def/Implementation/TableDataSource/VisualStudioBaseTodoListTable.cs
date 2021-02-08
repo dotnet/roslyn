@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -67,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected override void ShutdownSource()
             => _source.Shutdown();
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem, TodoItemsUpdatedArgs>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
@@ -81,16 +84,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
-
-                PopulateInitialData(workspace, _todoListProvider);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
             public override string Identifier => _identifier;
-            public override object GetItemKey(object data) => ((UpdatedEventArgs)data).DocumentId;
+            public override object GetItemKey(TodoItemsUpdatedArgs data) => data.DocumentId;
 
-            protected override object GetOrUpdateAggregationKey(object data)
+            protected override object GetOrUpdateAggregationKey(TodoItemsUpdatedArgs data)
             {
                 var key = TryGetAggregateKey(data);
                 if (key == null)
@@ -105,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, data as TodoItemsUpdatedArgs))
+                if (!CheckAggregateKey((ImmutableArray<DocumentId>)key, data))
                 {
                     RemoveStaledData(data);
 
@@ -118,24 +119,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private bool CheckAggregateKey(ImmutableArray<DocumentId> key, TodoItemsUpdatedArgs args)
             {
-                if (args?.DocumentId == null || args?.Solution == null)
-                {
+                if (args.DocumentId == null || args.Solution == null)
                     return true;
-                }
 
                 var documents = GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
                 return key == documents;
             }
 
-            private object CreateAggregationKey(object data)
+            private object CreateAggregationKey(TodoItemsUpdatedArgs data)
             {
-                var args = data as TodoItemsUpdatedArgs;
-                if (args?.Solution == null)
-                {
+                if (data.Solution == null)
                     return GetItemKey(data);
-                }
 
-                return GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
+                return GetDocumentsWithSameFilePath(data.Solution, data.DocumentId);
             }
 
             public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
@@ -148,14 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 return groupedItems.OrderBy(d => d.Data.OriginalLine)
                                    .ThenBy(d => d.Data.OriginalColumn);
-            }
-
-            private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
-            {
-                foreach (var args in todoListService.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken: CancellationToken.None))
-                {
-                    OnDataAddedOrChanged(args);
-                }
             }
 
             private void OnTodoListUpdated(object sender, TodoItemsUpdatedArgs e)
@@ -280,8 +268,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         item.Data.MappedColumn);
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab)
-                    => TryNavigateToItem(index, previewTab);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
             }
         }
     }

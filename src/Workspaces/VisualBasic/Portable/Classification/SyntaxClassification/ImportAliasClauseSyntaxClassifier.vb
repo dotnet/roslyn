@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             ClassifyImportAliasClauseSyntax(DirectCast(syntax, ImportAliasClauseSyntax), semanticModel, result, cancellationToken)
         End Sub
 
-        Private Sub ClassifyImportAliasClauseSyntax(
+        Private Shared Sub ClassifyImportAliasClauseSyntax(
                 node As ImportAliasClauseSyntax,
                 semanticModel As SemanticModel,
                 result As ArrayBuilder(Of ClassifiedSpan),

@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the <see cref="ValueUsageInfo"/> for the given operation.
         /// This extension can be removed once https://github.com/dotnet/roslyn/issues/25057 is implemented.
         /// </summary>
-        public static ValueUsageInfo GetValueUsageInfo(this IOperation operation)
+        public static ValueUsageInfo GetValueUsageInfo(this IOperation operation, ISymbol containingSymbol)
         {
             /*
             |    code                  | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
@@ -53,6 +55,13 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
+                while (operation.Parent is IBinaryPatternOperation ||
+                       operation.Parent is INegatedPatternOperation ||
+                       operation.Parent is IRelationalPatternOperation)
+                {
+                    operation = operation.Parent;
+                }
+
                 switch (operation.Parent)
                 {
                     case IPatternCaseClauseOperation _:
@@ -126,7 +135,7 @@ namespace Microsoft.CodeAnalysis
                 // Note: IParenthesizedOperation is specific to VB, where the parens cause a copy, so this cannot be classified as a write.
                 Debug.Assert(parenthesizedOperation.Language == LanguageNames.VisualBasic);
 
-                return parenthesizedOperation.GetValueUsageInfo() &
+                return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
             else if (operation.Parent is INameOfOperation ||
@@ -137,7 +146,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                switch (argumentOperation.Parameter?.RefKind)
                 {
                     case RefKind.RefReadOnly:
                         return ValueUsageInfo.ReadableReference;
@@ -152,6 +161,27 @@ namespace Microsoft.CodeAnalysis
                         return ValueUsageInfo.Read;
                 }
             }
+            else if (operation.Parent is IReturnOperation returnOperation)
+            {
+                return returnOperation.GetRefKind(containingSymbol) switch
+                {
+                    RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
+                    RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
+                    _ => ValueUsageInfo.Read,
+                };
+            }
+            else if (operation.Parent is IConditionalOperation conditionalOperation)
+            {
+                if (operation == conditionalOperation.WhenTrue
+                    || operation == conditionalOperation.WhenFalse)
+                {
+                    return GetValueUsageInfo(conditionalOperation, containingSymbol);
+                }
+                else
+                {
+                    return ValueUsageInfo.Read;
+                }
+            }
             else if (operation.Parent is IReDimClauseOperation reDimClauseOperation &&
                 reDimClauseOperation.Operand == operation)
             {
@@ -161,7 +191,7 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation.Parent is IDeclarationExpressionOperation declarationExpression)
             {
-                return declarationExpression.GetValueUsageInfo();
+                return declarationExpression.GetValueUsageInfo(containingSymbol);
             }
             else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
@@ -185,26 +215,52 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
-        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)
+        public static RefKind GetRefKind(this IReturnOperation? operation, ISymbol containingSymbol)
         {
-            deconstructionAssignment = null;
+            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
+            return containingMethod?.RefKind ?? RefKind.None;
+        }
 
-            var previousOperation = operation;
-            operation = operation.Parent;
-
+        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
+        {
+            operation = operation?.Parent;
             while (operation != null)
             {
                 switch (operation.Kind)
                 {
+                    case OperationKind.AnonymousFunction:
+                        return ((IAnonymousFunctionOperation)operation).Symbol;
+
+                    case OperationKind.LocalFunction:
+                        return ((ILocalFunctionOperation)operation).Symbol;
+                }
+
+                operation = operation.Parent;
+            }
+
+            return null;
+        }
+
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, [NotNullWhen(true)] out IDeconstructionAssignmentOperation? deconstructionAssignment)
+        {
+            deconstructionAssignment = null;
+
+            var previousOperation = operation;
+            var current = operation.Parent;
+
+            while (current != null)
+            {
+                switch (current.Kind)
+                {
                     case OperationKind.DeconstructionAssignment:
-                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)current;
                         return deconstructionAssignment.Target == previousOperation;
 
                     case OperationKind.Tuple:
                     case OperationKind.Conversion:
                     case OperationKind.Parenthesized:
-                        previousOperation = operation;
-                        operation = operation.Parent;
+                        previousOperation = current;
+                        current = current.Parent;
                         continue;
 
                     default:
@@ -283,10 +339,10 @@ namespace Microsoft.CodeAnalysis
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
             => operationBlock.HasAnyOperationDescendant(predicate, out _);
 
-        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, [NotNullWhen(true)] out IOperation? foundOperation)
         {
-            Debug.Assert(operationBlock != null);
-            Debug.Assert(predicate != null);
+            RoslynDebug.AssertNotNull(operationBlock);
+            RoslynDebug.AssertNotNull(predicate);
             foreach (var descendant in operationBlock.DescendantsAndSelf())
             {
                 if (predicate(descendant))

@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _hoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
-            Private _nextFreeHoistedLocalSlot As Integer
+            Private ReadOnly _nextFreeHoistedLocalSlot As Integer
 
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,

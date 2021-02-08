@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -202,6 +204,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return null;
             }
 
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
             string Cci.INamedEntity.Name
             {
                 get { return Name; }
@@ -218,6 +222,18 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             Cci.IMethodReference Cci.IGenericMethodParameterReference.DefiningMethod
             {
                 get { return ContainingMethod; }
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
             }
         }
     }

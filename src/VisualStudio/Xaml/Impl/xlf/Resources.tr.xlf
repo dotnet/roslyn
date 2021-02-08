@@ -17,6 +17,11 @@
         <target state="translated">&amp;Ad Alanlarını Sırala</target>
         <note />
       </trans-unit>
+      <trans-unit id="Xaml_Language_Server_Client">
+        <source>XAML Language Server Client</source>
+        <target state="translated">XAML Dil Sunucusu İstemcisi</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

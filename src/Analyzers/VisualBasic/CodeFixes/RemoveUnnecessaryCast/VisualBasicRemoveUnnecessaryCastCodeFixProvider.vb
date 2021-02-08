@@ -91,13 +91,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             Dim expandedRoot = Await ExpandSurroundingStatementsAsync(trackedDocument, originalCastNodes, cancellationToken).ConfigureAwait(False)
             Dim expandedDocument = document.WithSyntaxRoot(expandedRoot)
 
-            Dim removedRoot = Await RemoveCasts(
+            Dim removedRoot = Await RemoveCastsAsync(
                 expandedDocument, originalCastNodes, cancellationToken).ConfigureAwait(False)
 
             editor.ReplaceNode(editor.OriginalRoot, removedRoot)
         End Function
 
-        Private Async Function RemoveCasts(
+        Private Shared Async Function RemoveCastsAsync(
                 document As Document, originalCastNodes As ImmutableArray(Of ExpressionSyntax),
                 cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             Return editor.GetChangedRoot()
         End Function
 
-        Private Function Uncast(old As ExpressionSyntax) As ExpressionSyntax
+        Private Shared Function Uncast(old As ExpressionSyntax) As ExpressionSyntax
             ' parenthesize the uncasted value to help ensure any proper parsing. The excess
             ' parens will be removed if unnecessary. 
             Dim castExpression = TryCast(old, CastExpressionSyntax)

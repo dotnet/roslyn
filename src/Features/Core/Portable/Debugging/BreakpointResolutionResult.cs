@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Debugging
@@ -24,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         internal static BreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, textSpan, locationNameOpt, isLineBreakpoint: false);
+            => new(document, textSpan, locationNameOpt, isLineBreakpoint: false);
 
         internal static BreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-            => new BreakpointResolutionResult(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
+            => new(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -649,11 +652,11 @@ class C {
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
         public void PublicViewOfPointerConversions()
         {
-            ValidateConversion(Conversion.PointerToVoid, ConversionKind.PointerToVoid);
-            ValidateConversion(Conversion.NullToPointer, ConversionKind.NullToPointer);
-            ValidateConversion(Conversion.PointerToPointer, ConversionKind.PointerToPointer);
-            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.IntegerToPointer);
-            ValidateConversion(Conversion.PointerToInteger, ConversionKind.PointerToInteger);
+            ValidateConversion(Conversion.PointerToVoid, ConversionKind.ImplicitPointerToVoid);
+            ValidateConversion(Conversion.NullToPointer, ConversionKind.ImplicitNullToPointer);
+            ValidateConversion(Conversion.PointerToPointer, ConversionKind.ExplicitPointerToPointer);
+            ValidateConversion(Conversion.IntegerToPointer, ConversionKind.ExplicitIntegerToPointer);
+            ValidateConversion(Conversion.PointerToInteger, ConversionKind.ExplicitPointerToInteger);
             ValidateConversion(Conversion.IntPtr, ConversionKind.IntPtr);
         }
 
@@ -783,35 +786,35 @@ class C {
                     Assert.True(conv.IsExplicit);
                     Assert.True(conv.IsUserDefined);
                     break;
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToPointer:
+                case ConversionKind.ExplicitPointerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.IntegerToPointer:
+                case ConversionKind.ExplicitIntegerToPointer:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
                     Assert.False(conv.IsUserDefined);
                     Assert.True(conv.IsPointer);
                     break;
-                case ConversionKind.PointerToInteger:
+                case ConversionKind.ExplicitPointerToInteger:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
@@ -1577,9 +1580,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
             var symbol = bindInfo.Symbol;
-            Assert.NotNull(symbol);
-            Assert.Equal(SymbolKind.Parameter, symbol.Kind);
-            Assert.Equal("E", symbol.Name);
+            Assert.Null(symbol);
         }
 
         [WorkItem(542360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542360")]
@@ -4447,7 +4448,7 @@ public class B : A
             Assert.Equal(classAnother, rightInfo.CandidateSymbols.Single());
 
             compilation.VerifyDiagnostics(
-                // (12,14): error CS0060: Inconsistent accessibility: base class 'A' is less accessible than class 'B'
+                // (12,14): error CS0060: Inconsistent accessibility: base type 'A' is less accessible than class 'B'
                 // public class B : A
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "B").WithArguments("B", "A"),
                 // (14,12): error CS0122: 'A.Nested' is inaccessible due to its protection level
@@ -5790,6 +5791,50 @@ namespace ConsoleApplication1
         }
 
         [Fact]
+        public void PartialTypeDiagnostics_StaticConstructors()
+        {
+            var file1 = @"
+partial class C
+{
+    static C() {}
+}
+";
+
+            var file2 = @"
+partial class C
+{
+    static C() {}
+}
+";
+            var file3 = @"
+partial class C
+{
+    static C() {}
+}
+";
+
+            var tree1 = Parse(file1);
+            var tree2 = Parse(file2);
+            var tree3 = Parse(file3);
+            var comp = CreateCompilation(new[] { tree1, tree2, tree3 });
+            var model1 = comp.GetSemanticModel(tree1);
+            var model2 = comp.GetSemanticModel(tree2);
+            var model3 = comp.GetSemanticModel(tree3);
+
+            model1.GetDeclarationDiagnostics().Verify();
+
+            model2.GetDeclarationDiagnostics().Verify(
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12));
+
+            model3.GetDeclarationDiagnostics().Verify(
+                // (4,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 12));
+
+            Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").StaticConstructors.Length);
+        }
+
+        [Fact]
         public void PartialTypeDiagnostics_Constructors()
         {
             var file1 = @"
@@ -5823,16 +5868,15 @@ partial class C
             model1.GetDeclarationDiagnostics().Verify();
 
             model2.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             model3.GetDeclarationDiagnostics().Verify(
-                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+                // (4,5): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 5));
 
             Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Length);
         }
-
 
         [WorkItem(1076661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1076661")]
         [Fact]
@@ -5970,6 +6014,39 @@ class C
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, info.CandidateReason);
+        }
+
+        [Fact]
+        [WorkItem(42840, "https://github.com/dotnet/roslyn/issues/42840")]
+        public void DuplicateTypeArgument()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B<T, U, U>
+    where T : A<U>
+    where U : class
+{
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0692: Duplicate type parameter 'U'
+                // class B<T, U, U>
+                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "U").WithArguments("U").WithLocation(4, 15),
+                // (5,17): error CS0229: Ambiguity between 'U' and 'U'
+                //     where T : A<U>
+                Diagnostic(ErrorCode.ERR_AmbigMember, "U").WithArguments("U", "U").WithLocation(5, 17));
+
+            comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var typeParameters = tree.GetRoot().DescendantNodes().OfType<TypeParameterSyntax>().ToArray();
+            var symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 1]);
+            Assert.False(symbol.IsReferenceType);
+            symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 2]);
+            Assert.True(symbol.IsReferenceType);
         }
     }
 }

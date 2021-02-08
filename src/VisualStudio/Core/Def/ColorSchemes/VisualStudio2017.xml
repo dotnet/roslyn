@@ -1,8 +1,8 @@
 <Themes>
-    <!-- 
+    <!--
         Every Roslyn classification should be listed in this file for each theme.
         Some classifications do not define Foreground colors because we want them to
-        inherit their color from the their parent classification (For instance Type 
+        inherit their color from the their parent classification (For instance Type
         and Member name classifications inherit from Identifier).
     -->
     <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
@@ -62,6 +62,12 @@
             <Color Name="namespace name">
             </Color>
             <Color Name="label name">
+            </Color>
+            <Color Name="record name">
+            </Color>
+            <Color Name="inline hints">
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
@@ -130,7 +136,7 @@
                 <Foreground Type="CT_RAW" Source="FF6464B9" />
             </Color>
             <Color Name="xml literal - cdata section">
-                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+                <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
             <Color Name="xml literal - comment">
                 <Foreground Type="CT_RAW" Source="FF629755" />
@@ -214,6 +220,12 @@
             </Color>
             <Color Name="label name">
             </Color>
+            <Color Name="record name">
+            </Color>
+            <Color Name="inline hints">
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF686868" />
+            </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
@@ -281,7 +293,7 @@
                 <Foreground Type="CT_RAW" Source="FF6464B9" />
             </Color>
             <Color Name="xml literal - cdata section">
-                <Foreground Type="CT_RAW" Source="FFC0C0C0" />
+                <Foreground Type="CT_RAW" Source="FF808080" />
             </Color>
             <Color Name="xml literal - comment">
                 <Foreground Type="CT_RAW" Source="FF629755" />
@@ -364,6 +376,12 @@
             <Color Name="namespace name">
             </Color>
             <Color Name="label name">
+            </Color>
+            <Color Name="record name">
+            </Color>"
+            <Color Name="inline hints">
+                <Background Type="CT_RAW" Source="FFE6E6FA" />
+                <Foreground Type="CT_RAW" Source="FF504848" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FF5B5B5B" />
@@ -515,6 +533,12 @@
             <Color Name="namespace name">
             </Color>
             <Color Name="label name">
+            </Color>
+            <Color Name="record name">
+            </Color>"
+            <Color Name="inline hints">
+                <Background Type="CT_RAW" Source="FF3E3E3E" />
+                <Foreground Type="CT_RAW" Source="FFA9A8A7" />
             </Color>
             <Color Name="xml doc comment - attribute name">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
@@ -679,6 +703,12 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="label name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="record name">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="inline hints">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="xml doc comment - attribute name">

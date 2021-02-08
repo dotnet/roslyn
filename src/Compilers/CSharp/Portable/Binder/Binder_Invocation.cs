@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -267,6 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 result = BindDelegateInvocation(node, expression, methodName, boundExpression, analyzedArguments, diagnostics, queryClause, delegateType);
+            }
+            else if (boundExpression.Type?.Kind == SymbolKind.FunctionPointerType)
+            {
+                ReportSuppressionIfNeeded(boundExpression, diagnostics);
+                result = BindFunctionPointerInvocation(node, boundExpression, analyzedArguments, diagnostics);
             }
             else
             {
@@ -870,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
                             }
-                            // Case 2: receiver is a base reference, and the the child type is restricted
+                            // Case 2: receiver is a base reference, and the child type is restricted
                             else if (call.ReceiverOpt.Kind == BoundKind.BaseReference && this.ContainingType.IsRestrictedType())
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, this.ContainingType, call.Method.ContainingType);
@@ -891,6 +898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, dynInvoke.Expression.Syntax, dynInvoke.Expression.Type);
                         }
                     }
+                    break;
+                case BoundKind.FunctionPointerInvocation:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
@@ -958,12 +967,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
+                            case BoundUnconvertedObjectCreationExpression _:
                             case BoundTupleLiteral _:
                                 // Tuple literals can contain unbound lambdas or switch expressions.
                                 _ = BindToNaturalType(argument, diagnostics);
                                 break;
                             case BoundUnconvertedSwitchExpression { Type: { } naturalType } switchExpr:
-                                _ = ConvertSwitchExpression(switchExpr, naturalType ?? CreateErrorType(), conversionIfTargetTyped: null, diagnostics);
+                                _ = ConvertSwitchExpression(switchExpr, naturalType, conversionIfTargetTyped: null, diagnostics);
+                                break;
+                            case BoundUnconvertedConditionalOperator { Type: { } naturalType } conditionalExpr:
+                                _ = ConvertConditionalExpression(conditionalExpr, naturalType, conversionIfTargetTyped: null, diagnostics);
                                 break;
                         }
                     }
@@ -975,8 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.ReportDiagnostics(
                         binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
                         receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
-                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
-                        queryClause: queryClause);
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt, queryClause: queryClause);
                 }
 
                 return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
@@ -993,6 +1005,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = methodResult.Member;
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
+
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1083,6 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver);
+            ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node.Location, isDelegateConversion: false);
 
             // No use site errors, but there could be use site warnings.
             // If there are any use site warnings, they have already been reported by overload resolution.
@@ -1127,8 +1142,284 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
+
+#nullable enable
+
+        private static SourceLocation GetCallerLocation(SyntaxNode syntax)
+        {
+            var token = syntax switch
+            {
+                InvocationExpressionSyntax invocation => invocation.ArgumentList.OpenParenToken,
+                BaseObjectCreationExpressionSyntax objectCreation => objectCreation.NewKeyword,
+                ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList.OpenParenToken,
+                PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType => primaryConstructorBaseType.ArgumentList.OpenParenToken,
+                ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList.OpenBracketToken,
+                _ => syntax.GetFirstToken()
+            };
+
+            return new SourceLocation(token);
+        }
+
+        private BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, DiagnosticBag diagnostics)
+        {
+            var parameterType = parameter.Type;
+            Debug.Assert(parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object);
+
+            // We have a call to a method M([Optional] object x) which omits the argument. The value we generate
+            // for the argument depends on the presence or absence of other attributes. The rules are:
+            //
+            // * If the parameter is marked as [MarshalAs(Interface)], [MarshalAs(IUnknown)] or [MarshalAs(IDispatch)]
+            //   then the argument is null.
+            // * Otherwise, if the parameter is marked as [IUnknownConstant] then the argument is
+            //   new UnknownWrapper(null)
+            // * Otherwise, if the parameter is marked as [IDispatchConstant] then the argument is
+            //    new DispatchWrapper(null)
+            // * Otherwise, the argument is Type.Missing.
+
+            BoundExpression? defaultValue = null;
+            if (parameter.IsMarshalAsObject)
+            {
+                // default(object)
+                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+            }
+            else if (parameter.IsIUnknownConstant)
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
+                {
+                    // new UnknownWrapper(default(object))
+                    var unknownArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, unknownArgument) { WasCompilerGenerated = true };
+                }
+            }
+            else if (parameter.IsIDispatchConstant)
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
+                {
+                    // new DispatchWrapper(default(object))
+                    var dispatchArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, dispatchArgument) { WasCompilerGenerated = true };
+                }
+            }
+            else
+            {
+                if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Type__Missing, diagnostics, syntax: syntax) is FieldSymbol fieldSymbol)
+                {
+                    // Type.Missing
+                    defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
+                }
+            }
+
+            return defaultValue ?? BadExpression(syntax).MakeCompilerGenerated();
+        }
+
+        internal static ParameterSymbol? GetCorrespondingParameter(
+            int argumentOrdinal,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            int n = parameters.Length;
+            ParameterSymbol? parameter;
+
+            if (argsToParamsOpt.IsDefault)
+            {
+                if (argumentOrdinal < n)
+                {
+                    parameter = parameters[argumentOrdinal];
+                }
+                else if (expanded)
+                {
+                    parameter = parameters[n - 1];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+            else
+            {
+                Debug.Assert(argumentOrdinal < argsToParamsOpt.Length);
+                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
+
+                if (parameterOrdinal < n)
+                {
+                    parameter = parameters[parameterOrdinal];
+                }
+                else
+                {
+                    parameter = null;
+                }
+            }
+
+            return parameter;
+        }
+
+        internal void BindDefaultArguments(
+            SyntaxNode node,
+            ImmutableArray<ParameterSymbol> parameters,
+            ArrayBuilder<BoundExpression> argumentsBuilder,
+            ArrayBuilder<RefKind>? argumentRefKindsBuilder,
+            ref ImmutableArray<int> argsToParamsOpt,
+            out BitVector defaultArguments,
+            bool expanded,
+            bool enableCallerInfo,
+            DiagnosticBag diagnostics,
+            bool assertMissingParametersAreOptional = true)
+        {
+
+            var visitedParameters = BitVector.Create(parameters.Length);
+            for (var i = 0; i < argumentsBuilder.Count; i++)
+            {
+                var parameter = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                if (parameter is not null)
+                {
+                    visitedParameters[parameter.Ordinal] = true;
+                }
+            }
+
+            // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
+            if (parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters))
+            {
+                defaultArguments = default;
+                return;
+            }
+
+            // In a scenario like `string Prop { get; } = M();`, the containing symbol could be the synthesized field.
+            // We want to use the associated user-declared symbol instead where possible.
+            var containingMember = ContainingMember() switch
+            {
+                FieldSymbol { AssociatedSymbol: { } symbol } => symbol,
+                var c => c
+            };
+
+            defaultArguments = BitVector.Create(parameters.Length);
+            ArrayBuilder<int>? argsToParamsBuilder = null;
+            if (!argsToParamsOpt.IsDefault)
+            {
+                argsToParamsBuilder = ArrayBuilder<int>.GetInstance(argsToParamsOpt.Length);
+                argsToParamsBuilder.AddRange(argsToParamsOpt);
+            }
+
+            // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
+            // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
+            Debug.Assert(!expanded || parameters[^1].IsParams);
+            // Params array is filled in the local rewriter
+            var lastIndex = expanded ? ^1 : ^0;
+
+            // Go over missing parameters, inserting default values for optional parameters
+            foreach (var parameter in parameters.AsSpan()[..lastIndex])
+            {
+                if (!visitedParameters[parameter.Ordinal])
+                {
+                    Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
+
+                    defaultArguments[argumentsBuilder.Count] = true;
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
+
+                    if (argumentRefKindsBuilder is { Count: > 0 })
+                    {
+                        argumentRefKindsBuilder.Add(RefKind.None);
+                    }
+
+                    argsToParamsBuilder?.Add(parameter.Ordinal);
+                }
+            }
+            Debug.Assert(argumentRefKindsBuilder is null || argumentRefKindsBuilder.Count == 0 || argumentRefKindsBuilder.Count == argumentsBuilder.Count);
+            Debug.Assert(argsToParamsBuilder is null || argsToParamsBuilder.Count == argumentsBuilder.Count);
+
+            if (argsToParamsBuilder is object)
+            {
+                argsToParamsOpt = argsToParamsBuilder.ToImmutableOrNull();
+                argsToParamsBuilder.Free();
+            }
+
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, DiagnosticBag diagnostics)
+            {
+                TypeSymbol parameterType = parameter.Type;
+                if (Flags.Includes(BinderFlags.ParameterDefaultValue))
+                {
+                    // This is only expected to occur in recursive error scenarios, for example: `object F(object param = F()) { }`
+                    // We return a non-error expression here to ensure ERR_DefaultValueMustBeConstant (or another appropriate diagnostics) is produced by the caller.
+                    return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+
+                var defaultConstantValue = parameter.ExplicitDefaultConstantValue switch
+                {
+                    // Bad default values are implicitly replaced with default(T) at call sites.
+                    { IsBad: true } => ConstantValue.Null,
+                    var constantValue => constantValue
+                };
+                Debug.Assert((object?)defaultConstantValue != ConstantValue.Unset);
+
+                var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
+                BoundExpression defaultValue;
+                if (callerSourceLocation is object && parameter.IsCallerLineNumber)
+                {
+                    int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerFilePath)
+                {
+                    string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerMemberName)
+                {
+                    var memberName = containingMember.GetMemberCallerName();
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (defaultConstantValue == ConstantValue.NotAvailable)
+                {
+                    // There is no constant value given for the parameter in source/metadata.
+                    if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
+                    {
+                        // We have something like M([Optional] object x). We have special handling for such situations.
+                        defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, diagnostics);
+                    }
+                    else
+                    {
+                        // The argument to M([Optional] int x) becomes default(int)
+                        defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    }
+                }
+                else if (defaultConstantValue.IsNull)
+                {
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                    defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+                }
+
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteDiagnostics);
+                diagnostics.Add(syntax, useSiteDiagnostics);
+
+                if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
+                {
+                    // Usually, if a default constant value fails to convert to the parameter type, we want an error at the call site.
+                    // For legacy reasons, decimal and DateTime constants are special. If such a constant fails to convert to the parameter type
+                    // then we want to silently replace it with default(ParameterType).
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    if (!conversion.IsValid)
+                    {
+                        GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
+                    }
+                    defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
+                }
+
+                return defaultValue;
+            }
+
+        }
+
+#nullable disable
 
         /// <summary>
         /// Returns false if an implicit 'this' copy will occur due to an instance member invocation in a readonly member.
@@ -1412,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getCorrespondingParameterType(int i)
             {
-                // See if all applicable applicable parameters have the same type
+                // See if all applicable parameters have the same type
                 TypeSymbol candidateType = null;
                 foreach (var parameterList in parameterListList)
                 {
@@ -1550,6 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
@@ -1642,6 +1934,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = lookupResult.IsMultiViable;
             lookupResult.Free();
             return result;
+        }
+
+#nullable enable
+        private BoundFunctionPointerInvocation BindFunctionPointerInvocation(SyntaxNode node, BoundExpression boundExpression, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            RoslynDebug.Assert(boundExpression.Type is FunctionPointerTypeSymbol);
+
+            var funcPtr = (FunctionPointerTypeSymbol)boundExpression.Type;
+
+            var overloadResolutionResult = OverloadResolutionResult<FunctionPointerMethodSymbol>.GetInstance();
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var methodsBuilder = ArrayBuilder<FunctionPointerMethodSymbol>.GetInstance(1);
+            methodsBuilder.Add(funcPtr.Signature);
+            OverloadResolution.FunctionPointerOverloadResolution(
+                methodsBuilder,
+                analyzedArguments,
+                overloadResolutionResult,
+                ref useSiteDiagnostics);
+
+            if (!overloadResolutionResult.Succeeded)
+            {
+                ImmutableArray<FunctionPointerMethodSymbol> methods = methodsBuilder.ToImmutableAndFree();
+                overloadResolutionResult.ReportDiagnostics(
+                    binder: this,
+                    node.Location,
+                    nodeOpt: null,
+                    diagnostics,
+                    name: null,
+                    boundExpression,
+                    boundExpression.Syntax,
+                    analyzedArguments,
+                    methods,
+                    typeContainingConstructor: null,
+                    delegateTypeBeingInvoked: null,
+                    returnRefKind: funcPtr.Signature.RefKind);
+
+                return new BoundFunctionPointerInvocation(
+                    node,
+                    boundExpression,
+                    BuildArgumentsForErrorRecovery(analyzedArguments, StaticCast<MethodSymbol>.From(methods)),
+                    analyzedArguments.RefKinds.ToImmutableOrNull(),
+                    LookupResultKind.OverloadResolutionFailure,
+                    funcPtr.Signature.ReturnType,
+                    hasErrors: true);
+            }
+
+            methodsBuilder.Free();
+
+            MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
+            CoerceArguments(
+                methodResult,
+                analyzedArguments.Arguments,
+                diagnostics);
+
+            var args = analyzedArguments.Arguments.ToImmutable();
+            var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
+            if (!hasErrors)
+            {
+                hasErrors = !CheckInvocationArgMixing(
+                    node,
+                    funcPtr.Signature,
+                    receiverOpt: null,
+                    funcPtr.Signature.Parameters,
+                    args,
+                    methodResult.Result.ArgsToParamsOpt,
+                    LocalScopeDepth,
+                    diagnostics);
+            }
+
+            return new BoundFunctionPointerInvocation(
+                node,
+                boundExpression,
+                args,
+                refKinds,
+                LookupResultKind.Viable,
+                funcPtr.Signature.ReturnType,
+                hasErrors);
         }
     }
 }

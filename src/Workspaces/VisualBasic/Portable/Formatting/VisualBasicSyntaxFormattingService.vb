@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
 
+#If CODE_STYLE Then
+        Public Shared ReadOnly Instance As New VisualBasicSyntaxFormattingService
+#End If
+
 #If Not CODE_STYLE Then
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
         Public Sub New()
         End Sub
 
-        Private Shared ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+        Private Shared ReadOnly ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
 
         Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
             Dim importsA = TryCast(a, ImportsStatementSyntax)
@@ -85,12 +84,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
                 placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(allowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 

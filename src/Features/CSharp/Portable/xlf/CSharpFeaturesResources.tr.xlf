@@ -2,20 +2,15 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
-        <source>Add await and ConfigureAwait(false)</source>
-        <target state="translated">Eklemek bekliyor ve ConfigureAwait(false)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_await">
-        <source>Add await</source>
-        <target state="translated">Ekleme bekliyor</target>
-        <note />
+        <source>Add 'await'</source>
+        <target state="needs-review-translation">Ekleme bekliyor</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
-        <note />
+      <trans-unit id="Add_await_and_ConfigureAwaitFalse">
+        <source>Add 'await' and 'ConfigureAwait(false)'</source>
+        <target state="new">Add 'await' and 'ConfigureAwait(false)'</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
@@ -35,6 +30,11 @@
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">İfade/blok gövdesi tercihlerini uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">Dosya üst bilgisi tercihlerini uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -62,6 +62,11 @@
         <target state="translated">'this.' nitelemesi tercihlerini uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_using_directive_placement_preferences">
+        <source>Apply preferred 'using' placement preferences</source>
+        <target state="translated">Tercih edilen 'using' yerleştirme tercihlerini uygulayın</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
         <target state="translated">'out' parametreleri ata</target>
@@ -72,6 +77,31 @@
         <target state="translated">'out' parametreleri ata (başlangıçta)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="translated">'{0}' öğesine ata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
+        <source>Autoselect disabled due to potential pattern variable declaration.</source>
+        <target state="translated">Otomatik seçim, olası desen değişkeni bildirimi nedeniyle devre dışı bırakıldı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">'as' ifadesine değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">Tür dönüştürme olarak değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="translated">'{0}' ile karşılaştır</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Yönteme dönüştür</target>
@@ -79,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">Normal dizeye dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -94,12 +124,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_type_to_0">
-        <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Düz metin dizesine dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -132,9 +157,14 @@
         <target state="translated">'ref struct' yap</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Pass_in_captured_variables_as_arguments">
-        <source>Pass in captured variables as arguments</source>
-        <target state="translated">Yakalanan değişkenleri bağımsız değişken olarak geçir</target>
+      <trans-unit id="Remove_in_keyword">
+        <source>Remove 'in' keyword</source>
+        <target state="translated">'in' anahtar sözcüğünü kaldır</target>
+        <note>{Locked="in"} "in" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Remove_new_modifier">
+        <source>Remove 'new' modifier</source>
+        <target state="translated">'New' değiştiricisini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -177,19 +207,9 @@
         <target state="translated">Uyarı: Koşullu yöntem çağrısında geçici öğe satır içinde kullanılıyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
-        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="translated">Uyarı: Yerel işlev bildirimine parametre eklendiğinde geçersiz kod üretilebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_is_not_null_here">
-        <source>'{0}' is not null here.</source>
-        <target state="translated">'{0}' burada null değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_may_be_null_here">
-        <source>'{0}' may be null here.</source>
-        <target state="translated">'{0}' burada null olabilir.</target>
+      <trans-unit id="Warning_Inlining_temporary_variable_may_change_code_meaning">
+        <source>Warning: Inlining temporary variable may change code meaning.</source>
+        <target state="translated">Uyarı: Geçici değişkeni satır içinde belirtmek kod anlamını değişebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
@@ -201,11 +221,6 @@
         <source>asynchronous using declaration</source>
         <target state="translated">zaman uyumsuz using bildirimi</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">'If' deyimi basitleştirilebilir</target>
-        <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
@@ -242,6 +257,11 @@
         <target state="translated">Olası demet türü öğe oluşturma işleminden dolayı Otomatik seçim devre dışı bırakıldı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="pattern_variable">
+        <source>&lt;pattern variable&gt;</source>
+        <target state="translated">&lt;desen değişkeni&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>&lt;range variable&gt;</source>
         <target state="translated">&lt; Aralık değişkeni &gt;</target>
@@ -254,12 +274,12 @@
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="translated">{0}' adını basitleştir</target>
+        <target state="translated">'{0}' adını basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="translated">{0}' üye erişimini basitleştir</target>
+        <target state="translated">'{0}' üye erişimini basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_this_qualification">
@@ -399,12 +419,12 @@
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
         <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">{0}' içinde açık dönüşüm işleci oluştur</target>
+        <target state="translated">'{0}' içinde açık dönüşüm işleci oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">{0}' içinde örtük dönüşüm işleci oluştur</target>
+        <target state="translated">'{0}' içinde örtük dönüşüm işleci oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -629,17 +649,12 @@
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
         <source>The name '{0}' does not exist in the current context.</source>
-        <target state="translated">{0}' adı geçerli bağlamda yok.</target>
+        <target state="translated">'{0}' adı geçerli bağlamda yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
         <target state="translated">Temel üyeyi gizle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">Temsilci çağrısı basitleştirilebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
@@ -760,31 +775,6 @@
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' deyimi ekle</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">Yanlış yerleştirilmiş using yönergesi</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">Yanlış yerleştirilmiş using yönergelerini taşı</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">Using yönergelerinin bir namespace bildiriminin içine yerleştirilmesi gerekir</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">Using yönergelerinin bir namespace bildiriminin dışına yerleştirilmesi gerekir</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">Uyarı: using yönergelerini taşımak, kodun anlamını değiştirebilir.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

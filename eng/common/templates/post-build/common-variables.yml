@@ -4,7 +4,7 @@ variables:
   - group: DotNet-DotNetCli-Storage
   - group: DotNet-MSRC-Storage
   - group: Publish-Build-Assets
-    
+
   # .NET Core 3.1 Dev
   - name: PublicDevRelease_31_Channel_Id
     value: 128
@@ -29,14 +29,6 @@ variables:
   - name: NetCore_3_Tools_Channel_Id
     value: 344
 
-  # .NET Core 3.0 Internal Servicing
-  - name: InternalServicing_30_Channel_Id
-    value: 184
-
-  # .NET Core 3.0 Release
-  - name: PublicRelease_30_Channel_Id
-    value: 19
-
   # .NET Core 3.1 Release
   - name: PublicRelease_31_Channel_Id
     value: 129
@@ -48,10 +40,6 @@ variables:
   # .NET Core 3.1 Blazor Features
   - name: NetCore_31_Blazor_Features_Channel_Id
     value: 531
-
-  # .NET Core Experimental
-  - name: NetCore_Experimental_Channel_Id
-    value: 562
 
   # Whether the build is internal or not
   - name: IsInternalBuild
@@ -90,10 +78,3 @@ variables:
     value: https://dotnetclimsrc.blob.core.windows.net/dotnet/index.json
   - name: InternalInstallersBlobFeedKey
     value: $(dotnetclimsrc-access-key)
-
-  # Skip component governance and codesign validation for SDL. These jobs
-  # create no content.
-  - name: skipComponentGovernanceDetection
-    value: true
-  - name: runCodesignValidationInjection
-    value: false

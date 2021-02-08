@@ -11,5 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public bool IsUnmanaged => ((InternalSyntax.TypeSyntax)this.Green).IsUnmanaged;
 
         public bool IsNotNull => ((InternalSyntax.TypeSyntax)this.Green).IsNotNull;
+
+        public bool IsNint => ((InternalSyntax.TypeSyntax)this.Green).IsNint;
+
+        public bool IsNuint => ((InternalSyntax.TypeSyntax)this.Green).IsNuint;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,12 +19,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
     internal sealed class AsyncQueue<TElement>
     {
-        private readonly TaskCompletionSource<bool> _whenCompleted = new TaskCompletionSource<bool>();
+        // Continuations run asynchronously to ensure user code does not execute within protected regions and lead to
+        // delays, deadlocks, and/or state corruption.
+        private readonly TaskCompletionSource<bool> _whenCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         // Note: All of the below fields are accessed in parallel and may only be accessed
         // when protected by lock (SyncObject)
         private readonly Queue<TElement> _data = new Queue<TElement>();
-        private Queue<TaskCompletionSource<TElement>> _waiters;
+        private Queue<TaskCompletionSource<Optional<TElement>>> _waiters;
         private bool _completed;
         private bool _disallowEnqueue;
 
@@ -71,12 +75,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool EnqueueCore(TElement value)
         {
+retry:
             if (_disallowEnqueue)
             {
                 throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
             }
 
-            TaskCompletionSource<TElement> waiter;
+            TaskCompletionSource<Optional<TElement>> waiter;
             lock (SyncObject)
             {
                 if (_completed)
@@ -94,9 +99,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 waiter = _waiters.Dequeue();
             }
 
-            // Invoke SetResult on a separate task, as this invocation could cause the underlying task to executing,
-            // which could be a long running operation that can potentially cause a deadlock if executed on the current thread.
-            Task.Run(() => waiter.SetResult(value));
+            Debug.Assert(waiter.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            if (!waiter.TrySetResult(value))
+            {
+                // A waiter was available in the queue, but was cancelled before we were able to assign this value
+                goto retry;
+            }
 
             return true;
         }
@@ -163,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool CompleteCore()
         {
-            Queue<TaskCompletionSource<TElement>> existingWaiters;
+            Queue<TaskCompletionSource<Optional<TElement>>> existingWaiters;
             lock (SyncObject)
             {
                 if (_completed)
@@ -177,26 +185,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _waiters = null;
             }
 
-            Task.Run(() =>
+            if (existingWaiters?.Count > 0)
             {
-                if (existingWaiters?.Count > 0)
+                // cancel waiters.
+                // NOTE: AsyncQueue has an invariant that 
+                //       the queue can either have waiters or items, not both
+                //       adding an item would "unwait" the waiters
+                //       the fact that we _had_ waiters at the time we completed the queue
+                //       guarantees that there is no items in the queue now or in the future, 
+                //       so it is safe to cancel waiters with no loss of diagnostics
+                Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
+                foreach (var tcs in existingWaiters)
                 {
-                    // cancel waiters.
-                    // NOTE: AsyncQueue has an invariant that 
-                    //       the queue can either have waiters or items, not both
-                    //       adding an item would "unwait" the waiters
-                    //       the fact that we _had_ waiters at the time we completed the queue
-                    //       guarantees that there is no items in the queue now or in the future, 
-                    //       so it is safe to cancel waiters with no loss of diagnostics
-                    Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
-                    foreach (var tcs in existingWaiters)
-                    {
-                        tcs.SetCanceled();
-                    }
+                    Debug.Assert(tcs.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+                    tcs.TrySetResult(default);
                 }
+            }
 
-                _whenCompleted.SetResult(true);
-            });
+            Debug.Assert(_whenCompleted.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            _whenCompleted.SetResult(true);
 
             return true;
         }
@@ -224,31 +231,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return WithCancellationAsync(DequeueCoreAsync(), cancellationToken);
+            var optionalResult = TryDequeueAsync(cancellationToken);
+            if (optionalResult.IsCompletedSuccessfully)
+            {
+                var result = optionalResult.Result;
+                return result.HasValue
+                    ? Task.FromResult(result.Value)
+                    : Task.FromCanceled<TElement>(new CancellationToken(canceled: true));
+            }
+
+            return dequeueSlowAsync(optionalResult);
+
+            static async Task<TElement> dequeueSlowAsync(ValueTask<Optional<TElement>> optionalResult)
+            {
+                var result = await optionalResult.ConfigureAwait(false);
+                if (!result.HasValue)
+                    new CancellationToken(canceled: true).ThrowIfCancellationRequested();
+
+                return result.Value;
+            }
         }
 
         /// <summary>
-        /// 
-        /// Note: The early cancellation behavior is intentional.
+        /// Gets a task whose result is the element at the head of the queue. If the queue
+        /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
+        /// is called before an element becomes available, the returned task is completed and
+        /// <see cref="Optional{T}.HasValue"/> will be <see langword="false"/>.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private static Task<T> WithCancellationAsync<T>(Task<T> task, CancellationToken cancellationToken)
-        {
-            if (task.IsCompleted || !cancellationToken.CanBeCanceled)
-            {
-                return task;
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return new Task<T>(() => default(T), cancellationToken);
-            }
-
-            return task.ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
-        }
-
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private Task<TElement> DequeueCoreAsync()
+        public ValueTask<Optional<TElement>> TryDequeueAsync(CancellationToken cancellationToken)
         {
             lock (SyncObject)
             {
@@ -256,27 +267,101 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // in the queue.  This keeps the behavior in line with TryDequeue
                 if (_data.Count > 0)
                 {
-                    return Task.FromResult(_data.Dequeue());
+                    return ValueTaskFactory.FromResult<Optional<TElement>>(_data.Dequeue());
                 }
 
                 if (_completed)
                 {
-                    var tcs = new TaskCompletionSource<TElement>();
-                    tcs.SetCanceled();
-                    return tcs.Task;
+                    return ValueTaskFactory.FromResult(default(Optional<TElement>));
                 }
-                else
-                {
-                    if (_waiters == null)
-                    {
-                        _waiters = new Queue<TaskCompletionSource<TElement>>();
-                    }
 
-                    var waiter = new TaskCompletionSource<TElement>();
-                    _waiters.Enqueue(waiter);
-                    return waiter.Task;
-                }
+                _waiters ??= new Queue<TaskCompletionSource<Optional<TElement>>>();
+
+                // Continuations run asynchronously to ensure user code does not execute within protected regions.
+                var waiter = new TaskCompletionSource<Optional<TElement>>(TaskCreationOptions.RunContinuationsAsynchronously);
+                AttachCancellation(waiter, cancellationToken);
+                _waiters.Enqueue(waiter);
+                return new ValueTask<Optional<TElement>>(waiter.Task);
             }
+        }
+
+        /// <summary>
+        /// Cancels a <see cref="TaskCompletionSource{TResult}.Task"/> if a given <see cref="CancellationToken"/> is canceled.
+        /// </summary>
+        /// <typeparam name="T">The type of value returned by a successfully completed <see cref="Task{TResult}"/>.</typeparam>
+        /// <param name="taskCompletionSource">The <see cref="TaskCompletionSource{TResult}"/> to cancel.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/>.</param>
+        /// <seealso href="https://github.com/microsoft/vs-threading/blob/558f24c576cc620a00b20ed1fa90a5e2d13b0440/src/Microsoft.VisualStudio.Threading/ThreadingTools.cs#L181-L255"/>
+        private static void AttachCancellation<T>(TaskCompletionSource<T> taskCompletionSource, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.CanBeCanceled || taskCompletionSource.Task.IsCompleted)
+                return;
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                taskCompletionSource.TrySetCanceled(cancellationToken);
+                return;
+            }
+
+            var cancelableTaskCompletionSource = new CancelableTaskCompletionSource<T>(taskCompletionSource, cancellationToken);
+            cancelableTaskCompletionSource.CancellationTokenRegistration = cancellationToken.Register(
+                static s =>
+                {
+                    var t = (CancelableTaskCompletionSource<T>)s!;
+                    t.TaskCompletionSource.TrySetCanceled(t.CancellationToken);
+                },
+                cancelableTaskCompletionSource,
+                useSynchronizationContext: false);
+
+            Debug.Assert(taskCompletionSource.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            taskCompletionSource.Task.ContinueWith(
+                static (_, s) =>
+                {
+                    var t = (CancelableTaskCompletionSource<T>)s!;
+                    t.CancellationTokenRegistration.Dispose();
+                },
+                cancelableTaskCompletionSource,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        /// <summary>
+        /// A state object for tracking cancellation and a TaskCompletionSource.
+        /// </summary>
+        /// <typeparam name="T">The type of value returned from a task.</typeparam>
+        /// <remarks>
+        /// We use this class so that we only allocate one object to support all continuations
+        /// required for cancellation handling, rather than a special closure and delegate for each one.
+        /// </remarks>
+        /// <seealso href="https://github.com/microsoft/vs-threading/blob/558f24c576cc620a00b20ed1fa90a5e2d13b0440/src/Microsoft.VisualStudio.Threading/ThreadingTools.cs#L318-L372"/>
+        private sealed class CancelableTaskCompletionSource<T>
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CancelableTaskCompletionSource{T}"/> class.
+            /// </summary>
+            /// <param name="taskCompletionSource">The task completion source.</param>
+            /// <param name="cancellationToken">The cancellation token.</param>
+            internal CancelableTaskCompletionSource(TaskCompletionSource<T> taskCompletionSource, CancellationToken cancellationToken)
+            {
+                TaskCompletionSource = taskCompletionSource;
+                CancellationToken = cancellationToken;
+            }
+
+            /// <summary>
+            /// Gets the cancellation token.
+            /// </summary>
+            internal CancellationToken CancellationToken { get; }
+
+            /// <summary>
+            /// Gets the Task completion source.
+            /// </summary>
+            internal TaskCompletionSource<T> TaskCompletionSource { get; }
+
+            /// <summary>
+            /// Gets or sets the cancellation token registration.
+            /// </summary>
+            internal CancellationTokenRegistration CancellationTokenRegistration { get; set; }
         }
     }
 }

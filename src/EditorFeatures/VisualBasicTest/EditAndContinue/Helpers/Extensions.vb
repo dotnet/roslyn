@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -17,12 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             source As String,
             description As ActiveStatementsDescription)
 
-            VisualBasicEditAndContinueTestHelpers.Instance.VerifyUnchangedDocument(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyUnchangedDocument(
                 ActiveStatementsDescription.ClearTags(source),
                 description.OldStatements,
-                description.OldTrackingSpans,
                 description.NewSpans,
-                description.OldRegions,
                 description.NewRegions)
         End Sub
 
@@ -36,15 +34,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
                                          description As ActiveStatementsDescription,
                                          ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.Instance.VerifyRudeDiagnostics(editScript, description, expectedDiagnostics)
+            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyRudeDiagnostics(editScript, description, expectedDiagnostics)
         End Sub
 
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
-                                   expectedLineEdits As IEnumerable(Of LineChange),
+                                   expectedLineEdits As IEnumerable(Of SourceLineUpdate),
                                    expectedNodeUpdates As IEnumerable(Of String),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.Instance.VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
+            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifyLineEdits(editScript, expectedLineEdits, expectedNodeUpdates, expectedDiagnostics)
         End Sub
 
         <Extension>
@@ -95,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                    expectedSemanticEdits As SemanticEditDescription(),
                                    expectedDeclarationError As DiagnosticDescription,
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
-            VisualBasicEditAndContinueTestHelpers.Instance.VerifySemantics(
+            VisualBasicEditAndContinueTestHelpers.CreateInstance().VerifySemantics(
                 editScript,
                 activeStatements,
                 additionalOldSources,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +15,8 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 {
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (CanBeMergedWithParent(syntaxFacts, ifGenerator, ifOrElseIf, out firstIfOrElseIf))
-                return Task.FromResult(true);
+                return SpecializedTasks.True;
 
             return CanBeMergedWithPreviousStatementAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken, out firstIfOrElseIf);
         }
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             var ifGenerator = document.GetLanguageService<IIfLikeStatementGenerator>();
 
             if (CanBeMergedWithElseIf(syntaxFacts, ifGenerator, ifOrElseIf, out secondIfOrElseIf))
-                return Task.FromResult(true);
+                return SpecializedTasks.True;
 
             return CanBeMergedWithNextStatementAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, cancellationToken, out secondIfOrElseIf);
         }
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
             return editor.GetChangedRoot();
         }
 
-        private bool CanBeMergedWithParent(
+        private static bool CanBeMergedWithParent(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, parentIfOrElseIf, out _);
         }
 
-        private bool CanBeMergedWithElseIf(
+        private static bool CanBeMergedWithElseIf(
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
             SyntaxNode ifOrElseIf,
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
                    ContainEquivalentStatements(syntaxFacts, ifOrElseIf, elseIfClause, out _);
         }
 
-        private Task<bool> CanBeMergedWithPreviousStatementAsync(
+        private static Task<bool> CanBeMergedWithPreviousStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -153,10 +157,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         {
             return TryGetSiblingStatement(syntaxFacts, ifOrElseIf, relativeIndex: -1, out previousStatement)
                 ? CanStatementsBeMergedAsync(document, syntaxFacts, ifGenerator, previousStatement, ifOrElseIf, cancellationToken)
-                : Task.FromResult(false);
+                : SpecializedTasks.False;
         }
 
-        private Task<bool> CanBeMergedWithNextStatementAsync(
+        private static Task<bool> CanBeMergedWithNextStatementAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,
@@ -166,10 +170,10 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
         {
             return TryGetSiblingStatement(syntaxFacts, ifOrElseIf, relativeIndex: 1, out nextStatement)
                 ? CanStatementsBeMergedAsync(document, syntaxFacts, ifGenerator, ifOrElseIf, nextStatement, cancellationToken)
-                : Task.FromResult(false);
+                : SpecializedTasks.False;
         }
 
-        private async Task<bool> CanStatementsBeMergedAsync(
+        private static async Task<bool> CanStatementsBeMergedAsync(
             Document document,
             ISyntaxFactsService syntaxFacts,
             IIfLikeStatementGenerator ifGenerator,

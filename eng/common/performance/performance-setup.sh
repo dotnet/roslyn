@@ -13,9 +13,9 @@ build_number=$BUILD_BUILDNUMBER
 internal=false
 compare=false
 kind="micro"
-run_categories="Libraries Runtime"
+run_categories="coreclr corefx"
 csproj="src\benchmarks\micro\MicroBenchmarks.csproj"
-configurations="CompliationMode=$compilation_mode RunKind=$kind"
+configurations=
 run_from_perf_repo=false
 use_core_run=true
 use_baseline_core_run=true
@@ -164,7 +164,7 @@ if [[ "$internal" == true ]]; then
     fi
 fi
 
-common_setup_arguments="--channel master --queue $queue --build-number $build_number --build-configs $configurations --architecture $architecture"
+common_setup_arguments="--frameworks $framework --queue $queue --build-number $build_number --build-configs $configurations"
 setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
 
 if [[ "$run_from_perf_repo" = true ]]; then

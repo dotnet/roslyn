@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,14 +10,20 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(VisualStudioProjectFactory))]
-    internal sealed class VisualStudioProjectFactory
+    [Export(typeof(IVsTypeScriptVisualStudioProjectFactory))]
+    internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProjectFactory
     {
+        private const string SolutionContextName = "Solution";
+        private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
@@ -28,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectFactory(
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
@@ -78,7 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language: language,
                         filePath: creationInfo.FilePath,
                         compilationOptions: creationInfo.CompilationOptions,
-                        parseOptions: creationInfo.ParseOptions);
+                        parseOptions: creationInfo.ParseOptions)
+                    .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
                 if (w.CurrentSolution.ProjectIds.Count == 0)
@@ -95,12 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
 
+                    var solutionSessionId = GetSolutionSessionId();
+
                     w.OnSolutionAdded(
                         SolutionInfo.Create(
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
-                            projects: new[] { projectInfo }));
+                            projects: new[] { projectInfo },
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences)
+                        .WithTelemetryId(solutionSessionId));
                 }
                 else
                 {
@@ -111,6 +120,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             });
 
             return project;
+
+            static Guid GetSolutionSessionId()
+            {
+                var dataModelTelemetrySession = TelemetryService.DefaultSession;
+                var solutionContext = dataModelTelemetrySession.GetContext(SolutionContextName);
+                var sessionIdProperty = solutionContext is object
+                    ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                    : "";
+                _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+                return solutionSessionId;
+            }
+        }
+
+        VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+        {
+            var projectInfo = new VisualStudioProjectCreationInfo
+            {
+                FilePath = projectFilePath,
+                Hierarchy = hierarchy,
+                ProjectGuid = projectGuid,
+            };
+            var visualStudioProject = this.CreateAndAddToWorkspace(projectSystemName, language, projectInfo);
+            return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
         }
     }
 }

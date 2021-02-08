@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -36,7 +37,7 @@ void M()
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var documentURI = locations["caret"].Single().Uri;
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(documentURI).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocuments(documentURI).Single().GetTextAsync();
 
             var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -44,7 +45,11 @@ void M()
         }
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).FormatDocumentAsync(solution, CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(queue, LSP.Methods.TextDocumentFormattingName,
+                           CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
             => new LSP.DocumentFormattingParams()

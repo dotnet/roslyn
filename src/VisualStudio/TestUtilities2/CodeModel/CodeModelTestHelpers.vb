@@ -5,9 +5,13 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
+Imports EnvDTE
+Imports EnvDTE80
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -25,7 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Public SystemWindowsFormsPath As String
         Public SystemDrawingPath As String
 
+#Disable Warning IDE0040 ' Add accessibility modifiers - https://github.com/dotnet/roslyn/issues/45962
         Sub New()
+#Enable Warning IDE0040 ' Add accessibility modifiers
             SystemWindowsFormsPath = GetType(System.Windows.Forms.Form).Assembly.Location
             SystemDrawingPath = GetType(System.Drawing.Point).Assembly.Location
         End Sub
@@ -38,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         <HandleProcessCorruptedStateExceptions()>
         Public Function CreateCodeModelTestState(definition As XElement) As CodeModelTestState
-            Dim workspace = TestWorkspace.Create(definition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+            Dim workspace = TestWorkspace.Create(definition, composition:=VisualStudioTestCompositions.LanguageServices)
 
             Dim result As CodeModelTestState = Nothing
             Try
@@ -52,13 +58,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
                     threadingContext,
                     mockServiceProvider,
                     project.LanguageServices,
                     mockVisualStudioWorkspace,
-                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
+                    New ProjectCodeModelFactory(
+                        mockVisualStudioWorkspace,
+                        mockServiceProvider,
+                        threadingContext,
+                        notificationService,
+                        listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
@@ -88,12 +101,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Private ReadOnly _componentModel As MockComponentModel
 
             Public Sub New(componentModel As MockComponentModel)
-                Me._componentModel = componentModel
+                _componentModel = componentModel
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
                 If serviceType = GetType(SComponentModel) Then
                     Return Me._componentModel
+                End If
+
+                If serviceType = GetType(EnvDTE.IVsExtensibility) Then
+                    Return Nothing
                 End If
 
                 Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
@@ -113,14 +130,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         Dim handle = GCHandle.Alloc(managedObject, GCHandleType.Normal)
                         Dim freeHandle = True
                         Try
+#Disable Warning RS0042 ' Do not copy value
                             BlindAggregatorFactory.SetInnerObject(wrapperUnknown, innerUnknown, GCHandle.ToIntPtr(handle))
+#Enable Warning RS0042 ' Do not copy value
                             freeHandle = False
                         Finally
                             If freeHandle Then handle.Free()
                         End Try
 
                         Dim wrapperRCW = Marshal.GetObjectForIUnknown(wrapperUnknown)
-                        Return CType(wrapperRCW, IComWrapper)
+                        Return CType(wrapperRCW, IComWrapperFixed)
                     Finally
                         Marshal.Release(innerUnknown)
                     End Try
@@ -132,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Class
 
         <Extension()>
-        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Document
+        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Microsoft.CodeAnalysis.Document
             Dim cursorDocument = state.Workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Dim document = state.Workspace.CurrentSolution.GetDocument(cursorDocument.Id)
@@ -214,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return XElement.Parse(xml)
         End Function
 
-        Private s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
+        Private ReadOnly s_map As New Dictionary(Of Type, EnvDTE.vsCMElement()) From
             {{GetType(EnvDTE.CodeAttribute), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE80.CodeAttribute2), {EnvDTE.vsCMElement.vsCMElementAttribute}},
              {GetType(EnvDTE.CodeClass), {EnvDTE.vsCMElement.vsCMElementClass, EnvDTE.vsCMElement.vsCMElementModule}},

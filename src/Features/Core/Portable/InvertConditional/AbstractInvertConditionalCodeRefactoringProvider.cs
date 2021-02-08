@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
-        private async Task<Document> InvertConditionalAsync(
+        private static async Task<Document> InvertConditionalAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
@@ -50,11 +51,10 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            syntaxFacts.GetPartsOfConditionalExpression(conditional,
+            editor.Generator.SyntaxFacts.GetPartsOfConditionalExpression(conditional,
                 out var condition, out var whenTrue, out var whenFalse);
 
-            editor.ReplaceNode(condition, editor.Generator.Negate(condition, semanticModel, cancellationToken));
+            editor.ReplaceNode(condition, editor.Generator.Negate(editor.Generator.SyntaxGeneratorInternal, condition, semanticModel, cancellationToken));
             editor.ReplaceNode(whenTrue, whenFalse.WithTriviaFrom(whenTrue));
             editor.ReplaceNode(whenFalse, whenTrue.WithTriviaFrom(whenFalse));
 

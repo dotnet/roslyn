@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Windows.Forms;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification
     {
         private readonly IVsUIShell _uiShellService;
 
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
 
         private static VSDialogService s_singleton;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,40 +20,55 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         private ImmutableDictionary<string, AnalyzerConfigOptions> _lazyAnalyzerConfigOptions = s_emptyAnalyzerConfigOptions;
 
+        private protected abstract object? GetOptionCore(OptionKey optionKey);
+
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
-        public abstract object? GetOption(OptionKey optionKey);
+        public object? GetOption(OptionKey optionKey)
+            => OptionsHelpers.GetPublicOption(optionKey, GetOptionCore);
+
+        /// <summary>
+        /// Gets the value of the option cast to type <typeparamref name="T"/>, or the default value if not otherwise set.
+        /// </summary>
+        public T GetOption<T>(OptionKey optionKey)
+            => OptionsHelpers.GetOption<T>(optionKey, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         internal object? GetOption(OptionKey2 optionKey)
-            => OptionsHelpers.GetOption<object?>(optionKey, GetOption);
+            => OptionsHelpers.GetOption<object?>(optionKey, GetOptionCore);
+
+        /// <summary>
+        /// Gets the value of the option cast to type <typeparamref name="T"/>, or the default value if not otherwise set.
+        /// </summary>
+        internal T GetOption<T>(OptionKey2 optionKey)
+            => OptionsHelpers.GetOption<T>(optionKey, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public T GetOption<T>(Option<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
+            => OptionsHelpers.GetOption(option, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         internal T GetOption<T>(Option2<T> option)
-            => OptionsHelpers.GetOption(option, GetOption);
+            => OptionsHelpers.GetOption(option, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, language, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         internal T GetOption<T>(PerLanguageOption2<T> option, string? language)
-            => OptionsHelpers.GetOption(option, language, GetOption);
+            => OptionsHelpers.GetOption(option, language, GetOptionCore);
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.

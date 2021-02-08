@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -59,24 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
-                var result = Interlocked.CompareExchange(ref _seenEventSourceChanged, value: 1, comparand: 0);
-                if (result == 0)
-                {
-                    // this is the first time we're hearing about changes from our event-source.
-                    // Don't have any delay here.  We want to just compute the tags and display
-                    // them as soon as we possibly can.
-                    ComputeInitialTags();
-                }
-                else
-                {
-                    // First, cancel any previous requests (either still queued, or started).  We no longer
-                    // want to continue it if new changes have come in.
-                    _workQueue.CancelCurrentWork();
-                    RegisterNotification(
-                        () => RecomputeTagsForeground(initialTags: false),
-                        (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
-                        GetCancellationToken(initialTags: false));
-                }
+                // First, cancel any previous requests (either still queued, or started).  We no longer
+                // want to continue it if new changes have come in.
+                _workQueue.CancelCurrentWork();
+                RegisterNotification(
+                    () => RecomputeTagsForeground(initialTags: false),
+                    (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                    GetCancellationToken(initialTags: false));
             }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -141,6 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                                 ? textChangeRange
                                 : this.AccumulatedTextChanges.Accumulate(SpecializedCollections.SingletonEnumerable(textChangeRange));
                         }
+
                         break;
 
                     default:
@@ -226,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
-            private bool TryStealTagsFromRelatedTagSource(TextContentChangedEventArgs e)
+            private static bool TryStealTagsFromRelatedTagSource(TextContentChangedEventArgs e)
             {
                 // see bug 778731
 #if INTERACTIVE
@@ -364,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             [Conditional("DEBUG")]
-            private void CheckSnapshot(ITextSnapshot snapshot)
+            private static void CheckSnapshot(ITextSnapshot snapshot)
             {
                 var container = snapshot.TextBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(container, out _))
@@ -560,10 +553,28 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // If we're on the foreground already, we can just update our internal state directly.
                     UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
                 }
+                else if (initialTags)
+                {
+                    // If this is the initial set of tags, we fast-track a notification about whatever initial tags we
+                    // computed.  This way the UI is updated quickly for that initial set, and we don't have to wait a
+                    // potentially very long time as the foreground-thread-queue makes it way to our notification.
+                    //
+                    // Do this in a fire and forget manner, but ensure we notify the test harness of this so that it
+                    // doesn't try to acquire tag results prior to this work finishing.
+                    var asyncToken = this._asyncListener.BeginAsyncOperation(nameof(ProcessNewTagTrees));
+                    Task.Run(async () =>
+                    {
+                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
+                    }).CompletesAsyncOperation(asyncToken);
+                }
                 else
                 {
-                    // Otherwise report back on the foreground asap to update the state and let our 
-                    // clients know about the change.
+                    // Otherwise report back on the foreground to update the state and let our clients know about the
+                    // change.  This will go to the end of the foreground processing queue.  This will normally process
+                    // quickly once VS is loaded, but it may take some time initially when VS is loading and the UI
+                    // thread is highly occupied.  This helps ensure that we don't oversaturate the UI during a very
+                    // contended period of time.
                     RegisterNotification(() => UpdateStateAndReportChanges(
                         newTagTrees, bufferToChanges, newState, initialTags),
                         delay: 0,

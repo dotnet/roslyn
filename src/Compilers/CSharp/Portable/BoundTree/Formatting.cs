@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
@@ -163,8 +161,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (Type is null) ? MessageID.IDS_FeatureSwitchExpression.Localize() : base.Display;
     }
 
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
+    }
+
     internal partial class BoundPassByCopy
     {
         public override object Display => Expression.Display;
+    }
+
+    internal partial class BoundUnconvertedAddressOfOperator
+    {
+        public override object Display => FormattableStringFactory.Create("&{0}", Operand.Display);
+    }
+
+    internal partial class BoundUnconvertedObjectCreationExpression
+    {
+        public override object Display
+        {
+            get
+            {
+                var arguments = this.Arguments;
+                if (arguments.Length == 0)
+                {
+                    return "new()";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var argumentDisplays = new object[arguments.Length];
+
+                builder.Append("new");
+                builder.Append('(');
+                builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
+
+                for (int i = 1; i < arguments.Length; i++)
+                {
+                    builder.Append($", {{{i.ToString()}}}");
+                    argumentDisplays[i] = arguments[i].Display;
+                }
+
+                builder.Append(')');
+
+                var format = pooledBuilder.ToStringAndFree();
+                return FormattableStringFactory.Create(format, argumentDisplays);
+            }
+        }
     }
 }

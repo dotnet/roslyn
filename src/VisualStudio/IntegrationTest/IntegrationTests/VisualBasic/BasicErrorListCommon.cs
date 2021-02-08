@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Xunit;
-using Xunit.Abstractions;
+using Roslyn.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public class BasicErrorListCommon : AbstractEditorTest
     {
-        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactor, ITestOutputHelper testOutputHelper, string templateName)
-            : base(instanceFactor, testOutputHelper, nameof(BasicErrorListCommon), templateName)
+        public BasicErrorListCommon(VisualStudioInstanceFactory instanceFactory, string templateName)
+            : base(instanceFactory, nameof(BasicErrorListCommon), templateName)
         {
         }
 
@@ -40,26 +42,31 @@ End Module
                 new ErrorListItem(
                     severity: "Error",
                     description: "Type 'P' is not defined.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 4,
                     column: 24),
                 new ErrorListItem(
                     severity: "Error",
                     description: "'Goo' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 9,
                     column: 9)
             };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
+
             VisualStudio.ErrorList.NavigateToErrorListItem(0);
             VisualStudio.Editor.Verify.CaretPosition(43);
-            VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+            VisualStudio.SolutionExplorer.BuildSolution();
             VisualStudio.ErrorList.ShowErrorList();
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
 
         public virtual void ErrorsDuringMethodBodyEditing()
@@ -79,7 +86,9 @@ End Namespace
             VisualStudio.ErrorList.ShowErrorList();
             var expectedContents = new ErrorListItem[] { };
             var actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("F = 0 ' Comment", charsOffset: -1);
@@ -89,13 +98,15 @@ End Namespace
                 new ErrorListItem(
                     severity: "Error",
                     description: "'FF' is not declared. It may be inaccessible due to its protection level.",
-                    project: "TestProj.vbproj",
+                    project: "TestProj",
                     fileName: "Class1.vb",
                     line: 6,
                     column: 13)
             };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
 
             VisualStudio.Editor.Activate();
             VisualStudio.Editor.PlaceCaret("FF = 0 ' Comment", charsOffset: -1);
@@ -103,7 +114,9 @@ End Namespace
             VisualStudio.ErrorList.ShowErrorList();
             expectedContents = new ErrorListItem[] { };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
-            Assert.Equal(expectedContents, actualContents);
+            AssertEx.EqualOrDiff(
+                string.Join<ErrorListItem>(Environment.NewLine, expectedContents),
+                string.Join<ErrorListItem>(Environment.NewLine, actualContents));
         }
     }
 }

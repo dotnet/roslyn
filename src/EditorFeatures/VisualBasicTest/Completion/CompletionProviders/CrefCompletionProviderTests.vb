@@ -12,10 +12,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class CrefCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(CrefCompletionProvider)
         End Function
@@ -329,7 +325,7 @@ End Class
         Public Async Function TestNoCommitOnParen() As Task
             Dim text = <File><![CDATA[
 ''' <summary>
-''' <see cref="C.$$"/>
+''' <see cref="C.bar$$"/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -339,7 +335,7 @@ End Class
 
             Dim expected = <File><![CDATA[
 ''' <summary>
-''' <see cref="C.("/>
+''' <see cref="C.bar("/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -347,7 +343,7 @@ End Sub
 End Class
 ]]></File>.Value
 
-            Await VerifyProviderCommitAsync(text, "bar(Integer, Integer)", expected, "("c, "bar")
+            Await VerifyProviderCommitAsync(text, "bar(Integer, Integer)", expected, "("c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -355,7 +351,7 @@ End Class
             Dim text = <File><![CDATA[
 Imports System.Collections.Generic
 ''' <summary>
-''' <see cref="$$"/>
+''' <see cref="Lis$$"/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -366,7 +362,7 @@ End Class
             Dim expected = <File><![CDATA[
 Imports System.Collections.Generic
 ''' <summary>
-''' <see cref=" "/>
+''' <see cref="List(Of T) "/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -374,7 +370,7 @@ End Sub
 End Class
 ]]></File>.Value
 
-            Await VerifyProviderCommitAsync(text, "List(Of T)", expected, " "c, "List(Of")
+            Await VerifyProviderCommitAsync(text, "List(Of T)", expected, " "c)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -49,6 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.ClassName)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition UserTypeClassesTypeDefinition;
+        #endregion
+        #region User Types - Records
+        [Export]
+        [Name(ClassificationTypeNames.RecordClassName)]
+        [BaseDefinition(ClassificationTypeNames.ClassName)]
+        internal readonly ClassificationTypeDefinition UserTypeRecordsTypeDefinition;
         #endregion
         #region User Types - Delegates 
         [Export]

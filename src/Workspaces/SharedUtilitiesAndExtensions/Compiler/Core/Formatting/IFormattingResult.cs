@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal interface IFormattingResult
     {
-        IList<TextChange> GetTextChanges(CancellationToken cancellationToken = default);
-        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken = default);
+        IList<TextChange> GetTextChanges(CancellationToken cancellationToken);
+        SyntaxNode GetFormattedRoot(CancellationToken cancellationToken);
     }
 }

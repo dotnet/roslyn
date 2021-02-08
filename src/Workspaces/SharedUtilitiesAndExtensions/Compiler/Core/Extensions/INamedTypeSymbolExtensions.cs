@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters);
+            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
@@ -70,20 +68,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsAbstract)
             {
                 return type.GetBaseTypesAndThis().SelectMany(t => t.GetMembers(symbol.Name))
-                                                 .FirstOrDefault(s => symbol.Equals(GetOverriddenMember(s)));
+                                                 .FirstOrDefault(s => symbol.Equals(s.GetOverriddenMember()));
             }
 
             return null;
         }
-
-        internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-            => symbol switch
-            {
-                IMethodSymbol method => method.OverriddenMethod,
-                IPropertySymbol property => property.OverriddenProperty,
-                IEventSymbol @event => @event.OverriddenEvent,
-                _ => null,
-            };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
             => classOrStructType.FindImplementationForInterfaceMember(member) != null;
@@ -362,11 +351,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
                 ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
-                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses);
+                : GetAbstractClassesToImplement(interfacesOrAbstractClasses);
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
-            INamedTypeSymbol classOrStructType,
             IEnumerable<INamedTypeSymbol> abstractClasses)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
@@ -552,30 +540,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool IsOverridable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member.IsAbstract || member.IsVirtual || member.IsOverride)
+            if (!member.IsAbstract && !member.IsVirtual && !member.IsOverride)
+                return false;
+
+            if (member.IsSealed)
+                return false;
+
+            if (!member.IsAccessibleWithin(containingType))
+                return false;
+
+            return member switch
             {
-                if (member.IsSealed)
-                {
-                    return false;
-                }
-
-                if (!member.IsAccessibleWithin(containingType))
-                {
-                    return false;
-                }
-
-                switch (member.Kind)
-                {
-                    case SymbolKind.Event:
-                        return true;
-                    case SymbolKind.Method:
-                        return ((IMethodSymbol)member).MethodKind == MethodKind.Ordinary;
-                    case SymbolKind.Property:
-                        return !((IPropertySymbol)member).IsWithEvents;
-                }
-            }
-
-            return false;
+                IEventSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.Ordinary, CanBeReferencedByName: true } => true,
+                IPropertySymbol { IsWithEvents: false } => true,
+                _ => false,
+            };
         }
 
         private static void RemoveOverriddenMembers(
@@ -585,12 +565,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var overriddenMember = member.OverriddenMember();
-                if (overriddenMember != null)
+                // An implicitly declared override is still something the user can provide their own explicit override
+                // for.  This is true for all implicit overrides *except* for the one for `bool object.Equals(object)`.
+                // This override is not one the user is allowed to provide their own override for as it must have a very
+                // particular implementation to ensure proper record equality semantics.
+                if (!member.IsImplicitlyDeclared || IsEqualsObjectOverride(member))
                 {
-                    result.Remove(overriddenMember);
+                    var overriddenMember = member.GetOverriddenMember();
+                    if (overriddenMember != null)
+                        result.Remove(overriddenMember);
                 }
             }
+        }
+
+        private static bool IsEqualsObjectOverride(ISymbol? member)
+        {
+            if (member == null)
+                return false;
+
+            if (IsEqualsObject(member))
+                return true;
+
+            return IsEqualsObjectOverride(member.GetOverriddenMember());
+        }
+
+        private static bool IsEqualsObject(ISymbol member)
+        {
+            return member is IMethodSymbol
+            {
+                Name: nameof(Equals),
+                IsStatic: false,
+                ContainingType: { SpecialType: SpecialType.System_Object },
+                Parameters: { Length: 1 },
+            };
         }
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)

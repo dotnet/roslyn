@@ -5,16 +5,20 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Friend Class GoToHelpers
     Friend Shared Async Function TestAsync(
-                                          workspaceDefinition As XElement,
-                                          testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
-                                          Optional shouldSucceed As Boolean = True,
-                                          Optional metadataDefinitions As String() = Nothing) As Task
-        Using workspace = TestWorkspace.Create(workspaceDefinition)
+            workspaceDefinition As XElement,
+            testHost As TestHost,
+            testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
+            Optional shouldSucceed As Boolean = True,
+            Optional metadataDefinitions As String() = Nothing) As Task
+
+        Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 

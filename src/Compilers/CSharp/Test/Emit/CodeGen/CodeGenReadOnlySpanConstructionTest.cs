@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -419,7 +421,7 @@ class Test
 
         [Fact]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
-        public void EnumArrayCtorPEverify()
+        public void EnumArrayCtorPEVerify()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;

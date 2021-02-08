@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Syntax
 Imports System.Collections.Immutable
+Imports System.ComponentModel
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -191,12 +192,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
-        Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As TypeSyntax
-            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
+        Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional options As ParseOptions = Nothing, Optional consumeFullText As Boolean = True) As TypeSyntax
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(DirectCast(options, VisualBasicParseOptions), VisualBasicParseOptions.Default))
                 p.GetNextToken()
                 Dim node = p.ParseGeneralType()
                 Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), TypeSyntax)
             End Using
+        End Function
+
+        '' Backcompat overload, do not touch
+        ''' <summary>
+        ''' Parse a type name.
+        ''' </summary>
+        ''' <param name="text">The input string</param>
+        ''' <param name="offset">The starting offset in the string</param>
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function ParseTypeName(text As String, offset As Integer, consumeFullText As Boolean) As TypeSyntax
+            Return ParseTypeName(text, offset, options:=Nothing, consumeFullText)
         End Function
 
         ''' <summary>
@@ -262,7 +274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Helper method for wrapping a string and offset in an SourceText.
+        ''' Helper method for wrapping a string and offset in a SourceText.
         ''' </summary>
         Friend Shared Function MakeSourceText(text As String, offset As Integer) As SourceText
             Return SourceText.From(text, Encoding.UTF8).GetSubText(offset)

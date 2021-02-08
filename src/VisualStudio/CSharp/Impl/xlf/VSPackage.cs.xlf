@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,7 +81,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Zobrazit diagnostiku pro zavřené soubory;
+        <target state="translated">Zobrazovat vložené nápovědy;
+Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 
 Zvýrazňovat související komponenty pod kurzorem; 
 Nahlásit neplatné regulární výrazy;
@@ -125,7 +127,8 @@ preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
 reg. výr.;
 regulární výraz;
-Používat rozšířené barvy;</target>
+Používat rozšířené barvy;
+Barevné schéma editoru;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -273,6 +276,7 @@ Vložit mezeru před a za binární operátory;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -283,10 +287,12 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
         <target state="translated">Změnit nastavení pro seznam dokončení;Předvolit naposledy použitou položku; Seznamy dokončení;
 Po zadání znaku zobrazit seznam dokončení;
 Po odstranění znaku zobrazit seznam dokončení;
+Automaticky zobrazovat seznam dokončení v seznamech argumentů (experimentální);
 Zvýraznit odpovídající části položek seznamu dokončení;
 Zobrazit filtry položek dokončení;
 Chování fragmentů;
@@ -297,7 +303,8 @@ Chování klávesy Enter;
 Při stisknutí klávesy Enter nikdy nepřidávat nový řádek;
 Při stisknutí klávesy Enter přidat nový řádek jenom po dopsání celého slova;
 Při stisknutí klávesy Enter vždy přidat nový řádek;
-Zobrazovat návrhy názvů;</target>
+Zobrazovat návrhy názvů;
+Zobrazit položky z neimportovaných oborů názvů (experimentální);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

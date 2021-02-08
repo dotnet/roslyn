@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     internal enum Result
     {
         OK = 0,                /* Successful result */
-        // ERROR = 1,          /* SQL error or missing database */
+        ERROR = 1,             /* SQL error or missing database */
         // INTERNAL = 2,       /* Internal logic error in SQLite */
         // PERM = 3,           /* Access permission denied */
         // ABORT = 4,          /* Callback routine requested an abort */

@@ -12,7 +12,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LambdaRewriter
+    Partial Friend Class LambdaRewriter
 
         ''' <summary>
         ''' Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.

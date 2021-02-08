@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -19,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Provides and caches analyzer information.
         /// </summary>
         DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
-
-        /// <summary>
-        /// Host analyzer collection.
-        /// </summary>
-        HostDiagnosticAnalyzers HostAnalyzers { get; }
 
         /// <summary>
         /// Re-analyze given projects and documents
@@ -48,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Force computes diagnostics and raises diagnostic events for the given project or solution. all diagnostics returned should be up-to-date with respect to the given project or solution.
         /// </summary>
-        Task ForceAnalyzeAsync(Solution solution, ProjectId? projectId = null, CancellationToken cancellationToken = default);
+        Task ForceAnalyzeAsync(Solution solution, Action<Project> onProjectAnalyzed, ProjectId? projectId = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// True if given project has any diagnostics
@@ -74,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It will return true if it was able to return all up-to-date diagnostics.
         ///  otherwise, false indicating there are some missing diagnostics in the diagnostic list
         /// </summary>
-        Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
+        Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return up to date diagnostics for the given span for the document
@@ -82,12 +76,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
         /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
         /// </summary>
-        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compilation end analyzer
-        /// By compilation end analyzer, it means compilation end analysis here
-        /// </summary>
-        bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer, Project project, Compilation compilation);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
     }
 }

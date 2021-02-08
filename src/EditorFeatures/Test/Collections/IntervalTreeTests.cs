@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         [Fact]
         public void TestCrash1()
         {
-            foreach (var tree in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
+            foreach (var _ in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
             {
             }
         }
@@ -267,14 +269,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
                 => value;
         }
 
-        private IntervalTree<int> CreateIntTree(params int[] values)
+        private static IntervalTree<int> CreateIntTree(params int[] values)
             => IntervalTree<int>.Create(new Int32Introspector(), values);
 
         [Fact]
         public void TestSortedEnumerable1()
         {
-            var tree = IntervalTree<int>.Create(new Int32Introspector(), new[] { 0, 0, 0 });
-
             Assert.Equal(CreateIntTree(0, 0, 0), new[] { 0, 0, 0 });
             Assert.Equal(CreateIntTree(0, 0, 1), new[] { 0, 0, 1 });
             Assert.Equal(CreateIntTree(0, 0, 2), new[] { 0, 0, 2 });
@@ -346,10 +346,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        private ISet<T> Set<T>(params T[] values)
+        private static ISet<T> Set<T>(params T[] values)
             => new HashSet<T>(values);
 
-        private IList<T> List<T>(params T[] values)
+        private static IList<T> List<T>(params T[] values)
             => new List<T>(values);
     }
 }

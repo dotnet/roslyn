@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -69,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lazyDisallowedCaptures = walker._lazyDisallowedCaptures;
             var allVariables = walker.variableBySlot;
 
-            walker.Free();
-
             if (lazyDisallowedCaptures != null)
             {
                 foreach (var kvp in lazyDisallowedCaptures)
@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Hoist anything determined to be live across an await or yield
             variablesToHoist.AddRange(walker._variablesToHoist);
 
+            walker.Free();
+
             return variablesToHoist;
         }
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol parameter =>
                     // in Debug build hoist all parameters that can be hoisted:
                     !parameter.Type.IsRestrictedType(),
-                LocalSymbol { IsConst: false, IsPinned: false } local =>
+                LocalSymbol { IsConst: false, IsPinned: false, IsRef: false } local =>
                     // hoist all user-defined locals and long-lived temps that can be hoisted:
                     local.SynthesizedKind.MustSurviveStateMachineSuspension() &&
                     !local.Type.IsRestrictedType(),
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MarkLocalsUnassigned()
         {
-            for (int i = 0; i < nextVariableSlot; i++)
+            for (int i = 0; i < variableBySlot.Count; i++)
             {
                 var symbol = variableBySlot[i].Symbol;
 

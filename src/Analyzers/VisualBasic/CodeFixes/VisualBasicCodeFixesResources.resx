@@ -123,4 +123,7 @@
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
+  <data name="Convert_GetType_to_NameOf" xml:space="preserve">
+    <value>Convert 'GetType' to 'NameOf'</value>
+  </data>
 </root>

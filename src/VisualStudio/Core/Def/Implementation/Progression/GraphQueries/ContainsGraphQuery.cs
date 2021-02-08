@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
+                            var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
                         }
                     }
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
+                                var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
                                 graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
                             }
                         }

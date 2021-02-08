@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
         public static CSharpCommandLineParser Script { get; } = new CSharpCommandLineParser(isScriptCommandLineParser: true);
 
-        private readonly static char[] s_quoteOrEquals = new[] { '"', '=' };
+        private static readonly char[] s_quoteOrEquals = new[] { '"', '=' };
 
         internal CSharpCommandLineParser(bool isScriptCommandLineParser = false)
             : base(CSharp.MessageProvider.Instance, isScriptCommandLineParser)
@@ -35,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override string RegularFileExtension { get { return ".cs"; } }
         protected override string ScriptFileExtension { get { return ".csx"; } }
 
-        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectoryOpt, string additionalReferenceDirectories)
+        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory, string? additionalReferenceDirectories)
         {
-            return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
+            return Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
         /// <summary>
@@ -79,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? outputFileName = null;
             string? outputRefFilePath = null;
             bool refOnly = false;
+            string? generatedFilesOutputDirectory = null;
             string? documentationPath = null;
             ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             var noWarns = new Dictionary<string, ReportDiagnostic>();
             var warnAsErrors = new Dictionary<string, ReportDiagnostic>();
-            int warningLevel = 4;
+            int warningLevel = Diagnostic.DefaultWarningLevel;
             bool highEntropyVA = false;
             bool printFullPaths = false;
             string? moduleAssemblyName = null;
@@ -127,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            bool skipAnalyzers = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
             CultureInfo? preferredUILang = null;
             string? touchedFilesPath = null;
@@ -189,6 +189,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case "version":
                         displayVersion = true;
+                        continue;
+
+                    case "langversion":
+                        value = RemoveQuotesAndSlashes(value);
+                        if (RoslynString.IsNullOrEmpty(value))
+                        {
+                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
+                        }
+                        else if (value.StartsWith("0", StringComparison.Ordinal))
+                        {
+                            // This error was added in 7.1 to stop parsing versions as ints (behaviour in previous Roslyn compilers), and explicitly
+                            // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
+                            AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
+                        }
+                        else if (value == "?")
+                        {
+                            displayLangVersions = true;
+                        }
+                        else if (!LanguageVersionFacts.TryParse(value, out languageVersion))
+                        {
+                            AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
+                        }
                         continue;
 
                     case "r":
@@ -592,6 +614,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             continue;
 
+                        case "generatedfilesout":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrWhiteSpace(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
+                            }
+                            else
+                            {
+                                generatedFilesOutputDirectory = ParseGenericPathToFile(value, diagnostics, baseDirectory);
+                            }
+                            continue;
+
                         case "doc":
                             parseDocumentationComments = true;
                             if (RoslynString.IsNullOrEmpty(value))
@@ -873,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
-                            else if (newWarningLevel < 0 || newWarningLevel > 4)
+                            else if (newWarningLevel < 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadWarningLevel, name);
                             }
@@ -913,28 +947,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             allowUnsafe = false;
-                            continue;
-
-                        case "langversion":
-                            value = RemoveQuotesAndSlashes(value);
-                            if (RoslynString.IsNullOrEmpty(value))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
-                            }
-                            else if (value.StartsWith("0", StringComparison.Ordinal))
-                            {
-                                // This error was added in 7.1 to stop parsing versions as ints (behaviour in previous Roslyn compilers), and explicitly
-                                // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
-                            }
-                            else if (value == "?")
-                            {
-                                displayLangVersions = true;
-                            }
-                            else if (!LanguageVersionFacts.TryParse(value, out languageVersion))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
-                            }
                             continue;
 
                         case "delaysign":
@@ -1177,6 +1189,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "reportanalyzer":
                             reportAnalyzer = true;
+                            continue;
+
+                        case "skipanalyzers":
+                        case "skipanalyzers+":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = true;
+                            continue;
+
+                        case "skipanalyzers-":
+                            if (value != null)
+                                break;
+
+                            skipAnalyzers = false;
                             continue;
 
                         case "nostdlib":
@@ -1441,7 +1468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 runtimeMetadataVersion: runtimeMetadataVersion,
                 instrumentationKinds: instrumentationKinds.ToImmutableAndFree(),
                 // TODO: set from /checksumalgorithm (see https://github.com/dotnet/roslyn/issues/24735)
-                pdbChecksumAlgorithm: HashAlgorithmName.SHA256
+                pdbChecksumAlgorithm: HashAlgorithmName.SHA256,
+                defaultSourceFileEncoding: codepage
             );
 
             // add option incompatibility errors if any
@@ -1454,6 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
+
+            pathMap = SortPathMap(pathMap);
 
             return new CSharpCommandLineArguments
             {
@@ -1472,6 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RuleSetPath = ruleSetPath,
                 OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
                 SourceFiles = sourceFiles.AsImmutable(),
@@ -1502,6 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ShouldIncludeErrorEndLocation = errorEndLocation,
                 PreferredUILang = preferredUILang,
                 ReportAnalyzer = reportAnalyzer,
+                SkipAnalyzers = skipAnalyzers,
                 EmbeddedFiles = embeddedFiles.AsImmutable()
             };
         }

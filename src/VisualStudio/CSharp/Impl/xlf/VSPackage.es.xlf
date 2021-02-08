@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -80,7 +81,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostrar diagnóstico para archivos cerrados;
+        <target state="translated">Mostrar sugerencias insertadas;
+Mostrar diagnóstico para archivos cerrados;
 Colorear expresión regular; 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
@@ -109,7 +111,7 @@ Guías de estructura de bloque;
 Mostrar guías para construcciones a nivel de declaración;
 Mostrar guías para construcciones a nivel de código;
 Ayuda del editor;
-Generar comentarios de documentación XML con ///;
+Generar comentarios de documentación XML para ///;
 Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */;
 Mostrar vista previa para seguimiento de cambio de nombre;
 Dividir literales de cadena al presionar Entrar;
@@ -125,7 +127,8 @@ preferir propiedades de lanzamiento;
 preferir propiedades automáticas;
 regex;
 expresión regular;
-Usar colores mejorados;</target>
+Usar colores mejorados;
+Combinación de colores del editor;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -273,6 +276,7 @@ Insertar espacio delante y detrás de operadores binarios;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
@@ -283,10 +287,12 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
         <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
 Mostrar lista de finalización después de escribir un carácter;
 Mostrar lista de finalización después de eliminar un carácter;
+Mostrar lista de finalización en las listas de argumentos automáticamente (experimental);
 Resaltar partes coincidentes de elementos de la lista de finalización;
 Mostrar filtros de elementos de finalización;
 Comportamiento de los fragmentos de código;
@@ -297,7 +303,8 @@ Comportamiento de la tecla Entrar;
 No agregar nunca una línea nueva al presionar Entrar;
 Agregar solo una nueva línea con Entrar al final de palabras;
 Agregar siempre una línea nueva al presionar Entrar;
-Mostrar sugerencias de nombre;</target>
+Mostrar sugerencias de nombre;
+Mostrar elementos de espacios de nombres no importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
