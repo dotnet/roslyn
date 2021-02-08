@@ -6,26 +6,19 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
-Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar.RoslynNavigationBarItem
-Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
+Namespace Microsoft.CodeAnalysis.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
-
-        Private Shared ReadOnly GeneratedSymbolAnnotation As SyntaxAnnotation = New SyntaxAnnotation()
 
         Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance)
@@ -36,27 +29,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             parameterOptions:=SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
-        Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
-
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
-            _editorOperationsFactoryService = editorOperationsFactoryService
-            _textUndoHistoryRegistry = textUndoHistoryRegistry
+        Public Sub New()
         End Sub
 
-        Public Overrides Async Function GetItemsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of IList(Of NavigationBarItem))
+        Protected Overrides Async Function GetItemsInCurrentProcessAsync(
+                document As Document,
+                workspaceSupportsDocumentChanges As Boolean,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of RoslynNavigationBarItem))
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Contract.ThrowIfNull(semanticModel)
 
             Dim typesAndDeclarations = GetTypesAndDeclarationsInFile(semanticModel, cancellationToken)
 
-            Dim typeItems As New List(Of NavigationBarItem)
+            Dim typeItems = ImmutableArray.CreateBuilder(Of RoslynNavigationBarItem)
             Dim typeSymbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
             Dim symbolDeclarationService = document.GetLanguageService(Of ISymbolDeclarationService)
-            Dim workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument)
 
             For Each typeAndDeclaration In typesAndDeclarations
                 Dim type = typeAndDeclaration.Item1
@@ -64,12 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey(cancellationToken)), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             Next
 
-            Return typeItems
-        End Function
-
-        Public Overrides Function ShowItemGrayedIfNear(item As NavigationBarItem) As Boolean
-            ' We won't show gray things that don't actually exist
-            Return DirectCast(item, RoslynNavigationBarItem).Kind = RoslynNavigationBarItemKind.Symbol
+            Return typeItems.ToImmutable()
         End Function
 
         Private Shared Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
@@ -112,14 +97,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End Try
         End Function
 
-        Private Function CreateItemsForType(type As INamedTypeSymbol,
-                                            position As Integer,
-                                            typeSymbolIdIndex As Integer,
-                                            semanticModel As SemanticModel,
-                                            workspaceSupportsDocumentChanges As Boolean,
-                                            symbolDeclarationService As ISymbolDeclarationService,
-                                            cancellationToken As CancellationToken) As IEnumerable(Of NavigationBarItem)
-            Dim items As New List(Of NavigationBarItem)
+        Private Function CreateItemsForType(
+                type As INamedTypeSymbol,
+                position As Integer,
+                typeSymbolIdIndex As Integer,
+                semanticModel As SemanticModel,
+                workspaceSupportsDocumentChanges As Boolean,
+                symbolDeclarationService As ISymbolDeclarationService,
+                cancellationToken As CancellationToken) As ImmutableArray(Of RoslynNavigationBarItem)
+
+            Dim items = ImmutableArray.CreateBuilder(Of RoslynNavigationBarItem)
             If type.TypeKind = TypeKind.Enum Then
                 items.Add(CreateItemForEnum(type, typeSymbolIdIndex, semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken))
             Else
@@ -159,14 +146,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 End If
             End If
 
-            Return items
+            Return items.ToImmutable()
         End Function
 
-        Private Shared Function CreateItemForEnum(type As INamedTypeSymbol,
-                                           typeSymbolIdIndex As Integer,
-                                           tree As SyntaxTree,
-                                           symbolDeclarationService As ISymbolDeclarationService,
-                                           cancellationToken As CancellationToken) As NavigationBarItem
+        Private Shared Function CreateItemForEnum(
+                type As INamedTypeSymbol,
+                typeSymbolIdIndex As Integer,
+                tree As SyntaxTree,
+                symbolDeclarationService As ISymbolDeclarationService,
+                cancellationToken As CancellationToken) As RoslynNavigationBarItem
+
             Dim symbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
             Dim members = Aggregate member In type.GetMembers()
@@ -177,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
                               member.GetSymbolKey(cancellationToken),
-                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), NavigationBarItem)
-                          Into ToList()
+                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), RoslynNavigationBarItem)
+                          Into ToImmutableArray()
 
             Return New SymbolItem(
                 type.Name,
@@ -190,14 +179,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 bolded:=True)
         End Function
 
-        Private Function CreatePrimaryItemForType(type As INamedTypeSymbol,
-                                                  typeSymbolIdIndex As Integer,
-                                                  tree As SyntaxTree,
-                                                  workspaceSupportsDocumentChanges As Boolean,
-                                                  symbolDeclarationService As ISymbolDeclarationService,
-                                                  cancellationToken As CancellationToken) As NavigationBarItem
+        Private Function CreatePrimaryItemForType(
+                type As INamedTypeSymbol,
+                typeSymbolIdIndex As Integer,
+                tree As SyntaxTree,
+                workspaceSupportsDocumentChanges As Boolean,
+                symbolDeclarationService As ISymbolDeclarationService,
+                cancellationToken As CancellationToken) As RoslynNavigationBarItem
 
-            Dim childItems As New List(Of NavigationBarItem)
+            Dim childItems As New List(Of RoslynNavigationBarItem)
 
             ' First, we always list the constructors
             Dim constructors = type.Constructors
@@ -205,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateDefaultConstructor(VBEditorResources.New_, type.GetSymbolKey(cancellationToken)))
+                    childItems.Add(New GenerateDefaultConstructor("New", type.GetSymbolKey(cancellationToken)))
                 End If
             Else
                 childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
@@ -246,11 +236,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return New SymbolItem(
                 name,
                 type.GetGlyph(),
-                indent:=0,
                 spans:=GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
                 navigationSymbolId:=type.GetSymbolKey(cancellationToken),
                 navigationSymbolIndex:=typeSymbolIdIndex,
-                childItems:=childItems,
+                childItems:=childItems.ToImmutableArray(),
                 bolded:=True)
         End Function
 
@@ -302,9 +291,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 semanticModel As SemanticModel,
                 workspaceSupportsDocumentChanges As Boolean,
                 symbolDeclarationService As ISymbolDeclarationService,
-                cancellationToken As CancellationToken) As NavigationBarItem
+                cancellationToken As CancellationToken) As RoslynNavigationBarItem
 
-            Dim rightHandMemberItems As New List(Of NavigationBarItem)
+            Dim rightHandMemberItems As New List(Of RoslynNavigationBarItem)
 
             Dim accessibleEvents = semanticModel.LookupSymbols(position, eventType).OfType(Of IEventSymbol).OrderBy(Function(e) e.Name)
 
@@ -368,42 +357,42 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Next
 
             If eventContainer IsNot Nothing Then
-                Return New NavigationBarActionlessItem(
+                Return New ActionlessItem(
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
-                    spans:=allMethodSpans,
-                    childItems:=rightHandMemberItems)
+                    spans:=allMethodSpans.ToImmutableArray(),
+                    childItems:=rightHandMemberItems.ToImmutableArray())
             Else
-                Return New NavigationBarActionlessItem(
-                    String.Format(VBEditorResources._0_Events, containingType.Name),
+                Return New ActionlessItem(
+                    String.Format(VBFeaturesResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
-                    spans:=allMethodSpans,
-                    childItems:=rightHandMemberItems)
+                    spans:=allMethodSpans.ToImmutableArray(),
+                    childItems:=rightHandMemberItems.ToImmutableArray())
             End If
         End Function
 
-        Private Shared Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(symbol As ISymbol, tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService, cancellationToken As CancellationToken) As ImmutableArray(Of TextSpan)
             If cancellationToken.IsCancellationRequested Then
-                Return SpecializedCollections.EmptyList(Of TextSpan)()
+                Return ImmutableArray(Of TextSpan).Empty
             End If
 
             Return GetSpansInDocument(SpecializedCollections.SingletonEnumerable(symbol), tree, symbolDeclarationService)
         End Function
 
-        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService) As IList(Of TextSpan)
+        Private Shared Function GetSpansInDocument(list As IEnumerable(Of ISymbol), tree As SyntaxTree, symbolDeclarationService As ISymbolDeclarationService) As ImmutableArray(Of TextSpan)
             Return list.SelectMany(AddressOf symbolDeclarationService.GetDeclarations) _
                         .Where(Function(r) r.SyntaxTree.Equals(tree)) _
                         .Select(Function(r) r.GetSyntax().FullSpan) _
-                        .ToList()
+                        .ToImmutableArray()
         End Function
 
         Private Function CreateItemsForMemberGroup(members As IEnumerable(Of ISymbol),
                                                    tree As SyntaxTree,
                                                    workspaceSupportsDocumentChanges As Boolean,
                                                    symbolDeclarationService As ISymbolDeclarationService,
-                                                   cancellationToken As CancellationToken) As IEnumerable(Of NavigationBarItem)
+                                                   cancellationToken As CancellationToken) As IEnumerable(Of RoslynNavigationBarItem)
             Dim firstMember = members.First()
 
             ' If there is exactly one member that has no type arguments, we will skip showing the
@@ -415,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 displayFormat = displayFormat.WithKindOptions(displayFormat.KindOptions Or SymbolDisplayKindOptions.IncludeMemberKeyword)
             End If
 
-            Dim items As New List(Of NavigationBarItem)
+            Dim items As New List(Of RoslynNavigationBarItem)
             Dim symbolIdIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
             For Each member In members
@@ -464,56 +453,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
         End Function
-
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
-            Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
-            Dim symbol = symbols.Symbol
-
-            If symbol Is Nothing Then
-                symbol = symbols.CandidateSymbols(item.NavigationSymbolIndex.Value)
-            End If
-
-            Dim location As Location = GetSourceNavigationLocation(document, symbol, cancellationToken)
-            If location Is Nothing Then
-                Return Nothing
-            End If
-
-            ' If the symbol is a method symbol, we'll figure out the right location which may be in
-            ' virtual space
-            If symbol.Kind = SymbolKind.Method Then
-                Dim methodBlock = location.FindToken(cancellationToken).GetAncestor(Of MethodBlockBaseSyntax)()
-
-                If methodBlock IsNot Nothing Then
-                    Return NavigationPointHelpers.GetNavigationPoint(location.SourceTree.GetText(cancellationToken), 4, methodBlock)
-                End If
-            End If
-
-            Return New VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start)
-        End Function
-
-        Private Shared Function GetSourceNavigationLocation(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Location
-            Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
-
-            ' First figure out the location that we want to grab considering partial types
-            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
-            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(syntaxTree))
-
-            If location Is Nothing Then
-                location = sourceLocations.FirstOrDefault
-            End If
-
-            Return location
-        End Function
-
-        Protected Overrides Sub NavigateToItem(document As Document, item As RoslynNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
-            Dim generateCodeItem = TryCast(item, AbstractGenerateCodeItem)
-
-            If generateCodeItem IsNot Nothing Then
-                GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
-            ElseIf TypeOf item Is SymbolItem Then
-                NavigateToSymbolItem(document, DirectCast(item, SymbolItem), cancellationToken)
-            End If
-        End Sub
     End Class
 End Namespace
