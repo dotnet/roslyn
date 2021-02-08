@@ -2,7 +2,18 @@
 
 This is a list of significant modifications done to Roslyn to support Caravela, along with some details.
 
-To see all changes made in Caravela Compiler, you can do a diff with the last merged Roslyn commit. E.g., at the moment of writing, `git diff Visual-Studio-2019-Version-16.8..master` or `gitk Visual-Studio-2019-Version-16.8..master`.
+To see all changes made in Caravela Compiler, you can do a diff with the last merged Roslyn commit.
+
+First, add the remote to your local clone:
+
+```
+git remote add roslyn https://github.com/dotnet/roslyn.git
+```
+
+Then at moment of writing:
+
+* `git diff Visual-Studio-2019-Version-16.8..master` or 
+* `gitk Visual-Studio-2019-Version-16.8..master`.
 
 ## Caravela.Compiler.CodeAnalysis
 
