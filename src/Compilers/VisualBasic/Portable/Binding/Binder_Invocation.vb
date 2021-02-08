@@ -978,7 +978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     [property],
                     propertyGroup,
                     PropertyAccessKind.Unknown,
-                    [property].IsWritable(receiver, Me, isKnownTargetOfObjectMemberInintializer:=False),
+                    [property].IsWritable(receiver, Me, isKnownTargetOfObjectMemberInitializer:=False),
                     receiver,
                     boundArguments,
                     argumentInfo.DefaultArguments,

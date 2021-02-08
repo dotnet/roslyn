@@ -139,3 +139,6 @@ class C
 ```
 
 21. https://github.com/dotnet/roslyn/issues/50182 In *Visual Studio 2019 version 16.9* and greater, the compiler will no longer allow `await foreach` over variables that implement a malformed version of `IAsyncEnumerable` that has a non-optional `CancellationToken` parameter.
+
+22. https://github.com/dotnet/roslyn/issues/49596 In *Visual Studio 2019 version 16.9* and greater, conversions from `sbyte` or `short` to `nuint` require explicit casts,
+and binary operations with `sbyte` or `short` and `nuint` arguments require explicit casts for one or both operands for `+`, `-`, `*`, `/`, `%`, `<`, `>`, `<=`, `>=`, `==`, `!=`, `|`, `&`, and `^`.

@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <DefineConstants>$(DefineConstants);COCOA</DefineConstants>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -10,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Core.Wpf\ExternalAccess\VSTypeScript\**\*.cs" LinkBase="ExternalAccess\VSTypeScript" />
+    <Compile Include="..\Core.Wpf\InlineRename\**\*.cs" Exclude="..\Core.Wpf\InlineRename\Dashboard\**\*.cs" LinkBase="InlineRename" />
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
   </ItemGroup>
@@ -23,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)"/>
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)"/>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Cocoa" Version="$(MicrosoftVisualStudioTextUICocoaVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />

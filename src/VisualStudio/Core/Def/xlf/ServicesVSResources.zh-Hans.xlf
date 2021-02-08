@@ -852,6 +852,11 @@
         <target state="translated">当参数名称只有后缀不同时禁止显示提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">目标命名空间:</target>
@@ -2176,16 +2181,6 @@ Additional information: {1}</source>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">赋值表达式中类型明显</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">获取有关“{0}”的帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">从必应获取有关“{0}”的帮助</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

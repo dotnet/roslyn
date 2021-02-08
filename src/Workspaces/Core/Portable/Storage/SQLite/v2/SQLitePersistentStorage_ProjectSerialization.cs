@@ -10,16 +10,18 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
+    using static SQLitePersistentStorageConstants;
+
     internal partial class SQLitePersistentStorage
     {
-        protected override Task<Checksum?> ReadChecksumAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, CancellationToken cancellationToken)
-            => _projectAccessor.ReadChecksumAsync((projectKey, bulkLoadSnapshot, name), cancellationToken);
+        protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
+            => _projectAccessor.ChecksumMatchesAsync((projectKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
         protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.ReadStreamAsync((projectKey, bulkLoadSnapshot, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => _projectAccessor.WriteStreamAsync(((ProjectKey)project, project, name), stream, checksum, cancellationToken);
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => _projectAccessor.WriteStreamAsync((projectKey, bulkLoadSnapshot, name), stream, checksum, cancellationToken);
 
         /// <summary>
         /// <see cref="Accessor{TKey, TWriteQueueKey, TDatabaseId}"/> responsible for storing and
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
             }
 
-            protected override string DataTableName => ProjectDataTableName;
+            protected override Table Table => Table.Project;
 
             protected override (ProjectId projectId, string name) GetWriteQueueKey((ProjectKey projectKey, Project? bulkLoadSnapshot, string name) key)
                 => (key.projectKey.Id, key.name);

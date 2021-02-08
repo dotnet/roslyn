@@ -12,10 +12,10 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -27,15 +27,13 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -54,13 +52,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
         private readonly AbstractFormattingRule _endRegionFormattingRule;
+        private readonly IThreadingContext _threadingContext;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
-            AbstractFormattingRule endRegionFormattingRule)
+            AbstractFormattingRule endRegionFormattingRule,
+            IThreadingContext threadingContext)
         {
             Debug.Assert(languageServiceProvider != null);
             Debug.Assert(editorOptionsFactoryService != null);
@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
+            _threadingContext = threadingContext;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
             _nodeLocator = CreateNodeLocator();
@@ -489,7 +490,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Rename symbol.
             var oldSolution = workspace.CurrentSolution;
-            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
+
+            // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
+            // to keep the rename action from deadlocking.
+            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -1064,12 +1068,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 formattingRules = additionalRules.Concat(formattingRules);
             }
 
-            return Formatter.FormatAsync(
+            return _threadingContext.JoinableTaskFactory.Run(() => Formatter.FormatAsync(
                 document,
                 new TextSpan[] { formattingSpan },
                 options: null,
                 rules: formattingRules,
-                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+                cancellationToken: cancellationToken));
         }
 
         private SyntaxNode InsertNode(
@@ -1102,7 +1106,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+                document = _threadingContext.JoinableTaskFactory.Run(() =>
+                    Simplifier.ReduceAsync(
+                        document,
+                        annotation,
+                        optionSet: null,
+                        cancellationToken: cancellationToken)
+                );
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);
