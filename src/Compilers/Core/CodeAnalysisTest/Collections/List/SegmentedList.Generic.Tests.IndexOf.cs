@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     {
         #region Helpers
 
-        public delegate int IndexOfDelegate(List<T> list, T value);
+        internal delegate int IndexOfDelegate(SegmentedList<T> list, T value);
         public enum IndexOfMethod
         {
             IndexOf_T,
@@ -38,17 +39,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             switch (methodType)
             {
                 case (IndexOfMethod.IndexOf_T):
-                    return ((List<T> list, T value) => { return list.IndexOf(value); });
+                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value); });
                 case (IndexOfMethod.IndexOf_T_int):
-                    return ((List<T> list, T value) => { return list.IndexOf(value, 0); });
+                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value, 0); });
                 case (IndexOfMethod.IndexOf_T_int_int):
-                    return ((List<T> list, T value) => { return list.IndexOf(value, 0, list.Count); });
+                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value, 0, list.Count); });
                 case (IndexOfMethod.LastIndexOf_T):
-                    return ((List<T> list, T value) => { return list.LastIndexOf(value); });
+                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value); });
                 case (IndexOfMethod.LastIndexOf_T_int):
-                    return ((List<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1); });
+                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1); });
                 case (IndexOfMethod.LastIndexOf_T_int_int):
-                    return ((List<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1, list.Count); });
+                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1, list.Count); });
                 default:
                     throw new Exception("Invalid IndexOfMethod");
             }
@@ -87,8 +88,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void IndexOf_NoDuplicates(IndexOfMethod indexOfMethod, int count, bool frontToBackOrder)
         {
             _ = frontToBackOrder;
-            List<T> list = GenericListFactory(count);
-            List<T> expectedList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> expectedList = list.ToSegmentedList();
             IndexOfDelegate IndexOf = IndexOfDelegateFromType(indexOfMethod);
 
             Assert.All(Enumerable.Range(0, count), i =>
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void IndexOf_NonExistingValues(IndexOfMethod indexOfMethod, int count, bool frontToBackOrder)
         {
             _ = frontToBackOrder;
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             IEnumerable<T> nonexistentValues = CreateEnumerable(EnumerableType.List, list, count: count, numberOfMatchingElements: 0, numberOfDuplicateElements: 0);
             IndexOfDelegate IndexOf = IndexOfDelegateFromType(indexOfMethod);
 
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             _ = frontToBackOrder;
             T? defaultValue = default;
-            List<T?> list = GenericListFactory(count)!;
+            SegmentedList<T?> list = GenericListFactory(count)!;
             IndexOfDelegate IndexOf = IndexOfDelegateFromType(indexOfMethod);
             while (list.Remove(defaultValue))
                 count--;
@@ -130,8 +131,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(IndexOfTestData))]
         public void IndexOf_OrderIsCorrect(IndexOfMethod indexOfMethod, int count, bool frontToBackOrder)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> withoutDuplicates = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> withoutDuplicates = list.ToSegmentedList();
             list.AddRange(list);
             IndexOfDelegate IndexOf = IndexOfDelegateFromType(indexOfMethod);
 
@@ -148,8 +149,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void IndexOf_int_OrderIsCorrectWithManyDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> withoutDuplicates = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> withoutDuplicates = list.ToSegmentedList();
             list.AddRange(list);
             list.AddRange(list);
             list.AddRange(list);
@@ -169,8 +170,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void LastIndexOf_int_OrderIsCorrectWithManyDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> withoutDuplicates = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> withoutDuplicates = list.ToSegmentedList();
             list.AddRange(list);
             list.AddRange(list);
             list.AddRange(list);
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void IndexOf_int_OutOfRangeExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             T element = CreateT(234);
             Assert.Throws<ArgumentOutOfRangeException>(() => list.IndexOf(element, count + 1)); //"Expect ArgumentOutOfRangeException for index greater than length of list.."
             Assert.Throws<ArgumentOutOfRangeException>(() => list.IndexOf(element, count + 10)); //"Expect ArgumentOutOfRangeException for index greater than length of list.."
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void IndexOf_int_int_OutOfRangeExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             T element = CreateT(234);
             Assert.Throws<ArgumentOutOfRangeException>(() => list.IndexOf(element, count, 1)); //"ArgumentOutOfRangeException expected on index larger than array."
             Assert.Throws<ArgumentOutOfRangeException>(() => list.IndexOf(element, count + 1, 1)); //"ArgumentOutOfRangeException expected  on index larger than array."
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void LastIndexOf_int_OutOfRangeExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             T element = CreateT(234);
             Assert.Throws<ArgumentOutOfRangeException>(() => list.LastIndexOf(element, count)); //"ArgumentOutOfRangeException expected."
             if (count == 0)  // IndexOf with a 0 count List is special cased to return -1.
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void LastIndexOf_int_int_OutOfRangeExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             T element = CreateT(234);
 
             if (count > 0)

@@ -10,7 +10,7 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return GenericListFactory(count);
         }
 
-        protected virtual List<string> GenericListFactory()
+        private protected virtual SegmentedList<string> GenericListFactory()
         {
-            return new List<string>();
+            return new SegmentedList<string>();
         }
 
-        protected virtual List<string> GenericListFactory(int count)
+        private protected virtual SegmentedList<string> GenericListFactory(int count)
         {
             var list = GenericListFactory();
             int seed = 5321;

@@ -220,9 +220,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 var index = Array.IndexOf(segment.Array!, value, segment.Offset, segment.Count);
-                if (index > 0)
+                if (index >= 0)
                 {
-                    return index + offset;
+                    return index + offset - segment.Offset;
                 }
 
                 offset += segment.Count;

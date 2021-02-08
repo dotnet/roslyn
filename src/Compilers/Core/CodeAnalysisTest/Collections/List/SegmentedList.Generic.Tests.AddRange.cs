@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -26,8 +27,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(EnumerableTestData))]
         public void AddRange(EnumerableType enumerableType, int listLength, int enumerableLength, int numberOfMatchingElements, int numberOfDuplicateElements)
         {
-            List<T> list = GenericListFactory(listLength);
-            List<T> listBeforeAdd = list.ToList();
+            SegmentedList<T> list = GenericListFactory(listLength);
+            SegmentedList<T> listBeforeAdd = list.ToSegmentedList();
             IEnumerable<T> enumerable = CreateEnumerable(enumerableType, list, enumerableLength, numberOfMatchingElements, numberOfDuplicateElements);
             list.AddRange(enumerable);
 
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void AddRange_NullEnumerable_ThrowsArgumentNullException(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> listBeforeAdd = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> listBeforeAdd = list.ToSegmentedList();
             Assert.Throws<ArgumentNullException>(() => list.AddRange(null!));
             Assert.Equal(listBeforeAdd, list);
         }
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void AddRange_AddSelfAsEnumerable_ThrowsExceptionWhenNotEmpty()
         {
-            List<T?> list = GenericListFactory(0)!;
+            SegmentedList<T?> list = GenericListFactory(0)!;
 
             // Succeeds when list is empty.
             list.AddRange(list);

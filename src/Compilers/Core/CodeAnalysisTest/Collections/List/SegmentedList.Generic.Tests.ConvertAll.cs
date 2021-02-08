@@ -8,8 +8,8 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ConvertAll()
         {
-            var list = new List<int>(new int[] { 1, 2, 3 });
-            var before = list.ToList();
+            var list = new SegmentedList<int>(new int[] { 1, 2, 3 });
+            var before = list.ToSegmentedList();
             var after = list.ConvertAll((i) => { return 10 * i; });
 
             Assert.Equal(before.Count, list.Count);

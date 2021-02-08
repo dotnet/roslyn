@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_WithoutDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             IComparer<T> comparer = Comparer<T>.Default;
             list.Sort();
             Assert.All(Enumerable.Range(0, count - 2), i =>
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_WithDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             list.Add(list[0]);
             IComparer<T> comparer = Comparer<T>.Default;
             list.Sort();
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_IComparer_WithoutDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             IComparer<T> comparer = GetIComparer();
             list.Sort(comparer);
             Assert.All(Enumerable.Range(0, count - 2), i =>
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_IComparer_WithDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             list.Add(list[0]);
             IComparer<T> comparer = GetIComparer();
             list.Sort(comparer);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_Comparison_WithoutDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             IComparer<T> iComparer = GetIComparer();
             Comparison<T> comparer = ((T first, T second) => { return iComparer.Compare(first, second); });
             list.Sort(comparer);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_Comparison_WithDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             list.Add(list[0]);
             IComparer<T> iComparer = GetIComparer();
             Comparison<T> comparer = ((T first, T second) => { return iComparer.Compare(first, second); });
@@ -127,12 +128,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_intintIComparer_WithoutDuplicates(int count)
         {
-            List<T> unsortedList = GenericListFactory(count);
+            SegmentedList<T> unsortedList = GenericListFactory(count);
             IComparer<T> comparer = GetIComparer();
             for (int startIndex = 0; startIndex < count - 2; startIndex++)
                 for (int sortCount = 1; sortCount < count - startIndex; sortCount++)
                 {
-                    List<T> list = new List<T>(unsortedList);
+                    SegmentedList<T> list = new SegmentedList<T>(unsortedList);
                     list.Sort(startIndex, sortCount + 1, comparer);
                     for (int i = startIndex; i < sortCount; i++)
                         Assert.InRange(comparer.Compare(list[i], list[i + 1]), int.MinValue, 0);
@@ -143,13 +144,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes_GreaterThanOne))]
         public void Sort_intintIComparer_WithDuplicates(int count)
         {
-            List<T> unsortedList = GenericListFactory(count);
+            SegmentedList<T> unsortedList = GenericListFactory(count);
             IComparer<T> comparer = GetIComparer();
             unsortedList.Add(unsortedList[0]);
             for (int startIndex = 0; startIndex < count - 2; startIndex++)
                 for (int sortCount = 2; sortCount < count - startIndex; sortCount++)
                 {
-                    List<T> list = new List<T>(unsortedList);
+                    SegmentedList<T> list = new SegmentedList<T>(unsortedList);
                     list.Sort(startIndex, sortCount + 1, comparer);
                     for (int i = startIndex; i < sortCount; i++)
                         Assert.InRange(comparer.Compare(list[i], list[i + 1]), int.MinValue, 1);
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void Sort_intintIComparer_NegativeRange_ThrowsArgumentOutOfRangeException(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(-1,-1),
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void Sort_intintIComparer_InvalidRange_ThrowsArgumentException(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(count, 1),

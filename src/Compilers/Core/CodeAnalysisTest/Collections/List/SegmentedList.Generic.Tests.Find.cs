@@ -9,8 +9,8 @@
 // reference implementation.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindVerifyExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
 
             //[] Verify Null match Find
             Assert.Throws<ArgumentNullException>(() => list.Find(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexInt_VerifyExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = _alwaysTrueDelegate;
 
 
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexIntInt_VerifyExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = delegate (T item) { return true; };
 
 
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLastIndexIntInt_VerifyExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = _alwaysTrueDelegate;
 
             //[] Verify Null match
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndexInt_VerifyExceptions(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> predicate = delegate (T item) { return true; };
 
             //[] Verify Null match
@@ -229,8 +229,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void Find_VerifyVanilla(int count)
         {
-            List<T?> list = GenericListFactory(count)!;
-            List<T?> beforeList = list.ToList();
+            SegmentedList<T?> list = GenericListFactory(count)!;
+            SegmentedList<T?> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             T? foundItem;
             Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
@@ -264,8 +264,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void Find_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             T? foundItem;
             Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -303,8 +303,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindLast_VerifyVanilla(int count)
         {
-            List<T?> list = GenericListFactory(count)!;
-            List<T?> beforeList = list.ToList();
+            SegmentedList<T?> list = GenericListFactory(count)!;
+            SegmentedList<T?> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             T? foundItem;
             Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLast_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             T? foundItem;
             Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -381,8 +381,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindIndex_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDefaultDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -411,8 +411,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindIndex_VerifyDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
@@ -447,8 +447,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindIndexInt_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -500,8 +500,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindIndexInt_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -545,8 +545,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindIndexIntInt_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -623,8 +623,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindIndexIntInt_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -668,8 +668,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndex_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -697,8 +697,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndex_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = delegate (T item) { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -732,8 +732,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndexInt_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -784,8 +784,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndexInt_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -829,8 +829,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndexIntInt_VerifyVanilla(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -910,8 +910,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void FindLastIndexIntInt_VerifyDuplicates(int count)
         {
             T? expectedItem = default(T);
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
             Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
@@ -944,8 +944,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindAll_VerifyVanilla(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             Predicate<T> EqualsDelegate = (value) => expectedItem == null ? value == null : expectedItem.Equals(value);
 
@@ -953,40 +953,40 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (int i = 0; i < count; ++i)
             {
                 expectedItem = beforeList[i];
-                List<T> results = list.FindAll(EqualsDelegate);
-                VerifyList(results, beforeList.Where((value) => EqualsDelegate(value)).ToList());
+                SegmentedList<T> results = list.FindAll(EqualsDelegate);
+                VerifyList(results, beforeList.Where((value) => EqualsDelegate(value)).ToSegmentedList());
             }
 
             //[] Verify FindAll returns an List with all of the items if the predicate always returns true
             VerifyList(list.FindAll(_alwaysTrueDelegate), beforeList);
 
             //[] Verify FindAll returns an empty List if the match returns false on every item
-            VerifyList(list.FindAll(_alwaysFalseDelegate), new List<T>());
+            VerifyList(list.FindAll(_alwaysFalseDelegate), new SegmentedList<T>());
         }
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public void FindAll_VerifyDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             for (int i = 0; i < count / 2; i++)
                 list.Add(list[i]);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             Predicate<T> EqualsDelegate = (value) => expectedItem == null ? value == null : expectedItem.Equals(value);
             //[] Verify FindAll returns the correct List with one item
             for (int i = 0; i < count; ++i)
             {
                 expectedItem = beforeList[i];
-                List<T> results = list.FindAll(EqualsDelegate);
-                VerifyList(results, beforeList.Where((value) => EqualsDelegate(value)).ToList());
+                SegmentedList<T> results = list.FindAll(EqualsDelegate);
+                VerifyList(results, beforeList.Where((value) => EqualsDelegate(value)).ToSegmentedList());
             }
 
             //[] Verify FindAll returns an List with all of the items if the predicate always returns true
             VerifyList(list.FindAll(_alwaysTrueDelegate), beforeList);
 
             //[] Verify FindAll returns an empty List if the match returns false on every item
-            VerifyList(list.FindAll(_alwaysFalseDelegate), new List<T>());
+            VerifyList(list.FindAll(_alwaysFalseDelegate), new SegmentedList<T>());
         }
 
         #endregion

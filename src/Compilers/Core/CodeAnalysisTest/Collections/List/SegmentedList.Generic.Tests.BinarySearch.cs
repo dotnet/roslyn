@@ -9,8 +9,8 @@
 // reference implementation.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void BinarySearch_ForEveryItemWithoutDuplicates(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             foreach (T item in list)
                 while (list.Count((value) => value.Equals(item)) > 1)
                     list.Remove(item);
             list.Sort();
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> beforeList = list.ToSegmentedList();
 
             Assert.All(Enumerable.Range(0, list.Count), index =>
             {
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (count > 0)
             {
-                List<T> list = GenericListFactory(count);
+                SegmentedList<T> list = GenericListFactory(count);
                 list.Add(list[0]);
                 list.Sort();
-                List<T> beforeList = list.ToList();
+                SegmentedList<T> beforeList = list.ToSegmentedList();
 
                 Assert.All(Enumerable.Range(0, list.Count), index =>
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void BinarySearch_Validations(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             list.Sort();
             T element = CreateT(3215);
             Assert.Throws<ArgumentException>(null, () => list.BinarySearch(0, count + 1, element, GetIComparer())); //"Finding items longer than array should throw ArgumentException"

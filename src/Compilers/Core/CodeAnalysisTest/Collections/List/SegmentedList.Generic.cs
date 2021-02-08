@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return GenericListFactory().AsReadOnly();
         }
 
-        protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
+        protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new SegmentedList<ModifyEnumerable>();
     }
 
     public class SegmentedList_Generic_Tests_int_ReadOnly : SegmentedList_Generic_Tests<int>
@@ -80,6 +81,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return GenericListFactory().AsReadOnly();
         }
 
-        protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
+        protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new SegmentedList<ModifyEnumerable>();
     }
 }

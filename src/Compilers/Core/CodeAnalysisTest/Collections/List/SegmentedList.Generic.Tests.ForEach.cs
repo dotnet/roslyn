@@ -9,7 +9,7 @@
 // reference implementation.
 
 using System;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void ForEach_Verify(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> visitedItems = new List<T>();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> visitedItems = new SegmentedList<T>();
             Action<T> action = delegate (T item) { visitedItems.Add(item); };
 
             //[] Verify ForEach looks at every item
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void ForEach_NullAction_ThrowsArgumentNullException()
         {
-            List<T> list = GenericListFactory();
+            SegmentedList<T> list = GenericListFactory();
             Assert.Throws<ArgumentNullException>(() => list.ForEach(null!));
         }
     }

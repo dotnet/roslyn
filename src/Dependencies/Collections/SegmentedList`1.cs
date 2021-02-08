@@ -753,8 +753,9 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
                     else
                     {
+                        var targetIndex = index;
                         foreach (var item in c)
-                            Add(item);
+                            _items[targetIndex++] = item;
                     }
 
                     _size += count;

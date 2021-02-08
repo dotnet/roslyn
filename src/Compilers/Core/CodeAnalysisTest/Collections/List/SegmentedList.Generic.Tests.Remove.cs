@@ -9,8 +9,8 @@
 // reference implementation.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void RemoveAll_AllElements(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int removedCount = list.RemoveAll((value) => { return true; });
             Assert.Equal(count, removedCount);
             Assert.Equal(0, list.Count);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void RemoveAll_NoElements(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             int removedCount = list.RemoveAll((value) => { return false; });
             Assert.Equal(0, removedCount);
             Assert.Equal(count, list.Count);
@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void RemoveAll_DefaultElements(int count)
         {
-            List<T> list = GenericListFactory(count);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(count);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
             Predicate<T> EqualsDefaultElement = (value) => { return default(T) == null ? value == null : default(T)!.Equals(value); };
             int expectedCount = beforeList.Count((value) => EqualsDefaultElement(value));
             int removedCount = list.RemoveAll(EqualsDefaultElement);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void RemoveAll_NullMatchPredicate()
         {
-            Assert.Throws<ArgumentNullException>("match", () => new List<T>().RemoveAll(null!));
+            Assert.Throws<ArgumentNullException>("match", () => new SegmentedList<T>().RemoveAll(null!));
         }
 
         #endregion
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [InlineData(10, 8, 2)]
         public void Remove_Range(int listLength, int index, int count)
         {
-            List<T> list = GenericListFactory(listLength);
-            List<T> beforeList = list.ToList();
+            SegmentedList<T> list = GenericListFactory(listLength);
+            SegmentedList<T> beforeList = list.ToSegmentedList();
 
             list.RemoveRange(index, count);
             Assert.Equal(list.Count, listLength - count); //"Expected them to be the same."
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (listLength % 2 != 0)
                 listLength++;
-            List<T> list = GenericListFactory(listLength);
+            SegmentedList<T> list = GenericListFactory(listLength);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(listLength     ,1             ),
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (listLength % 2 != 0)
                 listLength++;
-            List<T> list = GenericListFactory(listLength);
+            SegmentedList<T> list = GenericListFactory(listLength);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(-1,-1),

@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicInsert(T?[] items, T? item, int index, int repeat)
             {
-                List<T?> list = new List<T?>(items);
+                SegmentedList<T?> list = new SegmentedList<T?>(items);
 
                 for (int i = 0; i < repeat; i++)
                 {
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void InsertValidations(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
                 for (int i = 0; i < bad.Length; i++)
                 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListBasicInsert(T?[] items, T? item, int index, int repeat)
             {
-                List<T?> list = new List<T?>(items);
+                SegmentedList<T?> list = new SegmentedList<T?>(items);
                 IList _ilist = list;
 
                 for (int i = 0; i < repeat; i++)
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListInsertValidations(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
                 int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
                 for (int i = 0; i < bad.Length; i++)
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void InsertRangeIEnumerable(T?[] itemsX, T?[] itemsY, int index, int repeat, Func<T?[], IEnumerable<T?>> constructIEnumerable)
             {
-                List<T?> list = new List<T?>(constructIEnumerable(itemsX));
+                SegmentedList<T?> list = new SegmentedList<T?>(constructIEnumerable(itemsX));
 
                 for (int i = 0; i < repeat; i++)
                 {
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 }
 
                 //InsertRange into itself
-                list = new List<T?>(constructIEnumerable(itemsX));
+                list = new SegmentedList<T?>(constructIEnumerable(itemsX));
                 list.InsertRange(index, list);
 
                 foreach (T? item in itemsX)
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void InsertRangeValidations(T?[] items, Func<T?[], IEnumerable<T?>> constructIEnumerable)
             {
-                List<T?> list = new List<T?>(constructIEnumerable(items));
+                SegmentedList<T?> list = new SegmentedList<T?>(constructIEnumerable(items));
                 int[] bad = new int[] { items.Length + 1, items.Length + 2, int.MaxValue, -1, -2, int.MinValue };
                 for (int i = 0; i < bad.Length; i++)
                 {
@@ -214,8 +215,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicGetRange(T[] items, int index, int count)
             {
-                List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                SegmentedList<T> list = new SegmentedList<T>(items);
+                SegmentedList<T> range = list.GetRange(index, count);
 
                 //ensure range is good
                 for (int i = 0; i < count; i++)
@@ -232,8 +233,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void EnsureRangeIsReference(T[] items, T item, int index, int count)
             {
-                List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                SegmentedList<T> list = new SegmentedList<T>(items);
+                SegmentedList<T> range = list.GetRange(index, count);
                 T tempItem = list[index];
                 range[0] = item;
                 Assert.Equal(list[index], tempItem); //String.Format("Err_707811hapba Expected item: {0} at: {1} actual: {2}", tempItem, index, list[index])
@@ -241,8 +242,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void EnsureThrowsAfterModification(T[] items, T item, int index, int count)
             {
-                List<T> list = new List<T>(items);
-                List<T> range = list.GetRange(index, count);
+                SegmentedList<T> list = new SegmentedList<T>(items);
+                SegmentedList<T> range = list.GetRange(index, count);
                 T tempItem = list[index];
                 list[index] = item;
 
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 //
                 //Always send items.Length is even
                 //
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 int[] bad = new int[] {  /**/items.Length,1,
                     /**/
                                     items.Length+1,0,
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void Exists_VerifyExceptions(T[] items)
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 Predicate<T> predicate = (T item) => { return true; };
 
                 for (int i = 0; i < items.Length; ++i)
@@ -337,7 +338,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             private void Exists_VerifyVanilla(T[] items)
             {
                 T? expectedItem = default(T);
-                List<T?> list = new List<T?>();
+                SegmentedList<T?> list = new SegmentedList<T?>();
                 Predicate<T?> expectedItemDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             private void Exists_VerifyDuplicates(T[] items)
             {
                 T? expectedItem = default(T);
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 Predicate<T> expectedItemDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
                 if (0 < items.Length)
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicContains(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
 
                 for (int i = 0; i < items.Length; i++)
                 {
@@ -417,7 +418,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonExistingValues(T[] itemsX, T[] itemsY)
             {
-                List<T> list = new List<T>(itemsX);
+                SegmentedList<T> list = new SegmentedList<T>(itemsX);
 
                 for (int i = 0; i < itemsY.Length; i++)
                 {
@@ -427,7 +428,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void RemovedValues(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 for (int i = 0; i < items.Length; i++)
                 {
                     list.Remove(items[i]);
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void AddRemoveValues(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 for (int i = 0; i < items.Length; i++)
                 {
                     list.Add(items[i]);
@@ -449,7 +450,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void MultipleValues(T[] items, int times)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
 
                 for (int i = 0; i < times; i++)
                 {
@@ -470,14 +471,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     throw new ArgumentException("invalid argument passed to testcase");
                 }
 
-                List<T?> list = new List<T?>(items);
+                SegmentedList<T?> list = new SegmentedList<T?>(items);
                 list.Add(value);
                 Assert.True(list.Contains(value)); //"Should contain item."
             }
 
             public void NonGenericIListBasicContains(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
 
                 for (int i = 0; i < items.Length; i++)
@@ -488,7 +489,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListNonExistingValues(T[] itemsX, T[] itemsY)
             {
-                List<T> list = new List<T>(itemsX);
+                SegmentedList<T> list = new SegmentedList<T>(itemsX);
                 IList _ilist = list;
 
                 for (int i = 0; i < itemsY.Length; i++)
@@ -499,7 +500,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListRemovedValues(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
                 for (int i = 0; i < items.Length; i++)
                 {
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListAddRemoveValues(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
                 for (int i = 0; i < items.Length; i++)
                 {
@@ -523,7 +524,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListMultipleValues(T[] items, int times)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
 
                 for (int i = 0; i < times; i++)
@@ -546,7 +547,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     throw new ArgumentException("invalid argument passed to testcase");
                 }
 
-                List<T?> list = new List<T?>(items);
+                SegmentedList<T?> list = new SegmentedList<T?>(items);
                 IList _ilist = list;
                 list.Add(value);
                 Assert.True(_ilist.Contains(value)); //"Should contain item."
@@ -554,7 +555,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListContainsTestParams()
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 IList _ilist = list;
 
                 Assert.False(_ilist.Contains(new LinkedListNode<string>("rah")),
@@ -567,14 +568,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void ClearEmptyList()
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 Assert.Equal(0, list.Count); //"Should be equal to 0"
                 list.Clear();
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
             }
             public void ClearMultipleTimesEmptyList(int times)
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 for (int i = 0; i < times; i++)
                 {
@@ -584,14 +585,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             public void ClearNonEmptyList(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 list.Clear();
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
             }
 
             public void ClearMultipleTimesNonEmptyList(T[] items, int times)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 for (int i = 0; i < times; i++)
                 {
                     list.Clear();
@@ -601,7 +602,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListClearEmptyList()
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 IList _ilist = list;
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 _ilist.Clear();
@@ -609,7 +610,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             public void NonGenericIListClearMultipleTimesEmptyList(int times)
             {
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 IList _ilist = list;
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
                 for (int i = 0; i < times; i++)
@@ -620,7 +621,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             public void NonGenericIListClearNonEmptyList(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
                 _ilist.Clear();
                 Assert.Equal(0, list.Count); //"Should be equal to 0."
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void NonGenericIListClearMultipleTimesNonEmptyList(T[] items, int times)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 IList _ilist = list;
                 for (int i = 0; i < times; i++)
                 {
@@ -644,7 +645,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void TrueForAll_VerifyVanilla(T[] items)
             {
                 T? expectedItem = default(T);
-                List<T> list = new List<T>();
+                SegmentedList<T> list = new SegmentedList<T>();
                 Predicate<T> expectedItemDelegate = delegate (T item) { return expectedItem == null ? item != null : !expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 
@@ -669,7 +670,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void TrueForAll_VerifyExceptions(T[] items)
             {
-                var list = new List<T>(items);
+                var list = new SegmentedList<T>(items);
                 Assert.True(list.TrueForAll(item => true));
                 Assert.Throws<ArgumentNullException>(() => list.TrueForAll(null!)); //"Err_858ahia Expected null match to throw ArgumentNullException"
             }
@@ -680,7 +681,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void BasicToArray(T[] items)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
 
                 T[] arr = list.ToArray();
 
@@ -692,7 +693,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             public void EnsureNotUnderlyingToArray(T[] items, T item)
             {
-                List<T> list = new List<T>(items);
+                SegmentedList<T> list = new SegmentedList<T>(items);
                 T[] arr = list.ToArray();
                 list[0] = item;
                 if (((object?)arr[0]) == null)

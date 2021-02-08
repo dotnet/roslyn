@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -24,8 +25,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void Reverse(int listLength)
         {
-            List<T> list = GenericListFactory(listLength);
-            List<T> listBefore = list.ToList();
+            SegmentedList<T> list = GenericListFactory(listLength);
+            SegmentedList<T> listBefore = list.ToSegmentedList();
 
             list.Reverse();
 
@@ -47,8 +48,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [InlineData(10, 8, 2)]
         public void Reverse_int_int(int listLength, int index, int count)
         {
-            List<T> list = GenericListFactory(listLength);
-            List<T> listBefore = list.ToList();
+            SegmentedList<T> list = GenericListFactory(listLength);
+            SegmentedList<T> listBefore = list.ToSegmentedList();
 
             list.Reverse(index, count);
 
@@ -82,10 +83,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [InlineData(10, 8, 2)]
         public void Reverse_RepeatedValues(int listLength, int index, int count)
         {
-            List<T> list = GenericListFactory(1);
+            SegmentedList<T> list = GenericListFactory(1);
             for (int i = 1; i < listLength; i++)
                 list.Add(list[0]);
-            List<T> listBefore = list.ToList();
+            SegmentedList<T> listBefore = list.ToSegmentedList();
 
             list.Reverse(index, count);
 
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (listLength % 2 != 0)
                 listLength++;
-            List<T> list = GenericListFactory(listLength);
+            SegmentedList<T> list = GenericListFactory(listLength);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(listLength     ,1             ),
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (listLength % 2 != 0)
                 listLength++;
-            List<T> list = GenericListFactory(listLength);
+            SegmentedList<T> list = GenericListFactory(listLength);
             Tuple<int, int>[] InvalidParameters = new Tuple<int, int>[]
             {
                 Tuple.Create(-1,-1),

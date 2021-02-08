@@ -28,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\RoslynUnsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />

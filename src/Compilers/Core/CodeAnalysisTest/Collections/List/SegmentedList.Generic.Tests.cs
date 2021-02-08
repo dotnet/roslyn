@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -36,18 +37,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         #region List<T> Helper Methods
 
-        protected virtual List<T> GenericListFactory()
+        private protected virtual SegmentedList<T> GenericListFactory()
         {
-            return new List<T>();
+            return new SegmentedList<T>();
         }
 
-        protected virtual List<T> GenericListFactory(int count)
+        private protected virtual SegmentedList<T> GenericListFactory(int count)
         {
             IEnumerable<T> toCreateFrom = CreateEnumerable(EnumerableType.List, null, count, 0, 0);
-            return new List<T>(toCreateFrom);
+            return new SegmentedList<T>(toCreateFrom);
         }
 
-        protected void VerifyList(List<T> list, List<T> expectedItems)
+        private protected void VerifyList(SegmentedList<T> list, SegmentedList<T> expectedItems)
         {
             Assert.Equal(expectedItems.Count, list.Count);
 
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(ValidCollectionSizes))]
         public void CopyTo_ArgumentValidity(int count)
         {
-            List<T> list = GenericListFactory(count);
+            SegmentedList<T> list = GenericListFactory(count);
             Assert.Throws<ArgumentException>(null, () => list.CopyTo(0, new T[0], 0, count + 1));
             Assert.Throws<ArgumentException>(null, () => list.CopyTo(count, new T[0], 0, 1));
         }

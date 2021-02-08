@@ -251,6 +251,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "action";
                 case ExceptionArgument.comparison:
                     return "comparison";
+                case ExceptionArgument.source:
+                    return "source";
                 case ExceptionArgument.length:
                     return "length";
                 case ExceptionArgument.destinationArray:
@@ -317,6 +319,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         count,
         action,
         comparison,
+        source,
         length,
         destinationArray,
     }
