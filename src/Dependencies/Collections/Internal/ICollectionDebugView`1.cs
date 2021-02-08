@@ -8,8 +8,6 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
-#pragma warning disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,12 +20,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         public ICollectionDebugView(ICollection<T> collection)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -35,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             get
             {
-                T[] items = new T[_collection.Count];
+                var items = new T[_collection.Count];
                 _collection.CopyTo(items, 0);
                 return items;
             }
