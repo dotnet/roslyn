@@ -557,12 +557,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   int Goo { set { } |
             //   int Goo { set; |
             //   int Goo { [Bar]|
+            //   int Goo { readonly |
 
             // Consume all preceding access modifiers
             while (targetToken.Kind() == SyntaxKind.InternalKeyword ||
                 targetToken.Kind() == SyntaxKind.PublicKeyword ||
                 targetToken.Kind() == SyntaxKind.ProtectedKeyword ||
-                targetToken.Kind() == SyntaxKind.PrivateKeyword)
+                targetToken.Kind() == SyntaxKind.PrivateKeyword ||
+                targetToken.Kind() == SyntaxKind.ReadOnlyKeyword)
             {
                 targetToken = targetToken.GetPreviousToken(includeSkipped: true);
             }
