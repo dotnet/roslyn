@@ -70,9 +70,8 @@ internal static class MinimizeUtil
             return idToFilePathMap;
         }
 
-        List<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath)
+        IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath)
         {
-            var mvidList = new List<(Guid, FilePathInfo)>();
             string? lastOutputDirectory = null;
             foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
             {
@@ -93,7 +92,7 @@ internal static class MinimizeUtil
                         Directory: currentDirName,
                         RelativePath: Path.Combine(currentRelativeDirectory, fileName),
                         FullPath: sourceFilePath);
-                    mvidList.Add((mvid, filePathInfo));
+                    yield return (mvid, filePathInfo);
                 }
                 else
                 {
@@ -101,8 +100,6 @@ internal static class MinimizeUtil
                     CreateHardLink(destFilePath, sourceFilePath);
                 }
             }
-
-            return mvidList;
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
