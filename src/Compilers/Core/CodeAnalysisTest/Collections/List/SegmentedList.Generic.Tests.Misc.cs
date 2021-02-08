@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
     /// </summary>
-    public class List_Generic_Tests_Insert
+    public class SegmentedList_Generic_Tests_Insert
     {
         internal class Driver<T>
         {

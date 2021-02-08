@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class List_Generic_Tests_string : List_Generic_Tests<string>
+    public class SegmentedList_Generic_Tests_string : SegmentedList_Generic_Tests<string>
     {
         protected override string CreateT(int seed)
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
     }
 
-    public class List_Generic_Tests_int : List_Generic_Tests<int>
+    public class SegmentedList_Generic_Tests_int : SegmentedList_Generic_Tests<int>
     {
         protected override int CreateT(int seed)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
     }
 
-    public class List_Generic_Tests_string_ReadOnly : List_Generic_Tests<string>
+    public class SegmentedList_Generic_Tests_string_ReadOnly : SegmentedList_Generic_Tests<string>
     {
         protected override string CreateT(int seed)
         {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new List<ModifyEnumerable>();
     }
 
-    public class List_Generic_Tests_int_ReadOnly : List_Generic_Tests<int>
+    public class SegmentedList_Generic_Tests_int_ReadOnly : SegmentedList_Generic_Tests<int>
     {
         protected override int CreateT(int seed)
         {

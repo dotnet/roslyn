@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     /// <summary>
     /// Contains tests that ensure the correctness of the List class.
     /// </summary>
-    public abstract partial class List_Generic_Tests<T> : IList_Generic_Tests<T>
+    public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
     {
         // Has tests that pass a variably sized TestCollection and MyEnumerable to the AddRange function
 
