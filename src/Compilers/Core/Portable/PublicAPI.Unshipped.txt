@@ -1,3 +1,6 @@
+Microsoft.CodeAnalysis.ArtifactProducerAttribute
+Microsoft.CodeAnalysis.ArtifactProducerAttribute.ArtifactProducerAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
+Microsoft.CodeAnalysis.ArtifactProducerAttribute.Languages.get -> string![]!
 Microsoft.CodeAnalysis.CommandLineArguments.GeneratedArtifactsOutputDirectory.get -> string
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.ArtifactContext() -> void
