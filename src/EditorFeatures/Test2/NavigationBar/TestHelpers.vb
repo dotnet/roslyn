@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
             ' Ensure all the actual items that have navigation are distinct
             Dim navigableItems = actualItems.Select(Function(i) DirectCast(i, WrappedNavigationBarItem).UnderlyingItem).
-                                             Cast(Of RoslynNavigationBarItem.SymbolItem).
+                                             OfType(Of RoslynNavigationBarItem.SymbolItem).
                                              ToList()
 
             Assert.True(navigableItems.Count() = navigableItems.Distinct(New NavigationBarItemNavigationSymbolComparer(isCaseSensitive)).Count(), "The items were not unique by SymbolID and index.")
