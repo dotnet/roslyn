@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Called once at session start to register actions in the analysis context.  <paramref
-        /// name="artifactContext"/> can be used to create or write to streams that will be written out as artifacts.
+        /// name="artifactContext"/> can be used to create or write to streams that will be written
+        /// out as artifacts as the compilation progresses.
         /// </summary>
         void Initialize(AnalysisContext analysisContext, ArtifactContext artifactContext);
     }
