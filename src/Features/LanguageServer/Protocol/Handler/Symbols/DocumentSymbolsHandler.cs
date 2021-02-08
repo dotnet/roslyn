@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (symbolItem.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
                 {
-                    symbol = symbols.CandidateSymbols[symbolItem.NavigationSymbolIndex.Value];
+                    symbol = symbols.CandidateSymbols[symbolItem.NavigationSymbolIndex];
                 }
                 else
                 {

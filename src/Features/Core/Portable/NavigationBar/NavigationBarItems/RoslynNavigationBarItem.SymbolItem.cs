@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public sealed class SymbolItem : RoslynNavigationBarItem
         {
             public readonly SymbolKey NavigationSymbolId;
-            public readonly int? NavigationSymbolIndex;
+            public readonly int NavigationSymbolIndex;
 
             public SymbolItem(
                 string text,
                 Glyph glyph,
                 ImmutableArray<TextSpan> spans,
                 SymbolKey navigationSymbolId,
-                int? navigationSymbolIndex,
+                int navigationSymbolIndex,
                 ImmutableArray<RoslynNavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
     internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
     {
-        public abstract VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem symbolItem, CancellationToken cancellationToken);
+        protected abstract VirtualTreePoint? GetSymbolNavigationPoint(Document document, ISymbol symbol, CancellationToken cancellationToken);
         protected abstract void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
@@ -76,5 +76,27 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
             => true;
+
+        public VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
+            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
+
+            var symbol = symbols.Symbol;
+            if (symbol == null)
+            {
+                if (item.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
+                {
+                    symbol = symbols.CandidateSymbols[item.NavigationSymbolIndex];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return GetSymbolNavigationPoint(document, symbol, cancellationToken);
+        }
     }
 }

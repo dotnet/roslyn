@@ -25,39 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        public override VirtualTreePoint? GetSymbolItemNavigationPoint(
-            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        protected override VirtualTreePoint? GetSymbolNavigationPoint(
+            Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
-
-            var symbol = symbols.Symbol;
-
-            if (symbol == null)
-            {
-                if (item.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
-                {
-                    symbol = symbols.CandidateSymbols[item.NavigationSymbolIndex.Value];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-
             var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var location = symbol.Locations.FirstOrDefault(l => l.SourceTree!.Equals(syntaxTree));
 
             if (location == null)
-            {
                 location = symbol.Locations.FirstOrDefault();
-            }
 
             if (location == null)
-            {
                 return null;
-            }
 
             return new VirtualTreePoint(location.SourceTree!, location.SourceTree!.GetText(cancellationToken), location.SourceSpan.Start);
         }

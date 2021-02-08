@@ -37,16 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return DirectCast(DirectCast(item, WrappedNavigationBarItem).UnderlyingItem, CodeAnalysis.NavigationBar.RoslynNavigationBarItem).Kind = CodeAnalysis.NavigationBar.RoslynNavigationBarItemKind.Symbol
         End Function
 
-        Public Overrides Function GetSymbolItemNavigationPoint(document As Document, item As SymbolItem, cancellationToken As CancellationToken) As VirtualTreePoint?
-            Contract.ThrowIfFalse(item.Kind = RoslynNavigationBarItemKind.Symbol)
-            Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            Dim symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken:=cancellationToken)
-            Dim symbol = symbols.Symbol
-
-            If symbol Is Nothing Then
-                symbol = symbols.CandidateSymbols(item.NavigationSymbolIndex.Value)
-            End If
-
+        Protected Overrides Function GetSymbolNavigationPoint(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As VirtualTreePoint?
             Dim location As Location = GetSourceNavigationLocation(document, symbol, cancellationToken)
             If location Is Nothing Then
                 Return Nothing

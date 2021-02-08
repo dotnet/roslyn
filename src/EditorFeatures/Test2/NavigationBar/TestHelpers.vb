@@ -126,7 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
                 Dim navigationPoint = service.GetSymbolItemNavigationPoint(
-                    sourceDocument, DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, CancellationToken.None).Value
+                    sourceDocument, DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
+                    CancellationToken.None).Value
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)
@@ -163,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Sub
 
             Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem.SymbolItem, y As RoslynNavigationBarItem.SymbolItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).Equals
-                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
+                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex = y.NavigationSymbolIndex
             End Function
 
             Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem.SymbolItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).GetHashCode
@@ -182,14 +183,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Assert.Equal(expectedItem.Indent, actualItem.Indent)
             Assert.Equal(expectedItem.Grayed, actualItem.Grayed)
 
-            Dim underlyingItem = DirectCast(DirectCast(actualItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem)
+            Dim underlyingItem = DirectCast(actualItem, WrappedNavigationBarItem).UnderlyingItem
             If expectedItem.HasNavigationSymbolId Then
-                ' Assert.True(DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolId IsNot Nothing)
-                Assert.Equal(
-                    expectedItem.HasNavigationSymbolId,
-                    underlyingItem.NavigationSymbolIndex.HasValue)
+                Assert.True(TypeOf underlyingItem Is RoslynNavigationBarItem.SymbolItem)
             Else
-                Assert.True(underlyingItem.Kind <> RoslynNavigationBarItemKind.Symbol)
+                Assert.True(TypeOf underlyingItem IsNot RoslynNavigationBarItem.SymbolItem)
             End If
 
             If expectedItem.Children IsNot Nothing Then
