@@ -11,11 +11,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 #nullable disable
@@ -31,6 +36,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
             => block.OverlapsHiddenPosition(cancellationToken);
+        protected abstract bool CanReplace(TExpressionSyntax expression);
+        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -181,6 +188,159 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticMap = semanticDocument.SemanticModel.GetSemanticMap(Expression, cancellationToken);
             return semanticMap;
         }
+
+        protected ISet<TExpressionSyntax> FindMatches(
+           SemanticDocument originalDocument,
+           TExpressionSyntax expressionInOriginal,
+           SemanticDocument currentDocument,
+           SyntaxNode withinNodeInCurrent,
+           bool allOccurrences,
+           CancellationToken cancellationToken)
+        {
+            var syntaxFacts = currentDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var originalSemanticModel = originalDocument.SemanticModel;
+            var currentSemanticModel = currentDocument.SemanticModel;
+
+            var result = new HashSet<TExpressionSyntax>();
+            var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
+                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
+                          select nodeInCurrent;
+            result.AddRange(matches.OfType<TExpressionSyntax>());
+
+            return result;
+        }
+
+        private bool NodeMatchesExpression(
+            SemanticModel originalSemanticModel,
+            SemanticModel currentSemanticModel,
+            TExpressionSyntax expressionInOriginal,
+            TExpressionSyntax nodeInCurrent,
+            bool allOccurrences,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (nodeInCurrent == expressionInOriginal)
+            {
+                return true;
+            }
+
+            if (allOccurrences && CanReplace(nodeInCurrent))
+            {
+                // Original expression and current node being semantically equivalent isn't enough when the original expression 
+                // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
+                // and current node are both backed by the same member symbol. So in this case, in addition to SemanticEquivalence check, 
+                // we also check if expression and current node are both instance member access.
+                //
+                // For example, even though the first `c` binds to a field and we are introducing a local for it,
+                // we don't want other references to that field to be replaced as well (i.e. the second `c` in the expression).
+                //
+                //  class C
+                //  {
+                //      C c;
+                //      void Test()
+                //      {
+                //          var x = [|c|].c;
+                //      }
+                //  }
+
+                if (SemanticEquivalence.AreEquivalent(
+                    originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
+                {
+                    var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
+                    if (IsInstanceMemberReference(originalOperation))
+                    {
+                        var currentOperation = currentSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
+                        return IsInstanceMemberReference(currentOperation);
+                    }
+
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
+                    {
+                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+            static bool IsInstanceMemberReference(IOperation operation)
+                => operation is IMemberReferenceOperation memberReferenceOperation &&
+                    memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+        }
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatementsAsync(
+            SemanticDocument semanticDocument,
+            ISet<TExpressionSyntax> matches,
+            CancellationToken cancellationToken)
+        {
+            // First, track the matches so that we can get back to them later.
+            var newRoot = semanticDocument.Root.TrackNodes(matches);
+            var newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot);
+            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            var newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            // Next, expand the topmost parenting expression of each match, being careful
+            // not to expand the matches themselves.
+            var topMostExpressions = newMatches
+                .Select(m => m.AncestorsAndSelf().OfType<TExpressionSyntax>().Last())
+                .Distinct();
+
+            newRoot = await newSemanticDocument.Root
+                .ReplaceNodesAsync(
+                    topMostExpressions,
+                    computeReplacementAsync: async (oldNode, newNode, ct) =>
+                    {
+                        return await Simplifier
+                            .ExpandAsync(
+                                oldNode,
+                                newSemanticDocument.Document,
+                                expandInsideNode: node =>
+                                {
+                                    return !(node is TExpressionSyntax expression)
+                                        || !newMatches.Contains(expression);
+                                },
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                    },
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            newDocument = newSemanticDocument.Document.WithSyntaxRoot(newRoot);
+            newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            return (newSemanticDocument, newMatches);
+        }
+
+        protected TNode Rewrite<TNode>(
+            SemanticDocument originalDocument,
+            TExpressionSyntax expressionInOriginal,
+            TExpressionSyntax variableName,
+            SemanticDocument currentDocument,
+            TNode withinNodeInCurrent,
+            bool allOccurrences,
+            CancellationToken cancellationToken)
+            where TNode : SyntaxNode
+        {
+            var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
+            var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
+
+            // Parenthesize the variable, and go and replace anything we find with it.
+            // NOTE: we do not want elastic trivia as we want to just replace the existing code 
+            // as is, while preserving the trivia there.  We do not want to update it.
+            var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
+                                         .WithAdditionalAnnotations(Formatter.Annotation);
+
+            return RewriteCore(withinNodeInCurrent, replacement, matches);
+        }
+
+        protected abstract TNode RewriteCore<TNode>(
+            TNode node,
+            SyntaxNode replacementNode,
+            ISet<TExpressionSyntax> matches)
+            where TNode : SyntaxNode;
 
         private class IntroduceParameterCodeAction : AbstractIntroduceParameterCodeAction
         {
