@@ -161,22 +161,6 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
 
-#if false
-
-            // Also get the known set of string-to-id mappings we already have in the DB.
-            // Do this in one batch if possible.
-            var fetched = TryFetchStringTable(connection);
-
-            // If we weren't able to retrieve the entire string table in one batch,
-            // attempt to retrieve it for each
-            var fetchStringTable = !fetched;
-
-            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
-            // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, bulkLoadSnapshot, fetchStringTable);
-
-#endif
-
             return;
 
             static void EnsureTables(SqlConnection connection, Database database)
