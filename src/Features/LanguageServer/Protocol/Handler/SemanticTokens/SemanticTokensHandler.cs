@@ -33,15 +33,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public bool MutatesSolutionState => false;
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensParams request)
+        {
+            Contract.ThrowIfNull(request.TextDocument);
+            return request.TextDocument;
+        }
 
         public async Task<LSP.SemanticTokens> HandleRequestAsync(
             LSP.SemanticTokensParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document, "Document is null.");
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+            Contract.ThrowIfNull(context.Document, "Document is null.");
 
             var resultId = _tokensCache.GetNextResultId();
             var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(

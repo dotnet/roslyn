@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using s = delegate*<void>;");
 
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,26): error CS8805: Program using top-level statements must be an executable.
+                // using s = delegate*<void>;
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, ";").WithLocation(2, 26),
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using s = ").WithLocation(2, 1),

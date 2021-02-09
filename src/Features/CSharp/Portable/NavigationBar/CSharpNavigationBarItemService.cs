@@ -2,28 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
-using Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
+namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
 {
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
     internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
@@ -51,26 +47,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(
+            Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
         {
             var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return GetMembersInTypes(tree, typesInFile, cancellationToken);
         }
 
-        private static IList<NavigationBarItem> GetMembersInTypes(
+        private static ImmutableArray<RoslynNavigationBarItem> GetMembersInTypes(
             SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
             {
                 var typeSymbolIndexProvider = new NavigationBarSymbolIdIndexProvider(caseSensitive: true);
-                var items = new List<NavigationBarItem>();
+                using var _1 = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var items);
 
                 foreach (var type in types)
                 {
                     var memberSymbolIndexProvider = new NavigationBarSymbolIdIndexProvider(caseSensitive: true);
 
-                    var memberItems = new List<NavigationBarItem>();
+                    using var _2 = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var memberItems);
                     foreach (var member in type.GetMembers())
                     {
                         if (member.IsImplicitlyDeclared ||
@@ -114,24 +111,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                     });
 
                     var symbolId = type.GetSymbolKey(cancellationToken);
-                    items.Add(new NavigationBarSymbolItem(
+                    items.Add(new RoslynNavigationBarItem.SymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
-                        indent: 0,
                         spans: GetSpansInDocument(type, tree, cancellationToken),
                         navigationSymbolId: symbolId,
                         navigationSymbolIndex: typeSymbolIndexProvider.GetIndexForSymbolId(symbolId),
-                        childItems: memberItems));
+                        childItems: memberItems.ToImmutable()));
                 }
 
                 items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-                return items;
+                return items.ToImmutable();
             }
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> GetTypesInFileAsync(Document document, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             return GetTypesInFile(semanticModel, cancellationToken);
         }
@@ -180,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
         }
 
-        private static ISymbol GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        private static ISymbol? GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => node switch
             {
                 BaseTypeDeclarationSyntax t => semanticModel.GetDeclaredSymbol(t, cancellationToken),
@@ -200,22 +196,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return false;
         }
 
-        private static NavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private static RoslynNavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
-            return new NavigationBarSymbolItem(
+            return new RoslynNavigationBarItem.SymbolItem(
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
                 member.GetSymbolKey(cancellationToken),
                 symbolIndex,
-                grayed: spans.Count == 0);
+                grayed: spans.Length == 0);
         }
 
-        private static IList<TextSpan> GetSpansInDocument(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
+        private static ImmutableArray<TextSpan> GetSpansInDocument(ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spans);
             if (!cancellationToken.IsCancellationRequested)
             {
                 if (symbol.Kind == SymbolKind.Field)
@@ -243,13 +239,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 }
             }
 
-            return spans;
+            return spans.ToImmutable();
         }
 
         /// <summary>
         /// Computes a span for a given field symbol, expanding to the outer 
         /// </summary>
-        private static void AddFieldSpan(ISymbol symbol, SyntaxTree tree, List<TextSpan> spans)
+        private static void AddFieldSpan(ISymbol symbol, SyntaxTree tree, ArrayBuilder<TextSpan> spans)
         {
             var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree);
             if (reference == null)
@@ -281,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             spans.Add(TextSpan.FromBounds(spanStart, spanEnd));
         }
 
-        private static void AddEnumMemberSpan(ISymbol symbol, SyntaxTree tree, List<TextSpan> spans)
+        private static void AddEnumMemberSpan(ISymbol symbol, SyntaxTree tree, ArrayBuilder<TextSpan> spans)
         {
             // Ideally we want the span of this to include the trailing comma, so let's find
             // the declaration
@@ -313,43 +309,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
             spans.Add(declaringNode.Span);
         }
-
-        protected internal override VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
-        {
-            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
-
-            var symbol = symbols.Symbol;
-
-            if (symbol == null)
-            {
-                if (item.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
-                {
-                    symbol = symbols.CandidateSymbols[item.NavigationSymbolIndex.Value];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree.Equals(syntaxTree));
-
-            if (location == null)
-            {
-                location = symbol.Locations.FirstOrDefault();
-            }
-
-            if (location == null)
-            {
-                return null;
-            }
-
-            return new VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start);
-        }
-
-        public override void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, (NavigationBarSymbolItem)item, cancellationToken);
     }
 }

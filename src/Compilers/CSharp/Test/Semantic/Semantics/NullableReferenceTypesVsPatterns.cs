@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private CSharpCompilation CreateNullableCompilation(string source)
         {
-            return CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            return CreateCompilation(new[] { source }, options: WithNullableEnable());
         }
 
         [Fact]
@@ -515,7 +515,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8629: Nullable value type may be null.
                 //             i.Value.ToString(); // 1
@@ -1019,7 +1019,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 1

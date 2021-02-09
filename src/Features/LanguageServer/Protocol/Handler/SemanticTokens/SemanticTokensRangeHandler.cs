@@ -31,14 +31,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public bool MutatesSolutionState => false;
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        {
+            Contract.ThrowIfNull(request.TextDocument);
+            return request.TextDocument;
+        }
 
         public async Task<LSP.SemanticTokens> HandleRequestAsync(
             LSP.SemanticTokensRangeParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document, "TextDocument is null.");
+            Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+            Contract.ThrowIfNull(context.Document, "Document is null.");
+
             var resultId = _tokensCache.GetNextResultId();
 
             // The results from the range handler should not be cached since we don't want to cache
