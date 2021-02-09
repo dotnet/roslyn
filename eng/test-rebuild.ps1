@@ -14,6 +14,8 @@ $ErrorActionPreference="Stop"
 function Print-Usage() {
   Write-Host "Usage: test-rebuild.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
+  Write-Host "  -ci                       Set when running on CI server"
+  Write-Host "  -help                     Print help and exit"
 }
 
 try {
@@ -26,7 +28,7 @@ try {
   Push-Location $RepoRoot
 
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog}
   & "artifacts\bin\BuildValidator\$configuration\net472\BuildValidator.exe" --assembliesPath "$ArtifactsDir/obj/Microsoft.CodeAnalysis"
 
   exit 0

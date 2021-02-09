@@ -73,31 +73,6 @@ namespace BuildValidator
             return compilationOptionsReader.GetSourceFileInfos(encoding);
         }
 
-        private void LogResolvedMetadataReferences(ImmutableArray<MetadataReferenceInfo> infos, ImmutableArray<MetadataReference> references)
-        {
-            using var _ = _logger.BeginScope("Metadata References");
-            if (infos.Length != references.Length)
-            {
-                throw new Exception($"{nameof(infos)} has length {infos.Length} but {nameof(references)} has length {references.Length}.");
-            }
-
-            for (var i = 0; i < infos.Length; i++)
-            {
-                _logger.LogInformation($@"""{references[i].Display}"" - {infos[i].Mvid}");
-            }
-        }
-
-        private void LogResolvedSources(ImmutableArray<ResolvedSource> resolvedSources)
-        {
-            using var _ = _logger.BeginScope("Source Names");
-            foreach (var resolvedSource in resolvedSources)
-            {
-                var sourceFileInfo = resolvedSource.SourceFileInfo;
-                var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
-            }
-        }
-
         private ImmutableArray<MetadataReference> ResolveMetadataReferences(ImmutableArray<MetadataReferenceInfo> referenceInfos)
         {
             _logger.LogInformation("Locating metadata references");
@@ -148,16 +123,37 @@ namespace BuildValidator
             var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
 
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            LogResolvedMetadataReferences(metadataReferenceInfos, metadataReferences);
+            logResolvedMetadataReferences();
+
             var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
             var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding).ConfigureAwait(false);
-            LogResolvedSources(sources);
+            logResolvedSources();
 
             return CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
+
+            void logResolvedMetadataReferences()
+            {
+                using var _ = _logger.BeginScope("Metadata References");
+                for (var i = 0; i < metadataReferenceInfos.Length; i++)
+                {
+                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
+                }
+            }
+
+            void logResolvedSources()
+            {
+                using var _ = _logger.BeginScope("Source Names");
+                foreach (var resolvedSource in sources)
+                {
+                    var sourceFileInfo = resolvedSource.SourceFileInfo;
+                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
+                }
+            }
         }
 
         private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)

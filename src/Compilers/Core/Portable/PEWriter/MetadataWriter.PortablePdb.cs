@@ -848,7 +848,6 @@ namespace Microsoft.Cci
 
             if (pdbCompilationOptionsReader is { } reader)
             {
-                // TODO: nervous about this. how can we compare the "real" compilation options when things fail in spite of this.
                 builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));
             }
             else
