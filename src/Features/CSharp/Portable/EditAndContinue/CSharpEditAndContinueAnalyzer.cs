@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
 
-            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax)
+            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
                 Debug.Assert(oldBody is ExpressionSyntax || oldBody is BlockSyntax);
                 Debug.Assert(newBody is ExpressionSyntax || newBody is BlockSyntax);
@@ -581,9 +581,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
                 }
 
-                Debug.Assert(oldBody.Parent is not null);
-                Debug.Assert(newBody.Parent is not null);
-                return new SyntaxComparer(oldBody.Parent, newBody.Parent, new[] { oldBody }, new[] { newBody }, compareStatementSyntax: true).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
+                var oldRoot = GetMatchingRoot(oldBody);
+                var newRoot = GetMatchingRoot(newBody);
+                return new SyntaxComparer(oldRoot, newRoot, GetChildNodes(oldRoot, oldBody), GetChildNodes(newRoot, newBody), compareStatementSyntax: true).ComputeMatch(oldRoot, newRoot, knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -599,6 +599,43 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return SyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
+        }
+
+        private static IEnumerable<SyntaxNode> GetChildNodes(SyntaxNode root, SyntaxNode body)
+        {
+            if (root is LocalFunctionStatementSyntax localFunc)
+            {
+                // local functions have multiple children we need to process for matches, but we won't automatically
+                // descend into them, assuming they're nested, so we override the default behaviour and return
+                // multiple children
+                foreach (var attributeList in localFunc.AttributeLists)
+                {
+                    yield return attributeList;
+                }
+
+                yield return localFunc.ReturnType;
+
+                if (localFunc.TypeParameterList is not null)
+                {
+                    yield return localFunc.TypeParameterList;
+                }
+
+                yield return localFunc.ParameterList;
+
+                if (localFunc.Body is not null)
+                {
+                    yield return localFunc.Body;
+                }
+                else if (localFunc.ExpressionBody is not null)
+                {
+                    // Skip the ArrowExpressionClause that is ExressionBody and just return the expression itself
+                    yield return localFunc.ExpressionBody.Expression;
+                }
+            }
+            else
+            {
+                yield return body;
+            }
         }
 
         protected override bool TryMatchActiveStatement(
