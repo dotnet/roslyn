@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder;
+using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
@@ -16,11 +16,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 {
     internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.NamespaceMatchFolderDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MatchFolderAndNamespaceDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
         private static async Task<Solution> FixAllInDocumentAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // All the target namespaces should be the same for a given document
-            Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[NamespaceMatchFolderConstants.TargetNamespace]).Distinct().Count() == 1);
+            Debug.Assert(diagnostics.Select(diagnostic => diagnostic.Properties[MatchFolderAndNamespaceConstants.TargetNamespace]).Distinct().Count() == 1);
 
-            var targetNamespace = diagnostics.First().Properties[NamespaceMatchFolderConstants.TargetNamespace];
+            var targetNamespace = diagnostics.First().Properties[MatchFolderAndNamespaceConstants.TargetNamespace];
             RoslynDebug.AssertNotNull(targetNamespace);
 
             // Use the Renamer.RenameDocumentAsync API to sync namespaces in the document. This allows
@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
             {
-
             }
         }
     }

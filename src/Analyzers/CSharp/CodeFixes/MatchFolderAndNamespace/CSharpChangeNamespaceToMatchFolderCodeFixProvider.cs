@@ -5,10 +5,10 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder;
+using Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MatchFolderAndNamespace
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeNamespaceToMatchFolder), Shared]
     internal class CSharpChangeNamespaceToMatchFolderCodeFixProvider : AbstractChangeNamespaceToMatchFolderCodeFixProvider

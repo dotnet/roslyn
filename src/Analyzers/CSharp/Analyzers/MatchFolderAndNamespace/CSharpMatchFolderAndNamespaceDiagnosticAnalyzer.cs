@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder;
+using Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpNamespaceMatchFolderDiagnosticAnalyzer : AbstractNamespaceMatchFolderDiagnosticAnalyzer<NamespaceDeclarationSyntax>
+    internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<NamespaceDeclarationSyntax>
     {
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 

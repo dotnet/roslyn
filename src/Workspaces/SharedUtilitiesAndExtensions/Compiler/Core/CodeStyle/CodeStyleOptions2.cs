@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation2[]{
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
-        public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceMatchFolderStructure = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceMatchFolderStructure),
+        public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceAndFolderMatchStructure),
             defaultValue: TrueWithSuggestionEnforcement,
             editorconfigKeyName: "dotnet_style_namespace_match_folder",
-            roamingProfileStorageKeyName: $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamespaceMatchFolderStructure)}");
+            roamingProfileStorageKeyName: $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamespaceAndFolderMatchStructure)}");
 
         static CodeStyleOptions2()
         {

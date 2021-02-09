@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 {
     /// <summary>
     /// Custom fix all provider for namespace sync. Does fix all on per document level. Since

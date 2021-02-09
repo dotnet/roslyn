@@ -976,7 +976,7 @@ No editorconfig based code style option
 # IDE1008
 No editorconfig based code style option
 
-# IDE0130, PreferNamespaceMatchFolderStructure
+# IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
 ";
 

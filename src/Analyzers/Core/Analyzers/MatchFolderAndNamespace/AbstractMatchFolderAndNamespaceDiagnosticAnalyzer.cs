@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
 {
-    internal abstract class AbstractNamespaceMatchFolderDiagnosticAnalyzer<TNamespaceSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TNamespaceSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TNamespaceSyntax : SyntaxNode
     {
         private static readonly LocalizableResourceString s_localizableTitle = new(
@@ -25,18 +25,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
         private static readonly LocalizableResourceString s_localizableInsideMessage = new(
             nameof(AnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        protected AbstractNamespaceMatchFolderDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.NamespaceMatchFolderDiagnosticId,
-                EnforceOnBuildValues.NamespaceMatchFolder,
-                CodeStyleOptions2.PreferNamespaceMatchFolderStructure,
+        private static readonly SymbolDisplayFormat s_namespaceDisplayFormat = SymbolDisplayFormat
+            .FullyQualifiedFormat
+            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
+
+        protected AbstractMatchFolderAndNamespaceDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.MatchFolderAndNamespaceDiagnosticId,
+                EnforceOnBuildValues.MatchFolderAndNamespace,
+                CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure,
                 s_localizableTitle,
                 s_localizableInsideMessage)
         {
         }
-
-        private static readonly SymbolDisplayFormat s_namespaceDisplayFormat = SymbolDisplayFormat
-            .FullyQualifiedFormat
-            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
@@ -46,35 +46,33 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceMatchFolder
         protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
-            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(NamespaceMatchFolderConstants.RootNamespaceOption, out var rootNamespace);
+            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(MatchFolderAndNamespaceConstants.RootNamespaceOption, out var rootNamespace);
 
             // Project directory is a must to correctly get the relative path and construct a namespace
-            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(NamespaceMatchFolderConstants.ProjectDirOption, out var projectDir)
+            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(MatchFolderAndNamespaceConstants.ProjectDirOption, out var projectDir)
                 || string.IsNullOrEmpty(projectDir))
             {
                 return;
             }
 
-            if (context.Node is TNamespaceSyntax namespaceDecl)
+            var namespaceDecl = (TNamespaceSyntax)context.Node;
+            var symbol = context.SemanticModel.GetDeclaredSymbol(namespaceDecl);
+            RoslynDebug.AssertNotNull(symbol);
+
+            var currentNamespace = symbol.ToDisplayString(s_namespaceDisplayFormat);
+
+            if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
+                IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
             {
-                var symbol = context.SemanticModel.GetDeclaredSymbol(namespaceDecl);
-                RoslynDebug.AssertNotNull(symbol);
+                var nameSyntax = GetSyntaxFacts().GetNameOfNamespaceDeclaration(namespaceDecl);
+                RoslynDebug.AssertNotNull(nameSyntax);
 
-                var currentNamespace = symbol.ToDisplayString(s_namespaceDisplayFormat);
-
-                if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
-                    IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
-                {
-                    var nameSyntax = GetSyntaxFacts().GetNameOfNamespaceDeclaration(namespaceDecl);
-                    RoslynDebug.AssertNotNull(nameSyntax);
-
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        Descriptor,
-                        nameSyntax.GetLocation(),
-                        additionalLocations: null,
-                        properties: ImmutableDictionary<string, string?>.Empty.Add(NamespaceMatchFolderConstants.TargetNamespace, targetNamespace),
-                        messageArgs: new[] { currentNamespace, targetNamespace }));
-                }
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Descriptor,
+                    nameSyntax.GetLocation(),
+                    additionalLocations: null,
+                    properties: ImmutableDictionary<string, string?>.Empty.Add(MatchFolderAndNamespaceConstants.TargetNamespace, targetNamespace),
+                    messageArgs: new[] { currentNamespace, targetNamespace }));
             }
         }
 

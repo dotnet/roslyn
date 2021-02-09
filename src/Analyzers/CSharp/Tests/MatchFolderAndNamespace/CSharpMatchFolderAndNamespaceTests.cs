@@ -8,12 +8,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceMatchFolder.CSharpNamespaceMatchFolderDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceMatchFolder.CSharpChangeNamespaceToMatchFolderCodeFixProvider>;
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace.CSharpMatchFolderAndNamespaceDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.CodeFixes.MatchFolderAndNamespace.CSharpChangeNamespaceToMatchFolderCodeFixProvider>;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceMatchFolder
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MatchFolderAndNamespace
 {
-    public class CSharpNamespaceMatchFolderTests
+    public class CSharpMatchFolderAndNamespaceTests
     {
         private static readonly string Directory = Path.Combine("Test", "Directory");
 
