@@ -79,7 +79,11 @@ static class SC { }
         }
 
         [Fact(
-            // Skip = "This warning is lost when the syntax tree is updated by a transformation."
+            Skip = @"Any syntax diagnostics are lost when a node is updated using the Roslyn API.
+                In practice, this only affects this single warning for Caravela, because it's the only *syntax* warning
+                (if there are syntax errors, transformations are not executed).
+                The test transformer could be changed to use internal Roslyn APIs to preserve this warning,
+                but any real transformer couldn't use those, so it wouldn't be testing anything useful."
             )]
         public void WRN_PrecedenceInversion()
         {

@@ -32252,7 +32252,9 @@ class H
         }
 
         [Fact(
-            // Skip = "For some reason fails with Caravela.Compiler, but Caravela.Compiler doesn't support scripting, so this shouldn't be relevant"
+            Skip = @"This test is brittle and the resulting diagnostic depends on queries performed on the compilation before checking diagnostics.
+                But Caravela transformer is executed in these tests as part of VerifyDiagnostics,
+                which means those queries are performed on the wrong compilation, so they don't affect the result as this test expects."
             )]
         public void GlobalCode_InferenceFailure_05()
         {
