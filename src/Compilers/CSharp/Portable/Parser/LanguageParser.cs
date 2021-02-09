@@ -6249,6 +6249,8 @@ tryAgain:
                 if (this.CurrentToken.Kind is SyntaxKind.ColonColonToken)
                 {
                     result = ScanTypeFlags.NonGenericTypeOrExpression;
+
+                    // Definitely seems like an alias if we're starting with a ::
                     isAlias = true;
 
                     // We set this to null to appease the flow checker.  It will always be the case that this will be
@@ -6258,6 +6260,11 @@ tryAgain:
                 }
                 else
                 {
+                    Debug.Assert(this.CurrentToken.Kind is SyntaxKind.IdentifierToken);
+
+                    // We're an alias if we start with an: id::
+                    isAlias = this.PeekToken(1).Kind == SyntaxKind.ColonColonToken;
+
                     result = this.ScanNamedTypePart(out lastTokenOfType);
                     if (result == ScanTypeFlags.NotType)
                     {
@@ -6265,13 +6272,15 @@ tryAgain:
                     }
 
                     Debug.Assert(result is ScanTypeFlags.GenericTypeOrExpression or ScanTypeFlags.GenericTypeOrMethod or ScanTypeFlags.NonGenericTypeOrExpression);
-                    isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
                 }
 
                 // Scan a name
                 for (bool firstLoop = true; IsDotOrColonColon(); firstLoop = false)
                 {
-                    if (!firstLoop && isAlias)
+                    // If we consume any more dots or colons, don't consider us an alias anymore.  For dots, we now have
+                    // x::y.z (which is now back to a normal expr/type, not an alias), and for colons that means we have
+                    // x::y::z or x.y::z both of which are effectively gibberish.
+                    if (!firstLoop)
                     {
                         isAlias = false;
                     }
