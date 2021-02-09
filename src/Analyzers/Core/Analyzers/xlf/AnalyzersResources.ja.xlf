@@ -57,6 +57,11 @@
         <target state="translated">コードに未使用のパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="new">Change namespace to match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">式ツリーを変更すると、実行時の動作が変わる可能性があります</target>
@@ -146,6 +151,16 @@
         <source>Modifiers are not ordered</source>
         <target state="translated">修飾子が順序付けされていません</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="new">Namespace does not match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
