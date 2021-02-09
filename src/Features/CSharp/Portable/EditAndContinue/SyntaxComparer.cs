@@ -505,6 +505,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.BracketedParameterList:
                     return Label.BracketedParameterList;
 
+                case SyntaxKind.ParameterList:
+                    return Label.ParameterList;
+
+                case SyntaxKind.Parameter:
+                    return Label.Parameter;
+
                 case SyntaxKind.AttributeList:
                     return Label.AttributeList;
 
@@ -768,15 +774,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ConstructorDeclaration:
                         return Label.ConstructorDeclaration;
-
-                    case SyntaxKind.ParameterList:
-                        return Label.ParameterList;
-
-                    case SyntaxKind.Parameter:
-                        // Top syntax only as we ignore anonymous methods and lambdas,
-                        // we only care about parameters of member declarations.
-                        // children: attributes
-                        return Label.Parameter;
                 }
             }
 
