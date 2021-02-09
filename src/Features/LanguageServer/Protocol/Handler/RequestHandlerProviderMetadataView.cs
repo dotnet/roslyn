@@ -38,5 +38,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LanguageName = metadata["LanguageName"] as string;
         }
     }
-
 }
