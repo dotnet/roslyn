@@ -34,6 +34,26 @@ function Get-AzureLine($branchName, $jobNames, [switch]$integration = $false) {
     return $line + [Environment]::NewLine
 }
 
+function Get-BuildsTable() {
+    $jobNames = @(
+        'Build_Windows_Debug'
+        'Build_Windows_Release'
+        'Build_Unix_Debug'
+    )
+
+    $table = @'
+### Builds
+|Branch|Windows Debug|Windows Release|Unix Debug|
+|:--:|:--:|:--:|:--:|
+
+'@
+    foreach ($branchName in $branchNames) {
+        $table += Get-AzureLine $branchName $jobNames
+    }
+    return $table
+}
+
+
 function Get-DesktopTable() {
     $jobNames = @(
         'Test_Windows_Desktop_Debug_32'
@@ -100,14 +120,15 @@ function Get-MiscTable() {
     $jobNames = @(
         'Correctness_Determinism',
         'Correctness_Build',
+        'Correctness_SourceBuild',
         'Test_Windows_Desktop_Spanish_Release_32',
         'Test_macOS_Debug'
     )
 
     $table = @'
 ### Misc Tests
-|Branch|Determinism|Build Correctness|Spanish|MacOS|
-|:--:|:--:|:--:|:--:|:--:|
+|Branch|Determinism|Build Correctness|Source build|Spanish|MacOS|
+|:--:|:--:|:--|:--:|:--:|:--:|
 
 '@
 
@@ -121,7 +142,7 @@ function Get-MiscTable() {
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 try {
-
+    Get-BuildsTable | Write-Output
     Get-DesktopTable | Write-Output
     Get-CoreClrTable | Write-Output
     Get-IntegrationTable | Write-Output
