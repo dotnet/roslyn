@@ -5333,7 +5333,7 @@ public unsafe class C
     public delegate*<delegate*<string, int*>, delegate*<string?>, delegate*<void*, string>> F6;
 }";
 
-            var comp = CreateCompilationWithFunctionPointers(source, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
+            var comp = CreateCompilationWithFunctionPointers(source, options: WithNullableEnable(TestOptions.UnsafeReleaseDll));
             comp.VerifyDiagnostics();
 
             verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
