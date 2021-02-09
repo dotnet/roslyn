@@ -158,7 +158,7 @@ namespace Analyzer.Utilities.Extensions
         /// The first member in the sequence whose parameters match <paramref name="expectedParameterTypesInOrder"/>, 
         /// or null if no matches are found.
         /// </returns>
-        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterTypes(this IEnumerable<IMethodSymbol>? members, IEnumerable<ITypeSymbol> expectedParameterTypesInOrder)
+        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterTypes(this IEnumerable<IMethodSymbol>? members, IReadOnlyList<ITypeSymbol> expectedParameterTypesInOrder)
         {
             if (members is null)
                 return null;
@@ -172,10 +172,12 @@ namespace Analyzer.Utilities.Extensions
 
             bool Predicate(IMethodSymbol member)
             {
-                int index = 0;
-                foreach (var expectedType in expectedParameterTypesInOrder)
+                if (member.Parameters.Length != expectedParameterTypesInOrder.Count)
+                    return false;
+
+                for (int index = 0; index < expectedParameterTypesInOrder.Count; index++)
                 {
-                    if (!member.Parameters[index++].Type.Equals(expectedType))
+                    if (!member.Parameters[index].Type.Equals(expectedParameterTypesInOrder[index]))
                         return false;
                 }
                 return true;
