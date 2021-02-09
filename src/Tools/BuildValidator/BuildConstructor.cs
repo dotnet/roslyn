@@ -53,19 +53,18 @@ namespace BuildValidator
                 {
                     LanguageNames.CSharp => CreateCSharpCompilationAsync(optionsReader, name),
                     LanguageNames.VisualBasic => CreateVisualBasicCompilationAsync(optionsReader, name),
-                    _ => throw new InvalidDataException($"{language} is not a known language")
+                    _ => Task.FromException<Compilation>(new InvalidDataException($"{language} is not a known language"))
                 };
 
                 return compilation;
             }
 
-            throw new InvalidDataException("Did not find language in compilation options");
+            return Task.FromException<Compilation>(new InvalidDataException("Did not find language in compilation options"));
         }
 
         private ImmutableArray<MetadataReferenceInfo> GetMetadataReferenceInfos(CompilationOptionsReader compilationOptionsReader)
         {
-            var referenceInfos = compilationOptionsReader.GetMetadataReferences();
-            return referenceInfos;
+            return compilationOptionsReader.GetMetadataReferences();
         }
 
         private ImmutableArray<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader, Encoding encoding)
@@ -85,7 +84,7 @@ namespace BuildValidator
             var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
             if (sourceLinks.IsDefault)
             {
-                _logger.LogWarning("No source links found in pdb");
+                _logger.LogInformation("No source links found in pdb");
             }
             else
             {

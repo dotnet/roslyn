@@ -9,7 +9,7 @@ using System.Text;
 namespace BuildValidator
 {
     /// <summary>An entry in the source-link.json dictionary.</summary>
-    struct SourceLink
+    internal struct SourceLink
     {
         public string Prefix { get; }
         public string Replace { get; }
