@@ -156,6 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
 
+        public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
