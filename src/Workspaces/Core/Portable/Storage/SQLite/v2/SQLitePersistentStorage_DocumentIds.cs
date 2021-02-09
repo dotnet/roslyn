@@ -25,13 +25,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         {
             dataId = 0;
 
-            // First, try to get all the IDs for our project in sync with the DB.
-            // This will only be expensive the first time we do this.  But will save
-            // us from tons of back-and-forth as any BG analyzer processes all the
-            // documents in a solution.
-            if (bulkLoadSnapshot != null)
-                BulkPopulateProjectIds(connection, bulkLoadSnapshot.Project.Solution.State, bulkLoadSnapshot.Project.State, fetchStringTable: true);
-
             var documentId = TryGetDocumentId(connection, documentKey);
             var nameId = TryGetStringId(connection, name);
             if (documentId == null || nameId == null)
