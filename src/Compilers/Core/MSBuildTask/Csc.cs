@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
         }
 
-        // CARAVELA BEGIN EDIT
+        // <Caravela>
         public string? TransformedFilesOutputPath
         {
             set { _store[nameof(TransformedFilesOutputPath)] = value; }
             get { return (string?)_store[nameof(TransformedFilesOutputPath)]; }
         }
-        // CARAVELA END EDIT
+        // </Caravela>
 
         public bool GenerateFullPaths
         {
@@ -220,9 +220,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
-            // CARAVELA BEGIN EDIT
+            // <Caravela>
             commandLine.AppendSwitchIfNotNull("/transformedfilesout:", TransformedFilesOutputPath);
-            // CARAVELA END EDIT
+            // </Caravela>
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);

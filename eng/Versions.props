@@ -7,7 +7,7 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>8</MinorVersion>
-    <!-- CARAVELA BEGIN EDIT -->
+    <!-- <Caravela> -->
     <PatchVersion>5</PatchVersion>
     <PreReleaseVersionLabel>4</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
@@ -18,7 +18,7 @@
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
     <AssemblyVersion>$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
-    <!-- CARAVELA END EDIT -->
+    <!-- </Caravela> -->
     <MajorVersion>
     </MajorVersion>
     <MinorVersion>
@@ -256,9 +256,9 @@
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
-    <!-- CARAVELA BEGIN EDIT -->
+    <!-- <Caravela> -->
     <UsingToolNuGetRepack>false</UsingToolNuGetRepack>
-    <!-- CARAVELA END EDIT -->
+    <!-- </Caravela> -->
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>

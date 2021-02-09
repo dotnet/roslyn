@@ -238,7 +238,7 @@
     <None Include="$(AppDesignerFolder)\launchSettings.json" Condition="Exists('$(AppDesignerFolder)\launchSettings.json')" />
   </ItemGroup>
 
-  <!-- CARAVELA BEGIN EDIT -->
+  <!-- <Caravela> -->
   <!-- 
     Add ThirdPartyNotices and License to all shipping NuGet packages.
   -->
@@ -246,7 +246,7 @@
     <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="THIRD-PARTY-NOTICES.txt" Visible="false" Pack="true"/>
     <None Include="$(PackageLicenseFullPath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
   </ItemGroup>
-  <!-- CARAVELA END EDIT -->
+  <!-- </Caravela> -->
 
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
