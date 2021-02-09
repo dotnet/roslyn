@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             string parameterName,
             int? newParameterIndex,
             bool fixAllReferences,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool offerRename = false)
         {
             var solution = invocationDocument.Project.Solution;
 
@@ -124,6 +125,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
+
+                    if (offerRename)
+                    {
+                        parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(RenameAnnotation.Create());
+                    } 
 
                     if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     {

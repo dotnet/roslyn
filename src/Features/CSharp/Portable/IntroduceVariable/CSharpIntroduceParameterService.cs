@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -33,51 +35,57 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
         }
 
-        protected override async Task<Document> IntroduceParameterAsync(SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
+        protected override async Task<Document> IntroduceParameterAsync(SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
         {
             var invocationDocument = document.Document;
+            var semanticModel = document.SemanticModel;
+            var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
+            var parameterName = semanticFacts.GenerateNameForExpression(
+                    semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
 
+            var syntaxGenerator = SyntaxGenerator.GetGenerator(invocationDocument);
+
+            var annotatedExpression = new SyntaxAnnotation();
+            var expressionWithAnnotation = expression.WithAdditionalAnnotations(annotatedExpression);
+            var updatedSolutionWithParameter = await AddParameterAsync(document, expressionWithAnnotation, parameterName, cancellationToken).ConfigureAwait(false);
+            var updatedSemanticDocument = await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
+
+            expression = (ExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+            return await IntroduceParameterConvertExpressionAsync(updatedSemanticDocument, expression, (NameSyntax)syntaxGenerator.IdentifierName(parameterName), allOccurrences, cancellationToken).ConfigureAwait(false);
+
+            //return solution.GetDocument(invocationDocument.Id);
+        }
+
+        private static Task<Solution> AddParameterAsync(SemanticDocument document, ExpressionSyntax expression, string parameterName, CancellationToken cancellationToken)
+        {
+            var invocationDocument = document.Document;
             var methodExpression = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, true);
-
             var semanticModel = document.SemanticModel;
             var symbolInfo = semanticModel.GetDeclaredSymbol(methodExpression, cancellationToken);
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
-            var parameterType = document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type ?? document.SemanticModel.Compilation.ObjectType;
+            var parameterType = semanticModel.GetTypeInfo(expression, cancellationToken).Type ?? document.SemanticModel.Compilation.ObjectType;
             var refKind = syntaxFacts.GetRefKindOfArgument(expression);
 
-            var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
-            var parameterName = semanticFacts.GenerateNameForExpression(
-                    document.SemanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
-
-            var solution = await AddParameterService.Instance.AddParameterAsync(
+            return AddParameterService.Instance.AddParameterAsync(
                 invocationDocument,
                 symbolInfo,
                 parameterType,
                 refKind,
                 parameterName,
                 null,
-                allOccurrences,
-                cancellationToken).ConfigureAwait(false);
-
-            var block = (BlockSyntax)expression.Ancestors().FirstOrDefault(s => s is BlockSyntax);
-
-            var syntaxGenerator = SyntaxGenerator.GetGenerator(solution.GetDocument(invocationDocument.Id));
-            var updatedSemanticDocument = await SemanticDocument.CreateAsync(solution.GetDocument(invocationDocument.Id), cancellationToken).ConfigureAwait(false);
-            return await IntroduceParameterConvertExpressionAsync(document,
-                        updatedSemanticDocument, block, expression, (NameSyntax)syntaxGenerator.IdentifierName(parameterName), allOccurrences, cancellationToken).ConfigureAwait(false);
-
-            //return solution.GetDocument(invocationDocument.Id);
+                false,
+                cancellationToken,
+                true);
         }
 
         private async Task<Document> IntroduceParameterConvertExpressionAsync(
-            SemanticDocument oldDocument,
-            SemanticDocument currentDocument,
-            BlockSyntax block,
+            SemanticDocument document,
             ExpressionSyntax expression,
             NameSyntax parameterName,
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
+            var block = (BlockSyntax)expression.Ancestors().FirstOrDefault(s => s is BlockSyntax);
             SyntaxNode scope = block;
 
             // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
@@ -87,16 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
             }
 
-            var matches = FindMatches(oldDocument, expression, currentDocument, scope, allOccurrences, cancellationToken);
+            var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
             Debug.Assert(matches.Contains(expression));
 
-            (currentDocument, matches) = await ComplexifyParentingStatementsAsync(currentDocument, matches, cancellationToken).ConfigureAwait(false);
+            (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
 
             // Our original expression should have been one of the matches, which were tracked as part
             // of complexification, so we can retrieve the latest version of the expression here.
-            expression = currentDocument.Root.GetCurrentNode(expression);
+            expression = document.Root.GetCurrentNode(expression);
 
-            var root = currentDocument.Root;
+            var root = document.Root;
             SyntaxNode innermostCommonBlock;
 
             if (matches.Count == 1)
@@ -112,11 +120,28 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             var newInnerMostBlock = Rewrite(
-                oldDocument, expression, parameterName, currentDocument, innermostCommonBlock, allOccurrences, cancellationToken);
-
-            var newRoot = root.ReplaceNode(innermostCommonBlock, newInnerMostBlock);
-            return currentDocument.Document.WithSyntaxRoot(newRoot);
+                document, expression, parameterName, document, innermostCommonBlock, allOccurrences, cancellationToken);
+            var newRoot = document.Root.ReplaceNode(innermostCommonBlock, newInnerMostBlock);
+            return document.Document.WithSyntaxRoot(newRoot);
         }
+
+        /*
+        private static async Task<SyntaxNode> UpdateCallSitesAsync(
+            SemanticDocument document,
+            BlockSyntax block,
+            ExpressionSyntax expression,
+            IMethodSymbol methodSymbol,
+            CancellationToken cancellationToken)
+        {
+            var progress = new StreamingProgressCollector();
+
+            await SymbolFinder.FindReferencesAsync(
+                methodSymbol, document.Document.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+            var referencedSymbols = progress.GetReferencedSymbols();
+            var methods = referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition).OfType<IMethodSymbol>().Distinct().ToImmutableArray();
+
+        }*/
 
         private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
 

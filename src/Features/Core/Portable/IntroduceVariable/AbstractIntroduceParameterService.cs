@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TExpressionSyntax : SyntaxNode
     {
         public TExpressionSyntax Expression { get; private set; }
-        protected abstract Task<Document> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
+        protected abstract Task<Document> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
             => block.OverlapsHiddenPosition(cancellationToken);
@@ -114,11 +114,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                     if (!BlockOverlapsHiddenPosition(block, cancellationToken))
                     {
-                        actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false));
+                        actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, false));
+                        actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, true));
 
                         if (enclosingBlocks.All(b => !BlockOverlapsHiddenPosition(b, cancellationToken)))
                         {
-                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true));
+                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true, false));
+                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, true));
                         }
                     }
                 }
@@ -348,8 +350,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 SemanticDocument document,
                 TService service,
                 TExpressionSyntax expression,
-                bool allOccurrences)
-                : base(document, service, expression, allOccurrences)
+                bool allOccurrences,
+                bool trampoline)
+                : base(document, service, expression, allOccurrences, trampoline)
             { }
         }
     }

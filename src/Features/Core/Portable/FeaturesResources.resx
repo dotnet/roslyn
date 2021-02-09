@@ -2848,4 +2848,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Introduce_parameter_for_all_occurrences_of_0" xml:space="preserve">
     <value>Introduce parameter for all occurrences of '{0}'</value>
   </data>
+  <data name="Introduce_parameter_and_trampoline_for_0" xml:space="preserve">
+    <value>Introduce parameter and trampoline for '{0}'</value>
+  </data>
+  <data name="Introduce_parameter_and_trampoline_for_all_occurrences_of_0" xml:space="preserve">
+    <value>Introduce parameter and trampoline for all occurrences of '{0}'</value>
+  </data>
 </root>

@@ -555,6 +555,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="new">Introduce parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter_and_trampoline_for_0">
+        <source>Introduce parameter and trampoline for '{0}'</source>
+        <target state="new">Introduce parameter and trampoline for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_and_trampoline_for_all_occurrences_of_0">
+        <source>Introduce parameter and trampoline for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter and trampoline for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
         <target state="new">Introduce parameter for '{0}'</target>

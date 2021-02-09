@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         internal abstract class AbstractIntroduceParameterCodeAction : CodeAction
         {
             private readonly bool _allOccurrences;
+            private readonly bool _trampoline;
             private readonly TService _service;
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
@@ -26,12 +27,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 SemanticDocument document,
                 TService service,
                 TExpressionSyntax expression,
-                bool allOccurrences)
+                bool allOccurrences,
+                bool trampoline)
             {
                 _semanticDocument = document;
                 _service = service;
                 _expression = expression;
                 _allOccurrences = allOccurrences;
+                _trampoline = trampoline;
                 Title = CreateDisplayText(expression);
             }
 
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)
             {
-                return await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, cancellationToken).ConfigureAwait(false);
+                return await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, _trampoline, cancellationToken).ConfigureAwait(false);
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
@@ -58,9 +61,29 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private string CreateDisplayText(string nodeString)
             {
-                var formatString = _allOccurrences
-                        ? FeaturesResources.Introduce_parameter_for_all_occurrences_of_0
-                        : FeaturesResources.Introduce_parameter_for_0;
+                string formatString;
+                if (_allOccurrences)
+                {
+                    if (_trampoline)
+                    {
+                        formatString = FeaturesResources.Introduce_parameter_and_trampoline_for_all_occurrences_of_0;
+                    }
+                    else
+                    {
+                        formatString = FeaturesResources.Introduce_parameter_for_all_occurrences_of_0;
+                    }
+                }
+                else
+                {
+                    if (_trampoline)
+                    {
+                        formatString = FeaturesResources.Introduce_parameter_and_trampoline_for_0;
+                    }
+                    else
+                    {
+                        formatString = FeaturesResources.Introduce_parameter_for_0;
+                    }
+                }
                 return string.Format(formatString, nodeString);
             }
 
