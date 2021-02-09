@@ -852,6 +852,11 @@
         <target state="translated">Suprimir las sugerencias cuando los nombres de parámetro solo se diferencien por el sufijo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Espacio de nombres de destino:</target>

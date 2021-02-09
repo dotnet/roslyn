@@ -852,6 +852,11 @@
         <target state="translated">Hinweise unterdrücken, wenn sich Parameternamen nur durch das Suffix unterscheiden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Zielnamespace:</target>
