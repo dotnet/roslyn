@@ -150,43 +150,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (array.Length - index < length)
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
 
-            try
-            {
-                comparer ??= Comparer<T>.Default;
-                return InternalBinarySearch(array, index, length, value, comparer);
-            }
-            catch (Exception e)
-            {
-                ThrowHelper.ThrowInvalidOperationException(ExceptionResource.InvalidOperation_IComparerFailed, e);
-                return 0;
-            }
-
-            static int InternalBinarySearch(SegmentedArray<T> array, int index, int length, T value, IComparer<T> comparer)
-            {
-                Debug.Assert(index >= 0 && length >= 0 && (array.Length - index >= length), "Check the arguments in the caller!");
-
-                var lo = index;
-                var hi = index + length - 1;
-                while (lo <= hi)
-                {
-                    var i = lo + ((hi - lo) >> 1);
-                    var order = comparer.Compare(array[i], value);
-
-                    if (order == 0)
-                        return i;
-
-                    if (order < 0)
-                    {
-                        lo = i + 1;
-                    }
-                    else
-                    {
-                        hi = i - 1;
-                    }
-                }
-
-                return ~lo;
-            }
+            return SegmentedArraySortHelper<T>.BinarySearch(array, index, length, value, comparer);
         }
 
         public static int IndexOf<T>(SegmentedArray<T> array, T value)
@@ -314,7 +278,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static void Sort<T>(SegmentedArray<T> array)
         {
-            Sort(array, 0, array.Length, comparer: null);
+            if (array.Length > 1)
+            {
+                var segment = new SegmentedArraySegment<T>(array, 0, array.Length);
+                SegmentedArraySortHelper<T>.Sort(segment, (IComparer<T>?)null);
+            }
         }
 
         public static void Sort<T>(SegmentedArray<T> array, int index, int length)
@@ -336,18 +304,25 @@ namespace Microsoft.CodeAnalysis.Collections
             if (array.Length - index < length)
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
 
-            comparer ??= Comparer<T>.Default;
-
-            var current = index;
-            foreach (var value in array.Skip(index).Take(length).OrderBy(static value => value, comparer).ToArray())
+            if (length > 1)
             {
-                array[current++] = value;
+                var segment = new SegmentedArraySegment<T>(array, index, length);
+                SegmentedArraySortHelper<T>.Sort(segment, comparer);
             }
         }
 
         public static void Sort<T>(SegmentedArray<T> array, Comparison<T> comparison)
         {
-            Sort(array, 0, array.Length, Comparer<T>.Create(comparison));
+            if (comparison is null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.comparison);
+            }
+
+            if (array.Length > 1)
+            {
+                var segment = new SegmentedArraySegment<T>(array, 0, array.Length);
+                SegmentedArraySortHelper<T>.Sort(segment, comparison);
+            }
         }
 
         private static SegmentEnumerable<T> GetSegments<T>(this SegmentedArray<T> array, int offset, int length)

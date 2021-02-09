@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
     internal static class ThrowHelper
     {
         [DoesNotReturn]
+        internal static void ThrowIndexOutOfRangeException()
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException()
         {
             throw new ArgumentOutOfRangeException();
@@ -55,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         {
             throw GetArgumentOutOfRangeException(ExceptionArgument.index,
                                                     ExceptionResource.ArgumentOutOfRange_Index);
+        }
+
+        [DoesNotReturn]
+        internal static void ThrowArgumentException_BadComparer(object? comparer)
+        {
+            throw new ArgumentException(string.Format(SR.Arg_BogusIComparer, comparer));
         }
 
         [DoesNotReturn]

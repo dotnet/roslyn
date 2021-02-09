@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/ArraySortHelper.cs
@@ -7,21 +8,28 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using Internal.Runtime.CompilerServices;
 
-namespace System.Collections.Generic
+#if NETCOREAPP
+using System.Numerics;
+#else
+using System.Runtime.InteropServices;
+#endif
+
+#if !NET5_0 && !NET5_0_OR_GREATER
+using Half = System.Single;
+#endif
+
+namespace Microsoft.CodeAnalysis.Collections.Internal
 {
     #region ArraySortHelper for single arrays
 
-    internal partial class ArraySortHelper<T>
+    internal static class SegmentedArraySortHelper<T>
     {
-        #region IArraySortHelper<T> Members
-
-        public void Sort(Span<T> keys, IComparer<T>? comparer)
+        public static void Sort(SegmentedArraySegment<T> keys, IComparer<T>? comparer)
         {
             // Add a try block here to detect IComparers (or their
             // underlying IComparables, etc) that are bogus.
@@ -40,7 +48,7 @@ namespace System.Collections.Generic
             }
         }
 
-        public int BinarySearch(T[] array, int index, int length, T value, IComparer<T>? comparer)
+        public static int BinarySearch(SegmentedArray<T> array, int index, int length, T value, IComparer<T>? comparer)
         {
             try
             {
@@ -54,9 +62,7 @@ namespace System.Collections.Generic
             }
         }
 
-        #endregion
-
-        internal static void Sort(Span<T> keys, Comparison<T> comparer)
+        internal static void Sort(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
             Debug.Assert(comparer != null, "Check the arguments in the caller!");
 
@@ -75,9 +81,8 @@ namespace System.Collections.Generic
             }
         }
 
-        internal static int InternalBinarySearch(T[] array, int index, int length, T value, IComparer<T> comparer)
+        internal static int InternalBinarySearch(SegmentedArray<T> array, int index, int length, T value, IComparer<T> comparer)
         {
-            Debug.Assert(array != null, "Check the arguments in the caller!");
             Debug.Assert(index >= 0 && length >= 0 && (array.Length - index >= length), "Check the arguments in the caller!");
 
             int lo = index;
@@ -87,7 +92,8 @@ namespace System.Collections.Generic
                 int i = lo + ((hi - lo) >> 1);
                 int order = comparer.Compare(array[i], value);
 
-                if (order == 0) return i;
+                if (order == 0)
+                    return i;
                 if (order < 0)
                 {
                     lo = i + 1;
@@ -101,7 +107,7 @@ namespace System.Collections.Generic
             return ~lo;
         }
 
-        private static void SwapIfGreater(Span<T> keys, Comparison<T> comparer, int i, int j)
+        private static void SwapIfGreater(SegmentedArraySegment<T> keys, Comparison<T> comparer, int i, int j)
         {
             Debug.Assert(i != j);
 
@@ -114,7 +120,7 @@ namespace System.Collections.Generic
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Swap(Span<T> a, int i, int j)
+        private static void Swap(SegmentedArraySegment<T> a, int i, int j)
         {
             Debug.Assert(i != j);
 
@@ -123,26 +129,26 @@ namespace System.Collections.Generic
             a[j] = t;
         }
 
-        internal static void IntrospectiveSort(Span<T> keys, Comparison<T> comparer)
+        internal static void IntrospectiveSort(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
             Debug.Assert(comparer != null);
 
             if (keys.Length > 1)
             {
-                IntroSort(keys, 2 * (BitOperations.Log2((uint)keys.Length) + 1), comparer);
+                IntroSort(keys, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer);
             }
         }
 
-        private static void IntroSort(Span<T> keys, int depthLimit, Comparison<T> comparer)
+        private static void IntroSort(SegmentedArraySegment<T> keys, int depthLimit, Comparison<T> comparer)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
             Debug.Assert(depthLimit >= 0);
             Debug.Assert(comparer != null);
 
             int partitionSize = keys.Length;
             while (partitionSize > 1)
             {
-                if (partitionSize <= Array.IntrosortSizeThreshold)
+                if (partitionSize <= SegmentedArrayHelper.IntrosortSizeThreshold)
                 {
 
                     if (partitionSize == 2)
@@ -173,14 +179,14 @@ namespace System.Collections.Generic
                 int p = PickPivotAndPartition(keys.Slice(0, partitionSize), comparer);
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys[(p+1)..partitionSize], depthLimit, comparer);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer);
                 partitionSize = p;
             }
         }
 
-        private static int PickPivotAndPartition(Span<T> keys, Comparison<T> comparer)
+        private static int PickPivotAndPartition(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
-            Debug.Assert(keys.Length >= Array.IntrosortSizeThreshold);
+            Debug.Assert(keys.Length >= SegmentedArrayHelper.IntrosortSizeThreshold);
             Debug.Assert(comparer != null);
 
             int hi = keys.Length - 1;
@@ -199,8 +205,15 @@ namespace System.Collections.Generic
 
             while (left < right)
             {
-                while (comparer(keys[++left], pivot) < 0) ;
-                while (comparer(pivot, keys[--right]) < 0) ;
+                while (comparer(keys[++left], pivot) < 0)
+                {
+                    // Intentionally empty
+                }
+
+                while (comparer(pivot, keys[--right]) < 0)
+                {
+                    // Intentionally empty
+                }
 
                 if (left >= right)
                     break;
@@ -216,10 +229,10 @@ namespace System.Collections.Generic
             return left;
         }
 
-        private static void HeapSort(Span<T> keys, Comparison<T> comparer)
+        private static void HeapSort(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
             Debug.Assert(comparer != null);
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
 
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
@@ -234,7 +247,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void DownHeap(Span<T> keys, int i, int n, int lo, Comparison<T> comparer)
+        private static void DownHeap(SegmentedArraySegment<T> keys, int i, int n, int lo, Comparison<T> comparer)
         {
             Debug.Assert(comparer != null);
             Debug.Assert(lo >= 0);
@@ -259,7 +272,7 @@ namespace System.Collections.Generic
             keys[lo + i - 1] = d;
         }
 
-        private static void InsertionSort(Span<T> keys, Comparison<T> comparer)
+        private static void InsertionSort(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
             for (int i = 0; i < keys.Length - 1; i++)
             {
@@ -277,14 +290,10 @@ namespace System.Collections.Generic
         }
     }
 
-    internal partial class GenericArraySortHelper<T>
+    internal static class SegmentedGenericArraySortHelper<T>
         where T : IComparable<T>
     {
-        // Do not add a constructor to this class because ArraySortHelper<T>.CreateSortHelper will not execute it
-
-        #region IArraySortHelper<T> Members
-
-        public void Sort(Span<T> keys, IComparer<T>? comparer)
+        public static void Sort(SegmentedArraySegment<T> keys, IComparer<T>? comparer)
         {
             try
             {
@@ -299,7 +308,7 @@ namespace System.Collections.Generic
                             typeof(T) == typeof(float) ||
                             typeof(T) == typeof(Half))
                         {
-                            int nanLeft = SortUtils.MoveNansToFront(keys, default(Span<byte>));
+                            int nanLeft = SegmentedArraySortUtils.MoveNansToFront(keys, default(Span<byte>));
                             if (nanLeft == keys.Length)
                             {
                                 return;
@@ -307,12 +316,12 @@ namespace System.Collections.Generic
                             keys = keys.Slice(nanLeft);
                         }
 
-                        IntroSort(keys, 2 * (BitOperations.Log2((uint)keys.Length) + 1));
+                        IntroSort(keys, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1));
                     }
                 }
                 else
                 {
-                    ArraySortHelper<T>.IntrospectiveSort(keys, comparer.Compare);
+                    SegmentedArraySortHelper<T>.IntrospectiveSort(keys, comparer.Compare);
                 }
             }
             catch (IndexOutOfRangeException)
@@ -325,9 +334,8 @@ namespace System.Collections.Generic
             }
         }
 
-        public int BinarySearch(T[] array, int index, int length, T value, IComparer<T>? comparer)
+        public static int BinarySearch(SegmentedArray<T> array, int index, int length, T value, IComparer<T>? comparer)
         {
-            Debug.Assert(array != null, "Check the arguments in the caller!");
             Debug.Assert(index >= 0 && length >= 0 && (array.Length - index >= length), "Check the arguments in the caller!");
 
             try
@@ -338,7 +346,7 @@ namespace System.Collections.Generic
                 }
                 else
                 {
-                    return ArraySortHelper<T>.InternalBinarySearch(array, index, length, value, comparer);
+                    return SegmentedArraySortHelper<T>.InternalBinarySearch(array, index, length, value, comparer);
                 }
             }
             catch (Exception e)
@@ -348,12 +356,10 @@ namespace System.Collections.Generic
             }
         }
 
-        #endregion
-
         // This function is called when the user doesn't specify any comparer.
         // Since T is constrained here, we can call IComparable<T>.CompareTo here.
         // We can avoid boxing for value type and casting for reference types.
-        private static int BinarySearch(T[] array, int index, int length, T value)
+        private static int BinarySearch(SegmentedArray<T> array, int index, int length, T value)
         {
             int lo = index;
             int hi = index + length - 1;
@@ -409,15 +415,15 @@ namespace System.Collections.Generic
             j = t;
         }
 
-        private static void IntroSort(Span<T> keys, int depthLimit)
+        private static void IntroSort(SegmentedArraySegment<T> keys, int depthLimit)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
             Debug.Assert(depthLimit >= 0);
 
             int partitionSize = keys.Length;
             while (partitionSize > 1)
             {
-                if (partitionSize <= Array.IntrosortSizeThreshold)
+                if (partitionSize <= SegmentedArrayHelper.IntrosortSizeThreshold)
                 {
                     if (partitionSize == 2)
                     {
@@ -451,62 +457,77 @@ namespace System.Collections.Generic
                 int p = PickPivotAndPartition(keys.Slice(0, partitionSize));
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys[(p+1)..partitionSize], depthLimit);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), depthLimit);
                 partitionSize = p;
             }
         }
 
-        private static int PickPivotAndPartition(Span<T> keys)
+        private static int PickPivotAndPartition(SegmentedArraySegment<T> keys)
         {
-            Debug.Assert(keys.Length >= Array.IntrosortSizeThreshold);
+            Debug.Assert(keys.Length >= SegmentedArrayHelper.IntrosortSizeThreshold);
 
             // Use median-of-three to select a pivot. Grab a reference to the 0th, Length-1th, and Length/2th elements, and sort them.
-            ref T zeroRef = ref MemoryMarshal.GetReference(keys);
-            ref T lastRef = ref Unsafe.Add(ref zeroRef, keys.Length - 1);
-            ref T middleRef = ref Unsafe.Add(ref zeroRef, (keys.Length - 1) >> 1);
-            SwapIfGreater(ref zeroRef, ref middleRef);
-            SwapIfGreater(ref zeroRef, ref lastRef);
-            SwapIfGreater(ref middleRef, ref lastRef);
+            int zeroIndex = 0;
+            int lastIndex = keys.Length - 1;
+            int middleIndex = (keys.Length - 1) >> 1;
+            SwapIfGreater(ref keys[zeroIndex], ref keys[middleIndex]);
+            SwapIfGreater(ref keys[zeroIndex], ref keys[lastIndex]);
+            SwapIfGreater(ref keys[middleIndex], ref keys[lastIndex]);
 
             // Select the middle value as the pivot, and move it to be just before the last element.
-            ref T nextToLastRef = ref Unsafe.Add(ref zeroRef, keys.Length - 2);
-            T pivot = middleRef;
-            Swap(ref middleRef, ref nextToLastRef);
+            int nextToLastIndex = keys.Length - 2;
+            T pivot = keys[middleIndex];
+            Swap(ref keys[middleIndex], ref keys[nextToLastIndex]);
 
             // Walk the left and right pointers, swapping elements as necessary, until they cross.
-            ref T leftRef = ref zeroRef, rightRef = ref nextToLastRef;
-            while (Unsafe.IsAddressLessThan(ref leftRef, ref rightRef))
+            int leftIndex = zeroIndex, rightIndex = nextToLastIndex;
+            while (leftIndex < rightIndex)
             {
                 if (pivot == null)
                 {
-                    while (Unsafe.IsAddressLessThan(ref leftRef, ref nextToLastRef) && (leftRef = ref Unsafe.Add(ref leftRef, 1)) == null) ;
-                    while (Unsafe.IsAddressGreaterThan(ref rightRef, ref zeroRef) && (rightRef = ref Unsafe.Add(ref rightRef, -1)) != null) ;
+                    while (leftIndex < nextToLastIndex && keys[++leftIndex] == null)
+                    {
+                        // Intentionally empty
+                    }
+
+                    while (rightIndex > zeroIndex && keys[--rightIndex] != null)
+                    {
+                        // Intentionally empty
+                    }
                 }
                 else
                 {
-                    while (Unsafe.IsAddressLessThan(ref leftRef, ref nextToLastRef) && GreaterThan(ref pivot, ref leftRef = ref Unsafe.Add(ref leftRef, 1))) ;
-                    while (Unsafe.IsAddressGreaterThan(ref rightRef, ref zeroRef) && LessThan(ref pivot, ref rightRef = ref Unsafe.Add(ref rightRef, -1))) ;
+                    while (leftIndex < nextToLastIndex && GreaterThan(ref pivot, ref keys[++leftIndex]))
+                    {
+                        // Intentionally empty
+                    }
+
+                    while (rightIndex > zeroIndex && LessThan(ref pivot, ref keys[--rightIndex]))
+                    {
+                        // Intentionally empty
+                    }
                 }
 
-                if (!Unsafe.IsAddressLessThan(ref leftRef, ref rightRef))
+                if (leftIndex >= rightIndex)
                 {
                     break;
                 }
 
-                Swap(ref leftRef, ref rightRef);
+                Swap(ref keys[leftIndex], ref keys[rightIndex]);
             }
 
             // Put the pivot in the correct location.
-            if (!Unsafe.AreSame(ref leftRef, ref nextToLastRef))
+            if (leftIndex != nextToLastIndex)
             {
-                Swap(ref leftRef, ref nextToLastRef);
+                Swap(ref keys[leftIndex], ref keys[nextToLastIndex]);
             }
-            return (int)((nint)Unsafe.ByteOffset(ref zeroRef, ref leftRef) / Unsafe.SizeOf<T>());
+
+            return leftIndex;
         }
 
-        private static void HeapSort(Span<T> keys)
+        private static void HeapSort(SegmentedArraySegment<T> keys)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
 
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
@@ -521,7 +542,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void DownHeap(Span<T> keys, int i, int n, int lo)
+        private static void DownHeap(SegmentedArraySegment<T> keys, int i, int n, int lo)
         {
             Debug.Assert(lo >= 0);
             Debug.Assert(lo < keys.Length);
@@ -545,20 +566,20 @@ namespace System.Collections.Generic
             keys[lo + i - 1] = d;
         }
 
-        private static void InsertionSort(Span<T> keys)
+        private static void InsertionSort(SegmentedArraySegment<T> keys)
         {
             for (int i = 0; i < keys.Length - 1; i++)
             {
-                T t = Unsafe.Add(ref MemoryMarshal.GetReference(keys), i + 1);
+                T t = keys[i + 1];
 
                 int j = i;
-                while (j >= 0 && (t == null || LessThan(ref t, ref Unsafe.Add(ref MemoryMarshal.GetReference(keys), j))))
+                while (j >= 0 && (t == null || LessThan(ref t, ref keys[j])))
                 {
-                    Unsafe.Add(ref MemoryMarshal.GetReference(keys), j + 1) = Unsafe.Add(ref MemoryMarshal.GetReference(keys), j);
+                    keys[j + 1] = keys[j];
                     j--;
                 }
 
-                Unsafe.Add(ref MemoryMarshal.GetReference(keys), j + 1) = t!;
+                keys[j + 1] = t!;
             }
         }
 
@@ -574,38 +595,64 @@ namespace System.Collections.Generic
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // compiles to a single comparison or method call
         private static bool LessThan(ref T left, ref T right)
         {
-            if (typeof(T) == typeof(byte)) return (byte)(object)left < (byte)(object)right ? true : false;
-            if (typeof(T) == typeof(sbyte)) return (sbyte)(object)left < (sbyte)(object)right ? true : false;
-            if (typeof(T) == typeof(ushort)) return (ushort)(object)left < (ushort)(object)right ? true : false;
-            if (typeof(T) == typeof(short)) return (short)(object)left < (short)(object)right ? true : false;
-            if (typeof(T) == typeof(uint)) return (uint)(object)left < (uint)(object)right ? true : false;
-            if (typeof(T) == typeof(int)) return (int)(object)left < (int)(object)right ? true : false;
-            if (typeof(T) == typeof(ulong)) return (ulong)(object)left < (ulong)(object)right ? true : false;
-            if (typeof(T) == typeof(long)) return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint)) return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint)) return (nint)(object)left < (nint)(object)right ? true : false;
-            if (typeof(T) == typeof(float)) return (float)(object)left < (float)(object)right ? true : false;
-            if (typeof(T) == typeof(double)) return (double)(object)left < (double)(object)right ? true : false;
-            if (typeof(T) == typeof(Half)) return (Half)(object)left < (Half)(object)right ? true : false;
+            if (typeof(T) == typeof(byte))
+                return (byte)(object)left < (byte)(object)right ? true : false;
+            if (typeof(T) == typeof(sbyte))
+                return (sbyte)(object)left < (sbyte)(object)right ? true : false;
+            if (typeof(T) == typeof(ushort))
+                return (ushort)(object)left < (ushort)(object)right ? true : false;
+            if (typeof(T) == typeof(short))
+                return (short)(object)left < (short)(object)right ? true : false;
+            if (typeof(T) == typeof(uint))
+                return (uint)(object)left < (uint)(object)right ? true : false;
+            if (typeof(T) == typeof(int))
+                return (int)(object)left < (int)(object)right ? true : false;
+            if (typeof(T) == typeof(ulong))
+                return (ulong)(object)left < (ulong)(object)right ? true : false;
+            if (typeof(T) == typeof(long))
+                return (long)(object)left < (long)(object)right ? true : false;
+            if (typeof(T) == typeof(nuint))
+                return (nuint)(object)left < (nuint)(object)right ? true : false;
+            if (typeof(T) == typeof(nint))
+                return (nint)(object)left < (nint)(object)right ? true : false;
+            if (typeof(T) == typeof(float))
+                return (float)(object)left < (float)(object)right ? true : false;
+            if (typeof(T) == typeof(double))
+                return (double)(object)left < (double)(object)right ? true : false;
+            if (typeof(T) == typeof(Half))
+                return (Half)(object)left < (Half)(object)right ? true : false;
             return left.CompareTo(right) < 0 ? true : false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // compiles to a single comparison or method call
         private static bool GreaterThan(ref T left, ref T right)
         {
-            if (typeof(T) == typeof(byte)) return (byte)(object)left > (byte)(object)right ? true : false;
-            if (typeof(T) == typeof(sbyte)) return (sbyte)(object)left > (sbyte)(object)right ? true : false;
-            if (typeof(T) == typeof(ushort)) return (ushort)(object)left > (ushort)(object)right ? true : false;
-            if (typeof(T) == typeof(short)) return (short)(object)left > (short)(object)right ? true : false;
-            if (typeof(T) == typeof(uint)) return (uint)(object)left > (uint)(object)right ? true : false;
-            if (typeof(T) == typeof(int)) return (int)(object)left > (int)(object)right ? true : false;
-            if (typeof(T) == typeof(ulong)) return (ulong)(object)left > (ulong)(object)right ? true : false;
-            if (typeof(T) == typeof(long)) return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(T) == typeof(nuint)) return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(T) == typeof(nint)) return (nint)(object)left > (nint)(object)right ? true : false;
-            if (typeof(T) == typeof(float)) return (float)(object)left > (float)(object)right ? true : false;
-            if (typeof(T) == typeof(double)) return (double)(object)left > (double)(object)right ? true : false;
-            if (typeof(T) == typeof(Half)) return (Half)(object)left > (Half)(object)right ? true : false;
+            if (typeof(T) == typeof(byte))
+                return (byte)(object)left > (byte)(object)right ? true : false;
+            if (typeof(T) == typeof(sbyte))
+                return (sbyte)(object)left > (sbyte)(object)right ? true : false;
+            if (typeof(T) == typeof(ushort))
+                return (ushort)(object)left > (ushort)(object)right ? true : false;
+            if (typeof(T) == typeof(short))
+                return (short)(object)left > (short)(object)right ? true : false;
+            if (typeof(T) == typeof(uint))
+                return (uint)(object)left > (uint)(object)right ? true : false;
+            if (typeof(T) == typeof(int))
+                return (int)(object)left > (int)(object)right ? true : false;
+            if (typeof(T) == typeof(ulong))
+                return (ulong)(object)left > (ulong)(object)right ? true : false;
+            if (typeof(T) == typeof(long))
+                return (long)(object)left > (long)(object)right ? true : false;
+            if (typeof(T) == typeof(nuint))
+                return (nuint)(object)left > (nuint)(object)right ? true : false;
+            if (typeof(T) == typeof(nint))
+                return (nint)(object)left > (nint)(object)right ? true : false;
+            if (typeof(T) == typeof(float))
+                return (float)(object)left > (float)(object)right ? true : false;
+            if (typeof(T) == typeof(double))
+                return (double)(object)left > (double)(object)right ? true : false;
+            if (typeof(T) == typeof(Half))
+                return (Half)(object)left > (Half)(object)right ? true : false;
             return left.CompareTo(right) > 0 ? true : false;
         }
     }
@@ -614,9 +661,9 @@ namespace System.Collections.Generic
 
     #region ArraySortHelper for paired key and value arrays
 
-    internal partial class ArraySortHelper<TKey, TValue>
+    internal static class SegmentedArraySortHelper<TKey, TValue>
     {
-        public void Sort(Span<TKey> keys, Span<TValue> values, IComparer<TKey>? comparer)
+        public static void Sort(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey>? comparer)
         {
             // Add a try block here to detect IComparers (or their
             // underlying IComparables, etc) that are bogus.
@@ -634,7 +681,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void SwapIfGreaterWithValues(Span<TKey> keys, Span<TValue> values, IComparer<TKey> comparer, int i, int j)
+        private static void SwapIfGreaterWithValues(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey> comparer, int i, int j)
         {
             Debug.Assert(comparer != null);
             Debug.Assert(0 <= i && i < keys.Length && i < values.Length);
@@ -654,7 +701,7 @@ namespace System.Collections.Generic
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Swap(Span<TKey> keys, Span<TValue> values, int i, int j)
+        private static void Swap(SegmentedArraySegment<TKey> keys, Span<TValue> values, int i, int j)
         {
             Debug.Assert(i != j);
 
@@ -667,20 +714,20 @@ namespace System.Collections.Generic
             values[j] = v;
         }
 
-        internal static void IntrospectiveSort(Span<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
+        internal static void IntrospectiveSort(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
         {
             Debug.Assert(comparer != null);
             Debug.Assert(keys.Length == values.Length);
 
             if (keys.Length > 1)
             {
-                IntroSort(keys, values, 2 * (BitOperations.Log2((uint)keys.Length) + 1), comparer);
+                IntroSort(keys, values, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer);
             }
         }
 
-        private static void IntroSort(Span<TKey> keys, Span<TValue> values, int depthLimit, IComparer<TKey> comparer)
+        private static void IntroSort(SegmentedArraySegment<TKey> keys, Span<TValue> values, int depthLimit, IComparer<TKey> comparer)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
             Debug.Assert(values.Length == keys.Length);
             Debug.Assert(depthLimit >= 0);
             Debug.Assert(comparer != null);
@@ -688,7 +735,7 @@ namespace System.Collections.Generic
             int partitionSize = keys.Length;
             while (partitionSize > 1)
             {
-                if (partitionSize <= Array.IntrosortSizeThreshold)
+                if (partitionSize <= SegmentedArrayHelper.IntrosortSizeThreshold)
                 {
 
                     if (partitionSize == 2)
@@ -719,14 +766,14 @@ namespace System.Collections.Generic
                 int p = PickPivotAndPartition(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer);
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys[(p+1)..partitionSize], values[(p+1)..partitionSize], depthLimit, comparer);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), values.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer);
                 partitionSize = p;
             }
         }
 
-        private static int PickPivotAndPartition(Span<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
+        private static int PickPivotAndPartition(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
         {
-            Debug.Assert(keys.Length >= Array.IntrosortSizeThreshold);
+            Debug.Assert(keys.Length >= SegmentedArrayHelper.IntrosortSizeThreshold);
             Debug.Assert(comparer != null);
 
             int hi = keys.Length - 1;
@@ -745,8 +792,15 @@ namespace System.Collections.Generic
 
             while (left < right)
             {
-                while (comparer.Compare(keys[++left], pivot) < 0) ;
-                while (comparer.Compare(pivot, keys[--right]) < 0) ;
+                while (comparer.Compare(keys[++left], pivot) < 0)
+                {
+                    // Intentionally empty
+                }
+
+                while (comparer.Compare(pivot, keys[--right]) < 0)
+                {
+                    // Intentionally empty
+                }
 
                 if (left >= right)
                     break;
@@ -762,10 +816,10 @@ namespace System.Collections.Generic
             return left;
         }
 
-        private static void HeapSort(Span<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
+        private static void HeapSort(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
         {
             Debug.Assert(comparer != null);
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
 
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
@@ -780,7 +834,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void DownHeap(Span<TKey> keys, Span<TValue> values, int i, int n, int lo, IComparer<TKey> comparer)
+        private static void DownHeap(SegmentedArraySegment<TKey> keys, Span<TValue> values, int i, int n, int lo, IComparer<TKey> comparer)
         {
             Debug.Assert(comparer != null);
             Debug.Assert(lo >= 0);
@@ -809,7 +863,7 @@ namespace System.Collections.Generic
             values[lo + i - 1] = dValue;
         }
 
-        private static void InsertionSort(Span<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
+        private static void InsertionSort(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey> comparer)
         {
             Debug.Assert(comparer != null);
 
@@ -832,10 +886,10 @@ namespace System.Collections.Generic
         }
     }
 
-    internal partial class GenericArraySortHelper<TKey, TValue>
+    internal static class SegmentedGenericArraySortHelper<TKey, TValue>
         where TKey : IComparable<TKey>
     {
-        public void Sort(Span<TKey> keys, Span<TValue> values, IComparer<TKey>? comparer)
+        public static void Sort(SegmentedArraySegment<TKey> keys, Span<TValue> values, IComparer<TKey>? comparer)
         {
             // Add a try block here to detect IComparers (or their
             // underlying IComparables, etc) that are bogus.
@@ -852,7 +906,7 @@ namespace System.Collections.Generic
                             typeof(TKey) == typeof(float) ||
                             typeof(TKey) == typeof(Half))
                         {
-                            int nanLeft = SortUtils.MoveNansToFront(keys, values);
+                            int nanLeft = SegmentedArraySortUtils.MoveNansToFront(keys, values);
                             if (nanLeft == keys.Length)
                             {
                                 return;
@@ -861,12 +915,12 @@ namespace System.Collections.Generic
                             values = values.Slice(nanLeft);
                         }
 
-                        IntroSort(keys, values, 2 * (BitOperations.Log2((uint)keys.Length) + 1));
+                        IntroSort(keys, values, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1));
                     }
                 }
                 else
                 {
-                    ArraySortHelper<TKey, TValue>.IntrospectiveSort(keys, values, comparer);
+                    SegmentedArraySortHelper<TKey, TValue>.IntrospectiveSort(keys, values, comparer);
                 }
             }
             catch (IndexOutOfRangeException)
@@ -879,7 +933,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void SwapIfGreaterWithValues(Span<TKey> keys, Span<TValue> values, int i, int j)
+        private static void SwapIfGreaterWithValues(SegmentedArraySegment<TKey> keys, Span<TValue> values, int i, int j)
         {
             Debug.Assert(i != j);
 
@@ -897,7 +951,7 @@ namespace System.Collections.Generic
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Swap(Span<TKey> keys, Span<TValue> values, int i, int j)
+        private static void Swap(SegmentedArraySegment<TKey> keys, Span<TValue> values, int i, int j)
         {
             Debug.Assert(i != j);
 
@@ -910,16 +964,16 @@ namespace System.Collections.Generic
             values[j] = v;
         }
 
-        private static void IntroSort(Span<TKey> keys, Span<TValue> values, int depthLimit)
+        private static void IntroSort(SegmentedArraySegment<TKey> keys, Span<TValue> values, int depthLimit)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
             Debug.Assert(values.Length == keys.Length);
             Debug.Assert(depthLimit >= 0);
 
             int partitionSize = keys.Length;
             while (partitionSize > 1)
             {
-                if (partitionSize <= Array.IntrosortSizeThreshold)
+                if (partitionSize <= SegmentedArrayHelper.IntrosortSizeThreshold)
                 {
 
                     if (partitionSize == 2)
@@ -950,14 +1004,14 @@ namespace System.Collections.Generic
                 int p = PickPivotAndPartition(keys.Slice(0, partitionSize), values.Slice(0, partitionSize));
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys[(p+1)..partitionSize], values[(p+1)..partitionSize], depthLimit);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), values.Slice(p + 1, partitionSize - (p + 1)), depthLimit);
                 partitionSize = p;
             }
         }
 
-        private static int PickPivotAndPartition(Span<TKey> keys, Span<TValue> values)
+        private static int PickPivotAndPartition(SegmentedArraySegment<TKey> keys, Span<TValue> values)
         {
-            Debug.Assert(keys.Length >= Array.IntrosortSizeThreshold);
+            Debug.Assert(keys.Length >= SegmentedArrayHelper.IntrosortSizeThreshold);
 
             int hi = keys.Length - 1;
 
@@ -977,13 +1031,27 @@ namespace System.Collections.Generic
             {
                 if (pivot == null)
                 {
-                    while (left < (hi - 1) && keys[++left] == null) ;
-                    while (right > 0 && keys[--right] != null) ;
+                    while (left < (hi - 1) && keys[++left] == null)
+                    {
+                        // Intentionally empty
+                    }
+
+                    while (right > 0 && keys[--right] != null)
+                    {
+                        // Intentionally empty
+                    }
                 }
                 else
                 {
-                    while (GreaterThan(ref pivot, ref keys[++left])) ;
-                    while (LessThan(ref pivot, ref keys[--right])) ;
+                    while (GreaterThan(ref pivot, ref keys[++left]))
+                    {
+                        // Intentionally empty
+                    }
+
+                    while (LessThan(ref pivot, ref keys[--right]))
+                    {
+                        // Intentionally empty
+                    }
                 }
 
                 if (left >= right)
@@ -1000,9 +1068,9 @@ namespace System.Collections.Generic
             return left;
         }
 
-        private static void HeapSort(Span<TKey> keys, Span<TValue> values)
+        private static void HeapSort(SegmentedArraySegment<TKey> keys, Span<TValue> values)
         {
-            Debug.Assert(!keys.IsEmpty);
+            Debug.Assert(keys.Length > 0);
 
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
@@ -1017,7 +1085,7 @@ namespace System.Collections.Generic
             }
         }
 
-        private static void DownHeap(Span<TKey> keys, Span<TValue> values, int i, int n, int lo)
+        private static void DownHeap(SegmentedArraySegment<TKey> keys, Span<TValue> values, int i, int n, int lo)
         {
             Debug.Assert(lo >= 0);
             Debug.Assert(lo < keys.Length);
@@ -1045,7 +1113,7 @@ namespace System.Collections.Generic
             values[lo + i - 1] = dValue;
         }
 
-        private static void InsertionSort(Span<TKey> keys, Span<TValue> values)
+        private static void InsertionSort(SegmentedArraySegment<TKey> keys, Span<TValue> values)
         {
             for (int i = 0; i < keys.Length - 1; i++)
             {
@@ -1077,38 +1145,64 @@ namespace System.Collections.Generic
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // compiles to a single comparison or method call
         private static bool LessThan(ref TKey left, ref TKey right)
         {
-            if (typeof(TKey) == typeof(byte)) return (byte)(object)left < (byte)(object)right ? true : false;
-            if (typeof(TKey) == typeof(sbyte)) return (sbyte)(object)left < (sbyte)(object)right ? true : false;
-            if (typeof(TKey) == typeof(ushort)) return (ushort)(object)left < (ushort)(object)right ? true : false;
-            if (typeof(TKey) == typeof(short)) return (short)(object)left < (short)(object)right ? true : false;
-            if (typeof(TKey) == typeof(uint)) return (uint)(object)left < (uint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(int)) return (int)(object)left < (int)(object)right ? true : false;
-            if (typeof(TKey) == typeof(ulong)) return (ulong)(object)left < (ulong)(object)right ? true : false;
-            if (typeof(TKey) == typeof(long)) return (long)(object)left < (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint)) return (nuint)(object)left < (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint)) return (nint)(object)left < (nint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(float)) return (float)(object)left < (float)(object)right ? true : false;
-            if (typeof(TKey) == typeof(double)) return (double)(object)left < (double)(object)right ? true : false;
-            if (typeof(TKey) == typeof(Half)) return (Half)(object)left < (Half)(object)right ? true : false;
+            if (typeof(TKey) == typeof(byte))
+                return (byte)(object)left < (byte)(object)right ? true : false;
+            if (typeof(TKey) == typeof(sbyte))
+                return (sbyte)(object)left < (sbyte)(object)right ? true : false;
+            if (typeof(TKey) == typeof(ushort))
+                return (ushort)(object)left < (ushort)(object)right ? true : false;
+            if (typeof(TKey) == typeof(short))
+                return (short)(object)left < (short)(object)right ? true : false;
+            if (typeof(TKey) == typeof(uint))
+                return (uint)(object)left < (uint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(int))
+                return (int)(object)left < (int)(object)right ? true : false;
+            if (typeof(TKey) == typeof(ulong))
+                return (ulong)(object)left < (ulong)(object)right ? true : false;
+            if (typeof(TKey) == typeof(long))
+                return (long)(object)left < (long)(object)right ? true : false;
+            if (typeof(TKey) == typeof(nuint))
+                return (nuint)(object)left < (nuint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(nint))
+                return (nint)(object)left < (nint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(float))
+                return (float)(object)left < (float)(object)right ? true : false;
+            if (typeof(TKey) == typeof(double))
+                return (double)(object)left < (double)(object)right ? true : false;
+            if (typeof(TKey) == typeof(Half))
+                return (Half)(object)left < (Half)(object)right ? true : false;
             return left.CompareTo(right) < 0 ? true : false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // compiles to a single comparison or method call
         private static bool GreaterThan(ref TKey left, ref TKey right)
         {
-            if (typeof(TKey) == typeof(byte)) return (byte)(object)left > (byte)(object)right ? true : false;
-            if (typeof(TKey) == typeof(sbyte)) return (sbyte)(object)left > (sbyte)(object)right ? true : false;
-            if (typeof(TKey) == typeof(ushort)) return (ushort)(object)left > (ushort)(object)right ? true : false;
-            if (typeof(TKey) == typeof(short)) return (short)(object)left > (short)(object)right ? true : false;
-            if (typeof(TKey) == typeof(uint)) return (uint)(object)left > (uint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(int)) return (int)(object)left > (int)(object)right ? true : false;
-            if (typeof(TKey) == typeof(ulong)) return (ulong)(object)left > (ulong)(object)right ? true : false;
-            if (typeof(TKey) == typeof(long)) return (long)(object)left > (long)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nuint)) return (nuint)(object)left > (nuint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(nint)) return (nint)(object)left > (nint)(object)right ? true : false;
-            if (typeof(TKey) == typeof(float)) return (float)(object)left > (float)(object)right ? true : false;
-            if (typeof(TKey) == typeof(double)) return (double)(object)left > (double)(object)right ? true : false;
-            if (typeof(TKey) == typeof(Half)) return (Half)(object)left > (Half)(object)right ? true : false;
+            if (typeof(TKey) == typeof(byte))
+                return (byte)(object)left > (byte)(object)right ? true : false;
+            if (typeof(TKey) == typeof(sbyte))
+                return (sbyte)(object)left > (sbyte)(object)right ? true : false;
+            if (typeof(TKey) == typeof(ushort))
+                return (ushort)(object)left > (ushort)(object)right ? true : false;
+            if (typeof(TKey) == typeof(short))
+                return (short)(object)left > (short)(object)right ? true : false;
+            if (typeof(TKey) == typeof(uint))
+                return (uint)(object)left > (uint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(int))
+                return (int)(object)left > (int)(object)right ? true : false;
+            if (typeof(TKey) == typeof(ulong))
+                return (ulong)(object)left > (ulong)(object)right ? true : false;
+            if (typeof(TKey) == typeof(long))
+                return (long)(object)left > (long)(object)right ? true : false;
+            if (typeof(TKey) == typeof(nuint))
+                return (nuint)(object)left > (nuint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(nint))
+                return (nint)(object)left > (nint)(object)right ? true : false;
+            if (typeof(TKey) == typeof(float))
+                return (float)(object)left > (float)(object)right ? true : false;
+            if (typeof(TKey) == typeof(double))
+                return (double)(object)left > (double)(object)right ? true : false;
+            if (typeof(TKey) == typeof(Half))
+                return (Half)(object)left > (Half)(object)right ? true : false;
             return left.CompareTo(right) > 0 ? true : false;
         }
     }
@@ -1116,9 +1210,19 @@ namespace System.Collections.Generic
     #endregion
 
     /// <summary>Helper methods for use in array/span sorting routines.</summary>
-    internal static class SortUtils
+    internal static class SegmentedArraySortUtils
     {
-        public static int MoveNansToFront<TKey, TValue>(Span<TKey> keys, Span<TValue> values) where TKey : notnull
+#if !NETCOREAPP
+        private static ReadOnlySpan<byte> Log2DeBruijn => new byte[32]
+        {
+            00, 09, 01, 10, 13, 21, 02, 29,
+            11, 14, 16, 18, 22, 25, 03, 30,
+            08, 12, 20, 28, 15, 17, 24, 07,
+            19, 27, 23, 06, 26, 05, 04, 31,
+        };
+#endif
+
+        public static int MoveNansToFront<TKey, TValue>(SegmentedArraySegment<TKey> keys, Span<TValue> values) where TKey : notnull
         {
             Debug.Assert(typeof(TKey) == typeof(double) || typeof(TKey) == typeof(float));
 
@@ -1147,5 +1251,43 @@ namespace System.Collections.Generic
 
             return left;
         }
+
+        public static int Log2(uint value)
+        {
+#if NETCOREAPP
+            return BitOperations.Log2(value);
+#else
+            // Fallback contract is 0->0
+            return Log2SoftwareFallback(value);
+#endif
+        }
+
+#if !NETCOREAPP
+        /// <summary>
+        /// Returns the integer (floor) log of the specified value, base 2.
+        /// Note that by convention, input value 0 returns 0 since Log(0) is undefined.
+        /// Does not directly use any hardware intrinsics, nor does it incur branching.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        private static int Log2SoftwareFallback(uint value)
+        {
+            // No AggressiveInlining due to large method size
+            // Has conventional contract 0->0 (Log(0) is undefined)
+
+            // Fill trailing zeros with ones, eg 00010010 becomes 00011111
+            value |= value >> 01;
+            value |= value >> 02;
+            value |= value >> 04;
+            value |= value >> 08;
+            value |= value >> 16;
+
+            // uint.MaxValue >> 27 is always in range [0 - 31] so we use Unsafe.AddByteOffset to avoid bounds check
+            return Unsafe.AddByteOffset(
+                // Using deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_1100_0100_1010_1100_1101_1101u
+                ref MemoryMarshal.GetReference(Log2DeBruijn),
+                // uint|long -> IntPtr cast on 32-bit platforms does expensive overflow checks not needed here
+                (IntPtr)(int)((value * 0x07C4ACDDu) >> 27));
+        }
+#endif
     }
 }
