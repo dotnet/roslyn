@@ -1386,14 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AttributeList:
                     var attributeList = (AttributeListSyntax)node;
-                    if (editKind == EditKind.Update)
-                    {
-                        return (attributeList.Target != null) ? attributeList.Target.Span : attributeList.Span;
-                    }
-                    else
-                    {
-                        return attributeList.Span;
-                    }
+                    return attributeList.Span;
 
                 case SyntaxKind.Attribute:
                     return node.Span;
@@ -1723,10 +1716,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
+                    return FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
+
+                case SyntaxKind.AttributeTargetSpecifier:
+                    return CSharpFeaturesResources.attribute_target;
 
                 // statement:
 
@@ -2912,7 +2908,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
                 {
-                    ReportError(RudeEditKind.Update);
+                    var spanNode = ((SyntaxNode?)newNode.Target) ?? newNode;
+                    ReportError(RudeEditKind.Update, spanNode: spanNode, displayNode: spanNode);
                     return;
                 }
 
