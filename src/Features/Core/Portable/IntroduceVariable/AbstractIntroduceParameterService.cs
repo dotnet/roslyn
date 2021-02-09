@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         if (enclosingBlocks.All(b => !BlockOverlapsHiddenPosition(b, cancellationToken)))
                         {
                             actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true, false));
-                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, true));
+                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true, true));
                         }
                     }
                 }
