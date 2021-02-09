@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the DocumentData table.
         /// </summary>
-        private bool TryGetDocumentDataId(SqlConnection connection, DocumentKey documentKey, Document? bulkLoadSnapshot, string name, out long dataId)
+        private bool TryGetDocumentDataId(SqlConnection connection, DocumentKey documentKey, string name, out long dataId)
         {
             dataId = 0;
 
