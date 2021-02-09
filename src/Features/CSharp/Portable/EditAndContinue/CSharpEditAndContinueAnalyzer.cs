@@ -640,6 +640,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics)
         {
+            var bodyEditsForLambda = bodyMatch.GetTreeEdits();
+            var editMap = BuildEditMap(bodyEditsForLambda);
+            foreach (var edit in bodyEditsForLambda.Edits)
+            {
+                if (HasParentEdit(editMap, edit))
+                {
+                    return;
+                }
+
+                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch, classifyStatementSyntax: true);
+                classifier.ClassifyEdit();
+            }
         }
 
         protected override bool TryMatchActiveStatement(
@@ -1877,6 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private readonly SyntaxNode? _newNode;
             private readonly EditKind _kind;
             private readonly TextSpan? _span;
+            private readonly bool _classifyStatementSyntax;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
@@ -1885,7 +1898,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 SyntaxNode? newNode,
                 EditKind kind,
                 Match<SyntaxNode>? match = null,
-                TextSpan? span = null)
+                TextSpan? span = null,
+                bool classifyStatementSyntax = false)
             {
                 RoslynDebug.Assert(oldNode != null || newNode != null);
 
@@ -1899,6 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _kind = kind;
                 _span = span;
                 _match = match;
+                _classifyStatementSyntax = classifyStatementSyntax;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode? spanNode = null, SyntaxNode? displayNode = null)
