@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var caretLocation = locations["caret"].Single();
 
-            var commandArgument = new CodeActionResolveData("Move type to B.cs", caretLocation.Range, new LSP.TextDocumentIdentifier
+            var commandArgument = new CodeActionResolveData(string.Format(FeaturesResources.Move_type_to_0, "B.cs"), caretLocation.Range, new LSP.TextDocumentIdentifier
             {
                 Uri = caretLocation.Uri
             });
