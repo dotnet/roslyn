@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' on Me/MyBase/MyClass or is a target of a member initializer in an object member
         ''' initializer.
         ''' </summary>
-        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInintializer As Boolean) As Boolean
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInitializer As Boolean) As Boolean
             Debug.Assert(containingBinder IsNot Nothing)
 
             Dim mostDerivedSet As MethodSymbol = Me.GetMostDerivedSetMethod()
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' ok: New C() With { .InitOnlyProperty = ... }
-                If isKnownTargetOfObjectMemberInintializer Then
+                If isKnownTargetOfObjectMemberInitializer Then
                     Debug.Assert(receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder)
                     Return True
                 End If

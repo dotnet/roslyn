@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -36,5 +37,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return new TextSpan(lines[0].Text.Length - 1, 0);
             }
         }
+
+        public static LinePositionSpan ToLinePositionSpan(this SourceSpan span)
+            => new(new(span.StartLine, span.StartColumn), new(span.EndLine, span.EndColumn));
+
+        public static SourceSpan ToSourceSpan(this LinePositionSpan span)
+            => new(span.Start.Line, span.Start.Character, span.End.Line, span.End.Character);
     }
 }

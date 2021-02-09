@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(lspWorkspaceRegistrationService, languageClient.Name);
+            _queue = new RequestExecutionQueue(lspWorkspaceRegistrationService, languageClient.Name, _languageClient.GetType().Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -144,10 +144,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [JsonRpcMethod(Methods.ExitName)]
         public Task ExitAsync(CancellationToken _)
         {
-            Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
-
             try
             {
+                ShutdownRequestQueue();
                 _jsonRpc.Dispose();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
