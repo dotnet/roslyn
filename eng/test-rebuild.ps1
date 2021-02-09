@@ -29,7 +29,7 @@ try {
 
   Write-Host "Building Roslyn"
   Exec-Console (Join-Path $PSScriptRoot "build.ps1") "-restore -build -ci:$ci -configuration:$configuration -pack -binaryLog"
-  & "artifacts\bin\BuildValidator\$configuration\net472\BuildValidator.exe" --assembliesPath "$ArtifactsDir/obj/Microsoft.CodeAnalysis"
+  Exec-Console "artifacts\bin\BuildValidator\$configuration\net472\BuildValidator.exe" "--assembliesPath '$ArtifactsDir/obj/Microsoft.CodeAnalysis'"
 
   exit 0
 }
