@@ -30,16 +30,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </remarks>
         private void BulkPopulateIds(SqlConnection connection, Solution? bulkLoadSnapshot, bool fetchStringTable)
         {
+#if false
             // Can only bulk populate if we were given a snapshot we can walk to grab data from.
             if (bulkLoadSnapshot == null)
                 return;
 
+            if (bulkLoadSnapshot != null)
+                return;
+
             foreach (var (_, projectState) in bulkLoadSnapshot.State.ProjectStates)
                 BulkPopulateProjectIds(connection, bulkLoadSnapshot.State, projectState, fetchStringTable);
+#endif
         }
 
         private void BulkPopulateProjectIds(SqlConnection connection, SolutionState bulkLoadSolution, ProjectState bulkLoadProject, bool fetchStringTable)
         {
+#if false
             // Ensure that only one caller is trying to bulk populate a project at a time.
             var gate = _projectBulkPopulatedLock.GetOrAdd(bulkLoadProject.Id, _ => new object());
             lock (gate)
@@ -77,7 +83,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // Successfully bulk populated.  Mark as such so we don't bother doing this again.
                 _projectBulkPopulatedMap.Add(bulkLoadProject.Id);
             }
+#endif
         }
+
+#if false
 
         private static readonly ObjectPool<Dictionary<int, string>> s_dictionaryPool
             = SharedPools.Default<Dictionary<int, string>>();
@@ -241,5 +250,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     t.idToString.Add(id, value);
                 }
             };
+#endif
     }
 }
