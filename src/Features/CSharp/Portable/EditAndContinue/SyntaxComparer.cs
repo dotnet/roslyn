@@ -977,6 +977,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
                     return true;
 
+                case SyntaxKind.TypeParameterConstraintClause:
+                    distance = ComputeDistance((TypeParameterConstraintClauseSyntax)leftNode, (TypeParameterConstraintClauseSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.TypeParameter:
+                    distance = ComputeDistance((TypeParameterSyntax)leftNode, (TypeParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Parameter:
+                    distance = ComputeDistance((ParameterSyntax)leftNode, (ParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.AttributeList:
+                    distance = ComputeDistance((AttributeListSyntax)leftNode, (AttributeListSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Attribute:
+                    distance = ComputeDistance((AttributeSyntax)leftNode, (AttributeSyntax)rightNode);
+                    return true;
+
                 default:
                     var leftName = TryGetName(leftNode);
                     var rightName = TryGetName(rightNode);
@@ -1125,6 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.LocalFunctionStatement:
                     // value distance of the block body is included:
                     distance = GetDistance(leftBlock.Parent, rightBlock.Parent);
                     return true;
