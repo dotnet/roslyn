@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.ComponentDebugger</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="16.8.1-beta1-928-02" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="16.8.1-beta1-928-02" PrivateAssets="all" />
+    <PackageReference Include="NuGet.VisualStudio" Version="5.8.0-preview.2.6776" PrivateAssets="all" />
+    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version=" 5.8.0-preview.2.6776" PrivateAssets="all" />
+
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="DebuggerOptions.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+</Project>
