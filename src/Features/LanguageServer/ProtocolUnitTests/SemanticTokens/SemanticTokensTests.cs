@@ -143,8 +143,8 @@ two
 three */ }
 ";
 
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -181,8 +181,8 @@ three"";
 }
 ";
 
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var results = await RunGetSemanticTokensAsync(workspace.CurrentSolution, locations["caret"].First());
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
 
             var expectedResults = new LSP.SemanticTokens
             {
