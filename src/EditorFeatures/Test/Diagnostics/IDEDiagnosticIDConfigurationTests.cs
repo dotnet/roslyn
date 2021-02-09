@@ -418,6 +418,9 @@ dotnet_diagnostic.IDE1008.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE0130
+dotnet_diagnostic.IDE0130.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -972,6 +975,9 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE0130, PreferNamespaceAndFolderMatchStructure
+dotnet_style_namespace_match_folder = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
