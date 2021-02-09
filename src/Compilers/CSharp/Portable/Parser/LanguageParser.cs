@@ -6165,7 +6165,8 @@ tryAgain:
             NonGenericTypeOrExpression,
 
             /// <summary>
-            /// A type name with alias prefix (Alias::Name)
+            /// A type name with alias prefix (Alias::Name).  Note that Alias::Name.X would not fall under this.  This
+            /// only is returned for exactly Alias::Name.
             /// </summary>
             AliasQualifiedName,
 
