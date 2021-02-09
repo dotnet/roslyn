@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
         {
-            Debug.Assert(HasLabel(node));
-
             if (node == _oldRoot)
             {
                 return _oldRootChildren;
