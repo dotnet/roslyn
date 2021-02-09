@@ -457,10 +457,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Debug entry point has to be a method definition from this compilation.
             var methodSymbol = (debugEntryPoint as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol;
-            if (methodSymbol?.DeclaringCompilation != this || !methodSymbol.IsDefinition)
+            // <Caravela>: skip checking that the compilations equal
+            if (/*methodSymbol?.DeclaringCompilation != this ||*/ !methodSymbol.IsDefinition)
             {
                 diagnostics.Add(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None);
             }
+            // </Caravela>
         }
 
         private static LanguageVersion CommonLanguageVersion(ImmutableArray<SyntaxTree> syntaxTrees)
@@ -2850,8 +2852,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     manifestResources);
             }
 
+            // <Caravela>: map symbol from original compilation to transformed compilation
+            if (debugEntryPoint != null && (debugEntryPoint as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol.DeclaringCompilation != this)
+            {
+                string documentationCommentId = DocumentationCommentId.CreateDeclarationId(debugEntryPoint);
+                var mappedSymbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationCommentId, this);
+                debugEntryPoint = mappedSymbol as IMethodSymbol;
+
+                if (debugEntryPoint == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None);
+                }
+            }
+            // </Caravela>
+
             if (debugEntryPoint != null)
             {
+
                 moduleBeingBuilt.SetDebugEntryPoint(debugEntryPoint.GetSymbol(), diagnostics);
             }
 
