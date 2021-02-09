@@ -306,6 +306,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
+        protected abstract void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics);
+
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
@@ -1380,6 +1382,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var match = ComputeBodyMatch(oldBody, newBody, lazyKnownMatches);
+
+            if (IsLocalFunction(match.OldRoot) && IsLocalFunction(match.NewRoot))
+            {
+                ReportLocalFunctionsDeclarationRudeEdits(match, diagnostics);
+            }
 
             if (lazyRudeEdits != null)
             {

@@ -638,6 +638,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        protected override void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics)
+        {
+        }
+
         protected override bool TryMatchActiveStatement(
             SyntaxNode oldStatement,
             int statementPart,
