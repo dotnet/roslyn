@@ -7,9 +7,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>620462dd065490620c03a80cea8e251004f6bf21</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.10.0-1.21101.2">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="3.10.0-1.21108.12">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>f96aede74c4aea6435c342d18db3435a65c62264</Sha>
+      <Sha>06f94811ea2b7e26014bc2903180b33b2400fe85</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="2.0.0-beta.21072.7">
       <Uri>https://github.com/dotnet/arcade</Uri>

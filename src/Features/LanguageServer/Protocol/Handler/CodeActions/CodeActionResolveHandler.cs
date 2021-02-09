@@ -4,12 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -27,13 +29,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    [LspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false)]
+    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false), Shared]
     internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,

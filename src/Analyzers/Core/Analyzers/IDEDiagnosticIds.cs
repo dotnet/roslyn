@@ -156,12 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
 
-        // 2000 range for experimental formatting enforcement
-        public const string MultipleBlankLinesDiagnosticId = "IDE2000";
-        public const string EmbeddedStatementPlacementDiagnosticId = "IDE2001";
-        public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
-        public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
-        public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
+        public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
@@ -174,5 +169,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UnboundConstructorId = "IDE1008";
 
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
+
+        // Experimental features
+
+        // 2000 range for experimental formatting enforcement
+        public const string MultipleBlankLinesDiagnosticId = "IDE2000";
+        public const string EmbeddedStatementPlacementDiagnosticId = "IDE2001";
+        public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
+        public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
+        public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     }
 }

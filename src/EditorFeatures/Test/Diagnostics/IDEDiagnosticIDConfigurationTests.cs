@@ -419,6 +419,7 @@ dotnet_diagnostic.IDE1008.severity = %value%
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
+<<<<<<< HEAD
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -433,6 +434,10 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
+=======
+# IDE0130
+dotnet_diagnostic.IDE0130.severity = %value%
+>>>>>>> upstream/master
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -994,6 +999,7 @@ No editorconfig based code style option
 # IDE1008
 No editorconfig based code style option
 
+<<<<<<< HEAD
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines = true
 
@@ -1008,6 +1014,10 @@ dotnet_style_allow_statement_immediately_after_block = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
+=======
+# IDE0130, PreferNamespaceAndFolderMatchStructure
+dotnet_style_namespace_match_folder = true
+>>>>>>> upstream/master
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);

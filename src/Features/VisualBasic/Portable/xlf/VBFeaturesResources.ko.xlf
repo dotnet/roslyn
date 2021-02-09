@@ -112,6 +112,11 @@
         <target state="translated">참고: 입력을 방해하지 않으려면 공백 완성 기능을 사용하지 않도록 설정합니다. 목록에서 이름을 삽입하려면 탭을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;새 필드&gt;</target>

@@ -22,9 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false)]
-    internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
+    [Shared]
+    [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionList?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
-        public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)

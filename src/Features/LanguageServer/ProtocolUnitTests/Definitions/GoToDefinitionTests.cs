@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = {|caret:|}aString.Length;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 }"
             };
 
-            using var testLspServer = CreateTestLspServer(markups, out var locations);
+            using var workspace = CreateTestWorkspace(markups, out var locations);
 
-            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             AssertLocationsEqual(locations["definition"], results);
         }
 
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = CreateTestLspServer(string.Empty, out var _);
+            using var workspace = CreateTestWorkspace(string.Empty, out var _);
 
-            AddMappedDocument(testLspServer.TestWorkspace, markup);
+            AddMappedDocument(workspace, markup);
 
             var position = new LSP.Position { Line = 5, Character = 18 };
-            var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, new LSP.Location
             {
                 Uri = new Uri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         var len = aString.Length;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 
@@ -114,15 +114,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
     {
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunGotoDefinitionAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGotoDefinitionAsync(workspace.CurrentSolution, locations["caret"].Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
+        private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentDefinitionName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
     }

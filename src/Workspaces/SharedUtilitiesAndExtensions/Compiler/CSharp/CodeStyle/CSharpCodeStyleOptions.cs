@@ -272,21 +272,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowEmbeddedStatementsOnSameLine),
             defaultValue: CodeStyleOptions2.TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_embedded_statements_on_same_line", CodeStyleOptions2.TrueWithSilentEnforcement),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_embedded_statements_on_same_line_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowEmbeddedStatementsOnSameLine)}")});
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLinesBetweenConsecutiveBraces),
             defaultValue: CodeStyleOptions2.TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_lines_between_consecutive_braces", CodeStyleOptions2.TrueWithSilentEnforcement),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_lines_between_consecutive_braces_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowBlankLinesBetweenConsecutiveBraces)}")});
 
         public static Option2<CodeStyleOption2<bool>> AllowBlankLineAfterColonInConstructorInitializer { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowBlankLineAfterColonInConstructorInitializer),
             defaultValue: CodeStyleOptions2.TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer", CodeStyleOptions2.TrueWithSilentEnforcement),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental", CodeStyleOptions2.TrueWithSilentEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(AllowBlankLineAfterColonInConstructorInitializer)}")});
 
 #if false
