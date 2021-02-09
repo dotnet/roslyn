@@ -52,7 +52,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       }
 
       # Lookup the feed name from the packages map using the package name without the version or extension.
-      $nupkgWithoutVersion = $nupkg -replace '(\.\d){3}-.*.nupkg', ''
+      $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
       if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
         throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
       }

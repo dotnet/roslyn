@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -86,6 +86,11 @@
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">Biçimlendirme sırasında ek kod temizleme gerçekleştir</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -265,11 +270,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Metotlar ve yerel işlemler için yeni satıra açma küme ayracı yerleştirin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Nesne, koleksiyon ve dizi başlatıcıları için açma küme ayracını yeni satıra yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">

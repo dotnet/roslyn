@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -42,12 +40,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public SignatureHelpItem(
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IEnumerable<TaggedText> prefixParts,
             IEnumerable<TaggedText> separatorParts,
             IEnumerable<TaggedText> suffixParts,
             IEnumerable<SignatureHelpParameter> parameters,
-            IEnumerable<TaggedText> descriptionParts)
+            IEnumerable<TaggedText>? descriptionParts)
         {
             if (isVariadic && !parameters.Any())
             {

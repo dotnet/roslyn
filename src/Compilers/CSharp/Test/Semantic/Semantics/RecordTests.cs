@@ -52,8 +52,9 @@ record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS8805: Program using top-level statements must be an executable.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
                 // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
@@ -96,8 +97,9 @@ record Point(int x, int y);
             );
             comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record Point(int x, int y);").WithLocation(2, 1),
                 // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
@@ -114,8 +116,9 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS8805: Program using top-level statements must be an executable.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
                 // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
@@ -20649,8 +20652,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: '
 ");
 
                 Assert.Null(operation.Parent.Parent.Parent);
-                ControlFlowGraphVerifier.VerifyGraph(comp,
-@"
+                VerifyFlowGraph(comp, operation.Parent.Parent.Syntax, @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -20675,7 +20677,7 @@ Block[B1] - Block
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
-", ControlFlowGraph.Create((IConstructorBodyOperation)operation.Parent.Parent));
+");
 
                 var equalsValue = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First();
 

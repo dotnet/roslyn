@@ -1867,21 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetParameterAsDiagnosticArgument(parameterOpt),
                     GetContainingSymbolAsDiagnosticArgument(parameterOpt));
 
-                if (targetType.Type.IsPossiblyNullableReferenceTypeTypeParameter())
-                {
-                    var slotBuilder = ArrayBuilder<int>.GetInstance();
-                    GetSlotsToMarkAsNotNullable(value, slotBuilder);
-                    foreach (var slot in slotBuilder)
-                    {
-                        Debug.Assert(State[slot] == NullableFlowState.MaybeDefault);
-                        State[slot] = NullableFlowState.MaybeNull;
-                    }
-                    slotBuilder.Free();
-                }
-                else
-                {
-                    LearnFromNonNullTest(value, ref State);
-                }
+                LearnFromNonNullTest(value, ref State);
             }
             else if (useLegacyWarnings)
             {

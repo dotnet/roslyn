@@ -112,6 +112,11 @@
         <target state="translated">Uwaga: Uzupełnianie za pomocą spacji jest wyłączone w celu uniknięcia potencjalnych konfliktów. Aby wstawić nazwę z listy, użyj klawisza Tab.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;nowe pole&gt;</target>
