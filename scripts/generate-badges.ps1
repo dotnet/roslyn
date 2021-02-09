@@ -43,6 +43,7 @@ function Get-BuildsTable() {
 
     $table = @'
 ### Builds
+
 |Branch|Windows Debug|Windows Release|Unix Debug|
 |:--:|:--:|:--:|:--:|
 
@@ -63,6 +64,7 @@ function Get-DesktopTable() {
 
     $table = @'
 ### Desktop Unit Tests
+
 |Branch|Debug x86|Debug x64|Release x86|Release x64|
 |:--:|:--:|:--:|:--:|:--:|
 
@@ -82,6 +84,7 @@ function Get-CoreClrTable() {
 
     $table = @'
 ### CoreClr Unit Tests
+
 |Branch|Windows Debug|Windows Release|Linux|
 |:--:|:--:|:--:|:--:|
 
@@ -103,6 +106,7 @@ function Get-IntegrationTable() {
 
     $table = @'
 ### Integration Tests
+
 |Branch|Debug x86|Debug x64|Release x86|Release x64
 |:--:|:--:|:--:|:--:|:--:|
 
@@ -126,6 +130,7 @@ function Get-MiscTable() {
 
     $table = @'
 ### Misc Tests
+
 |Branch|Determinism|Build Correctness|Source build|Spanish|MacOS|
 |:--:|:--:|:--|:--:|:--:|:--:|
 
