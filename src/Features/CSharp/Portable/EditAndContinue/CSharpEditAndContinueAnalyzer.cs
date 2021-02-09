@@ -2148,6 +2148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ClassifyFieldInsert((VariableDeclarationSyntax)node);
                         return;
 
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                        // Parameter inserts are allowed for local functions
+                        ReportError(RudeEditKind.Insert);
+                        return;
+
                     case SyntaxKind.EnumMemberDeclaration:
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
@@ -2347,14 +2352,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
-                    case SyntaxKind.ParameterList:
                     case SyntaxKind.TypeParameterConstraintClause:
                         ReportError(RudeEditKind.Delete);
                         return;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                    case SyntaxKind.ParameterList when !_classifyStatementSyntax:
+                        ReportError(RudeEditKind.Delete);
+                        return;
                 }
             }
 
@@ -2465,6 +2472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.Parameter:
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                        // Parameter updates are allowed for local functions
                         ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
                         return;
 
