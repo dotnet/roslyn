@@ -6264,6 +6264,7 @@ tryAgain:
                         return ScanTypeFlags.NotType;
                     }
 
+                    Debug.Assert(result is ScanTypeFlags.GenericTypeOrExpression or ScanTypeFlags.GenericTypeOrMethod or ScanTypeFlags.NonGenericTypeOrExpression);
                     isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
                 }
 
@@ -6281,6 +6282,8 @@ tryAgain:
                     {
                         return ScanTypeFlags.NotType;
                     }
+
+                    Debug.Assert(result is ScanTypeFlags.GenericTypeOrExpression or ScanTypeFlags.GenericTypeOrMethod or ScanTypeFlags.NonGenericTypeOrExpression);
                 }
 
                 if (isAlias)
