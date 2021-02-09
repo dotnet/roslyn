@@ -53,7 +53,6 @@ function Get-BuildsTable() {
     return $table
 }
 
-
 function Get-DesktopTable() {
     $jobNames = @(
         'Test_Windows_Desktop_Debug_32'
