@@ -2157,14 +2157,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
                         ReportError(RudeEditKind.Insert);
                         return;
+                }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
                 }
             }
 
@@ -2356,12 +2358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ReportError(RudeEditKind.Delete);
                         return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
                     case SyntaxKind.ParameterList when !_classifyStatementSyntax:
                         ReportError(RudeEditKind.Delete);
                         return;
+                }
+
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
                 }
             }
 
@@ -2471,7 +2477,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ClassifyUpdate((TypeParameterSyntax)oldNode, (TypeParameterSyntax)newNode);
                         return;
 
-                    case SyntaxKind.Parameter:
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
                         // Parameter updates are allowed for local functions
                         ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
@@ -2493,8 +2498,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.AccessorList:
                         return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
+                }
+
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
