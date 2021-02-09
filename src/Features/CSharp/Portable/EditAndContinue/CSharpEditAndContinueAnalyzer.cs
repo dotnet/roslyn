@@ -1973,6 +1973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyMove()
             {
+                if (_newNode.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return;
+                }
+
                 // We could perhaps allow moving a type declaration to a different namespace syntax node
                 // as long as it represents semantically the same namespace as the one of the original type declaration.
                 ReportError(RudeEditKind.Move);
@@ -1980,6 +1985,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyReorder(SyntaxNode newNode)
             {
+                if (_newNode.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return;
+                }
+
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
