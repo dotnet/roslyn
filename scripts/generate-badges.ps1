@@ -36,10 +36,10 @@ function Get-AzureLine($branchName, $jobNames, [switch]$integration = $false) {
 
 function Get-DesktopTable() {
     $jobNames = @(
-        'Windows_Desktop_Unit_Tests#debug_32'
-        'Windows_Desktop_Unit_Tests#debug_64'
-        'Windows_Desktop_Unit_Tests#release_32'
-        'Windows_Desktop_Unit_Tests#release_64'
+        'Test_Windows_Desktop_Debug_32'
+        'Test_Windows_Desktop_Debug_64'
+        'Test_Windows_Desktop_Release_32'
+        'Test_Windows_Desktop_Release_64'
     )
 
     $table = @'
@@ -56,9 +56,9 @@ function Get-DesktopTable() {
 
 function Get-CoreClrTable() {
     $jobNames = @(
-        'Windows_CoreClr_Unit_Tests#debug',
-        'Windows_CoreClr_Unit_Tests#release',
-        'Linux_Test#coreclr'
+        'Test_Windows_CoreClr_Debug',
+        'Test_Windows_CoreClr_Release',
+        'Test_Linux_Debug'
     )
 
     $table = @'
@@ -76,15 +76,15 @@ function Get-CoreClrTable() {
 
 function Get-IntegrationTable() {
     $jobNames = @(
-        'VS_Integration#debug_async',
-        'VS_Integration#release_async',
-        'VS_Integration#debug_legacy',
-        'VS_Integration#release_legacy'
+        'VS_Integration#debug_32',
+        'VS_Integration#debug_64',
+        'VS_Integration#release_32',
+        'VS_Integration#release_64'
     )
 
     $table = @'
 ### Integration Tests
-|Branch|Debug|Release|Debug (Legacy completion)|Release (Legacy completion)
+|Branch|Debug x86|Debug x64|Release x86|Release x64
 |:--:|:--:|:--:|:--:|:--:|
 
 '@
@@ -98,15 +98,15 @@ function Get-IntegrationTable() {
 
 function Get-MiscTable() {
     $jobNames = @(
-        'Windows_Determinism_Test',
-        'Windows_Correctness_Test',
-        'Windows_Desktop_Spanish_Unit_Tests',
-        'Linux_Test#mono'
+        'Correctness_Determinism',
+        'Correctness_Build',
+        'Test_Windows_Desktop_Spanish_Release_32',
+        'Test_macOS_Debug'
     )
 
     $table = @'
 ### Misc Tests
-|Branch|Determinism|Build Correctness|Mono|Spanish|
+|Branch|Determinism|Build Correctness|Spanish|MacOS|
 |:--:|:--:|:--:|:--:|:--:|
 
 '@
