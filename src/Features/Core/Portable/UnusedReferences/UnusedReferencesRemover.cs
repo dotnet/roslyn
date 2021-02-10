@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             HashSet<string> usedAssemblyFilePaths = new(usedAssemblyReferences
                 .OfType<PortableExecutableReference>()
                 .Select(reference => reference.FilePath)
-                .WhereNotNull();
+                .WhereNotNull());
 
             return GetUnusedReferences(usedAssemblyFilePaths, references);
         }
