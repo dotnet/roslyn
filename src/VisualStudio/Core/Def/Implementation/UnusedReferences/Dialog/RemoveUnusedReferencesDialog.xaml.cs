@@ -33,20 +33,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public bool? ShowModal(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
-            _tableProvider.AddTableData(project, referenceUpdates);
+            bool? result = null;
 
-            using var tableControl = _tableProvider.CreateTableControl();
-            TablePanel.Child = tableControl.Control;
+            try
+            {
+                _tableProvider.AddTableData(project, referenceUpdates);
 
-            // The table control updates its view of the datasource on a background thread.
-            // This will force the table to update.
-            ThreadHelper.JoinableTaskFactory.Run(tableControl.ForceUpdateAsync);
+                using var tableControl = _tableProvider.CreateTableControl();
+                TablePanel.Child = tableControl.Control;
 
-            var result = ShowModal();
+                // The table control updates its view of the datasource on a background thread.
+                // This will force the table to update.
+                ThreadHelper.JoinableTaskFactory.Run(tableControl.ForceUpdateAsync);
 
-            TablePanel.Child = null;
+                result = ShowModal();
 
-            _tableProvider.ClearTableData();
+                TablePanel.Child = null;
+            }
+            finally
+            {
+                // Ensure we clear out the table data to prevent leaks.
+                _tableProvider.ClearTableData();
+            }
 
             return result;
         }
