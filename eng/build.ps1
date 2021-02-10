@@ -420,8 +420,13 @@ function TestUsingRunTests() {
     }
 
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
     }
   }
 }

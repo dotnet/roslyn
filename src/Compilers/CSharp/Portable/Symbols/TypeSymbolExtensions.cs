@@ -1050,6 +1050,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             type.VisitType((TypeSymbol t, object? _1, bool _2) => !t.TupleElementNames.IsDefault, null) is object;
 
         /// <summary>
+        /// Return true if the type contains any function pointer types.
+        /// </summary>
+        internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
+
+        /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
         /// If the type itself is not an error type, then it will be returned.
         /// Otherwise, the underlying type (if any) of the error type will be

@@ -57,6 +57,11 @@
         <target state="translated">코드에 사용되지 않는 매개 변수를 사용하지 않도록 합니다. 매개 변수를 제거할 수 없는 경우 이름을 변경하여 밑줄로 시작하고 필요에 따라 뒤에 정수가 있도록 합니다(예: '_', '_1', '_2' 등). 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="new">Change namespace to match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">식 트리를 변경하면 런타임에 동작이 변경될 수 있습니다.</target>
@@ -146,6 +151,16 @@
         <source>Modifiers are not ordered</source>
         <target state="translated">한정자가 순서대로 정렬되지 않음</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="new">Namespace does not match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
@@ -270,6 +285,11 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">사용되지 않는 private 멤버 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="new">Simplify LINQ expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

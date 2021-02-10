@@ -852,6 +852,11 @@
         <target state="translated">Suprimir as dicas quando os nomes de parâmetros diferirem somente pelo sufixo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Namespace de Destino:</target>
@@ -2176,16 +2181,6 @@ Informações adicionais: {1}</target>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">o tipo é aparente da expressão de atribuição</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Obter ajuda para '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Obter ajuda para o '{0}' do Bing</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

@@ -852,6 +852,11 @@
         <target state="translated">Hinweise unterdrücken, wenn sich Parameternamen nur durch das Suffix unterscheiden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Zielnamespace:</target>
@@ -2176,16 +2181,6 @@ Zusätzliche Informationen: {1}</target>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">Typ geht aus Zuweisungsausdruck hervor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Hilfe zu "{0}" abrufen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Hilfe zu "{0}" von Bing abrufen</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

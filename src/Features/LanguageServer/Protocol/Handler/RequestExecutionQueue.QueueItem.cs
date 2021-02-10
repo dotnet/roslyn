@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             public readonly Guid ActivityId;
             private readonly ILspLogger _logger;
 
-            /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
+            /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
 
             /// <inheritdoc cref="RequestContext.ClientName" />
