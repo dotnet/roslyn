@@ -419,7 +419,9 @@ dotnet_diagnostic.IDE1008.severity = %value%
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
-<<<<<<< HEAD
+# IDE0130
+dotnet_diagnostic.IDE0130.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -434,10 +436,6 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
-=======
-# IDE0130
-dotnet_diagnostic.IDE0130.severity = %value%
->>>>>>> upstream/master
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -999,25 +997,23 @@ No editorconfig based code style option
 # IDE1008
 No editorconfig based code style option
 
-<<<<<<< HEAD
-# IDE2000, AllowMultipleBlankLines
-dotnet_style_allow_multiple_blank_lines = true
-
-# IDE2001, AllowEmbeddedStatementsOnSameLine
-csharp_style_allow_embedded_statements_on_same_line = true
-
-# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
-csharp_style_allow_blank_lines_between_consecutive_braces = true
-
-# IDE2003, AllowStatementImmediatelyAfterBlock
-dotnet_style_allow_statement_immediately_after_block = true
-
-# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
-csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
-=======
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
->>>>>>> upstream/master
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = true
+
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
+
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
