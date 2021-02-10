@@ -122,8 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
-            jsonMessageFormatter.JsonSerializer.Converters.Add(new VSExtensionConverter<TextDocumentIdentifier, VSTextDocumentIdentifier>());
-            jsonMessageFormatter.JsonSerializer.Converters.Add(new VSExtensionConverter<ClientCapabilities, VSClientCapabilities>());
+            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var logger = await CreateLoggerAsync(asyncServiceProvider, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
