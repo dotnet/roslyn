@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _feedbackService = feedbackService;
             }
 
-            protected override async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool skipBuildingLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
+            protected override async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
             {
                 var textDocument = handler.GetTextDocumentIdentifier(request);
 
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, skipBuildingLSPSolution, handler, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, requiresLSPSolution, handler, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
