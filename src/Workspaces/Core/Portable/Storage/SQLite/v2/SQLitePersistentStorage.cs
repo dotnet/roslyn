@@ -37,13 +37,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // cached query strings
 
-        private readonly string _select_star_from_string_table = $@"select * from {StringInfoTableName}";
         private readonly string _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
         private readonly string _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
 
         private SQLitePersistentStorage(
             SQLiteConnectionPoolService connectionPoolService,
-            Solution? bulkLoadSnapshot,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
@@ -59,10 +57,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This assignment violates the declared non-nullability of _connectionPool, but the caller ensures that
             // the constructed object is only used if the nullability post-conditions are met.
             _connectionPool = connectionPoolService.TryOpenDatabase(
-                bulkLoadSnapshot,
                 databaseFile,
                 faultInjector,
-                (bulkLoadSnapshot, connection, cancellationToken) => Initialize(bulkLoadSnapshot, connection, cancellationToken),
+                (connection, cancellationToken) => Initialize(connection, cancellationToken),
                 CancellationToken.None)!;
 
             // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
@@ -75,13 +72,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public static SQLitePersistentStorage? TryCreate(
             SQLiteConnectionPoolService connectionPoolService,
-            Solution? bulkLoadSnapshot,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
             IPersistentStorageFaultInjector? faultInjector)
         {
-            var sqlStorage = new SQLitePersistentStorage(connectionPoolService, bulkLoadSnapshot, workingFolderPath, solutionFilePath, databaseFile, faultInjector);
+            var sqlStorage = new SQLitePersistentStorage(connectionPoolService, workingFolderPath, solutionFilePath, databaseFile, faultInjector);
             if (sqlStorage._connectionPool is null)
             {
                 // The connection pool failed to initialize
@@ -113,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
         }
 
-        private void Initialize(Solution? bulkLoadSnapshot, SqlConnection connection, CancellationToken cancellationToken)
+        private static void Initialize(SqlConnection connection, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -160,18 +156,6 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             // the same shape.
             EnsureTables(connection, Database.Main);
             EnsureTables(connection, Database.WriteCache);
-
-            // Also get the known set of string-to-id mappings we already have in the DB.
-            // Do this in one batch if possible.
-            var fetched = TryFetchStringTable(connection);
-
-            // If we weren't able to retrieve the entire string table in one batch,
-            // attempt to retrieve it for each
-            var fetchStringTable = !fetched;
-
-            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
-            // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, bulkLoadSnapshot, fetchStringTable);
 
             return;
 
