@@ -792,9 +792,9 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B2]
         Statements (1)
-            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c?.X.@a1')
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'c?.X.@a1')
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'c')
 
         Next (Regular) Block[B5]
     Block[B5] - Block
@@ -899,9 +899,9 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B2]
         Statements (1)
-            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.X?.@a1')
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.X')
               Value: 
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'c.X?.@a1')
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'c.X')
 
         Next (Regular) Block[B5]
     Block[B5] - Block
@@ -966,7 +966,7 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    CaptureIds: [0] [4]
+    CaptureIds: [0] [3]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
@@ -979,7 +979,7 @@ Block[B0] - Entry
 
     .locals {R2}
     {
-        CaptureIds: [2] [3]
+        CaptureIds: [2]
         .locals {R3}
         {
             CaptureIds: [1]
@@ -990,7 +990,7 @@ Block[B0] - Entry
                       Value: 
                         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
-                Jump if True (Regular) to Block[B7]
+                Jump if True (Regular) to Block[B8]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
                       Operand: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
@@ -1013,47 +1013,64 @@ Block[B0] - Entry
         Block[B4] - Block
             Predecessors: [B3]
             Statements (0)
-            Jump if True (Regular) to Block[B7]
+            Jump if True (Regular) to Block[B8]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.X')
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Xml.Linq.XElement, IsImplicit) (Syntax: '.X')
                 Leaving: {R2}
 
             Next (Regular) Block[B5]
-        Block[B5] - Block
-            Predecessors: [B4]
+                Entering: {R4}
+
+        .locals {R4}
+        {
+            CaptureIds: [4]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.@a1')
+                      Value: 
+                        IOperation:  (OperationKind.None, Type: null) (Syntax: '.@a1')
+
+                Jump if True (Regular) to Block[B7]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.@a1')
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '.@a1')
+                    Leaving: {R4}
+
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B5]
+                Statements (1)
+                    IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.<e1>')
+                      Value: 
+                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '.<e1>')
+
+                Next (Regular) Block[B9]
+                    Leaving: {R4} {R2}
+        }
+
+        Block[B7] - Block
+            Predecessors: [B5]
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.@a1')
                   Value: 
-                    IOperation:  (OperationKind.None, Type: null) (Syntax: '.@a1')
+                    IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, Constant: null, IsImplicit) (Syntax: '.@a1')
 
-            Jump if True (Regular) to Block[B7]
-                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.@a1')
-                  Operand: 
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '.@a1')
-
-                Leaving: {R2}
-            Next (Regular) Block[B6]
-        Block[B6] - Block
-            Predecessors: [B5]
-            Statements (1)
-                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.<e1>')
-                  Value: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '.<e1>')
-
-            Next (Regular) Block[B8]
+            Next (Regular) Block[B9]
                 Leaving: {R2}
     }
-    Block[B7] - Block
-        Predecessors: [B2] [B4] [B5]
+
+    Block[B8] - Block
+        Predecessors: [B2] [B4]
         Statements (1)
-            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c?.X?.@a1?.<e1>')
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c?.X?.@a1?.<e1>')
               Value: 
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'c?.X?.@a1?.<e1>')
 
-        Next (Regular) Block[B8]
-    Block[B8] - Block
-        Predecessors: [B6] [B7]
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B6] [B7] [B8]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = c?.X?.@a1?.<e1>')
               Expression: 
@@ -1065,14 +1082,14 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (DelegateRelaxationLevelNone)
                       Operand: 
-                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c?.X?.@a1?.<e1>')
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'c?.X?.@a1?.<e1>')
 
-        Next (Regular) Block[B9]
+        Next (Regular) Block[B10]
             Leaving: {R1}
 }
 
-Block[B9] - Exit
-    Predecessors: [B8]
+Block[B10] - Exit
+    Predecessors: [B9]
     Statements (0)
 ]]>.Value
 

@@ -3209,6 +3209,7 @@ oneMoreTime:
 
             while (true)
             {
+                testExpression = currentConditionalAccess.Operation;
                 if (!IsConditionalAccessInstancePresentInChildren(currentConditionalAccess.WhenNotNull))
                 {
                     // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
@@ -3216,11 +3217,10 @@ oneMoreTime:
                     //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
                     //                      Because of this, the recursion to visit the child operations will never occur if we visit the WhenNull of the current
                     //                      conditional access, so we need to manually visit the Operation of the conditional access now.
-                    testExpression = VisitConditionalAccessTestExpression(currentConditionalAccess.Operation);
+                    _ = VisitConditionalAccessTestExpression(testExpression);
                     break;
                 }
 
-                testExpression = currentConditionalAccess.Operation;
                 operations.Push(testExpression);
 
                 if (currentConditionalAccess.WhenNotNull is not IConditionalAccessOperation nested)
@@ -3310,13 +3310,8 @@ oneMoreTime:
             return VisitConditionalAccessTestExpression(testExpression);
         }
 
-        static bool IsConditionalAccessInstancePresentInChildren(IOperation operation)
+        private static bool IsConditionalAccessInstancePresentInChildren(IOperation operation)
         {
-            if (operation is not NoneOperation)
-            {
-                return true;
-            }
-
             // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
             // until we either reach the bottom, or find the conditional access.
             Operation currentOperation = (Operation)operation;
