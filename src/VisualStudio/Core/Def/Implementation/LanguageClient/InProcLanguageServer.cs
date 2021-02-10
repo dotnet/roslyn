@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,12 +18,17 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -30,10 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
     /// in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
     /// </summary>
-    internal class InProcLanguageServer : IAsyncDisposable
+    internal partial class InProcLanguageServer : IAsyncDisposable
     {
         /// <summary>
+        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
+        /// server is restarted that we can have a new logstream for the new server.
+        /// </summary>
+        private static int s_logHubSessionId;
+
+        /// <summary>
         /// Legacy support for LSP push diagnostics.
+        ///
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
@@ -43,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly RequestDispatcher _requestDispatcher;
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
+        private readonly LogHubLspLogger? _logger;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -55,25 +69,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private bool _shuttingDown;
         private Task? _errorShutdownTask;
 
-        public InProcLanguageServer(
+        private InProcLanguageServer(
             AbstractInProcLanguageClient languageClient,
-            Stream inputStream,
-            Stream outputStream,
             RequestDispatcher requestDispatcher,
             Workspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            string? clientName)
+            string? clientName,
+            JsonRpc jsonRpc,
+            LogHubLspLogger? logger)
         {
             _languageClient = languageClient;
             _requestDispatcher = requestDispatcher;
             _workspace = workspace;
+            _logger = logger;
 
-            var jsonMessageFormatter = new JsonMessageFormatter();
-            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
-
-            _jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            _jsonRpc = jsonRpc;
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.StartListening();
 
@@ -81,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(lspWorkspaceRegistrationService, languageClient.Name, _languageClient.GetType().Name);
+            _queue = new RequestExecutionQueue(logger ?? NoOpLspLogger.Instance, lspWorkspaceRegistrationService, languageClient.Name, _languageClient.GetType().Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -96,6 +108,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
+        public static async Task<InProcLanguageServer> CreateAsync(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
+            Stream outputStream,
+            RequestDispatcher requestDispatcher,
+            Workspace workspace,
+            IDiagnosticService? diagnosticService,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string? clientName,
+            CancellationToken cancellationToken)
+        {
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+            
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            var logger = await CreateLoggerAsync(asyncServiceProvider, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            return new InProcLanguageServer(
+                languageClient,
+                requestDispatcher,
+                workspace,
+                diagnosticService,
+                listenerProvider,
+                lspWorkspaceRegistrationService,
+                clientName,
+                jsonRpc,
+                logger);
+        }
+
+        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string? clientName,
+            JsonRpc jsonRpc,
+            CancellationToken cancellationToken)
+        {
+            if (asyncServiceProvider == null)
+                return null;
+
+            var logName = $"Roslyn.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
+            var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
+
+            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
+            var service = serviceContainer.GetFullAccessServiceBroker();
+
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+
+            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+
+            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
+            // with our callers and the operations they are performing.
+            jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
+
+            return new LogHubLspLogger(configuration, traceSource);
+        }
+
         public bool HasShutdownStarted => _shuttingDown;
 
         /// <summary>
@@ -105,28 +175,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
         public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
-            _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-            return Task.FromResult(new InitializeResult
+            try
             {
-                Capabilities = _languageClient.GetCapabilities(),
-            });
+                _logger?.TraceStart("Initialize");
+
+                Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
+                _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
+                return Task.FromResult(new InitializeResult
+                {
+                    Capabilities = _languageClient.GetCapabilities(),
+                });
+            }
+            finally
+            {
+                _logger?.TraceStop("Initialize");
+            }
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
         public Task InitializedAsync()
         {
-            // Publish diagnostics for all open documents immediately following initialization.
-            var solution = _workspace.CurrentSolution;
-            var openDocuments = _workspace.GetOpenDocumentIds();
-            foreach (var documentId in openDocuments)
-                DiagnosticService_DiagnosticsUpdated(solution, documentId);
+            try
+            {
+                _logger?.TraceStart("Initialized");
 
-            return Task.CompletedTask;
+                // Publish diagnostics for all open documents immediately following initialization.
+                var solution = _workspace.CurrentSolution;
+                var openDocuments = _workspace.GetOpenDocumentIds();
+                foreach (var documentId in openDocuments)
+                    DiagnosticService_DiagnosticsUpdated(solution, documentId);
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Initialized");
+            }
         }
 
         [JsonRpcMethod(Methods.ShutdownName)]
         public Task ShutdownAsync(CancellationToken _)
+        {
+            try
+            {
+                _logger?.TraceStart("Shutdown");
+
+                ShutdownImpl();
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Shutdown");
+            }
+        }
+
+        private void ShutdownImpl()
         {
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
@@ -136,12 +240,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             ShutdownRequestQueue();
-
-            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(Methods.ExitName)]
         public Task ExitAsync(CancellationToken _)
+        {
+            try
+            {
+                _logger?.TraceStart("Exit");
+
+                ExitImpl();
+
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                _logger?.TraceStop("Exit");
+            }
+        }
+
+        private void ExitImpl()
         {
             try
             {
@@ -153,8 +271,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
                 // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
             }
-
-            return Task.CompletedTask;
         }
 
         [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
@@ -431,6 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
         {
             // log message and shut down
+            _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
 
             var message = new LogMessageParams()
             {
@@ -441,11 +558,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
             _errorShutdownTask = Task.Run(async () =>
             {
+                _logger?.TraceInformation("Shutting down language server.");
+
                 await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
 
-                // The "default" here is the cancellation token, which these methods don't use, hence the discard name
-                await ShutdownAsync(_: default).ConfigureAwait(false);
-                await ExitAsync(_: default).ConfigureAwait(false);
+                ShutdownImpl();
+                ExitImpl();
             }).CompletesAsyncOperation(asyncToken);
         }
 
@@ -660,6 +778,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 await _errorShutdownTask.ConfigureAwait(false);
             }
+
+            _logger?.Dispose();
         }
 
         internal TestAccessor GetTestAccessor() => new(this);
