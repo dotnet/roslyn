@@ -112,11 +112,6 @@
         <target state="translated">Cliente de lenguaje de diagnóstico de C#/Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
-        <source>C#/Visual Basic Language Server Client</source>
-        <target state="translated">Cliente de servidor del lenguaje C#/Visual Basic</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calculando dependientes...</target>
@@ -341,11 +336,6 @@
         <source>Kind</source>
         <target state="translated">Tipo</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
-        <source>Live Share C#/Visual Basic Language Server Client</source>
-        <target state="translated">Cliente de servidor de lenguaje C#/Visual Basic de Live Share</target>
-        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -700,11 +690,6 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Extraer miembros</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Cliente de servidor de lenguaje C# de Razor</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
