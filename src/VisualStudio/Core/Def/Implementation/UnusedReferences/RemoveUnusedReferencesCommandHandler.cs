@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
             if (visible)
             {
-                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive(_serviceProvider);
+                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive();
             }
 
             if (command.Visible != visible)

@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);
                 }
 
-                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive(_serviceProvider);
+                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive();
             }
 
             if (command.Visible != visible)
