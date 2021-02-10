@@ -29,15 +29,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker)
         {
-            documentChangeTracker ??= new NoOpDocumentChangeTracker();
-
-            if (!requiresLSPSolution)
-            {
-                Contract.ThrowIfFalse(textDocument is null, "GetTextDocument should return null if the handler doesn't require an LSP solution.");
-
-                return new RequestContext(solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
-            }
-
             // Go through each registered workspace, find the solution that contains the document that
             // this request is for, and then updates it based on the state of the world as we know it, based on the
             // text content in the document change tracker.
@@ -61,13 +52,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
+            documentChangeTracker ??= new NoOpDocumentChangeTracker();
+
+            // If the handler doesn't need an LSP solution we do two important things:
+            // 1. We don't bother building the LSP solution for perf reasons
+            // 2. We explicitly don't give the handler a solution or document, even if we could
+            //    so they're not accidentally operating on stale solution state.
+            if (!requiresLSPSolution)
+            {
+                return new RequestContext(workspaceSolution.Workspace, solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
+            }
+
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
             // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
             document = lspSolution.GetDocument(document?.Id);
 
-            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution.Workspace, lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -156,6 +158,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
+        /// The workspace that the documeny was found in, if any, if <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/> has a non-null return.
+        /// </summary>
+        public readonly Workspace Workspace;
+
+        /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
         public readonly Solution? Solution;
@@ -175,8 +182,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution? solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        private RequestContext(Workspace workspace, Solution? solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
         {
+            Workspace = workspace;
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
