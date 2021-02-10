@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private readonly ImmutableArray<RecommendedKeyword> _keywordPriorityRecommendedKeywords;
         private readonly ImmutableArray<RecommendedKeyword> _defaultPriorityRecommendedKeywords;
 
+        protected virtual int DefaultPriority => MatchPriority.Default;
+
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
             bool isValidInPreprocessorContext = false,
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
                 new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
-                matchPriority: MatchPriority.Default));
+                matchPriority: DefaultPriority));
         }
 
         protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
