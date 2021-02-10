@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return false;
         }
 
-        public static bool IsBuildActive() 
+        public static bool IsBuildActive()
             => KnownUIContexts.SolutionBuildingContext.IsActive;
     }
 }
