@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,17 +20,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// is difficult to correctly apply to their tags cache. This allows for reliable recovery from errors and accounts
     /// for limitations in the edits application logic.
     /// </remarks>
-    [ExportLspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensName, mutatesSolutionState: false), Shared]
     internal class SemanticTokensHandler : IRequestHandler<LSP.SemanticTokensParams, LSP.SemanticTokens>
     {
         private readonly SemanticTokensCache _tokensCache;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;
         }
+
+        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensName;
+
+        public bool MutatesSolutionState => false;
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensParams request)
         {

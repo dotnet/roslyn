@@ -976,6 +976,9 @@ csharp_style_prefer_not_pattern = true
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 
+# IDE0100
+No editorconfig based code style option
+
 # IDE0110
 No editorconfig based code style option
 
@@ -984,9 +987,6 @@ No editorconfig based code style option
 
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
-
-# IDE0100
-No editorconfig based code style option
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
