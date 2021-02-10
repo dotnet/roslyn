@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnusedReferences;
@@ -175,7 +176,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 return (null, ImmutableArray<ReferenceUpdate>.Empty);
             }
 
-            var project = _workspace.CurrentSolution.GetRequiredProject(projectId);
+            var project = _workspace.CurrentSolution.GetProject(projectId);
+            if (project is null)
+            {
+                return (null, ImmutableArray<ReferenceUpdate>.Empty);
+            }
+
             var unusedReferences = GetUnusedReferencesForProject(project, projectAssetsFile, targetFrameworkMoniker, cancellationToken);
 
             return (project, unusedReferences);
