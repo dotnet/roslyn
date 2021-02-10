@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is null)
             {
-                _logger.TraceInformation("Request contained no document id");
+                _logger.TraceInformation("Request contained no text document identifier");
             }
             else
             {
