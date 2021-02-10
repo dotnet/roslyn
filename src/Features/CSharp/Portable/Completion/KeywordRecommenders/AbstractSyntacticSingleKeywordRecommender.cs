@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
                 new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
                 shouldFormatOnCommit: shouldFormatOnCommit,
-                matchPriority: MatchPriority.Default));
+                matchPriority: DefaultMatchPriority));
         }
 
         protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
