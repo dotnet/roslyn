@@ -38,8 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }

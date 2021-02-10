@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
         }
 
