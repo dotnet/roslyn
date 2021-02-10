@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static SourceLocation? GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
         {
             // <Caravela>
-            syntax = TreeTracker.GetPreTransformationSyntax(syntax);
+            syntax = TreeTracker.GetPreTransformationSyntax(syntax)!;
 
             if (syntax == null)
                 return null;

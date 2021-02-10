@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Debug entry point has to be a method definition from this compilation.
             var methodSymbol = (debugEntryPoint as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol;
             // <Caravela>: skip checking that the compilations equal
-            if (/*methodSymbol?.DeclaringCompilation != this ||*/ !methodSymbol.IsDefinition)
+            if (methodSymbol?.IsDefinition == false)
             {
                 diagnostics.Add(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None);
             }
