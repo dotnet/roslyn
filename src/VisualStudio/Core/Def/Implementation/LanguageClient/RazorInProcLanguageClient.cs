@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
         public override string Name => "Razor C# Language Server Client";
 
