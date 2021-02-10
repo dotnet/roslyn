@@ -57,7 +57,7 @@ namespace IdeCoreBenchmarks
             var longest = "";
             foreach (var project in solution.Projects)
             {
-                foreach (var document in projects.Documents)
+                foreach (var document in project.Documents)
                 {
                     var total = project.FilePath + document.FilePath + document.Name;
                     if (total.Length > longest.Length)
