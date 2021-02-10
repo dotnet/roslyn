@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -7854,19 +7855,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argument = arguments.Arguments[0];
 
             var argType = argument.Type;
-            bool argIsIndex = TypeSymbol.Equals(argType,
-                Compilation.GetWellKnownType(WellKnownType.System_Index),
-                TypeCompareKind.ConsiderEverything);
-            bool argIsRange = !argIsIndex && TypeSymbol.Equals(argType,
-                Compilation.GetWellKnownType(WellKnownType.System_Range),
-                TypeCompareKind.ConsiderEverything);
+            ThreeState argIsIndexNotRange =
+                TypeSymbol.Equals(argType, Compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything) ? ThreeState.True :
+                TypeSymbol.Equals(argType, Compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything) ? ThreeState.False :
+                ThreeState.Unknown;
 
-            if ((!argIsIndex && !argIsRange) ||
+            if (!argIsIndexNotRange.HasValue() ||
                 !(receiverOpt?.Type is TypeSymbol receiverType))
             {
                 return false;
             }
 
+            if (!TryFindIndexOrRangeIndexerPattern(syntax, receiverOpt, receiverType, argIsIndex: argIsIndexNotRange.Value(),
+                out var lengthOrCountProperty, out var patternSymbol, out var returnType, diagnostics))
+            {
+                return false;
+            }
+
+            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+                syntax,
+                receiverOpt,
+                lengthOrCountProperty,
+                patternSymbol,
+                BindToNaturalType(argument, diagnostics),
+                returnType);
+
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
+            if (arguments.Names.Count > 0)
+            {
+                diagnostics.Add(
+                    !argIsIndexNotRange.Value()
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
+            }
+            return true;
+        }
+
+#nullable enable
+        private bool TryFindIndexOrRangeIndexerPattern(
+            SyntaxNode syntax,
+            BoundExpression? receiverOpt,
+            TypeSymbol receiverType, bool argIsIndex,
+            [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
+            [NotNullWhen(true)] out Symbol? patternSymbol,
+            [NotNullWhen(true)] out TypeSymbol? returnType,
+            DiagnosticBag diagnostics)
+        {
             // SPEC:
 
             // An indexer invocation with a single argument of System.Index or System.Range will
@@ -7877,25 +7912,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            PropertySymbol lengthOrCountProperty;
-
             var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
             // Look for Length first
-
-            if (!tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty) &&
-                !tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty))
+            if (!TryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, receiverType, lookupResult, out lengthOrCountProperty, ref useSiteDiagnostics) &&
+                !TryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, receiverType, lookupResult, out lengthOrCountProperty, ref useSiteDiagnostics))
             {
+                patternSymbol = null;
+                returnType = null;
                 return false;
             }
-
-            Debug.Assert(lengthOrCountProperty is { });
 
             if (argIsIndex)
             {
                 // Look for `T this[int i]` indexer
-
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -7917,43 +7948,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
+                            patternSymbol = property;
+                            returnType = property.Type;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
-                            // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
-                            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
-                                syntax,
-                                receiverOpt,
-                                lengthOrCountProperty,
-                                property,
-                                BindToNaturalType(argument, diagnostics),
-                                property.Type);
-                            break;
+                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
+                            return true;
                         }
                     }
                 }
             }
             else if (receiverType.SpecialType == SpecialType.System_String)
             {
-                Debug.Assert(argIsRange);
+                Debug.Assert(!argIsIndex);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
                 if (substring is object)
                 {
-                    patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
-                        syntax,
-                        receiverOpt,
-                        lengthOrCountProperty,
-                        substring,
-                        BindToNaturalType(argument, diagnostics),
-                        substring.ReturnType);
-                    checkWellKnown(WellKnownMember.System_Range__get_Start);
-                    checkWellKnown(WellKnownMember.System_Range__get_End);
+                    patternSymbol = substring;
+                    returnType = substring.ReturnType;
+                    checkWellKnownForRange();
+                    return true;
                 }
             }
             else
             {
-                Debug.Assert(argIsRange);
+                Debug.Assert(!argIsIndex);
                 // Look for `T Slice(int, int)` indexer
-
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -7977,50 +7997,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]) &&
                             isIntNotByRef(original.Parameters[1]))
                         {
+                            patternSymbol = method;
+                            returnType = method.ReturnType;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-                            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
-                                syntax,
-                                receiverOpt,
-                                lengthOrCountProperty,
-                                method,
-                                BindToNaturalType(argument, diagnostics),
-                                method.ReturnType);
-                            checkWellKnown(WellKnownMember.System_Range__get_Start);
-                            checkWellKnown(WellKnownMember.System_Range__get_End);
-                            break;
+                            checkWellKnownForRange();
+                            return true;
                         }
                     }
                 }
             }
 
-            cleanup(lookupResult, ref useSiteDiagnostics);
-            if (patternIndexerAccess is null)
-            {
-                return false;
-            }
+            lookupResult.Free();
+            useSiteDiagnostics = null;
+            patternSymbol = null;
+            returnType = null;
+            return false;
 
-            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
-            checkWellKnown(WellKnownMember.System_Index__GetOffset);
-            if (arguments.Names.Count > 0)
-            {
-                diagnostics.Add(
-                    argIsRange
-                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
-                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
-                    arguments.Names[0].GetLocation());
-            }
-            return true;
-
-            static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-            {
-                lookupResult.Free();
-                useSiteDiagnostics = null;
-            }
-
+#pragma warning disable CS8762 // Parameter may not have a null value when exiting in some condition.
             static bool isIntNotByRef(ParameterSymbol param)
                 => param.Type.SpecialType == SpecialType.System_Int32 &&
                    param.RefKind == RefKind.None;
+#pragma warning restore CS8762 // Parameter may not have a null value when exiting in some condition.
+
+            void checkWellKnownForRange()
+            {
+                checkWellKnown(WellKnownMember.System_Range__get_Start);
+                checkWellKnown(WellKnownMember.System_Range__get_End);
+                checkWellKnown(WellKnownMember.System_Index__GetOffset);
+            }
 
             void checkWellKnown(WellKnownMember member)
             {
@@ -8029,39 +8034,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the user from getting surprising errors when optimizations fail
                 _ = GetWellKnownTypeMember(Compilation, member, diagnostics, syntax: syntax);
             }
+        }
 
-            bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)
+        private bool TryLookupLengthOrCount(
+            string propertyName, TypeSymbol receiverType, LookupResult lookupResult,
+            [NotNullWhen(true)] out PropertySymbol? valid, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        {
+            LookupMembersInType(
+                lookupResult,
+                receiverType,
+                propertyName,
+                arity: 0,
+                basesBeingResolved: null,
+                LookupOptions.Default,
+                originalBinder: this,
+                diagnose: false,
+                useSiteDiagnostics: ref useSiteDiagnostics);
+
+            if (lookupResult.IsSingleViable &&
+                lookupResult.Symbols[0] is PropertySymbol property &&
+                property.GetOwnOrInheritedGetMethod()?.OriginalDefinition is MethodSymbol getMethod &&
+                getMethod.ReturnType.SpecialType == SpecialType.System_Int32 &&
+                getMethod.RefKind == RefKind.None &&
+                !getMethod.IsStatic &&
+                IsAccessible(getMethod, ref useSiteDiagnostics))
             {
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    propertyName,
-                    arity: 0,
-                    basesBeingResolved: null,
-                    LookupOptions.Default,
-                    originalBinder: this,
-                    diagnose: false,
-                    useSiteDiagnostics: ref useSiteDiagnostics);
-
-                if (lookupResult.IsSingleViable &&
-                    lookupResult.Symbols[0] is PropertySymbol property &&
-                    property.GetOwnOrInheritedGetMethod()?.OriginalDefinition is MethodSymbol getMethod &&
-                    getMethod.ReturnType.SpecialType == SpecialType.System_Int32 &&
-                    getMethod.RefKind == RefKind.None &&
-                    !getMethod.IsStatic &&
-                    IsAccessible(getMethod, ref useSiteDiagnostics))
-                {
-                    lookupResult.Clear();
-                    useSiteDiagnostics = null;
-                    valid = property;
-                    return true;
-                }
                 lookupResult.Clear();
                 useSiteDiagnostics = null;
-                valid = null;
-                return false;
+                valid = property;
+                return true;
             }
+            lookupResult.Clear();
+            useSiteDiagnostics = null;
+            valid = null;
+            return false;
         }
+#nullable restore
 
         private ErrorPropertySymbol CreateErrorPropertySymbol(ImmutableArray<PropertySymbol> propertyGroup)
         {

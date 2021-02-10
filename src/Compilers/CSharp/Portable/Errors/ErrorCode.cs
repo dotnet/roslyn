@@ -1932,6 +1932,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        ERR_UnsupportedTypeForListPattern = 9200,
+        ERR_UnsupportedTypeForSlicePattern,
+        ERR_MisplacedSlicePattern,
+        ERR_NamedSubpatternInListPattern,
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

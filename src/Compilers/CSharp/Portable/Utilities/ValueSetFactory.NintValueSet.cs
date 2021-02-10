@@ -62,6 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            public bool IsContiguous => throw ExceptionUtilities.Unreachable;
+
+            (int First, int Last) IValueSet<int>.GetRange() => throw ExceptionUtilities.Unreachable;
+
             public bool All(BinaryOperatorKind relation, int value)
             {
                 if (_hasLarge && relation switch { LessThan => true, LessThanOrEqual => true, _ => false })

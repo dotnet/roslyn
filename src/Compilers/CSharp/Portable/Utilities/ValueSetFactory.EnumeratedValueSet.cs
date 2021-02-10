@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool IValueSet.IsContiguous => throw ExceptionUtilities.Unreachable;
+
+            (T First, T Last) IValueSet<T>.GetRange() => throw ExceptionUtilities.Unreachable;
+
             bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, default(TTC).FromConstantValue(value));
 
             public IValueSet<T> Complement() => new EnumeratedValueSet<T, TTC>(!_included, _membersIncludedOrExcluded);

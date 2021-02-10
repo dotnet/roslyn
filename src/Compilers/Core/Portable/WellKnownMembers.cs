@@ -3504,6 +3504,29 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Collections_Generic_Deque_T__ctor
+                (byte)MemberFlags.Constructor,                                                                                         // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Deque_T - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                     // Arity
+                    1,                                                                                                                 // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                 // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Collections_Generic_Deque_T__Enqueue
+                (byte)MemberFlags.Method,                                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Deque_T - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                                     // Arity
+                    1,                                                                                                                 // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                                 // Return Type
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Argument: T
+
+                // System_Collections_Generic_Deque_T__Pop
+                (byte)MemberFlags.Method,                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Deque_T - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                      // Arity
+                    0,                                                                                                                  // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                                    // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3944,6 +3967,9 @@ namespace Microsoft.CodeAnalysis
                 "Append",                                   // System_Text_StringBuilder__AppendString
                 "Append",                                   // System_Text_StringBuilder__AppendObject
                 ".ctor",                                    // System_Text_StringBuilder__ctor
+                ".ctor",                                    // System_Collections_Generic_Deque_T__ctor
+                "Enqueue",                                  // System_Collections_Generic_Deque_T__Enqueue
+                "Pop",                                      // System_Collections_Generic_Deque_T__Pop
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

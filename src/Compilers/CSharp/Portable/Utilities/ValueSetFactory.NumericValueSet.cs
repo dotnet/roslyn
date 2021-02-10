@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool IValueSet.IsContiguous => _intervals.Length == 1;
+
+            (T First, T Last) IValueSet<T>.GetRange() => (_intervals[0].first, _intervals[^1].last);
+
             public bool Any(BinaryOperatorKind relation, T value)
             {
                 TTC tc = default;

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,21 +16,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this == other ||
                 this.Kind == other.Kind &&
                 this.Input.Equals(other.Input) &&
-                this.Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
+                Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
-        private Symbol Symbol
+        private Symbol? Symbol
         {
             get
             {
-                switch (this)
+                return this switch
                 {
-                    case BoundDagFieldEvaluation e: return e.Field.CorrespondingTupleField ?? e.Field;
-                    case BoundDagPropertyEvaluation e: return e.Property;
-                    case BoundDagTypeEvaluation e: return e.Type;
-                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
-                    case BoundDagIndexEvaluation e: return e.Property;
-                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
-                }
+                    BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
+                    BoundDagPropertyEvaluation e => e.Property,
+                    BoundDagTypeEvaluation e => e.Type,
+                    BoundDagDeconstructEvaluation e => e.DeconstructMethod,
+                    BoundDagMethodEvaluation e => e.Method,
+                    BoundDagEnumeratorEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
+                    BoundDagIndexEvaluation e => e.PropertyOpt,
+                    BoundDagSliceEvaluation e => e.SliceMethodOpt,
+                    BoundDagArrayEvaluation or
+                    BoundDagArrayLengthEvaluation or
+                    BoundDagNoOpEvaluation => null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                };
             }
         }
 
@@ -48,6 +55,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 base.Equals(obj) &&
                 // base.Equals checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
+        }
+    }
+
+    partial class BoundDagSliceEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                (BoundDagSliceEvaluation)obj is var e &&
+                this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+    }
+
+    partial class BoundDagArrayEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ Hash.CombineValues(this.Indices);
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Indices.SequenceEqual(((BoundDagArrayEvaluation)obj).Indices);
+        }
+    }
+
+    partial class BoundDagArrayLengthEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Dimension;
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Dimension == ((BoundDagArrayLengthEvaluation)obj).Dimension;
+        }
+    }
+
+    partial class BoundDagMethodEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Index == ((BoundDagMethodEvaluation)obj).Index;
+        }
+    }
+
+    partial class BoundDagPropertyEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Index == ((BoundDagPropertyEvaluation)obj).Index;
         }
     }
 }

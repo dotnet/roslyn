@@ -2002,10 +2002,21 @@
     <Kind Name="RecursivePattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
     <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
+    <Field Name="LengthPatternClause" Type="LengthPatternClauseSyntax" Optional="true" />
     <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="LengthPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="LengthPatternClause"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
     </Field>
   </Node>
   <Node Name="PositionalPatternClauseSyntax" Base="CSharpSyntaxNode">
@@ -2092,6 +2103,13 @@
       <Kind Name="NotKeyword"/>
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
+  <Node Name="SlicePatternSyntax" Base="PatternSyntax">
+    <Kind Name="SlicePattern"/>
+    <Field Name="DotDotToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
   </Node>
 
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />

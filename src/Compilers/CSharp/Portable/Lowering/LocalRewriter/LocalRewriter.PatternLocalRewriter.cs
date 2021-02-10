@@ -233,20 +233,144 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, evaluated);
                         }
 
-                    case BoundDagIndexEvaluation e:
+                    case BoundDagIndexEvaluation { PropertyOpt: var property } e:
                         {
-                            // This is an evaluation of an indexed property with a constant int value.
-                            // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
-                            Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
-                            TypeSymbol type = e.Property.GetMethod.ReturnType;
+                            var inputType = input.Type;
+                            Debug.Assert(inputType is { });
+                            Debug.Assert(property is null
+                                ? inputType.IsSZArray()
+                                : (property.GetMethod.ParameterCount == 1 &&
+                                   property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32));
+
+                            BoundExpression indexerArg = makeIndexerArgument(e.Index, e.LengthTemp);
+
+                            (BoundExpression access, TypeSymbol type) = property is null
+                                ? ((BoundExpression)_factory.ArrayAccess(input, indexerArg), ((ArrayTypeSymbol)inputType).ElementType)
+                                : ((BoundExpression)_factory.Call(input, property.GetMethod, indexerArg), property.GetMethod.ReturnType);
+
                             var outputTemp = new BoundDagTemp(e.Syntax, type, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagArrayEvaluation e:
+                        {
+                            Debug.Assert(input.Type is ArrayTypeSymbol);
+                            Debug.Assert(e.Indices.Length == e.LengthTemps.Length);
+
+                            var indices = ArrayBuilder<BoundExpression>.GetInstance(e.Indices.Length);
+                            for (var i = 0; i < e.Indices.Length; i++)
+                            {
+                                indices.Add(makeIndexerArgument(e.Indices[i], e.LengthTemps[i]));
+                            }
+
+                            var access = _factory.ArrayAccess(input, indices.ToImmutableAndFree());
+                            var type = ((ArrayTypeSymbol)input.Type).ElementType;
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation { SliceMethodOpt: null } e:
+                        {
+                            TypeSymbol inputType = input.Type;
+                            Debug.Assert(inputType is { });
+                            Debug.Assert(inputType.IsSZArray());
+                            Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
+
+                            var newIndex = _factory.New(
+                                WellKnownMember.System_Index__ctor,
+                                ImmutableArray.Create<BoundExpression>(_factory.Literal(-e.EndIndex), _factory.Literal(true)));
+
+                            var newRange = _factory.New(
+                                WellKnownMember.System_Range__ctor,
+                                ImmutableArray.Create<BoundExpression>(_factory.Literal(e.StartIndex), newIndex));
+
+                            var callExpr = _factory.Call(
+                                receiver: null,
+                                _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                                    .Construct(ImmutableArray.Create(((ArrayTypeSymbol)inputType).ElementType)),
+                                ImmutableArray.Create(input, newRange));
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, inputType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagSliceEvaluation { SliceMethodOpt: { } sliceMethod } e:
+                        {
+                            Debug.Assert(sliceMethod.ContainingSymbol.Equals(input.Type));
+                            Debug.Assert(sliceMethod.ParameterCount == 2);
+                            Debug.Assert(sliceMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
+                            Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);
+                            Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
+
+                            var type = sliceMethod.ReturnType;
+                            var lengthArg = _factory.IntSubtract(_tempAllocator.GetTemp(e.LengthTemp), _factory.Literal(e.StartIndex - e.EndIndex));
+                            var callExpr = _factory.Call(input, sliceMethod, _factory.Literal(e.StartIndex), lengthArg);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagArrayLengthEvaluation e:
+                        {
+                            MethodSymbol getLengthMethod = _localRewriter.UnsafeGetSpecialTypeMethod(e.Syntax, SpecialMember.System_Array__GetLength);
+                            var callExpr = _factory.Call(input, getLengthMethod, _factory.Literal(e.Dimension));
+                            var outputTemp = new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Int32), e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagMethodEvaluation e:
+                        {
+                            MethodSymbol method = e.Method;
+                            var returnType = method.ReturnType;
+                            Debug.Assert(!method.IsConstructor());
+                            Debug.Assert(e.CurrentProperty is null == e.EnumeratorTemp is null);
+                            var arg = e.CurrentProperty is not null
+                                ? ImmutableArray.Create(_factory.Property(_tempAllocator.GetTemp(e.EnumeratorTemp), e.CurrentProperty))
+                                : ImmutableArray<BoundExpression>.Empty;
+
+                            BoundExpression callExpr = _factory.Call(input, method, arg);
+                            if (method.ReturnType.IsVoidType())
+                            {
+                                // Enqueue Method
+                                Debug.Assert(e.CountTemp != null);
+                                BoundExpression count = _tempAllocator.GetTemp(e.CountTemp);
+                                return _factory.MakeSequence(callExpr, _factory.IntIncrement(count));
+                            }
+
+                            // MoveNext or Pop Method
+                            var outputTemp = new BoundDagTemp(e.Syntax, returnType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagEnumeratorEvaluation e:
+                        {
+                            MethodSymbol method = e.EnumeratorInfo.GetEnumeratorInfo.Method;
+                            var callExpr = _factory.Call(input, method);
+                            var outputTemp = new BoundDagTemp(e.Syntax, method.ReturnType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+
+                            var countTemp = new BoundDagTemp(e.Syntax, this._factory.SpecialType(SpecialType.System_Int32), e, index: 1);
+                            return _factory.MakeSequence(
+                                _factory.AssignmentExpression(_tempAllocator.GetTemp(countTemp), _factory.Literal(0)),
+                                _factory.AssignmentExpression(output, callExpr));
                         }
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
+                }
+
+                BoundExpression makeIndexerArgument(int index, BoundDagTemp lengthTemp)
+                {
+                    return index < 0
+                        ? _factory.IntSubtract(_tempAllocator.GetTemp(lengthTemp), _factory.Literal(-index))
+                        : _factory.Literal(index);
                 }
             }
 

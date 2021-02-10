@@ -266,7 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.VarPattern(InternalSyntaxFactory.Token(SyntaxKind.VarKeyword), GenerateSingleVariableDesignation());
 
         private static Syntax.InternalSyntax.RecursivePatternSyntax GenerateRecursivePattern()
-            => InternalSyntaxFactory.RecursivePattern(null, null, null, null);
+            => InternalSyntaxFactory.RecursivePattern(null, null, null, null, null);
+
+        private static Syntax.InternalSyntax.LengthPatternClauseSyntax GenerateLengthPatternClause()
+            => InternalSyntaxFactory.LengthPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.PositionalPatternClauseSyntax GeneratePositionalPatternClause()
             => InternalSyntaxFactory.PositionalPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -294,6 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static Syntax.InternalSyntax.UnaryPatternSyntax GenerateUnaryPattern()
             => InternalSyntaxFactory.UnaryPattern(InternalSyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
+
+        private static Syntax.InternalSyntax.SlicePatternSyntax GenerateSlicePattern()
+            => InternalSyntaxFactory.SlicePattern(InternalSyntaxFactory.Token(SyntaxKind.DotDotToken), null);
 
         private static Syntax.InternalSyntax.InterpolatedStringTextSyntax GenerateInterpolatedStringText()
             => InternalSyntaxFactory.InterpolatedStringText(InternalSyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
@@ -1719,8 +1725,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Null(node.Type);
             Assert.Null(node.PositionalPatternClause);
+            Assert.Null(node.LengthPatternClause);
             Assert.Null(node.PropertyPatternClause);
             Assert.Null(node.Designation);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestLengthPatternClauseFactoryAndProperties()
+        {
+            var node = GenerateLengthPatternClause();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
+            Assert.NotNull(node.Pattern);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -1822,6 +1841,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.NotKeyword, node.OperatorToken.Kind);
             Assert.NotNull(node.Pattern);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestSlicePatternFactoryAndProperties()
+        {
+            var node = GenerateSlicePattern();
+
+            Assert.Equal(SyntaxKind.DotDotToken, node.DotDotToken.Kind);
+            Assert.Null(node.Pattern);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -5899,6 +5929,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLengthPatternClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLengthPatternClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLengthPatternClauseIdentityRewriter()
+        {
+            var oldNode = GenerateLengthPatternClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestPositionalPatternClauseTokenDeleteRewriter()
         {
             var oldNode = GeneratePositionalPatternClause();
@@ -6126,6 +6182,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnaryPatternIdentityRewriter()
         {
             var oldNode = GenerateUnaryPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestSlicePatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateSlicePattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSlicePatternIdentityRewriter()
+        {
+            var oldNode = GenerateSlicePattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9929,7 +10011,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.VarPattern(SyntaxFactory.Token(SyntaxKind.VarKeyword), GenerateSingleVariableDesignation());
 
         private static RecursivePatternSyntax GenerateRecursivePattern()
-            => SyntaxFactory.RecursivePattern(default(TypeSyntax), default(PositionalPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
+            => SyntaxFactory.RecursivePattern(default(TypeSyntax), default(PositionalPatternClauseSyntax), default(LengthPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
+
+        private static LengthPatternClauseSyntax GenerateLengthPatternClause()
+            => SyntaxFactory.LengthPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static PositionalPatternClauseSyntax GeneratePositionalPatternClause()
             => SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -9957,6 +10042,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static UnaryPatternSyntax GenerateUnaryPattern()
             => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), GenerateDiscardPattern());
+
+        private static SlicePatternSyntax GenerateSlicePattern()
+            => SyntaxFactory.SlicePattern(SyntaxFactory.Token(SyntaxKind.DotDotToken), default(PatternSyntax));
 
         private static InterpolatedStringTextSyntax GenerateInterpolatedStringText()
             => SyntaxFactory.InterpolatedStringText(SyntaxFactory.Token(SyntaxKind.InterpolatedStringTextToken));
@@ -11382,9 +11470,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Null(node.Type);
             Assert.Null(node.PositionalPatternClause);
+            Assert.Null(node.LengthPatternClause);
             Assert.Null(node.PropertyPatternClause);
             Assert.Null(node.Designation);
-            var newNode = node.WithType(node.Type).WithPositionalPatternClause(node.PositionalPatternClause).WithPropertyPatternClause(node.PropertyPatternClause).WithDesignation(node.Designation);
+            var newNode = node.WithType(node.Type).WithPositionalPatternClause(node.PositionalPatternClause).WithLengthPatternClause(node.LengthPatternClause).WithPropertyPatternClause(node.PropertyPatternClause).WithDesignation(node.Designation);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestLengthPatternClauseFactoryAndProperties()
+        {
+            var node = GenerateLengthPatternClause();
+
+            Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
+            Assert.NotNull(node.Pattern);
+            Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
+            var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithPattern(node.Pattern).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
         }
 
@@ -11486,6 +11587,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.NotKeyword, node.OperatorToken.Kind());
             Assert.NotNull(node.Pattern);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithPattern(node.Pattern);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestSlicePatternFactoryAndProperties()
+        {
+            var node = GenerateSlicePattern();
+
+            Assert.Equal(SyntaxKind.DotDotToken, node.DotDotToken.Kind());
+            Assert.Null(node.Pattern);
+            var newNode = node.WithDotDotToken(node.DotDotToken).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
         }
 
@@ -15562,6 +15674,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLengthPatternClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLengthPatternClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLengthPatternClauseIdentityRewriter()
+        {
+            var oldNode = GenerateLengthPatternClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestPositionalPatternClauseTokenDeleteRewriter()
         {
             var oldNode = GeneratePositionalPatternClause();
@@ -15789,6 +15927,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnaryPatternIdentityRewriter()
         {
             var oldNode = GenerateUnaryPattern();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestSlicePatternTokenDeleteRewriter()
+        {
+            var oldNode = GenerateSlicePattern();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSlicePatternIdentityRewriter()
+        {
+            var oldNode = GenerateSlicePattern();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

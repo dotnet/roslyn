@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -207,6 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             switch (CurrentToken.Kind)
             {
+                case SyntaxKind.DotDotToken:
+                    return _syntaxFactory.SlicePattern(
+                        CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureSlicePattern),
+                        IsPossibleSubpatternElement() ? ParseNegatedPattern(precedence, afterIs: false, whenIsKeyword: false) : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
@@ -330,14 +335,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var positionalPatternClause = _syntaxFactory.PositionalPatternClause(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause0, designation0);
+                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, lengthPatternClause: null, propertyPatternClause0, designation0);
                 return result;
             }
 
+            // TODO(alrz)
+            // Should test `int[][0]`
+            // Should test `List<T>[0]`
+            // Should test `[_]`
+            // Should test `[{}]`
+
+            // Should we permit `[0]{P:P}`, `()[0]`
+            // Should we permit `[]` as a no-op clause?
+            // Should we permit `[]{}` to resolve as `[0]`?
+
+            var lengthPatternClause = this.CurrentToken.Kind == SyntaxKind.OpenBracketToken
+                ? ParseLengthPatternClause()
+                : null;
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
+                return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, lengthPatternClause, propertyPatternClause, designation0);
             }
 
             if (type != null)
@@ -395,6 +413,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.Release(ref resetPoint);
                 return result;
             }
+        }
+
+        private LengthPatternClauseSyntax ParseLengthPatternClause()
+        {
+            var openBracket = EatToken(SyntaxKind.OpenBracketToken);
+            var pattern = ParsePattern(Precedence.Conditional);
+            var closeBracket = EatToken(SyntaxKind.CloseBracketToken);
+            var result = _syntaxFactory.LengthPatternClause(openBracket, pattern, closeBracket);
+            return CheckFeatureAvailability(result, MessageID.IDS_FeatureLengthPattern);
         }
 
         private bool IsValidPatternDesignation(bool whenIsKeyword)
@@ -522,9 +549,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxKind openKind,
             SyntaxKind closeKind)
         {
-            Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBraceToken);
-            Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBraceToken);
-            Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
+            Debug.Assert((openKind, closeKind) is
+                (SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) or
+                (SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken));
             Debug.Assert(openKind == this.CurrentToken.Kind);
 
             openToken = this.EatToken(openKind);
@@ -603,6 +630,7 @@ tryAgain:
                 this.CurrentToken.Kind switch
                 {
                     SyntaxKind.OpenBraceToken => true,
+                    SyntaxKind.OpenBracketToken => true,
                     SyntaxKind.LessThanToken => true,
                     SyntaxKind.LessThanEqualsToken => true,
                     SyntaxKind.GreaterThanToken => true,

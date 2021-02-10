@@ -67,6 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundLeafDecisionDagNode n:
                             return n.Label == whenTrueLabel;
                         case BoundEvaluationDecisionDagNode e:
+                            if (e.Evaluation.Kind == BoundKind.DagNoOpEvaluation ||
+                                (e.Evaluation.Kind == BoundKind.DagEnumeratorEvaluation &&
+                                 ((BoundDagEnumeratorEvaluation)e.Evaluation).EnumeratorInfo.NeedsDisposal))
+                            {
+                                return false;
+                            }
+
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:
@@ -194,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundDagEvaluation eval:
                         {
+                            Debug.Assert(eval is not BoundDagEnumeratorEvaluation and not BoundDagNoOpEvaluation);
                             var sideEffect = LowerEvaluation(eval);
                             _sideEffectBuilder.Add(sideEffect);
                             return;

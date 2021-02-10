@@ -313,6 +313,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_StringBuilder,
 
+        System_Collections_Generic_Deque_T,
+
         NextAvailable,
 
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -331,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_metadataNames = new string[]
+        private static readonly string[] s_metadataNames = new string[Count]
         {
             "System.Math",
             "System.Array",
@@ -620,6 +622,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.InteropServices.OutAttribute",
 
             "System.Text.StringBuilder",
+
+            "System.Collections.Generic.Deque`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

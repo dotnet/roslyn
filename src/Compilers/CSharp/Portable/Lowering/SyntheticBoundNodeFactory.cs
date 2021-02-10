@@ -604,6 +604,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
         }
 
+        public BoundAssignmentOperator IntIncrement(BoundExpression left)
+        {
+            return AssignmentExpression(left, Binary(BinaryOperatorKind.IntAddition, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, Literal(1)));
+        }
+
         public BoundLiteral Literal(int value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };

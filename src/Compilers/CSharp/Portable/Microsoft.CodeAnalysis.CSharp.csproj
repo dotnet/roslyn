@@ -43,8 +43,8 @@
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <PublicAPI Include="PublicAPI.Shipped.txt" />
-    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <!--<PublicAPI Include="PublicAPI.Shipped.txt" />-->
+    <!--<PublicAPI Include="PublicAPI.Unshipped.txt" />-->
 
     <!-- Don't include the output from a previous source generator execution into future runs; the */** trick here ensures that there's
          at least one subdirectory, which is our key that it's coming from a source generator as opposed to something that is coming from

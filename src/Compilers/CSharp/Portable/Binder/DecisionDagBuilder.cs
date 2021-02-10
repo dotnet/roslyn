@@ -227,7 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case Tests.False _:
                         return tests;
                     case Tests.One(BoundDagEvaluation e):
-                        if (usedValues.Contains(e))
+                        // TODO(alrz) We emit unconditionally. There is probably some room for optimizations if values are disarded
+                        if (e.Kind == BoundKind.DagNoOpEvaluation ||
+                            e.Kind == BoundKind.DagMethodEvaluation ||
+                            usedValues.Contains(e))
                         {
                             if (e.Input.Source is { })
                                 usedValues.Add(e.Input.Source);
@@ -275,7 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeTestsAndBindingsForDeclarationPattern(input, declaration, out output, bindings);
                 case BoundConstantPattern constant:
                     return MakeTestsForConstantPattern(input, constant, out output);
-                case BoundDiscardPattern _:
+                case BoundDiscardPattern:
+                case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
                 case BoundRecursivePattern recursive:
@@ -294,6 +298,292 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
+        }
+
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input,
+            BoundListPatternWithEnumerablePattern pattern, ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            var syntax = pattern.Syntax;
+            var subpatterns = pattern.Subpatterns;
+            var info = pattern.EnumeratorInfo;
+
+            MethodSymbol moveNextMethod = info.MoveNextInfo.Method;
+            PropertySymbol currentProperty = (PropertySymbol)info.CurrentPropertyGetter.AssociatedSymbol;
+
+            var tests = ArrayBuilder<Tests>.GetInstance();
+
+            var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, info, input);
+            tests.Add(new Tests.One(enumeratorEvaluation));
+            var enumeratorTemp = new BoundDagTemp(syntax, info.GetEnumeratorInfo.Method.ReturnType, enumeratorEvaluation);
+
+            int index = 0;
+            for (; index < subpatterns.Length; index++)
+            {
+                BoundPattern subpattern = subpatterns[index];
+                if (subpattern is BoundSlicePattern slice)
+                {
+                    if (slice.PatternOpt != null)
+                    {
+                        // TODO(alrz) error
+                        throw new NotImplementedException();
+                    }
+
+                    tests.Add(MakeTestsAndBindingsForTrailingPatterns(index + 1, pattern, bindings, moveNextMethod, currentProperty, enumeratorTemp));
+                    goto done;
+                }
+
+                var moveNextEvaluation = new BoundDagMethodEvaluation(syntax, moveNextMethod, index, enumeratorTemp);
+                tests.Add(new Tests.One(moveNextEvaluation));
+                var moveNextTemp = new BoundDagTemp(syntax, moveNextMethod.ReturnType, moveNextEvaluation);
+                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(true), moveNextTemp)));
+
+                var currentEvaluation = new BoundDagPropertyEvaluation(syntax, currentProperty, index, enumeratorTemp);
+                tests.Add(new Tests.One(currentEvaluation));
+                var currentTemp = new BoundDagTemp(syntax, pattern.ElementType, currentEvaluation);
+                tests.Add(MakeTestsAndBindings(currentTemp, subpattern, bindings));
+            }
+
+            if (!pattern.HasSlice)
+            {
+                var moveNextEvaluation = new BoundDagMethodEvaluation(syntax, moveNextMethod, index, enumeratorTemp);
+                tests.Add(new Tests.One(moveNextEvaluation));
+                var moveNextTemp = new BoundDagTemp(syntax, moveNextMethod.ReturnType, moveNextEvaluation);
+                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(false), moveNextTemp)));
+            }
+done:
+            return Tests.AndSequence.Create(tests);
+        }
+
+        private Tests MakeTestsAndBindingsForTrailingPatterns(
+            int index, BoundListPatternWithEnumerablePattern pattern, ArrayBuilder<BoundPatternBinding> bindings,
+            MethodSymbol moveNextMethod, PropertySymbol currentProperty, BoundDagTemp enumeratorTemp)
+        {
+            var syntax = pattern.Syntax;
+            var tests = ArrayBuilder<Tests>.GetInstance();
+
+            // TODO(alrz) TryGetNonEnumeratedCount
+            var countTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), enumeratorTemp.Source, index: 1);
+
+            var (bufferType, bufferCtor, enqueueMethod, popMethod) = getWellKnownMembers();
+            var (lengthTests, minLengthTest, maxLengthTest) = makeLengthTests();
+
+            var loopLabel = new BoundDagNoOpEvaluation(syntax, enumeratorTemp);
+
+            var bufferCtorEvaluation = new BoundDagMethodEvaluation(syntax, bufferCtor, enumeratorTemp);
+            var bufferTemp = new BoundDagTemp(syntax, bufferType, bufferCtorEvaluation);
+
+            addMoveNext(-1, test: true);
+            addOne(bufferCtorEvaluation);
+            addOne(loopLabel);
+            addEnqueue();
+            tests.Add(maxLengthTest);
+            addMoveNext(-2, test: false, otherwiseGoTo: loopLabel);
+            tests.Add(minLengthTest);
+            tests.Add(lengthTests);
+
+            var subpatterns = pattern.Subpatterns;
+            for (int i = subpatterns.Length - 1, j = 0; i >= index; i--, j++)
+            {
+                var popEvaluation = new BoundDagMethodEvaluation(syntax, popMethod, index: j, bufferTemp);
+                tests.Add(new Tests.One(popEvaluation));
+                var popTemp = new BoundDagTemp(syntax, pattern.ElementType, popEvaluation);
+                tests.Add(MakeTestsAndBindings(popTemp, subpatterns[i], bindings));
+            }
+
+            return Tests.AndSequence.Create(tests);
+
+            void addOne(BoundDagTest test)
+            {
+                tests.Add(new Tests.One(test));
+            }
+
+            void addEnqueue()
+            {
+                tests.Add(new Tests.One(new BoundDagMethodEvaluation(syntax, enqueueMethod, countTemp: countTemp, enumeratorTemp, currentProperty, index: 0, bufferTemp)));
+            }
+
+            void addMoveNext(int index, bool test, BoundDagNoOpEvaluation? otherwiseGoTo = null)
+            {
+                var moveNextEvaluation = new BoundDagMethodEvaluation(syntax, moveNextMethod, index, enumeratorTemp);
+                tests.Add(new Tests.One(moveNextEvaluation));
+                var moveNextTemp = new BoundDagTemp(syntax, moveNextMethod.ReturnType, moveNextEvaluation);
+                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(test), moveNextTemp) { Next = otherwiseGoTo }));
+            }
+
+            (Tests lengthTests, Tests minLengthTest, Tests maxLengthTest) makeLengthTests()
+            {
+                Tests lengthTests = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(pattern.Subpatterns.Length - index), countTemp);
+                Tests lengthPatternTests = pattern.LengthPattern is not null ? MakeTestsAndBindings(countTemp, pattern.LengthPattern, bindings) : Tests.True.Instance;
+                IValueSet? values1 = lengthTests.ComputeValueSet();
+                IValueSet? values2 = lengthPatternTests.ComputeValueSet();
+                if (values1 is null || values2 is null || values1.Intersect(values2) is not IValueSet<int> { IsContiguous: true } lengthValueSet)
+                {
+                    // TODO(alrz) error
+                    throw new NotImplementedException();
+                }
+
+                (int minLength, int maxLength) = lengthValueSet.GetRange();
+                Tests minLengthTest = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(minLength), countTemp);
+                Tests maxLengthTest = MakeRelationalTests(syntax, BinaryOperatorKind.IntLessThanOrEqual, ConstantValue.Create(maxLength), countTemp);
+                return (lengthTests, minLengthTest, maxLengthTest);
+            }
+
+            (NamedTypeSymbol bufferType, MethodSymbol bufferCtor, MethodSymbol enqueueMethod, MethodSymbol popMethod) getWellKnownMembers()
+            {
+                // TODO(alrz) Handle missing types and members
+                bufferType = _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_Deque_T).Construct(pattern.ElementType);
+                bufferCtor = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Deque_T__ctor))!.AsMember(bufferType);
+                enqueueMethod = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Deque_T__Enqueue))!.AsMember(bufferType);
+                popMethod = ((MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Deque_T__Pop))!.AsMember(bufferType);
+                return (bufferType, bufferCtor, enqueueMethod, popMethod);
+            }
+        }
+
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPatternWithArray pattern, ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            Debug.Assert(input.Type.IsSZArray());
+            var getLengthProperty = (PropertySymbol)this._compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
+            return MakeTestsAndBindingsForListPattern(input, pattern, bindings, getLengthProperty, getItemProperty: null);
+            // TODO(alrz) md arrays
+#if false
+            var syntax = pattern.Syntax;
+            var subpatterns = pattern.Subpatterns;
+            var subpatternCount = subpatterns.Length;
+
+            Debug.Assert(isMultidimensional(subpatterns));
+            var sizes = calculateSizes();
+            var tests = ArrayBuilder<Tests>.GetInstance(1 + sizes.Length * 2 + subpatternCount * 2);
+            MakeCheckNotNull(input, syntax, isExplicitTest: false, tests);
+            var lengthTempBuilder = ArrayBuilder<BoundDagTemp>.GetInstance(sizes.Length);
+            for (int i = 0; i < sizes.Length; ++i)
+            {
+                var lengthEvaluation = new BoundDagArrayLengthEvaluation(syntax, dimension: i, input);
+                tests.Add(new Tests.One(lengthEvaluation));
+                var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+                lengthTempBuilder.Add(lengthTemp);
+                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(sizes[i]), lengthTemp)));
+            }
+
+            var lengthTemps = lengthTempBuilder.ToImmutableAndFree();
+            var indices = ArrayBuilder<(int, ImmutableArray<BoundPattern>)>.GetInstance();
+            for (int i = 0; i < subpatternCount; i++)
+            {
+                indices.Push((i, ((BoundListPatternWithArray)subpatterns[i]).Subpatterns));
+                makeTestsAndBindingsForListPatternWithArrayRecursive(indices);
+            }
+            Debug.Assert(indices.IsEmpty());
+            indices.Free();
+
+            return Tests.AndSequence.Create(tests);
+
+            ImmutableArray<int> calculateSizes()
+            {
+                var builder = ArrayBuilder<int>.GetInstance(((ArrayTypeSymbol)input.Type).Rank);
+                builder.Add(pattern.Subpatterns.Length);
+
+                var first = pattern.Subpatterns[0];
+                while (first is BoundListPatternWithArray nested)
+                {
+                    builder.Add(nested.Subpatterns.Length);
+                    first = nested.Subpatterns[0];
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            void makeTestsAndBindingsForListPatternWithArrayRecursive(ArrayBuilder<(int Index, ImmutableArray<BoundPattern> Subpatterns)> indices)
+            {
+                var top = indices.Peek();
+                var subpatterns = top.Subpatterns;
+
+                if (isMultidimensional(subpatterns))
+                {
+                    for (int i = 0; i < subpatterns.Length; i++)
+                    {
+                        indices.Push((i, ((BoundListPatternWithArray)subpatterns[i]).Subpatterns));
+                        makeTestsAndBindingsForListPatternWithArrayRecursive(indices);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < subpatterns.Length; i++)
+                    {
+                        var subpattern = subpatterns[i];
+
+                        Debug.Assert(indices.Count == ((ArrayTypeSymbol)input.Type).Rank - 1);
+
+                        var indexBuilder = ArrayBuilder<int>.GetInstance(indices.Count + 1);
+                        foreach (var idx in indices)
+                            indexBuilder.Add(idx.Index);
+                        indexBuilder.Add(i);
+
+                        var arrayEvaluation = new BoundDagArrayEvaluation(syntax, lengthTemps, indexBuilder.ToImmutableAndFree(), input);
+                        tests.Add(new Tests.One(arrayEvaluation));
+                        var arrayTemp = new BoundDagTemp(syntax, pattern.ElementType, arrayEvaluation);
+                        tests.Add(MakeTestsAndBindings(arrayTemp, subpattern, bindings));
+                    }
+                }
+                indices.Pop();
+            }
+
+            static bool isMultidimensional(ImmutableArray<BoundPattern> subpatterns)
+            {
+                Debug.Assert(subpatterns.All((p) => p.Kind != BoundKind.ListPatternWithArray) ||
+                            subpatterns.All((p) => p.Kind == BoundKind.ListPatternWithArray),
+                            "all or none should be nested");
+
+                return subpatterns.Length != 0 && subpatterns[0].Kind == BoundKind.ListPatternWithArray;
+            }
+#endif
+        }
+
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPatternWithRangeIndexerPattern pattern, ArrayBuilder<BoundPatternBinding> bindings)
+        {
+            return MakeTestsAndBindingsForListPattern(input, pattern, bindings, pattern.GetLengthProperty, pattern.GetItemProperty);
+        }
+
+        private Tests MakeTestsAndBindingsForListPattern(
+            BoundDagTemp input, BoundListPatternInfo pattern, ArrayBuilder<BoundPatternBinding> bindings,
+            PropertySymbol getLengthProperty, PropertySymbol? getItemProperty)
+        {
+            var syntax = pattern.Syntax;
+            var subpatternCount = pattern.Subpatterns.Length;
+
+            var tests = ArrayBuilder<Tests>.GetInstance(3 + subpatternCount * 2);
+            MakeCheckNotNull(input, syntax, isExplicitTest: false, tests);
+
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, input);
+            tests.Add(new Tests.One(lengthEvaluation));
+            var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+            var lengthTest = new Tests.One(pattern.HasSlice
+                ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatternCount - 1), lengthTemp)
+                : new BoundDagValueTest(syntax, ConstantValue.Create(subpatternCount), lengthTemp));
+            tests.Add(lengthTest);
+
+            int index = 0;
+            foreach (var subpattern in pattern.Subpatterns)
+            {
+                if (subpattern is BoundSlicePattern slice)
+                {
+                    var currentIndex = index;
+                    index -= subpatternCount - 1;
+                    if (slice.PatternOpt is not null)
+                    {
+                        var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethodOpt, lengthTemp, currentIndex, index, input);
+                        tests.Add(new Tests.One(sliceEvaluation));
+                        var sliceTemp = new BoundDagTemp(syntax, slice.SliceMethodOpt is null ? input.Type : slice.SliceMethodOpt.ReturnType, sliceEvaluation);
+                        tests.Add(MakeTestsAndBindings(sliceTemp, slice.PatternOpt, bindings));
+                    }
+
+                    continue;
+                }
+
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, lengthTemp, index++, input);
+                tests.Add(new Tests.One(indexEvaluation));
+                var indexTemp = new BoundDagTemp(syntax, pattern.ElementType, indexEvaluation);
+                tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
+            }
+
+            return Tests.AndSequence.Create(tests);
         }
 
         private Tests MakeTestsAndBindingsForITuplePattern(
@@ -326,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, lengthTemp, i, getItemPropertyInput);
                 tests.Add(new Tests.One(indexEvaluation));
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
                 tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, bindings));
@@ -552,6 +842,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests.Add(MakeTestsAndBindings(element, pattern, bindings));
                 }
             }
+            else if (recursive.ListPatternInfo != null)
+            {
+                tests.Add(recursive.ListPatternInfo switch
+                {
+                    BoundListPatternWithArray list => MakeTestsAndBindingsForListPattern(input, list, bindings),
+                    BoundListPatternWithEnumerablePattern list => MakeTestsAndBindingsForListPattern(input, list, bindings),
+                    BoundListPatternWithRangeIndexerPattern list => MakeTestsAndBindingsForListPattern(input, list, bindings),
+                    var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
+                });
+            }
 
             if (recursive.VariableAccess != null)
             {
@@ -608,21 +908,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
-            // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
+            tests.Add(MakeRelationalTests(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors));
+            return Tests.AndSequence.Create(tests);
+        }
+
+        private static Tests MakeRelationalTests(SyntaxNode syntax, BinaryOperatorKind relation, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
+        {
+            // check if the test is always true or always false
             var fac = ValueSetFactory.ForType(input.Type);
-            var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
+            var values = fac?.Related(relation.Operator(), value);
             if (values?.IsEmpty == true)
             {
-                tests.Add(Tests.False.Instance);
-            }
-            else if (values?.Complement().IsEmpty != true)
-            {
-                tests.Add(new Tests.One(new BoundDagRelationalTest(rel.Syntax, rel.Relation, rel.ConstantValue, output, rel.HasErrors)));
+                return Tests.False.Instance;
             }
 
-            return Tests.AndSequence.Create(tests);
+            if (values?.Complement().IsEmpty != true)
+            {
+                return new Tests.One(new BoundDagRelationalTest(syntax, relation, value, input, hasErrors));
+            }
+
+            return Tests.True.Instance;
         }
 
         private TypeSymbol ErrorType(string name = "")
@@ -1645,6 +1952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
+
+            public abstract IValueSet? ComputeValueSet();
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             public abstract string Dump(Func<BoundDagTest, string> dump);
@@ -1667,6 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     whenTrue = whenFalse = this;
                 }
+                public override IValueSet? ComputeValueSet() => ValueSetFactory.ForInt.AllValues;
             }
 
             /// <summary>
@@ -1687,6 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     whenTrue = whenFalse = this;
                 }
+                public override IValueSet? ComputeValueSet() => ValueSetFactory.ForInt.NoValues;
             }
 
             /// <summary>
@@ -1727,6 +2038,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
                 public override int GetHashCode() => this.Test.GetHashCode();
+                public override IValueSet? ComputeValueSet()
+                {
+                    var fac = ValueSetFactory.ForType(this.Test.Input.Type);
+                    if (fac is null)
+                        return null;
+                    return this.Test switch
+                    {
+                        BoundDagRelationalTest test => fac.Related(test.Relation.Operator(), test.Value),
+                        BoundDagValueTest test => fac.Related(BinaryOperatorKind.Equal, test.Value),
+                        _ => fac.AllValues
+                    };
+                }
             }
 
             public sealed class Not : Tests
@@ -1770,6 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public override bool Equals(object? obj) => this == obj || obj is Not n && Negated.Equals(n.Negated);
                 public override int GetHashCode() => Hash.Combine(Negated.GetHashCode(), typeof(Not).GetHashCode());
+                public override IValueSet? ComputeValueSet() => this.Negated.ComputeValueSet()?.Complement();
             }
 
             public abstract class SequenceTests : Tests
@@ -1858,6 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
+
                 public override BoundDagTest ComputeSelectedTest()
                 {
                     // Our simple heuristic is to perform the first test of the
@@ -1883,6 +2208,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return RemainingTests[0].ComputeSelectedTest();
+                }
+                public override IValueSet? ComputeValueSet()
+                {
+                    var result = RemainingTests[0].ComputeValueSet();
+                    for (var index = 1; index < RemainingTests.Length && result is not null; index++)
+                    {
+                        var values = RemainingTests[index].ComputeValueSet();
+                        if (values is null)
+                            break;
+                        result = result.Intersect(values);
+                    }
+                    return result;
                 }
                 public override string Dump(Func<BoundDagTest, string> dump)
                 {
@@ -1926,6 +2263,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => new OrSequence(remainingTests.ToImmutable()),
                     };
                     remainingTests.Free();
+                    return result;
+                }
+                public override IValueSet? ComputeValueSet()
+                {
+                    var result = RemainingTests[0].ComputeValueSet();
+                    for (var index = 1; index < RemainingTests.Length && result is not null; index++)
+                    {
+                        var values = RemainingTests[index].ComputeValueSet();
+                        if (values is null)
+                            break;
+                        result = result.Union(values);
+                    }
                     return result;
                 }
                 public override string Dump(Func<BoundDagTest, string> dump)

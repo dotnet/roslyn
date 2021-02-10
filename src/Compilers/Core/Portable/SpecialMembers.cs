@@ -821,6 +821,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
+                // System_Array__GetLength
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_Array,                                                                             // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    
                 // System_Object__GetHashCode
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
                 (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
@@ -1127,6 +1135,7 @@ namespace Microsoft.CodeAnalysis
                 "LongLength",                               // System_Array__LongLength
                 "GetLowerBound",                            // System_Array__GetLowerBound
                 "GetUpperBound",                            // System_Array__GetUpperBound
+                "GetLength",                                // System_Array__GetLength
                 "GetHashCode",                              // System_Object__GetHashCode
                 "Equals",                                   // System_Object__Equals
                 "Equals",                                   // System_Object__EqualsObjectObject

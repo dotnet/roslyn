@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -40,6 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue IValueSet.Sample => ConstantValue.Create(_hasTrue ? true : _hasFalse ? false : throw new ArgumentException());
 
+            bool IValueSet.IsContiguous => throw ExceptionUtilities.Unreachable;
+
+            (bool First, bool Last) IValueSet<bool>.GetRange() => throw ExceptionUtilities.Unreachable;
 
             public bool Any(BinaryOperatorKind relation, bool value)
             {

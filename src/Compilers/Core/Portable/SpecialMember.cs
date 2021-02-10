@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis
         System_Array__LongLength,
         System_Array__GetLowerBound,
         System_Array__GetUpperBound,
+        System_Array__GetLength,
 
         System_Object__GetHashCode,
         System_Object__Equals,

@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _values.All(relation, value);
             }
 
+            bool IValueSet.IsContiguous => throw ExceptionUtilities.Unreachable;
+
+            (uint First, uint Last) IValueSet<uint>.GetRange() => throw ExceptionUtilities.Unreachable;
+
             bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => value.IsBad || All(relation, value.UInt32Value);
 
             public bool Any(BinaryOperatorKind relation, uint value)

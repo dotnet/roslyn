@@ -826,6 +826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OrPattern = 9031,
         AndPattern = 9032,
         NotPattern = 9033,
+        SlicePattern = 9034,
+        LengthPatternClause = 9035,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 

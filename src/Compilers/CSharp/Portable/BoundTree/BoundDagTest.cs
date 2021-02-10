@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             if (this == other)
                 return true;
+            if (!Equals(this.Next, other.Next))
+                return false;
 
             switch (this, other)
             {
@@ -37,7 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Kind.GetHashCode(), Input.GetHashCode());
+            return Hash.Combine(Hash.Combine(Kind.GetHashCode(), Input.GetHashCode()), Next?.GetHashCode() ?? 0);
         }
+
+        /// <summary>
+        /// To represent loops in DAG lowering, we keep an alternative
+        /// node that we will jump to after a test failure.
+        /// </summary>
+        public BoundDagNoOpEvaluation? Next { get; init; }
     }
 }

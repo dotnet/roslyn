@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contains values but we cannot produce a particular value (e.g. for the set `nint > int.MaxValue`), returns null.
         /// </summary>
         ConstantValue? Sample { get; }
+
+        bool IsContiguous { get; }
     }
 
     /// <summary>
@@ -92,5 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the relation and some do not.
         /// </summary>
         bool All(BinaryOperatorKind relation, T value);
+        
+        (T First, T Last) GetRange();
     }
 }
