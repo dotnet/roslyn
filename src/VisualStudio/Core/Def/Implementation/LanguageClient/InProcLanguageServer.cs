@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
-            
+
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var logger = await CreateLoggerAsync(asyncServiceProvider, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
