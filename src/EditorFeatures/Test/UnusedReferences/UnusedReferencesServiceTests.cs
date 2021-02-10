@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
 {
-    public class UnusedReferencesServiceTests
+    public class UnusedReferencesRemoverTests
     {
         private const string UsedAssemblyPath = "/libs/Used.dll";
         private const string UnusedAssemblyPath = "/libs/Unused.dll";
@@ -53,15 +53,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.UnusedReferences)]
-        public void GetUnusedReferences_ReferencesBroughtInTranstivelyAndDirectly_AreReturned()
+        public void GetUnusedReferences_WhenUsedAssemblyIsAvilableDirectlyAndTransitively_DirectReferencesAreReturned()
         {
             var usedAssemblies = new[] { UsedAssemblyPath };
             var transitivelyUsedReference = ProjectReference(UnusedAssemblyPath, PackageReference(UsedAssemblyPath));
-            var unneededReference = PackageReference(UsedAssemblyPath);
+            var directlyUsedReference = PackageReference(UsedAssemblyPath);
 
-            var unusedReferences = GetUnusedReferences(usedAssemblies, transitivelyUsedReference, unneededReference);
+            var unusedReferences = GetUnusedReferences(usedAssemblies, transitivelyUsedReference, directlyUsedReference);
 
-            Assert.Contains(unneededReference, unusedReferences);
+            Assert.Contains(transitivelyUsedReference, unusedReferences);
             Assert.Single(unusedReferences);
         }
 
