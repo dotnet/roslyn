@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // we haven't found the constructor part that declares the variable:
             // <Caravela> - instead of `throw ExceptionUtilities.Unreachable;`
-            // CARAVELA TODO: Check why throwing here 
             return -1;
             // </Caravela>
         }
