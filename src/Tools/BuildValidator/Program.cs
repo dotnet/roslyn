@@ -38,7 +38,7 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static Task<int> Main(string[] args)
+        static int Main(string[] args)
         {
             var rootCommand = new RootCommand
             {
@@ -61,11 +61,11 @@ namespace BuildValidator
                     "--debugPath", "(optional) Path to output debug visualization of the rebuild"
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, bool, bool, bool, string>(HandleCommandAsync);
-            return rootCommand.InvokeAsync(args);
+            rootCommand.Handler = CommandHandler.Create<string, string, bool, bool, bool, string>(HandleCommand);
+            return rootCommand.Invoke(args);
         }
 
-        static async Task<int> HandleCommandAsync(string assembliesPath, string sourcePath, bool verbose, bool quiet, bool openDiff, string? debugPath)
+        static int HandleCommand(string assembliesPath, string sourcePath, bool verbose, bool quiet, bool openDiff, string? debugPath)
         {
             var options = new Options(assembliesPath, sourcePath, verbose, quiet, openDiff, debugPath);
 
@@ -95,8 +95,8 @@ namespace BuildValidator
                     .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                var success = await ValidateFilesAsync(filesToValidate, buildConstructor, logger, options).ConfigureAwait(false);
-                await Console.Out.FlushAsync().ConfigureAwait(false);
+                var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
+                Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
             }
             catch (Exception ex)
@@ -107,14 +107,14 @@ namespace BuildValidator
         }
 
         // TODO: it feels like "logger" and "options" should be instance variables of something
-        private static async Task<bool> ValidateFilesAsync(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
 
             foreach (var file in originalBinaries)
             {
-                var compilationDiff = await ValidateFileAsync(file, buildConstructor, logger, options).ConfigureAwait(false);
+                var compilationDiff = ValidateFile(file, buildConstructor, logger, options);
 
                 if (compilationDiff is null)
                 {
@@ -152,7 +152,7 @@ namespace BuildValidator
             return success;
         }
 
-        private static async Task<CompilationDiff?> ValidateFileAsync(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
@@ -186,9 +186,9 @@ namespace BuildValidator
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
                 var optionsReader = new CompilationOptionsReader(pdbReader, originalPeReader);
 
-                var compilation = await buildConstructor.CreateCompilationAsync(
+                var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
-                    Path.GetFileNameWithoutExtension(originalBinary.Name)).ConfigureAwait(false);
+                    Path.GetFileNameWithoutExtension(originalBinary.Name));
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, GetDebugEntryPoint(), options);
                 logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");

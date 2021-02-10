@@ -32,12 +32,12 @@ namespace BuildValidator
             _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
         }
 
-        public Task<ResolvedSource> ResolveSourceAsync(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
+        public ResolvedSource ResolveSource(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
         {
             var pdbDocumentPath = sourceFileInfo.SourceFilePath;
             if (sourceFileInfo.EmbeddedText is { } embeddedText)
             {
-                return Task.FromResult(new ResolvedSource(OnDiskPath: null, embeddedText, sourceFileInfo));
+                return new ResolvedSource(OnDiskPath: null, embeddedText, sourceFileInfo);
             }
             else
             {
@@ -64,7 +64,7 @@ namespace BuildValidator
                 {
                     _logger.LogError($@"File ""{onDiskPath}"" has incorrect hash");
                 }
-                return Task.FromResult(new ResolvedSource(onDiskPath, sourceText, sourceFileInfo));
+                return new ResolvedSource(onDiskPath, sourceText, sourceFileInfo);
             }
 
             throw new FileNotFoundException(pdbDocumentPath);

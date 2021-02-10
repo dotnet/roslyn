@@ -51,7 +51,7 @@ namespace BuildValidator
 
         public static DirectoryInfo[] GetRefAssembliesDirectories()
         {
-            // PROTOTYPE
+            // TODO
             return new[]
             {
                 new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref"),
@@ -67,7 +67,7 @@ namespace BuildValidator
             }
 
             _logger.LogTrace($"Cache miss for reference {referenceInfo}");
-            throw new Exception("PROTOTYPE");
+            throw new Exception("TODO");
         }
 
         public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
@@ -123,7 +123,7 @@ namespace BuildValidator
             if (uncached.Any())
             {
                 _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
-                // PROTOTYPE: should probably throw an exception here because we're guaranteed to fail to look up a filename for an assembly reference's MVID later on
+                // TODO: should probably throw an exception here because we're guaranteed to fail to look up a filename for an assembly reference's MVID later on
             }
         }
 

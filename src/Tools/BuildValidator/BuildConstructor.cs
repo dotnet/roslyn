@@ -38,7 +38,7 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Task<Compilation> CreateCompilationAsync(CompilationOptionsReader optionsReader, string name)
+        public Compilation CreateCompilation(CompilationOptionsReader optionsReader, string name)
         {
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
@@ -51,15 +51,15 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilationAsync(optionsReader, name),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilationAsync(optionsReader, name),
-                    _ => Task.FromException<Compilation>(new InvalidDataException($"{language} is not a known language"))
+                    LanguageNames.CSharp => CreateCSharpCompilation(optionsReader, name),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(optionsReader, name),
+                    _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
                 return compilation;
             }
 
-            return Task.FromException<Compilation>(new InvalidDataException("Did not find language in compilation options"));
+            throw new InvalidDataException("Did not find language in compilation options");
         }
 
         private ImmutableArray<MetadataReferenceInfo> GetMetadataReferenceInfos(CompilationOptionsReader compilationOptionsReader)
@@ -96,26 +96,25 @@ namespace BuildValidator
             return sourceLinks;
         }
 
-        private async Task<ImmutableArray<ResolvedSource>> ResolveSourcesAsync(
+        private ImmutableArray<ResolvedSource> ResolveSources(
             ImmutableArray<SourceFileInfo> sourceFileInfos,
             ImmutableArray<SourceLink> sourceLinks,
             Encoding encoding)
         {
             _logger.LogInformation("Locating source files");
 
-            var tasks = new Task<ResolvedSource>[sourceFileInfos.Length];
+            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
             for (int i = 0; i < sourceFileInfos.Length; i++)
             {
                 var sourceFileInfo = sourceFileInfos[i];
-                tasks[i] = _sourceResolver.ResolveSourceAsync(sourceFileInfo, sourceLinks, encoding);
+                _sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding);
             }
-            var result = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return result.ToImmutableArray();
+            return sources.MoveToImmutable();
         }
 
         #region CSharp
-        private async Task<Compilation> CreateCSharpCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private Compilation CreateCSharpCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
             var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(compilationOptionsReader, assemblyName);
@@ -125,7 +124,7 @@ namespace BuildValidator
             logResolvedMetadataReferences();
 
             var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
-            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, encoding).ConfigureAwait(false);
+            var sources = ResolveSources(sourceFileInfos, sourceLinks, encoding);
             logResolvedSources();
 
             return CSharpCompilation.Create(
@@ -160,16 +159,16 @@ namespace BuildValidator
             using var scope = _logger.BeginScope("Options");
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = GetUniqueOption("language-version");
-            var optimization = GetUniqueOption("optimization");
+            var langVersionString = getUniqueOption("language-version");
+            var optimization = getUniqueOption("optimization");
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
-            TryGetUniqueOption("default-encoding", out var defaultEncoding);
-            TryGetUniqueOption("fallback-encoding", out var fallbackEncoding);
-            TryGetUniqueOption("define", out var define);
-            TryGetUniqueOption("checked", out var checkedString);
-            TryGetUniqueOption("nullable", out var nullable);
-            TryGetUniqueOption("unsafe", out var unsafeString);
+            tryGetUniqueOption("default-encoding", out var defaultEncoding);
+            tryGetUniqueOption("fallback-encoding", out var fallbackEncoding);
+            tryGetUniqueOption("define", out var define);
+            tryGetUniqueOption("checked", out var checkedString);
+            tryGetUniqueOption("nullable", out var nullable);
+            tryGetUniqueOption("unsafe", out var unsafeString);
 
             var encodingString = defaultEncoding ?? fallbackEncoding;
             var encoding = encodingString is null
@@ -195,7 +194,7 @@ namespace BuildValidator
                 optionsReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
 
-                // PROTOTYPE: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
+                // TODO: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
                 // end with .dll but the inferred name will be .exe
                 moduleName: assemblyName + ".dll",
                 mainTypeName: optionsReader.GetMainTypeName(),
@@ -232,16 +231,16 @@ namespace BuildValidator
 
             return (compilationOptions, parseOptions, encoding);
 
-            bool TryGetUniqueOption(string name, [NotNullWhen(true)] out string? value)
+            bool tryGetUniqueOption(string name, [NotNullWhen(true)] out string? value)
             {
                 var result = pdbCompilationOptions.TryGetUniqueOption(name, out value);
                 _logger.LogInformation($"{name} - {value}");
                 return result;
             }
 
-            string GetUniqueOption(string name)
+            string getUniqueOption(string name)
             {
-                _ = TryGetUniqueOption(name, out var value);
+                _ = tryGetUniqueOption(name, out var value);
                 return value!;
             }
         }
@@ -258,15 +257,14 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        // TODO: can we just make "get compilation options" and "create the compilation" virtual and share the rest?
-        private async Task<Compilation> CreateVisualBasicCompilationAsync(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private Compilation CreateVisualBasicCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
         {
             var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
             var compilationOptions = CreateVisualBasicCompilationOptions(compilationOptionsReader);
             var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, Encoding.UTF8); // TODO: is this encoding right?
             var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
             var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
-            var sources = await ResolveSourcesAsync(sourceFileInfos, sourceLinks, Encoding.UTF8).ConfigureAwait(false);
+            var sources = ResolveSources(sourceFileInfos, sourceLinks, Encoding.UTF8);
 
             return VisualBasicCompilation.Create(
                 assemblyName,
