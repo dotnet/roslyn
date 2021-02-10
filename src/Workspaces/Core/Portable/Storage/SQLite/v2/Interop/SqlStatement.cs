@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
+using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
@@ -67,7 +69,33 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         }
 
         internal void BindStringParameter(int parameterIndex, string value)
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+        {
+            // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
+            var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
+            var utf8WithTrailingZeroByteCount = utf8ByteCount + 1;
+            if (utf8WithTrailingZeroByteCount <= 256)
+            {
+                Span<byte> bytes = stackalloc byte[utf8WithTrailingZeroByteCount];
+#if NETCOREAPP
+                Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
+#else
+                unsafe
+                {
+                    fixed (char* charsPtr = value)
+                    fixed (byte* bytesPtr = bytes)
+                    {
+                        Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(charsPtr, value.Length, bytesPtr, utf8WithTrailingZeroByteCount) == utf8ByteCount);
+                    }
+                }
+#endif
+                bytes[utf8WithTrailingZeroByteCount - 1] = 0;
+                _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, bytes));
+            }
+            else
+            {
+                _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+            }
+        }
 
         internal void BindInt64Parameter(int parameterIndex, long value)
             => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_int64(_rawStatement, parameterIndex, value));

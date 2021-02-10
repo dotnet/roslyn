@@ -51,8 +51,23 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
-            _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
+            var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+
+            var longest = "";
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in projects.Documents)
+                {
+                    var total = project.FilePath + document.FilePath + document.Name;
+                    if (total.Length > longest.Length)
+                    {
+                        longest = total;
+                    }
+                }
+            }
+
+            Console.WriteLine($"{longest.Length}: {longest}");
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.

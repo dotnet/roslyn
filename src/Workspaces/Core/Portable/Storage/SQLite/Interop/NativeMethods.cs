@@ -138,6 +138,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
         }
 
+        public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
+        }
+
         public static Result sqlite3_bind_int64(SafeSqliteStatementHandle stmt, int index, long val)
         {
             using var _ = stmt.Lease();
