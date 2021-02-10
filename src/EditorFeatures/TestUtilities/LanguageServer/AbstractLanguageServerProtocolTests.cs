@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -218,28 +217,39 @@ namespace Roslyn.Test.Utilities
                 Value = value
             };
 
-        protected static LSP.CompletionParams CreateCompletionParams(LSP.Location caret, string triggerCharacter, LSP.CompletionTriggerKind triggerKind)
+        protected static LSP.CompletionParams CreateCompletionParams(
+            LSP.Location caret,
+            LSP.VSCompletionInvokeKind invokeKind,
+            string triggerCharacter,
+            LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new LSP.CompletionContext()
+                Context = new LSP.VSCompletionContext()
                 {
+                    InvokeKind = invokeKind,
                     TriggerCharacter = triggerCharacter,
-                    TriggerKind = triggerKind
+                    TriggerKind = triggerKind,
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(
+        protected static async Task<LSP.VSCompletionItem> CreateCompletionItemAsync(
             string insertText,
             LSP.CompletionItemKind kind,
             string[] tags,
-            LSP.CompletionParams requestParameters,
+            LSP.CompletionParams request,
+            Document document,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
             string? sortText = null,
             int resultId = 0)
         {
+            var position = await document.GetPositionFromLinePositionAsync(
+                ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
+                request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
+
             var item = new LSP.VSCompletionItem()
             {
                 FilterText = insertText,
@@ -251,9 +261,9 @@ namespace Roslyn.Test.Utilities
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
                     DisplayText = insertText,
-                    TextDocument = requestParameters.TextDocument,
-                    Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
+                    TextDocument = request.TextDocument,
+                    Position = request.Position,
+                    CompletionTrigger = completionTrigger,
                     ResultId = resultId,
                 }),
                 Preselect = preselect
