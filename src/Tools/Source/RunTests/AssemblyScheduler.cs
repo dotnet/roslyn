@@ -171,7 +171,7 @@ namespace RunTests
         /// <summary>
         /// Number of methods to include per Helix work item.
         /// </summary>
-        internal const int HelixMethodLimit = 500;
+        internal const int HelixMethodLimit = 50;
 
         private readonly Options _options;
         private readonly int _methodLimit;
