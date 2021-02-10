@@ -2,34 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
 {
     internal static class UnusedReferenceExtensions
     {
-        public static ReferenceUpdate ToReferenceUpdate(this ProjectSystemReferenceUpdate projectSystemReferenceUpdate)
-        {
-            return new ReferenceUpdate(
-                (UpdateAction)projectSystemReferenceUpdate.Action,
-                projectSystemReferenceUpdate.ReferenceInfo.ToReferenceInfo());
-        }
-
         public static ReferenceInfo ToReferenceInfo(this ProjectSystemReferenceInfo projectSystemReference)
         {
             return new ReferenceInfo(
                 (ReferenceType)projectSystemReference.ReferenceType,
                 projectSystemReference.ItemSpecification,
-                projectSystemReference.TreatAsUsed);
+                projectSystemReference.TreatAsUsed,
+                ImmutableArray<string>.Empty,
+                ImmutableArray<ReferenceInfo>.Empty);
         }
 
         public static ProjectSystemReferenceUpdate ToProjectSystemReferenceUpdate(this ReferenceUpdate referenceUpdate)
         {
+            var updateAction = referenceUpdate.Action switch
+            {
+                UpdateAction.TreatAsUsed => ProjectSystemUpdateAction.SetTreatAsUsed,
+                UpdateAction.TreatAsUnused => ProjectSystemUpdateAction.UnsetTreatAsUsed,
+                UpdateAction.Remove => ProjectSystemUpdateAction.Remove,
+                _ => throw ExceptionUtilities.Unreachable
+            };
             return new ProjectSystemReferenceUpdate(
-                (ProjectSystemUpdateAction)referenceUpdate.Action,
+                updateAction,
                 referenceUpdate.ReferenceInfo.ToProjectSystemReferenceInfo());
         }
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// <summary>
         /// Indicates action to perform on the reference.
         /// </summary>
-        public UpdateAction Action { get; }
+        public UpdateAction Action { get; set; }
 
         /// <summary>
         /// Gets the reference to be updated.
