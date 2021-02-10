@@ -5,7 +5,7 @@
 #nullable disable
 
 using System;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
@@ -14,6 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// </summary>
     internal interface IWorkspaceProjectContextFactory
     {
+        /// <inheritdoc cref="CreateProjectContextAsync(string, string, string, Guid, object, string)"/>
+        [Obsolete("Use CreateProjectContextAsync instead")]
+        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
+
         /// <summary>
         /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
         /// </summary>
@@ -23,6 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="projectGuid">Project guid.</param>
         /// <param name="hierarchy">Obsolete. The argument is ignored.</param>
         /// <param name="binOutputPath">Initial project binary output path.</param>
-        IWorkspaceProjectContext CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
+        Task<IWorkspaceProjectContext> CreateProjectContextAsync(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
     }
 }

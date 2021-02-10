@@ -7,13 +7,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -23,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const string SolutionContextName = "Solution";
         private const string SolutionSessionIdPropertyName = "SolutionSessionID";
-
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
@@ -31,10 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectFactory(
+            IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
+            _threadingContext = threadingContext;
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
@@ -44,12 +49,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
+            => _threadingContext.JoinableTaskFactory.Run(async () => await CreateAndAddToWorkspaceAsync(
+                projectSystemName, language, creationInfo).ConfigureAwait(false));
+
+        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            // HACK: since we're on the UI thread, ensure we initialize our options provider which depends on a UI-affinitized experimentation service
+            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
+            // UI-affinitized experimentation service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
+            await TaskScheduler.Default;
 
             var id = ProjectId.CreateNewId(projectSystemName);
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
@@ -89,16 +101,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     // Fetch the current solution path. Since we're on the UI thread right now, we can do that.
-                    string? solutionFilePath = null;
-                    var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                    if (solution != null)
+                    var solutionFilePath = _threadingContext.JoinableTaskFactory.Run(async () =>
                     {
-                        if (ErrorHandler.Failed(solution.GetSolutionInfo(out _, out solutionFilePath, out _)))
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+                        if (solution != null)
                         {
-                            // Paranoia: if the call failed, we definitely don't want to use any stuff that was set
-                            solutionFilePath = null;
+                            if (ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _)))
+                                return filePath;
                         }
-                    }
+
+                        // Paranoia: if the call failed, we definitely don't want to use any stuff that was set
+                        return null;
+                    });
 
                     var solutionSessionId = GetSolutionSessionId();
 
