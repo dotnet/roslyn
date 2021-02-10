@@ -88,8 +88,8 @@ dotnet_code_quality_unused_parameters = all
 dotnet_remove_unnecessary_suppression_exclusions = none
 
 # New line preferences
-dotnet_style_allow_multiple_blank_lines = true
-dotnet_style_allow_statement_immediately_after_block = true
+dotnet_style_allow_multiple_blank_lines_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 #### C# Coding Conventions ####
 
@@ -142,9 +142,9 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 csharp_using_directive_placement = outside_namespace
 
 # New line preferences
-csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
-csharp_style_allow_blank_lines_between_consecutive_braces = true
-csharp_style_allow_embedded_statements_on_same_line = true
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
 #### C# Formatting Rules ####
 
@@ -317,8 +317,8 @@ dotnet_code_quality_unused_parameters = all
 dotnet_remove_unnecessary_suppression_exclusions = none
 
 # New line preferences
-dotnet_style_allow_multiple_blank_lines = true
-dotnet_style_allow_statement_immediately_after_block = true
+dotnet_style_allow_multiple_blank_lines_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 #### C# Coding Conventions ####
 
@@ -371,9 +371,9 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 csharp_using_directive_placement = outside_namespace
 
 # New line preferences
-csharp_style_allow_blank_line_after_colon_in_constructor_initializer = true
-csharp_style_allow_blank_lines_between_consecutive_braces = true
-csharp_style_allow_embedded_statements_on_same_line = true
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
 
 #### C# Formatting Rules ####
 
