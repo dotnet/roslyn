@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
+    using static SQLitePersistentStorageConstants;
+
     internal partial class SQLitePersistentStorage
     {
         protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
             }
 
-            protected override string DataTableName => DocumentDataTableName;
+            protected override Table Table => Table.Document;
 
             protected override (DocumentId, string) GetWriteQueueKey((DocumentKey documentKey, Document? bulkLoadSnapshot, string name) key)
                 => (key.documentKey.Id, key.name);
