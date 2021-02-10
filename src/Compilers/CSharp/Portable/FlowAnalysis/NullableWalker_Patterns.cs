@@ -271,14 +271,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public static PossiblyConditionalState Create(NullableWalker nullableWalker)
             {
-                if (nullableWalker.IsConditionalState)
-                {
-                    return new PossiblyConditionalState(nullableWalker.StateWhenTrue, nullableWalker.StateWhenFalse);
-                }
-                else
-                {
-                    return new PossiblyConditionalState(nullableWalker.State);
-                }
+                return nullableWalker.IsConditionalState
+                    ? new PossiblyConditionalState(nullableWalker.StateWhenTrue, nullableWalker.StateWhenFalse)
+                    : new PossiblyConditionalState(nullableWalker.State);
             }
 
             public PossiblyConditionalState Clone()
