@@ -27,21 +27,6 @@
         <target state="translated">Suffix "Opt" vermeiden</target>
         <note />
       </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Vermeiden Sie mehrere Leerzeilen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Vermeiden Sie mehrere Leerzeilen.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Geschweifte Klammern dürfen keine Leerzeilen enthalten.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
         <target state="translated">Dies ist ein Refactoring, das den Prozess zum Erstellen von Testzugriffsmethoden mithilfe des Musters "TestAccessor" vereinfacht.</target>
@@ -307,16 +292,6 @@
         <target state="translated">Für asynchrone Testmethoden ist das Suffix "Async" nicht erforderlich.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Leerzeilen zwischen geschweiften Klammern entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Zusätzliche Leerzeilen entfernen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">Die Instanz von TemporaryArray&lt;T&gt;.AsRef() muss eine using-Variable sein.</target>
@@ -470,11 +445,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">"{0}" wurde mit MEFv2 exportiert und muss daher mit "SharedAttribute" gekennzeichnet werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Anweisungen müssen in einer eigenen Zeile platziert werden.</target>
         <note />
       </trans-unit>
     </body>
