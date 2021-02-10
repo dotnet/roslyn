@@ -142,46 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // Since VS doesn't support multi-line spans/tokens, we need to break the span up into single-line spans.
                 if (startLine != endLine)
                 {
-                    var numLinesInSpan = endLine - startLine + 1;
-                    Contract.ThrowIfTrue(numLinesInSpan < 1);
-
-                    for (var currentLine = 1; currentLine <= numLinesInSpan; currentLine++)
-                    {
-                        TextSpan? textSpan;
-
-                        // Case 1: First line of span
-                        if (currentLine == 1)
-                        {
-                            var absoluteStartOffset = text.Lines[startLine].Start + startOffset;
-                            var spanLength = text.Lines[startLine].End - absoluteStartOffset;
-                            textSpan = new TextSpan(absoluteStartOffset, spanLength);
-                        }
-                        // Case 2: Any of the span's middle lines
-                        else if (currentLine != numLinesInSpan)
-                        {
-                            textSpan = text.Lines[startLine + currentLine - 1].Span;
-                        }
-                        // Case 3: Last line of span
-                        else
-                        {
-                            textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
-                        }
-
-                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, span.ClassificationType);
-                        updatedClassifiedSpans.Add(updatedClassifiedSpan);
-
-                        // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
-                        // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
-                        // string literal containing escape characters:
-                        //     var x = @"one ""
-                        //               two";
-                        // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                        while (spanIndex + 1 < classifiedSpans.Length && textSpan.Value.Contains(classifiedSpans[spanIndex + 1].TextSpan))
-                        {
-                            updatedClassifiedSpans.Add(classifiedSpans[spanIndex + 1]);
-                            spanIndex++;
-                        }
-                    }
+                    spanIndex = ConvertToSingleLineSpan(
+                        text, classifiedSpans, updatedClassifiedSpans, spanIndex, span.ClassificationType,
+                        startLine, startOffset, endLine, endOffSet);
                 }
                 else
                 {
@@ -191,6 +154,64 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
 
             return updatedClassifiedSpans.ToArray();
+
+            static int ConvertToSingleLineSpan(
+                SourceText text,
+                ClassifiedSpan[] originalClassifiedSpans,
+                ArrayBuilder<ClassifiedSpan> updatedClassifiedSpans,
+                int spanIndex,
+                string classificationType,
+                int startLine,
+                int startOffset,
+                int endLine,
+                int endOffSet)
+            {
+                var numLinesInSpan = endLine - startLine + 1;
+                Contract.ThrowIfTrue(numLinesInSpan < 1);
+
+                var updatedSpanIndex = spanIndex;
+
+                for (var currentLine = 0; currentLine < numLinesInSpan; currentLine++)
+                {
+                    TextSpan? textSpan;
+
+                    // Case 1: First line of span
+                    if (currentLine == 0)
+                    {
+                        var absoluteStartOffset = text.Lines[startLine].Start + startOffset;
+                        var spanLength = text.Lines[startLine].End - absoluteStartOffset;
+                        textSpan = new TextSpan(absoluteStartOffset, spanLength);
+                    }
+                    // Case 2: Any of the span's middle lines
+                    else if (currentLine != numLinesInSpan - 1)
+                    {
+                        textSpan = text.Lines[startLine + currentLine].Span;
+                    }
+                    // Case 3: Last line of span
+                    else
+                    {
+                        textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
+                    }
+
+                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+
+                    // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
+                    // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
+                    // string literal containing escape characters:
+                    //     var x = @"one ""
+                    //               two";
+                    // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
+                    while (updatedSpanIndex + 1 < originalClassifiedSpans.Length &&
+                        textSpan.Value.Contains(originalClassifiedSpans[updatedSpanIndex + 1].TextSpan))
+                    {
+                        updatedClassifiedSpans.Add(originalClassifiedSpans[updatedSpanIndex + 1]);
+                        updatedSpanIndex++;
+                    }
+                }
+
+                return updatedSpanIndex;
+            }
         }
 
         private static int[] ComputeTokens(
