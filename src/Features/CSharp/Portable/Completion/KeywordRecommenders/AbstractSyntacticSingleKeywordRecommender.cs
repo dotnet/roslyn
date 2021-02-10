@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         internal bool ShouldFormatOnCommit { get; }
 
+        /// <summary>
+        /// Matching priority for the provided item when <see cref="ShouldPreselect"/> returns <see langword="false"/>.
+        /// </summary>
+        protected virtual int DefaultMatchPriority => MatchPriority.Default;
+
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
             bool isValidInPreprocessorContext = false,
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
-        public async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
+        public async Task<IEnumerable<RecommendedKeyword>?> RecommendKeywordsAsync(
             int position,
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return SpecializedCollections.SingletonEnumerable(
                     new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
                         shouldFormatOnCommit: ShouldFormatOnCommit,
-                        matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
+                        matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : DefaultMatchPriority));
             }
 
             return null;
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
                 => _recommender = recommender;
 
-            internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
+            internal async Task<IEnumerable<RecommendedKeyword>?> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
             {
                 var syntaxKind = await _recommender.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
                 if (syntaxKind.HasValue)
