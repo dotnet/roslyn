@@ -114,7 +114,7 @@ namespace Caravela.Compiler
                 if (annotation is not null)
                     break;
 
-                ancestor = ancestor.Parent;
+                ancestor = ancestor.ParentOrStructuredTriviaParent;
             }
 
             return (ancestor, annotation);
@@ -142,7 +142,7 @@ namespace Caravela.Compiler
             if (span.IsEmpty && span.Start == ancestor.EndPosition)
                 foundNode = ancestor.DescendantNodes().Last();
             else
-                foundNode = ancestor.FindNode(span, getInnermostNodeForTie: true);
+                foundNode = ancestor.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
 
             // we were looking for node with zero width (like OmittedArraySizeExpression or a missing node), but found something larger
             // FindNode uses FindToken, which does not return zero-width tokens, so we use it ourselves, but then look just before it
@@ -198,7 +198,7 @@ namespace Caravela.Compiler
             if (originalPosition == preTransformationAncestor.EndPosition)
                 foundToken = preTransformationAncestor.GetLastToken(includeZeroWidth: true);
             else
-                foundToken = preTransformationAncestor.FindToken(originalPosition);
+                foundToken = preTransformationAncestor.FindToken(originalPosition, findInsideTrivia: true);
 
             if (foundToken.FullSpan != new TextSpan(originalPosition, token.FullWidth))
             {
@@ -232,6 +232,21 @@ namespace Caravela.Compiler
                 return AnnotateToken(token, preTransformationToken.Value);
 
             return token;
+        }
+
+        public static SyntaxTrivia TrackIfNeeded(SyntaxTrivia trivia)
+        {
+            if (trivia.GetStructure() is SyntaxNode structure)
+            {
+                var newStructure = TrackIfNeeded(structure);
+                if (newStructure != structure)
+                {
+                    // copied from SyntaxFactory.Trivia(StructuredTriviaSyntax), which can't be called here, because it's C#-specific
+                    return new SyntaxTrivia(default(SyntaxToken), newStructure.Green, position: 0, index: 0);
+                }
+            }
+
+            return trivia;
         }
 
         public static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T preTransformationNode) where T : SyntaxNode?

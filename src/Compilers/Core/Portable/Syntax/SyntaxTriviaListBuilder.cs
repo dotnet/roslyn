@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -73,6 +74,10 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public SyntaxTriviaListBuilder Add(SyntaxTrivia item)
         {
+            // <Caravela>
+            item = TreeTracker.TrackIfNeeded(item);
+            // </Caravela>
+
             if (_count >= _nodes.Length)
             {
                 this.Grow(_count == 0 ? 8 : _nodes.Length * 2);
