@@ -380,7 +380,7 @@ return reply;
             ? ""Option 1""
             : ""Option more than 1"";
 
-    return ""Option 1"";
+    return reply;
     ";
 
             var script = CSharpScript.Create<string>(code, options, typeof(Globals));
