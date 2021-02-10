@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
             var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
             var utf8WithTrailingZeroByteCount = utf8ByteCount + 1;
-            if (utf8WithTrailingZeroByteCount <= 256)
+
+            if (utf8WithTrailingZeroByteCount <= 512)
             {
                 Span<byte> bytes = stackalloc byte[utf8WithTrailingZeroByteCount];
 #if NETCOREAPP
