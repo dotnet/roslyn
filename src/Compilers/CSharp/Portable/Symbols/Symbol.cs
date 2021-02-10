@@ -854,6 +854,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
+#if DEBUG
+            if (ContainingSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                container.AssertMemberExposure(this, forDiagnostics: true);
+            }
+#endif
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;

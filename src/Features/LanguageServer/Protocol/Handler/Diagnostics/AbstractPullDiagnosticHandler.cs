@@ -50,6 +50,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         private long _nextDocumentResultId;
 
+        public abstract string Method { get; }
+
+        public bool MutatesSolutionState => false;
+
         protected AbstractPullDiagnosticHandler(
             IDiagnosticService diagnosticService)
         {
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
             var workspace = document.Project.Solution.Workspace;
-            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
 
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 

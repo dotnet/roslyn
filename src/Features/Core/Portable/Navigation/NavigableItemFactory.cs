@@ -27,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
             => new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
 
-        public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
+        public static ImmutableArray<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol,
             ImmutableArray<TaggedText>? displayTaggedParts,
             CancellationToken cancellationToken)
         {
             var locations = GetPreferredSourceLocations(solution, symbol, cancellationToken);
-            return locations.Select(loc => GetItemFromSymbolLocation(
+            return locations.SelectAsArray(loc => GetItemFromSymbolLocation(
                 solution, symbol, loc, displayTaggedParts));
         }
 

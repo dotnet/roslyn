@@ -57,6 +57,16 @@
         <target state="translated">İzin ver:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Açıklık sağlamak için her zaman</target>
@@ -572,6 +582,11 @@
         <target state="translated">Yeni Tür Adı:</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="new">New line preferences (experimental):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Ortak olmayan yöntemler</target>
@@ -727,6 +742,11 @@
         <target state="translated">Depo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="new">Require:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Required">
         <source>Required</source>
         <target state="translated">Gerekli</target>
@@ -817,6 +837,11 @@
         <target state="translated">Diğer her şey için ipuçlarını göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="new">Show hints for implicit object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Lambda parametre türleri için ipuçlarını göster</target>
@@ -845,6 +870,11 @@
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
         <target state="translated">Parametre adlarının yalnızca sonekleri farklı olduğunda ipuçlarını gizle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -2171,16 +2201,6 @@ Ek bilgiler: {1}</target>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">tür, atama ifadesinden görünür</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">'{0}' için yardım alın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">'{0}' için Bing'den yardım alın</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

@@ -425,6 +425,10 @@ namespace Microsoft.CodeAnalysis
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string Name => this.ProjectInfo.Name;
 
+        /// <inheritdoc cref="ProjectInfo.NameAndFlavor"/>
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public (string? name, string? flavor) NameAndFlavor => this.ProjectInfo.NameAndFlavor;
+
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool IsSubmission => this.ProjectInfo.IsSubmission;
 

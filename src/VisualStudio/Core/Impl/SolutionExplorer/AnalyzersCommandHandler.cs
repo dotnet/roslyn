@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool ShouldShowDiagnosticContextMenu(IEnumerable<object> items)
         {
-            return _initialized && items.All(item => item is BaseDiagnosticItem);
+            return _initialized && items.All(item => item is DiagnosticItem);
         }
 
         private void UpdateDiagnosticContextMenu()
@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
             if (uri != null)
             {
-                BrowserHelper.StartBrowser(uri);
+                VisualStudioNavigateToLinkService.StartBrowser(uri);
             }
         }
 

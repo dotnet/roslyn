@@ -5,10 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Resources;
 using System.Runtime;
-using MessagePack;
-using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -17,10 +14,12 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -40,12 +39,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal const string ServiceNameTopLevelPrefix = "Microsoft.VisualStudio.";
 
-        internal const string ServiceNameComponentLevelPrefix = "LanguageServices.";
+        internal const string ComponentName = "LanguageServices";
 
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty, new (Type, Type?)[]
+        public static readonly ServiceDescriptors Instance = new(ComponentName, GetFeatureDisplayName, RemoteSerializationOptions.Default, new (Type, Type?)[]
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
@@ -62,28 +61,29 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
             (typeof(IRemoteNavigateToSearchService), null),
+            (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
             (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
+            (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
         });
 
-        internal readonly MessagePackSerializerOptions Options;
+        internal readonly RemoteSerializationOptions Options;
         private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
-        private readonly string _componentLevelPrefix;
+        private readonly string _componentName;
         private readonly Func<string, string> _featureDisplayNameProvider;
 
         public ServiceDescriptors(
-            string componentLevelPrefix,
+            string componentName,
             Func<string, string> featureDisplayNameProvider,
-            ImmutableArray<IMessagePackFormatter> additionalFormatters,
-            ImmutableArray<IFormatterResolver> additionalResolvers,
+            RemoteSerializationOptions serializationOptions,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
         {
-            Options = ServiceDescriptor.DefaultOptions.WithResolver(MessagePackFormatters.CreateResolver(additionalFormatters, additionalResolvers));
-            _componentLevelPrefix = componentLevelPrefix;
+            Options = serializationOptions;
+            _componentName = componentName;
             _featureDisplayNameProvider = featureDisplayNameProvider;
             _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));
         }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         internal string GetQualifiedServiceName(Type serviceInterface)
-            => ServiceNameTopLevelPrefix + _componentLevelPrefix + GetServiceName(serviceInterface);
+            => ServiceNameTopLevelPrefix + _componentName + "." + GetServiceName(serviceInterface);
 
         private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {

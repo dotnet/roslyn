@@ -343,7 +343,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Equals(TryCast(other, TypeSymbol), compareKind)
         End Function
 
-
         Public MustOverride Overrides Function GetHashCode() As Integer
 
         Public MustOverride Overloads Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
@@ -644,7 +643,8 @@ Done:
                 Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
-            If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
+            If Not interfaceMember.RequiresImplementation() OrElse
+               Me.IsInterfaceType() OrElse ' In VB interfaces do not implement anything
                Not Me.ImplementsInterface(interfaceMember.ContainingType, comparer:=EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics:=Nothing) Then
                 Return Nothing
             End If

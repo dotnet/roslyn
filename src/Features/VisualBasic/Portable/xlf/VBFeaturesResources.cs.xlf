@@ -112,6 +112,11 @@
         <target state="translated">Poznámka: Dokončení mezerou je zakázané, aby se předešlo možné kolizi. Pro vložení názvu ze seznamu použijte tabulátor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;nová položka&gt;</target>

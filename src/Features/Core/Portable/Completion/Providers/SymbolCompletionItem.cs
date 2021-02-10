@@ -331,14 +331,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => item.Properties.TryGetValue("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
-            CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+            CompletionItem item, IReadOnlyList<ISymbol> symbols, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var position = GetDescriptionPosition(item);
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
 
-            if (symbols.Length != 0)
+            if (symbols.Count != 0)
             {
                 return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
             }

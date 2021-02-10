@@ -12559,7 +12559,7 @@ partial interface I
 {
 }
 ";
-            var verifier = CompileAndVerify(src, targetFramework: TargetFramework.NetCoreApp30, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var verifier = CompileAndVerify(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             verifier.VerifyIL("I.M", @"
 {
   // Code size        9 (0x9)

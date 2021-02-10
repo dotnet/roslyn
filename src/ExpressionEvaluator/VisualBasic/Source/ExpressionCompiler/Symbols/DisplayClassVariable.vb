@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Get
             End Property
 
-            Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+            Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
                 Return Nothing
             End Function
 

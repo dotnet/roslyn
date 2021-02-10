@@ -15,24 +15,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
-    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(MSLSPMethods.ProjectContextsName)]
+    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider)
+        public GetTextDocumentWithContextHandler()
         {
-            _solutionProvider = solutionProvider;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => null;
+        public override string Method => MSLSPMethods.ProjectContextsName;
 
-        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+
+        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = _solutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            // We specifically don't use context.Document here because we want multiple
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {

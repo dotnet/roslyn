@@ -1914,33 +1914,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Debug.Assert(propertyAccess.AccessKind <> PropertyAccessKind.Get)
 
+                    Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
+
                     If Not propertyAccess.IsWriteable Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        If setMethod Is Nothing Then
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_NoSetProperty1, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        Else
+                            Debug.Assert(setMethod.IsInitOnly)
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_AssignmentInitOnly, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
+                        End If
+
                         isError = True
-                    Else
-                        Dim setMethod = propertySymbol.GetMostDerivedSetMethod()
+                    End If
 
-                        ' NOTE: the setMethod could not be present, while it would still be
-                        '       possible to write to the property in a case
-                        '       where the property is a getter-only autoproperty 
-                        '       and the writing is happening in the corresponding constructor or initializer
-                        If setMethod IsNot Nothing Then
-                            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                    ' NOTE: the setMethod could not be present, while it would still be
+                    '       possible to write to the property in a case
+                    '       where the property is a getter-only autoproperty 
+                    '       and the writing is happening in the corresponding constructor or initializer
+                    If setMethod IsNot Nothing Then
 
-                            If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
+                        If propertyAccess.IsWriteable AndAlso setMethod.IsInitOnly Then
+                            InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   node.Location,
+                                                                   DirectCast(node.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.InitOnlySettersUsage)
+                        End If
+
+                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+
+                        If ReportUseSiteError(diagnostics, op1.Syntax, setMethod) Then
+                            isError = True
+                        Else
+                            Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
+                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
+                            If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
+                                IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
+                                ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
                                 isError = True
-                            Else
-                                Dim accessThroughType = GetAccessThroughType(propertyAccess.ReceiverOpt)
-                                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-                                If Not IsAccessible(setMethod, useSiteDiagnostics, accessThroughType) AndAlso
-                                   IsAccessible(propertySymbol, useSiteDiagnostics, accessThroughType) Then
-                                    ReportDiagnostic(diagnostics, node, ERRID.ERR_NoAccessibleSet, CustomSymbolDisplayFormatter.ShortErrorName(propertySymbol))
-                                    isError = True
-                                End If
-
-                                diagnostics.Add(node, useSiteDiagnostics)
                             End If
+
+                            diagnostics.Add(node, useSiteDiagnostics)
                         End If
                     End If
 

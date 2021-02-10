@@ -2222,5 +2222,56 @@ Block[B6] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [Fact]
+        public void UnexpectedTupleExpressionRecovery()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/(var ((a,b), c), int d);/*</bind>*/
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         /*<bind>*/(var ((a,b), c), int d);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(6, 19),
+                // file.cs(6,20): error CS8185: A declaration is not allowed in this context.
+                //         /*<bind>*/(var ((a,b), c), int d);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var ((a,b), c)").WithLocation(6, 20),
+                // file.cs(6,36): error CS8185: A declaration is not allowed in this context.
+                //         /*<bind>*/(var ((a,b), c), int d);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 36),
+                // file.cs(6,36): error CS0165: Use of unassigned local variable 'd'
+                //         /*<bind>*/(var ((a,b), c), int d);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int d").WithArguments("d").WithLocation(6, 36)
+            };
+
+            var expectedTree = @"
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(var ((a,b), c), int d);')
+  Expression:
+    ITupleOperation (OperationKind.Tuple, Type: (((var a, var b), var c), System.Int32 d), IsInvalid) (Syntax: '(var ((a,b), c), int d)')
+      NaturalType: (((var a, var b), var c), System.Int32 d)
+      Elements(2):
+          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: ((var a, var b), var c), IsInvalid) (Syntax: 'var ((a,b), c)')
+            ITupleOperation (OperationKind.Tuple, Type: ((var a, var b), var c), IsInvalid) (Syntax: '((a,b), c)')
+              NaturalType: null
+              Elements(2):
+                  ITupleOperation (OperationKind.Tuple, Type: (var a, var b), IsInvalid) (Syntax: '(a,b)')
+                    NaturalType: null
+                    Elements(2):
+                        ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'a')
+                        ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'b')
+                  ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'c')
+          IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int d')
+            ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'd')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedTree, expectedDiagnostics);
+        }
     }
 }

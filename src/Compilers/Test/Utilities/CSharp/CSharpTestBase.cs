@@ -19,6 +19,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -568,22 +569,22 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Enable);
+            return WithNullable(options, NullableContextOptions.Enable);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        protected static CSharpCompilationOptions WithNullableDisable(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Disable);
+            return WithNullable(options, NullableContextOptions.Disable);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        protected static CSharpCompilationOptions WithNullable(NullableContextOptions nullableContextOptions)
         {
-            return WithNonNullTypes(null, nullableContextOptions);
+            return WithNullable(null, nullableContextOptions);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        protected static CSharpCompilationOptions WithNullable(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
         {
             return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
@@ -1090,9 +1091,13 @@ namespace System.Runtime.CompilerServices
             bool skipUsesIsNullable,
             MessageID? experimentalFeature)
         {
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
+
             if (options == null)
             {
-                options = TestOptions.ReleaseDll;
+                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
+
+                options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
             }
 
             // Using single-threaded build if debugger attached, to simplify debugging.
@@ -1108,7 +1113,7 @@ namespace System.Runtime.CompilerServices
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
-                source.GetSyntaxTrees(parseOptions, sourceFileName),
+                syntaxTrees,
                 references,
                 options);
             CompilationExtensions.ValidateIOperations(createCompilationLambda);
@@ -1803,8 +1808,8 @@ namespace System.Runtime.CompilerServices
         protected static void VerifyFlowGraph(CSharpCompilation compilation, SyntaxNode syntaxNode, string expectedFlowGraph)
         {
             var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
-            ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
-            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
+            (ControlFlowGraph graph, ISymbol associatedSymbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph, associatedSymbol);
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
@@ -2254,8 +2259,8 @@ namespace System
             {
                 return new List<object[]>()
                 {
-                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
-                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                    new object[] { WithNullableEnable(TestOptions.DebugDll) },
+                    new object[] { WithNullableDisable(TestOptions.DebugDll) }
                 };
             }
         }
@@ -2266,8 +2271,8 @@ namespace System
             {
                 return new List<object[]>()
                 {
-                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
-                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
+                    new object[] { WithNullableEnable(TestOptions.ReleaseDll) },
+                    new object[] { WithNullableDisable(TestOptions.ReleaseDll) }
                 };
             }
         }

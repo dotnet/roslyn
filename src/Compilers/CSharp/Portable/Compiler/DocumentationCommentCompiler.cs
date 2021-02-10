@@ -377,7 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ShouldSkip(Symbol symbol)
         {
-            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol;
+            return symbol.IsImplicitlyDeclared ||
+                symbol.IsAccessor() ||
+                symbol is SynthesizedSimpleProgramEntryPointSymbol ||
+                symbol is SimpleProgramNamedTypeSymbol ||
+                symbol is SynthesizedRecordPropertySymbol;
         }
 
         /// <summary>

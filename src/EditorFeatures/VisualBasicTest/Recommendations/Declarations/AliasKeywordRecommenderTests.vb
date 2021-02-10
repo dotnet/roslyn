@@ -6,49 +6,49 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class AliasKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AliasAfterLibNameInSubTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib "Goo" |</ClassDeclaration>, "Alias")
-        End Function
+        Public Sub AliasAfterLibNameInSubTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub goo Lib "Goo" |</ClassDeclaration>, "Alias")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AliasAfterLibNameInFunctionTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Function goo Lib "Goo" |</ClassDeclaration>, "Alias")
-        End Function
+        Public Sub AliasAfterLibNameInFunctionTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Function goo Lib "Goo" |</ClassDeclaration>, "Alias")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AliasNotAfterLibKeywordTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, Array.Empty(Of String)())
-        End Function
+        Public Sub AliasNotAfterLibKeywordTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub goo Lib |</ClassDeclaration>, Array.Empty(Of String)())
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NothingAfterBrokenAliasTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Declare Sub goo Lib "Goo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
-        End Function
+        Public Sub NothingAfterBrokenAliasTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Declare Sub goo Lib "Goo" Alais |</ClassDeclaration>, Array.Empty(Of String)())
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoAliasAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NoAliasAfterEolTest()
+            VerifyRecommendationsMissing(
 <ClassDeclaration>Declare Function goo Lib "Goo" 
     |</ClassDeclaration>, "Alias")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AliasAfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AliasAfterExplicitLineContinuationTest()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Declare Function goo Lib "Goo" _
 |</ClassDeclaration>, "Alias")
-        End Function
+        End Sub
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AliasAfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AliasAfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Declare Function goo Lib "Goo" _ ' Test
 |</ClassDeclaration>, "Alias")
-        End Function
+        End Sub
     End Class
 End Namespace

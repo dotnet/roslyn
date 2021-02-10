@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../VBFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
@@ -110,6 +110,11 @@
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
         <target state="translated">注意: 空格完成的功能已停用，以免造成可能的干擾。若要插入清單中的名稱，請使用 Tab 鍵。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
