@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
                 var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile, targetFrameworkMoniker);
 
-                return await UnusedReferencesService.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
+                return await UnusedReferencesRemover.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private void ApplyUnusedReferenceUpdates(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
             ThreadHelper.JoinableTaskFactory.Run(
-                () => UnusedReferencesService.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
+                () => UnusedReferencesRemover.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
         }
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, [NotNullWhen(returnValue: true)] out string? propertyValue)

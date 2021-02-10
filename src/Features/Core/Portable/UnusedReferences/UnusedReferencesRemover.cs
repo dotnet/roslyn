@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
 {
-    internal static class UnusedReferencesService
+    internal static class UnusedReferencesRemover
+
     {
         // This is the order that we look for used references. We set this processing order because we
         // want to favor transitive references when possible. For instance we process Projects before
@@ -50,10 +51,21 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
             var unusedReferencesBuilder = ImmutableArray.CreateBuilder<ReferenceInfo>();
             var referencesByType = references.GroupBy(reference => reference.ReferenceType)
-                .ToImmutableDictionary(group => group.Key);
+                .ToDictionary(group => group.Key, group => group.ToImmutableArray());
 
-            // We process the references in order by their type. This means we favor transitive references
-            // over direct references where possible.
+            // In this method we will determine which references bring in used assemblies and which don't.
+            // Once we know a reference is "used", meaning brings in a used assembly, then we have answered
+            // the question of which reference is responsible for bringing in all those compilation assemblies
+            // (both directly and transitively). So, we will remove them from our lookup and proceed to determine
+            // the source of the remaining used assemblies. The remaining references will need to bring in a
+            // different used assembly into the compilation to be considered necessary.
+            //
+            // We will process the list of references twice. First we will look at the compilation assemblies
+            // brought in directly by the reference to see if any are used. Then, after all references direct
+            // compilation assemblies have been considered, we will expand our search and look at all compilation
+            // assemblies brought in transitively by each reference.
+
+            // Pass 1: Find all directly used references and remove them.
             foreach (var referenceType in _processingOrder)
             {
                 if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
@@ -61,30 +73,77 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                AddUnusedReferences(
-                    referencesForReferenceType.ToImmutableArray(),
-                    usedAssemblyFilePaths,
-                    unusedReferencesBuilder);
+                var unusedReferences = RemoveDirectlyUsedReferences(
+                    referencesForReferenceType,
+                    usedAssemblyFilePaths);
+
+                // Update with the references that are remaining.
+                if (unusedReferences.IsEmpty)
+                {
+                    referencesByType.Remove(referenceType);
+                }
+                else
+                {
+                    referencesByType[referenceType] = unusedReferences;
+                }
             }
 
-            return unusedReferencesBuilder.ToImmutableArray();
+            // Pass 2: Find all transitively used refrences and remove them.
+            foreach (var referenceType in _processingOrder)
+            {
+                if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
+                {
+                    continue;
+                }
+
+                var unusedReferences = RemoveTransitivelyUsedReferences(
+                    referencesForReferenceType,
+                    usedAssemblyFilePaths);
+
+                // If a references isn't directly or transitively used, then we will consider it unused.
+                unusedReferencesBuilder.AddRange(unusedReferences);
+            }
+
+            return unusedReferencesBuilder.ToImmutable();
         }
 
-        private static void AddUnusedReferences(
+        private static ImmutableArray<ReferenceInfo> RemoveDirectlyUsedReferences(
             ImmutableArray<ReferenceInfo> references,
-            HashSet<string> usedAssemblyFilePaths,
-            ImmutableArray<ReferenceInfo>.Builder unusedReferencesBuilder)
+            HashSet<string> usedAssemblyFilePaths)
         {
-
-            // This method checks for used reference two different ways.
-
-            // #1. We check if a reference directly brings in a used compilation assembly.
+            // In this method we will check if a reference directly brings in a used compilation assembly.
             //
             //    references: [ PackageReference(compilationAssembly: "/libs/Used.dll") ],
             //    usedAssemblyLookup: [ "/libs/Used.dll" ]
             //
 
-            // #2. We check if a reference transitively brings in a used compilation assembly.
+            var unusedReferencesBuilder = ImmutableArray.CreateBuilder<ReferenceInfo>();
+
+            foreach (var reference in references)
+            {
+                // We will look at the compilation assemblies brought in directly by the
+                // references to see if they are used.
+                if (!reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
+                {
+                    // None of the assemblies brought into this compilation are in the
+                    // used assemblies list, so we will consider the reference unused.
+                    unusedReferencesBuilder.Add(reference);
+                    continue;
+                }
+
+                // Remove all assemblies that are brought into this compilation by this reference.
+                usedAssemblyFilePaths.ExceptWith(GetAllCompilationAssemblies(reference));
+
+            }
+
+            return unusedReferencesBuilder.ToImmutable();
+        }
+
+        private static ImmutableArray<ReferenceInfo> RemoveTransitivelyUsedReferences(
+            ImmutableArray<ReferenceInfo> references,
+            HashSet<string> usedAssemblyFilePaths)
+        {
+            // In this method we will check if a reference transitively brings in a used compilation assembly.
             //
             //    references: [
             //      ProjectReference(
@@ -92,25 +151,13 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             //        dependencies: [ PackageReference(compilationAssembly: "/libs/Used.dll") ]
             //      ) ]
             //    usedAssemblyLookup: [ "/libs/Used.dll" ]
+            //
 
-            // Check #1. we will look at the compilation assemblies brought in directly by the
-            // references to see if they are used.
-            var usedDirectReferences = references.Where(reference
-                => reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains)).ToArray();
+            var unusedReferencesBuilder = ImmutableArray.CreateBuilder<ReferenceInfo>();
 
-            // We then want to gather all the assemblies brought in directly or transitively by
-            // these used assemblies so that we can remove them from our lookup.
-            var usedAssemblyReferences = usedDirectReferences.SelectMany(reference
-                => GetAllCompilationAssemblies(reference)).ToArray();
-            usedAssemblyFilePaths.ExceptWith(usedAssemblyReferences);
-
-            // Now we want to look at the remaining possibly unused references to see if any of
-            // the assemblies they transitively bring in to the compilation are used.
-            var remainingReferences = references.Except(usedDirectReferences).ToArray();
-
-            foreach (var reference in remainingReferences)
+            foreach (var reference in references)
             {
-                // Check #2. Get all compilation assemblies brought in by this reference so we
+                // Get all compilation assemblies brought in by this reference so we
                 // can determine if any of them are used.
                 var allCompilationAssemblies = GetAllCompilationAssemblies(reference);
                 if (allCompilationAssemblies.IsEmpty)
@@ -122,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
                 if (!allCompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
                 {
-                    // None of the assemblies brought into this compilation are in the remaining
+                    // None of the assemblies brought into this compilation are in the
                     // used assemblies list, so we will consider the reference unused.
                     unusedReferencesBuilder.Add(reference);
                     continue;
@@ -132,16 +179,16 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 usedAssemblyFilePaths.ExceptWith(allCompilationAssemblies);
             }
 
-            return;
+            return unusedReferencesBuilder.ToImmutable();
+        }
 
-            static ImmutableArray<string> GetAllCompilationAssemblies(ReferenceInfo reference)
-            {
-                var transitiveCompilationAssemblies = reference.Dependencies
-                    .SelectMany(dependency => GetAllCompilationAssemblies(dependency));
-                return reference.CompilationAssemblies
-                    .Concat(transitiveCompilationAssemblies)
-                    .ToImmutableArray();
-            }
+        internal static ImmutableArray<string> GetAllCompilationAssemblies(ReferenceInfo reference)
+        {
+            var transitiveCompilationAssemblies = reference.Dependencies
+                .SelectMany(dependency => GetAllCompilationAssemblies(dependency));
+            return reference.CompilationAssemblies
+                .Concat(transitiveCompilationAssemblies)
+                .ToImmutableArray();
         }
 
         public static async Task<Project> UpdateReferencesAsync(
