@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             HashSet<string> usedAssemblyFilePaths = new(usedAssemblyReferences
                 .OfType<PortableExecutableReference>()
                 .Select(reference => reference.FilePath)
-                .OfType<string>());
+                .WhereNotNull();
 
             return GetUnusedReferences(usedAssemblyFilePaths, references);
         }

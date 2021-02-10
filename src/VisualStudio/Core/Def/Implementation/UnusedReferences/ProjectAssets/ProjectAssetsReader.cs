@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets
 {
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
             var references = projectReferences
                 .Select(projectReference => BuildReference(projectAssets, target, projectReference, autoReferences))
-                .OfType<ReferenceInfo>()
+                .WhereNotNull()
                 .ToImmutableArray();
 
             return references;
@@ -123,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var dependencies = targetLibrary.Dependencies != null
                 ? targetLibrary.Dependencies.Keys
                     .Select(dependency => BuildReference(projectAssets, target, dependency, treatAsUsed: false))
-                    .OfType<ReferenceInfo>()
+                    .WhereNotNull()
                     .ToImmutableArray()
                 : ImmutableArray<ReferenceInfo>.Empty;
 
