@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 var lineLength = text.Lines[currentLine].Span.Length;
 
                 // If this assertion fails, we didn't break up a multi-line token properly.
-                Assert.True(currentChar + tokenLength <= lineLength);
+                Assert.True(currentChar + tokenLength <= lineLength,
+                    $"Multi-line token found on line {currentLine} at character index {currentChar}. " +
+                    $"The token ends at index {currentChar + tokenLength}, which exceeds the line length of {lineLength}.");
             }
         }
     }
