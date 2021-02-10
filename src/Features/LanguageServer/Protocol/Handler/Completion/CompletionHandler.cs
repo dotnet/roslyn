@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCompletionName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CompletionHandler(
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
@@ -45,10 +46,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             _completionListCache = completionListCache;
         }
-
-        public string MethodName => LSP.Methods.TextDocumentCompletionName;
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
 

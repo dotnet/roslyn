@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal abstract class AbstractWorkspaceCommandHandler<ResponseType> : IWorkspaceCommandHandler, IRequestHandler<ExecuteCommandParams, ResponseType>
     {
-        public string MethodName => $"{Methods.WorkspaceExecuteCommandName}/{CommandName}";
+        public string Method => $"{Methods.WorkspaceExecuteCommandName}/{CommandName}";
 
         public abstract string CommandName { get; }
         public abstract bool MutatesSolutionState { get; }

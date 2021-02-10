@@ -23,16 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => Methods.TextDocumentFoldingRangeName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FoldingRangesHandler()
         {
         }
-
-        public override string MethodName => Methods.TextDocumentFoldingRangeName;
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 

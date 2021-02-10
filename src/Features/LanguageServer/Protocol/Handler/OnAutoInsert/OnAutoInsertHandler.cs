@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => LSP.MSLSPMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,10 +42,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
             _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
         }
-
-        public override string MethodName => LSP.MSLSPMethods.OnAutoInsertName;
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
 

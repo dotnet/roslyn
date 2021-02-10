@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public abstract string Method { get; }
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticService diagnosticService)
@@ -60,10 +61,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             DiagnosticService = diagnosticService;
             DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
-
-        public abstract string MethodName { get; }
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
 

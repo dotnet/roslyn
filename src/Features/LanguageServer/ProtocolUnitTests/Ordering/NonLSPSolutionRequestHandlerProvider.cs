@@ -17,6 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName)]
     internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             return ImmutableArray.Create<IRequestHandler>(new NonLSPSolutionRequestHandler());
         }
@@ -35,9 +36,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     {
         public const string MethodName = nameof(NonLSPSolutionRequestHandler);
 
+        public string Method => MethodName;
+
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => false;
-        string IRequestHandler.MethodName => MethodName;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 

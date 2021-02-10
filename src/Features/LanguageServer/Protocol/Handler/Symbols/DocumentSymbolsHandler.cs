@@ -31,16 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => Methods.TextDocumentDocumentSymbolName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentSymbolsHandler()
         {
         }
-
-        public override string MethodName => Methods.TextDocumentDocumentSymbolName;
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
 

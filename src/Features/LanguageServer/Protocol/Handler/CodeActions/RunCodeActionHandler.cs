@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
-    internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
+    internal class RunCodeActionHandler : AbstractWorkspaceCommandHandler<object>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public override string Command => CodeActionsHandler.RunCodeActionCommandName;
+        public override string CommandName => CodeActionsHandler.RunCodeActionCommandName;
 
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => true;

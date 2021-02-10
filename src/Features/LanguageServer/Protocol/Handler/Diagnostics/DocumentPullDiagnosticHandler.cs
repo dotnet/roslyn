@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public override string MethodName => MSLSPMethods.DocumentPullDiagnosticName;
-
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 

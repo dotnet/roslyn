@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         /// <summary>
         /// Gets the progress object to stream results to.
@@ -57,9 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             _xamlDiagnosticService = xamlDiagnosticService;
         }
-
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
 
         public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {

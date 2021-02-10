@@ -32,16 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionResolveHandler()
         {
         }
-
-        public override string MethodName => Methods.TextDocumentCompletionResolveName;
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
 

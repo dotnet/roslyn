@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCodeActionName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,
@@ -39,10 +40,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
         }
-
-        public string MethodName => Methods.TextDocumentCodeActionName;
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
 

@@ -25,15 +25,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CompletionResolveHandler(CompletionListCache completionListCache)
         {
             _completionListCache = completionListCache;
         }
-
-        public string MethodName => LSP.Methods.TextDocumentCompletionResolveName;
-        public bool MutatesSolutionState => false;
-        public bool RequiresLSPSolution => true;
 
         private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
         {
