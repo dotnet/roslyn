@@ -65,8 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             internal void RemoveSinkManager(SinkManager manager)
             {
                 _managers = _managers.Remove(manager);
-
-                manager.Sink.RemoveAllEntries();
             }
 
             internal sealed class SinkManager : IDisposable
