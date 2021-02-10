@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // visit switch header
             Visit(node.Expression);
             var expressionState = ResultType;
-            var initialState = new PossiblyConditionalState(this);
+            var initialState = PossiblyConditionalState.Create(this);
 
             DeclareLocals(node.InnerLocals);
             foreach (var section in node.SwitchSections)
@@ -254,6 +254,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public LocalState StateWhenFalse;
             public bool IsConditionalState;
 
+            public PossiblyConditionalState(LocalState stateWhenTrue, LocalState stateWhenFalse)
+            {
+                StateWhenTrue = stateWhenTrue.Clone();
+                StateWhenFalse = stateWhenFalse.Clone();
+                IsConditionalState = true;
+                State = default;
+            }
+
             public PossiblyConditionalState(LocalState state)
             {
                 StateWhenTrue = StateWhenFalse = default;
@@ -261,42 +269,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 State = state.Clone();
             }
 
-            public PossiblyConditionalState(NullableWalker nullableWalker)
+            public static PossiblyConditionalState Create(NullableWalker nullableWalker)
             {
                 if (nullableWalker.IsConditionalState)
                 {
-                    StateWhenTrue = nullableWalker.StateWhenTrue.Clone();
-                    StateWhenFalse = nullableWalker.StateWhenFalse.Clone();
-                    IsConditionalState = true;
-                    State = default;
+                    return new PossiblyConditionalState(nullableWalker.StateWhenTrue, nullableWalker.StateWhenFalse);
                 }
                 else
                 {
-                    StateWhenTrue = StateWhenFalse = default;
-                    IsConditionalState = false;
-                    State = nullableWalker.State.Clone();
+                    return new PossiblyConditionalState(nullableWalker.State);
                 }
             }
 
             public PossiblyConditionalState Clone()
             {
-                PossiblyConditionalState result;
-                if (IsConditionalState)
-                {
-                    result.IsConditionalState = true;
-                    result.State = default;
-                    result.StateWhenTrue = StateWhenTrue.Clone();
-                    result.StateWhenFalse = StateWhenFalse.Clone();
-                }
-                else
-                {
-                    result.IsConditionalState = false;
-                    result.State = State.Clone();
-                    result.StateWhenTrue = default;
-                    result.StateWhenFalse = default;
-                }
-
-                return result;
+                return IsConditionalState
+                    ? new PossiblyConditionalState(StateWhenTrue, StateWhenFalse)
+                    : new PossiblyConditionalState(State);
             }
         }
 
@@ -325,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to evaluate the patterns.  In this way we infer non-nullability of the original element's parts.
             // We do not extend such courtesy to nested tuple literals.
             var originalInputElementSlots = expression is BoundTupleExpression tuple
-                ? tuple.Arguments.SelectAsArray(a => MakeSlot(a))
+                ? tuple.Arguments.SelectAsArray(static (a, w) => w.MakeSlot(a), this)
                 : default;
             var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
             originalInputMap.Add(originalInputSlot, expression);
@@ -425,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             outputSlot = GetOrCreateSlot(field, inputSlot, forceSlotEvenIfEmpty: true);
 
-                                            if (originalTupleElement is not null)
+                                            if (originalTupleElement is not null && outputSlot > 0)
                                             {
                                                 // The expression in the tuple could not be assigned a slot (for example, `a?.b`),
                                                 // so we had to create a slot for the tuple element instead.
@@ -685,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     believedReachable |= stateAndReachable.believedReachable;
                 }
 
-                nodeStateMap[node] = (new PossiblyConditionalState(this), believedReachable);
+                nodeStateMap[node] = (PossiblyConditionalState.Create(this), believedReachable);
             }
 
             void gotoNode(BoundDecisionDagNode node, LocalState state, bool believedReachable)
@@ -751,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var state = new PossiblyConditionalState(this);
+            var state = PossiblyConditionalState.Create(this);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
             var endState = UnreachableState();
 
@@ -851,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitPatternForRewriting(node.Pattern);
             Visit(node.Expression);
             var expressionState = ResultType;
-            var state = new PossiblyConditionalState(this);
+            var state = PossiblyConditionalState.Create(this);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
             var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
