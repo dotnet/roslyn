@@ -61,7 +61,7 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
             var idToFilePathMap = directories.AsParallel()
-                .SelectMany(walkDirectory)
+                .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
                 .GroupBy(pair => pair.mvid)
                 .ToDictionary(
                     group => group.Key,
@@ -70,7 +70,7 @@ internal static class MinimizeUtil
             return idToFilePathMap;
         }
 
-        IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath)
+        static IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
         {
             string? lastOutputDirectory = null;
             foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
