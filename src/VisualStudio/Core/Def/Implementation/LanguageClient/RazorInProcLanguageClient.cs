@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public override string Name => ServicesVSResources.Razor_CSharp_Language_Server_Client;
+        public override string Name => "Razor C# Language Server Client";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
