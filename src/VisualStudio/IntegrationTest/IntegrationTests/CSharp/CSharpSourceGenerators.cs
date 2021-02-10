@@ -122,5 +122,13 @@ internal static class Program
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
             Assert.Equal(isPreview, VisualStudio.Shell.IsActiveTabProvisional());
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void InvokeNavigateToForGeneratedFile()
+        {
+            VisualStudio.Editor.InvokeNavigateTo(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
+            VisualStudio.Editor.WaitForActiveView(HelloWorldGenerator.GeneratedEnglishClassName + ".cs");
+            Assert.Equal("HelloWorld", VisualStudio.Editor.GetSelectedText());
+        }
     }
 }

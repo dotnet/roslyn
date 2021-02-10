@@ -364,8 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(definition.IsPartialDefinition);
             Debug.Assert(implementation.IsPartialImplementation);
-            Debug.Assert((object)definition._otherPartOfPartial == null);
-            Debug.Assert((object)implementation._otherPartOfPartial == null);
+            Debug.Assert((object)definition._otherPartOfPartial == null || (object)definition._otherPartOfPartial == implementation);
+            Debug.Assert((object)implementation._otherPartOfPartial == null || (object)implementation._otherPartOfPartial == definition);
 
             definition._otherPartOfPartial = implementation;
             implementation._otherPartOfPartial = definition;

@@ -38,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
             Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer)
-            knownMissingTypes.Add(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
 
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))

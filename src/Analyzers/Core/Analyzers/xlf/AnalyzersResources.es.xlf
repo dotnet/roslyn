@@ -57,6 +57,11 @@
         <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_namespace_to_match_folder_structure">
+        <source>Change namespace to match folder structure</source>
+        <target state="new">Change namespace to match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">Los cambios en los árboles de expresión pueden originar cambios de comportamiento en tiempo de ejecución</target>
@@ -146,6 +151,16 @@
         <source>Modifiers are not ordered</source>
         <target state="translated">Los modificadores no están ordenados.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
+        <source>Namespace "{0}" does not match folder structure, expected "{1}"</source>
+        <target state="new">Namespace "{0}" does not match folder structure, expected "{1}"</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Namespace_does_not_match_folder_structure">
+        <source>Namespace does not match folder structure</source>
+        <target state="new">Namespace does not match folder structure</target>
+        <note>{Locked="namespace"} "namespace" is a keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
@@ -270,6 +285,11 @@
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Quitar miembros privados no utilizados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_LINQ_expression">
+        <source>Simplify LINQ expression</source>
+        <target state="new">Simplify LINQ expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_collection_initialization">

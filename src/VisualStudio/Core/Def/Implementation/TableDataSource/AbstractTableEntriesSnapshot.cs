@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate);
+        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken);
         public abstract bool TryGetValue(int index, string columnName, out object content);
 
         public int VersionNumber
@@ -147,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -157,15 +158,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
                                            .WithChangedOption(NavigationOptions.ActivateTab, activate);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
-            {
-                return true;
-            }
-
-            return false;
+            return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab, bool activate)
+        protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
             var documentId = item?.DocumentId;
@@ -195,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab, activate);
+            return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
         }
 
         protected static string GetFileName(string original, string mapped)

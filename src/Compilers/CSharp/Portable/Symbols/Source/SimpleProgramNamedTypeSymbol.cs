@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
         {
-            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeNonIndexerMembers[0];
+            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeMembers[0];
         }
 
         private static SimpleProgramNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            ImmutableArray<Symbol> entryPoints = type.GetMembersAndInitializers().NonTypeNonIndexerMembers;
+            ImmutableArray<Symbol> entryPoints = type.GetMembersAndInitializers().NonTypeMembers;
 
             foreach (SynthesizedSimpleProgramEntryPointSymbol entryPoint in entryPoints)
             {
@@ -212,12 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new MembersAndInitializers(nonTypeNonIndexerMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
+            return new MembersAndInitializers(nonTypeMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
                                               staticInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
-                                              indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
-                                              staticInitializersSyntaxLength: 0,
-                                              instanceInitializersSyntaxLength: 0,
+                                              haveIndexers: false,
                                               isNullableEnabledForInstanceConstructorsAndFields: false,
                                               isNullableEnabledForStaticConstructorsAndFields: false);
         }
@@ -226,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
-            foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
+            foreach (var member in GetMembersAndInitializers().NonTypeMembers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

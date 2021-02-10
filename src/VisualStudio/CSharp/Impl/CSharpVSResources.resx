@@ -192,8 +192,9 @@
   <data name="Place_open_brace_on_new_line_for_methods_local_functions" xml:space="preserve">
     <value>Place open brace on new line for methods and local functions</value>
   </data>
-  <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
-    <value>Place open brace on new line for object, collection and array initializers</value>
+  <data name="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers" xml:space="preserve">
+    <value>Place open brace on new line for object, collection, array, and with initializers</value>
+    <comment>{Locked="with"}</comment>
   </data>
   <data name="Place_open_brace_on_new_line_for_types" xml:space="preserve">
     <value>Place open brace on new line for types</value>
@@ -600,7 +601,7 @@
     <value>Prefer switch expression</value>
   </data>
   <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
-    <value>Automatically show completion list in argument lists (experimental)</value>
+    <value>Automatically show completion list in argument lists</value>
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>

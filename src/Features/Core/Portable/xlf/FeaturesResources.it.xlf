@@ -2070,6 +2070,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' non può essere null o vuoto.</target>
@@ -3386,18 +3391,13 @@ Continuare?</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">Non disponibile</target>
+        <source>Not Available ⚠</source>
+        <target state="needs-review-translation">Non disponibile</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">Per cambiare contesto, si può usare la barra di spostamento.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

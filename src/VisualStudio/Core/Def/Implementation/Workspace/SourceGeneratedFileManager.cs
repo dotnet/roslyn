@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
+        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             _foregroundThreadAffintizedObject.AssertIsForeground();
 
@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // We should have the file now, so navigate to the right span
             if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
             {
-                openFile.NavigateToSpan(sourceSpan);
+                openFile.NavigateToSpan(sourceSpan, cancellationToken);
             }
         }
 
@@ -479,10 +479,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan)
+            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan));
+                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }
