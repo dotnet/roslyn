@@ -206,7 +206,7 @@ namespace Caravela.Compiler
 
                 do
                 {
-                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true);
+                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true, includeDocumentationComments: true);
                 } while (foundToken.FullWidth == 0 && foundToken.RawKind != token.RawKind && foundToken.RawKind != 0);
 
                 Debug.Assert(foundToken.RawKind == token.RawKind);
