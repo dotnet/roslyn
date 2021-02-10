@@ -359,8 +359,7 @@ var reply = X switch {
     _ => ""Option more than 1""
 };
 
-return reply;
-";
+return reply;";
 
             var script = CSharpScript.Create<string>(code, options, typeof(Globals));
             var compilation = script.Compile();
@@ -373,15 +372,14 @@ return reply;
         {
             var options = ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
             var code = @"
-    using System;
-    var reply = X is 0
-        ? ""Option 0""
-        : X is 1
-            ? ""Option 1""
-            : ""Option more than 1"";
+using System;
+var reply = X is 0
+    ? ""Option 0""
+    : X is 1
+        ? ""Option 1""
+        : ""Option more than 1"";
 
-    return reply;
-    ";
+return reply;";
 
             var script = CSharpScript.Create<string>(code, options, typeof(Globals));
             var compilation = script.Compile();
