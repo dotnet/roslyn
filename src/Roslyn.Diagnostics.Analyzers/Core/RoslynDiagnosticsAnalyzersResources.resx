@@ -393,4 +393,8 @@
   <data name="ApplyTraitToContainingType" xml:space="preserve">
     <value>Apply trait to containing type</value>
   </data>
+  <data name="AddSharedAttribute" xml:space="preserve">
+    <value>Add 'Shared' attribute</value>
+    <comment>{Locked="Shared"}</comment>
+  </data>
 </root>
