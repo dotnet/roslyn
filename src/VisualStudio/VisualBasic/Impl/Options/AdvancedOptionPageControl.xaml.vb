@@ -41,7 +41,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit)
-            BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences)
+            BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, Function()
+                                                                                                                                                       ' If the option has Not been set by the user, check if the option to remove unused references
+                                                                                                                                                       ' Is enabled from experimentation. If so, default to that. Otherwise default to disabled
+                                                                                                                                                       If experimentationService Is Nothing Then
+                                                                                                                                                           Return False
+                                                                                                                                                       End If
+
+                                                                                                                                                       Return experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences)
+                                                                                                                                                   End Function)
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)

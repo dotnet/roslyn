@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -72,11 +72,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             var command = (OleMenuCommand)sender;
 
-            // Only show the "Remove Unused Reference" menu commands for CPS based managed projects.
-            var visible = _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences) &&
-                VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
+            var experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
+
+            // If the option hasn't been expicitly set then fallback to whether this is enabled as part of an experiment.
+            var isOptionEnabled = _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
+                ?? experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences);
+
+            var isDotNetCpsProject = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&
                 hierarchy.IsCapabilityMatch(".NET");
+
+            // Only show the "Remove Unused Reference" menu commands for CPS based managed projects.
+            var visible = isOptionEnabled && isDotNetCpsProject;
             var enabled = false;
 
             if (visible)

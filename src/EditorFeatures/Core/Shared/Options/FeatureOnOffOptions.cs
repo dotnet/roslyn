@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
 
-        public static readonly Option2<bool> OfferRemoveUnusedReferences = new(
-            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: false,
+        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
     }
 
