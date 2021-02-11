@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
-                (context.IsGenericTypeArgumentContext && context.TargetToken.Parent?.HasAncestor<XmlCrefAttributeSyntax>() == false) ||
+                (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
                 context.IsFunctionPointerTypeArgumentContext ||
                 context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||
