@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
         {
             foreach (var descendant in node.DescendantNodesAndTokens(
-                descendIntoChildren: ShouldEnumerateChildren,
+                descendIntoChildren: child => ShouldEnumerateChildren(child),
                 descendIntoTrivia: false))
             {
                 var descendantNode = descendant.AsNode();
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return false;
                 }
 
-                // Always enumerate the node we were asked about
+                // Always descend into the children of the node we were asked about
                 if (child == node)
                 {
                     return true;
