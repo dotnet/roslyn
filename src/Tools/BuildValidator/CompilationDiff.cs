@@ -27,7 +27,6 @@ namespace BuildValidator
         public bool? AreEqual { get; }
         public string OriginalPath { get; }
         public ImmutableArray<Diagnostic> Diagnostics { get; }
-        public Exception? Exception { get; }
 
         private CompilationDiff(
             string originalPath,

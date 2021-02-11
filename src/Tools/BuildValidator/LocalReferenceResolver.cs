@@ -36,6 +36,16 @@ namespace BuildValidator
             }
             _indexDirectories.Add(new DirectoryInfo(options.AssembliesPath));
             _indexDirectories.Add(GetNugetCacheDirectory());
+            foreach (var path in options.ReferencesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
+
+            _logger.BeginScope("Assembly Reference Search Paths");
+            foreach (var directory in _indexDirectories)
+            {
+                _logger.LogInformation($@"""{directory}""");
+            }
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -66,8 +76,7 @@ namespace BuildValidator
                 return value;
             }
 
-            _logger.LogTrace($"Cache miss for reference {referenceInfo}");
-            throw new Exception("TODO");
+            throw new Exception($"Could not find referenced assembly {referenceInfo}");
         }
 
         public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)

@@ -16,6 +16,7 @@ using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace BuildValidator
@@ -52,13 +53,15 @@ namespace BuildValidator
 
         public MetadataReader PdbReader { get; }
         public PEReader PeReader { get; }
+        private readonly ILogger _logger;
 
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
 
-        public CompilationOptionsReader(MetadataReader pdbReader, PEReader peReader)
+        public CompilationOptionsReader(ILogger logger, MetadataReader pdbReader, PEReader peReader)
         {
+            _logger = logger;
             PdbReader = pdbReader;
             PeReader = peReader;
         }
@@ -80,6 +83,22 @@ namespace BuildValidator
             }
 
             return _metadataCompilationOptions;
+        }
+
+        public Encoding GetEncoding()
+        {
+            using var scope = _logger.BeginScope("Encoding");
+
+            var optionsReader = GetMetadataCompilationOptions();
+            optionsReader.TryGetUniqueOption(_logger, "default-encoding", out var defaultEncoding);
+            optionsReader.TryGetUniqueOption(_logger, "fallback-encoding", out var fallbackEncoding);
+
+            var encodingString = defaultEncoding ?? fallbackEncoding;
+            var encoding = encodingString is null
+                ? Encoding.UTF8
+                : Encoding.GetEncoding(encodingString);
+
+            return encoding;
         }
 
         public ImmutableArray<SourceLink> GetSourceLinksOpt()

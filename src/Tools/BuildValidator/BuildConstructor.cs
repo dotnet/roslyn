@@ -38,21 +38,32 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(CompilationOptionsReader optionsReader, string name)
+        public Compilation CreateCompilation(CompilationOptionsReader compilationOptionsReader, string name)
         {
-            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
+            var pdbCompilationOptions = compilationOptionsReader.GetMetadataCompilationOptions();
 
             if (pdbCompilationOptions.Length == 0)
             {
                 throw new InvalidDataException("Did not find compilation options in pdb");
             }
+            
+            var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
+            var encoding = compilationOptionsReader.GetEncoding();
+            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
+
+            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
+            logResolvedMetadataReferences();
+
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            var sources = ResolveSources(sourceFileInfos, sourceLinks, encoding);
+            logResolvedSources();
 
             if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilation(optionsReader, name),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(optionsReader, name),
+                    LanguageNames.CSharp => CreateCSharpCompilation(name, compilationOptionsReader, sources, metadataReferences),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(name, compilationOptionsReader, sources, metadataReferences),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
@@ -60,6 +71,26 @@ namespace BuildValidator
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
+
+            void logResolvedMetadataReferences()
+            {
+                using var _ = _logger.BeginScope("Metadata References");
+                for (var i = 0; i < metadataReferenceInfos.Length; i++)
+                {
+                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
+                }
+            }
+
+            void logResolvedSources()
+            {
+                using var _ = _logger.BeginScope("Source Names");
+                foreach (var resolvedSource in sources)
+                {
+                    var sourceFileInfo = resolvedSource.SourceFileInfo;
+                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
+                }
+            }
         }
 
         private ImmutableArray<MetadataReferenceInfo> GetMetadataReferenceInfos(CompilationOptionsReader compilationOptionsReader)
@@ -107,73 +138,40 @@ namespace BuildValidator
             for (int i = 0; i < sourceFileInfos.Length; i++)
             {
                 var sourceFileInfo = sourceFileInfos[i];
-                _sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding);
+                sources.Add(_sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding));
             }
 
-            return sources.MoveToImmutable();
+            return sources.ToImmutable();
         }
 
         #region CSharp
-        private Compilation CreateCSharpCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private Compilation CreateCSharpCompilation(
+            string assemblyName,
+            CompilationOptionsReader optionsReader,
+            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<MetadataReference> metadataReferences)
         {
-            var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(compilationOptionsReader, assemblyName);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
-
-            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            logResolvedMetadataReferences();
-
-            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
-            var sources = ResolveSources(sourceFileInfos, sourceLinks, encoding);
-            logResolvedSources();
-
+            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(optionsReader, assemblyName);
             return CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
-
-            void logResolvedMetadataReferences()
-            {
-                using var _ = _logger.BeginScope("Metadata References");
-                for (var i = 0; i < metadataReferenceInfos.Length; i++)
-                {
-                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
-                }
-            }
-
-            void logResolvedSources()
-            {
-                using var _ = _logger.BeginScope("Source Names");
-                foreach (var resolvedSource in sources)
-                {
-                    var sourceFileInfo = resolvedSource.SourceFileInfo;
-                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
-                }
-            }
         }
 
-        private (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)
+        private (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)
         {
             using var scope = _logger.BeginScope("Options");
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = getUniqueOption("language-version");
-            var optimization = getUniqueOption("optimization");
+            var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
+            var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
-            tryGetUniqueOption("default-encoding", out var defaultEncoding);
-            tryGetUniqueOption("fallback-encoding", out var fallbackEncoding);
-            tryGetUniqueOption("define", out var define);
-            tryGetUniqueOption("checked", out var checkedString);
-            tryGetUniqueOption("nullable", out var nullable);
-            tryGetUniqueOption("unsafe", out var unsafeString);
-
-            var encodingString = defaultEncoding ?? fallbackEncoding;
-            var encoding = encodingString is null
-                ? Encoding.UTF8
-                : Encoding.GetEncoding(encodingString);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, "define", out var define);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, "checked", out var checkedString);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, "nullable", out var nullable);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, "unsafe", out var unsafeString);
 
             CS.LanguageVersionFacts.TryParse(langVersionString, out var langVersion);
 
@@ -229,20 +227,7 @@ namespace BuildValidator
                 nullableContextOptions: nullableOptions);
             compilationOptions.DebugPlusMode = plus;
 
-            return (compilationOptions, parseOptions, encoding);
-
-            bool tryGetUniqueOption(string name, [NotNullWhen(true)] out string? value)
-            {
-                var result = pdbCompilationOptions.TryGetUniqueOption(name, out value);
-                _logger.LogInformation($"{name} - {value}");
-                return result;
-            }
-
-            string getUniqueOption(string name)
-            {
-                _ = tryGetUniqueOption(name, out var value);
-                return value!;
-            }
+            return (compilationOptions, parseOptions);
         }
 
         private static (OptimizationLevel, bool) GetOptimizationLevel(string optimizationLevel)
@@ -257,15 +242,13 @@ namespace BuildValidator
         #endregion
 
         #region Visual Basic
-        private Compilation CreateVisualBasicCompilation(CompilationOptionsReader compilationOptionsReader, string assemblyName)
+        private Compilation CreateVisualBasicCompilation(
+            string assemblyName,
+            CompilationOptionsReader optionsReader,
+            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<MetadataReference> metadataReferences)
         {
-            var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var compilationOptions = CreateVisualBasicCompilationOptions(compilationOptionsReader);
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, Encoding.UTF8); // TODO: is this encoding right?
-            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
-            var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
-            var sources = ResolveSources(sourceFileInfos, sourceLinks, Encoding.UTF8);
-
+            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader);
             return VisualBasicCompilation.Create(
                 assemblyName,
                 syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.DisplayPath)).ToImmutableArray(),
@@ -273,9 +256,9 @@ namespace BuildValidator
                 options: compilationOptions);
         }
 
-        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader pdbReader)
+        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader)
         {
-            var pdbCompilationOptions = pdbReader.GetMetadataCompilationOptions();
+            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
             var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
@@ -301,6 +284,8 @@ namespace BuildValidator
             bool.TryParse(checkedString, out var isChecked);
             bool.TryParse(strict, out var isStrict);
 
+            // TODO: rebuilding VB projects fails due to reference issues
+            // for example, core types like KeyValuePair are missing
             return new VisualBasicCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 moduleName: null,
@@ -318,7 +303,7 @@ namespace BuildValidator
                 checkOverflow: isChecked,
                 cryptoKeyContainer: null,
                 cryptoKeyFile: null,
-                cryptoPublicKey: default,
+                cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
                 platform: Platform.AnyCpu,
                 generalDiagnosticOption: ReportDiagnostic.Default,

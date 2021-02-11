@@ -8,7 +8,7 @@
       "name": "Launch BuildValidator.dll",
       "type": "coreclr",
       "request": "launch",
-      "preLaunchTask": "build",
+      // "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/netcoreapp3.1/BuildValidator.dll",
       "args": [

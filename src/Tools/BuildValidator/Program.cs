@@ -48,6 +48,9 @@ namespace BuildValidator
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
+                new Option<string[]>(
+                    "--referencesPaths", "Additional paths to referenced assemblies"
+                ),
                 new Option<bool>(
                     "--verbose", "Output verbose log information"
                 ),
@@ -61,13 +64,13 @@ namespace BuildValidator
                     "--debugPath", "(optional) Path to output debug visualization of the rebuild"
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create<string, string, string[], bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string assembliesPath, string sourcePath, bool verbose, bool quiet, bool openDiff, string? debugPath)
+        static int HandleCommand(string assembliesPath, string sourcePath, string[] referencesPaths, bool verbose, bool quiet, bool openDiff, string? debugPath)
         {
-            var options = new Options(assembliesPath, sourcePath, verbose, quiet, openDiff, debugPath);
+            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, openDiff, debugPath);
 
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
@@ -110,15 +113,13 @@ namespace BuildValidator
         private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             var assembliesCompiled = new List<CompilationDiff>();
-            var sb = new StringBuilder();
-
             foreach (var file in originalBinaries)
             {
                 var compilationDiff = ValidateFile(file, buildConstructor, logger, options);
 
                 if (compilationDiff is null)
                 {
-                    sb.AppendLine($"Ignoring {file.FullName}");
+                    logger.LogInformation($"Ignoring {file.FullName}");
                     continue;
                 }
 
@@ -127,27 +128,38 @@ namespace BuildValidator
 
             bool success = true;
 
-            sb.AppendLine("====================");
-            sb.AppendLine("Summary:");
-            sb.AppendLine();
-            sb.AppendLine("Successful Tests:");
-
-            foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
+            using var summary = logger.BeginScope("Summary");
+            using (logger.BeginScope("Successful rebuilds"))
             {
-                sb.AppendLine($"\t{diff.OriginalPath}");
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
+                {
+                    logger.LogInformation($"\t{diff.OriginalPath}");
+                }
             }
 
-            sb.AppendLine();
-
-            sb.AppendLine("Failed Tests:");
-            foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
+            using (logger.BeginScope("Rebuilds with output differences"))
             {
-                sb.AppendLine($"\t{diff.OriginalPath}");
-                success = false;
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
+                {
+                    // TODO: can we include the path to any diff artifacts?
+                    logger.LogWarning($"\t{diff.OriginalPath}");
+                    success = false;
+                }
             }
-            sb.AppendLine("====================");
-
-            logger.LogInformation(sb.ToString());
+            
+            using (logger.BeginScope("Rebuilds with compilation errors"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))
+                {
+                    logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
+                    using var diagsScope = logger.BeginScope($"Diagnostics");
+                    foreach (var diag in diff.Diagnostics)
+                    {
+                        logger.LogError(diag.ToString());
+                    }
+                    success = false;
+                }
+            }
 
             return success;
         }
@@ -184,19 +196,18 @@ namespace BuildValidator
                 using var _ = logger.BeginScope("");
 
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
-                var optionsReader = new CompilationOptionsReader(pdbReader, originalPeReader);
+                var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
 
                 var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
                     Path.GetFileNameWithoutExtension(originalBinary.Name));
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, GetDebugEntryPoint(), options);
+                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), options);
                 logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
                 return compilationDiff;
 
-                IMethodSymbol? GetDebugEntryPoint()
+                IMethodSymbol? getDebugEntryPoint()
                 {
-                    var optionsReader = new CompilationOptionsReader(pdbReader, originalPeReader);
                     if (optionsReader.GetMainTypeName() is { } mainTypeName &&
                         optionsReader.GetMainMethodName() is { } mainMethodName)
                     {
