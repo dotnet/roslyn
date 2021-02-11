@@ -6704,7 +6704,20 @@ class Program
     }
 }
 ";
-            await AssertFormatAsync(code, code);
+            var expected = @"
+using System;
+
+class Program
+{
+    static void Main(
+        int x, // Some comment
+        /*A*/
+        int y)
+    {
+    }
+}
+";
+            await AssertFormatAsync(expected, code);
         }
 
         [Fact]
