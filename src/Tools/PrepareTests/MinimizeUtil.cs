@@ -85,7 +85,7 @@ internal static class MinimizeUtil
                 }
                 var fileName = Path.GetFileName(sourceFilePath);
 
-                if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
+                if (fileName.EndsWith(".dll", StringComparison.Ordinal) && TryGetMvid(sourceFilePath, out var mvid))
                 {
                     var filePathInfo = new FilePathInfo(
                         RelativeDirectory: currentRelativeDirectory,
