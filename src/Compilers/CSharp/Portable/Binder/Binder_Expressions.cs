@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -5852,6 +5853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindExpression(left, diagnostics);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private BoundExpression BindLeftIdentifierOfPotentialColorColorMemberAccess(IdentifierNameSyntax left, DiagnosticBag diagnostics)
         {
             // SPEC: 7.6.4.1 Identical simple names and type names
