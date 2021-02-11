@@ -45,8 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _globalOptionService = globalOptionService;
         }
 
-        public override string Name
-            => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => "C#/Visual Basic Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
