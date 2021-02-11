@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
 
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (list == null)
+            if (list == null || list.Items.IsEmpty)
             {
                 return null;
             }
@@ -94,17 +94,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
             var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
             var returnTextEdits = featureFlagService.IsExperimentEnabled("Roslyn.LSP.Completion");
+
             SourceText? documentText = null;
+            TextSpan? defaultSpan = null;
+            LSP.Range? defaultRange = null;
             if (returnTextEdits)
             {
+                // We want to compute the document's text just once.
                 documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // If possible, we want to compute the item's range just once as well.
+                // Individual items can override this range later.
+                defaultSpan = list.Items.First().Span;
+                defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan.Value, documentText);
             }
 
             return new LSP.VSCompletionList
             {
                 Items = list.Items.Select(item => CreateLSPCompletionItem(
                     request, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
-                    returnTextEdits, documentText)).ToArray(),
+                    returnTextEdits, documentText, defaultSpan, defaultRange)).ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
 
@@ -133,13 +142,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
                 bool returnTextEdits,
-                SourceText? documentText = null)
+                SourceText? documentText = null,
+                TextSpan? defaultSpan = null,
+                LSP.Range? defaultRange = null)
             {
                 if (useVSCompletionItem)
                 {
                     var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(
                         request, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        returnTextEdits, documentText);
+                        returnTextEdits, documentText, defaultSpan, defaultRange);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
@@ -147,7 +158,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(
                         request, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        returnTextEdits, documentText);
+                        returnTextEdits, documentText, defaultSpan, defaultRange);
                     return roslynCompletionItem;
                 }
             }
@@ -159,7 +170,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
                 bool returnTextEdits,
-                SourceText? documentText = null) where TCompletionItem : LSP.CompletionItem, new()
+                SourceText? documentText = null,
+                TextSpan? defaultSpan = null,
+                LSP.Range? defaultRange = null) where TCompletionItem : LSP.CompletionItem, new()
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
                 var insertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
@@ -168,10 +181,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (returnTextEdits)
                 {
                     Contract.ThrowIfNull(documentText);
+                    Contract.ThrowIfNull(defaultSpan);
+                    Contract.ThrowIfNull(defaultRange);
+
                     textEdit = new LSP.TextEdit()
                     {
                         NewText = insertText,
-                        Range = ProtocolConversions.TextSpanToRange(item.Span, documentText),
+                        Range = item.Span == defaultSpan.Value
+                            ? defaultRange
+                            : ProtocolConversions.TextSpanToRange(item.Span, documentText),
                     };
                 }
 
