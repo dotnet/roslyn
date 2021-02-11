@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private readonly SyntaxNode? _newRoot;
         private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
         private readonly IEnumerable<SyntaxNode>? _newRootChildren;
+
+        // This comparer can operate in two modes: 
+        // * Top level syntax, which looks at member declarations, but doesn't look inside method bodies etc.
+        // * Statement syntax, which looks into member bodies and descends through all statements and expressions
+        // This flag is used where there needs to be a disctinction made between how these are treated
         private readonly bool _compareStatementSyntax;
 
         private SyntaxComparer()
@@ -317,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
 
-            // common
+            // Syntax kinds that are common to both statement and top level
             TypeParameterList,                 // tied to parent
             TypeParameterConstraintClause,     // tied to parent
             TypeParameter,                     // tied to parent
