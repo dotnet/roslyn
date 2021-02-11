@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
+using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
@@ -66,7 +67,47 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         }
 
         internal void BindStringParameter(int parameterIndex, string value)
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+        {
+            const int OptimizedLengthThreshold = 2048;
+
+            // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
+            // This code can be removed once we move to a build of sqlitepcl that contains:
+            // https://github.com/ericsink/SQLitePCL.raw/pull/401
+
+            // This is safe as sqlite will still copy our bytes over to its own internal memory (see
+            // conversation here: https://github.com/dotnet/roslyn/pull/51111#pullrequestreview-588169715)
+            // on the topic.  So it's fine that our own stackalloc'ed bytes will be gone when this function
+            // returns and our caller continues to interact with this SqlStatement instance.
+
+            // Only do this for short strings anyways.  If the string has more characters than this threshold, then it
+            // will certainly have more bytes than this threshold.
+            if (value.Length <= OptimizedLengthThreshold)
+            {
+                // Now see if the utf8 encoded versions is also within the threshold.  As almost all of our strings are
+                // ascii, this will be true for nearly all of them.
+                var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
+                if (utf8ByteCount <= OptimizedLengthThreshold)
+                {
+                    Span<byte> bytes = stackalloc byte[utf8ByteCount];
+#if NETCOREAPP
+                    Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
+#else
+                    unsafe
+                    {
+                        fixed (char* charsPtr = value)
+                        fixed (byte* bytesPtr = bytes)
+                        {
+                            Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(charsPtr, value.Length, bytesPtr, utf8ByteCount) == utf8ByteCount);
+                        }
+                    }
+#endif
+                    _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, bytes));
+                    return;
+                }
+            }
+
+            _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, value));
+        }
 
         internal void BindInt64Parameter(int parameterIndex, long value)
             => _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_int64(_rawStatement, parameterIndex, value));

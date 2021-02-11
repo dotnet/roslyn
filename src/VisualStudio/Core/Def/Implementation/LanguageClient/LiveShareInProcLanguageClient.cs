@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => _defaultCapabilitiesProvider.GetCapabilities();

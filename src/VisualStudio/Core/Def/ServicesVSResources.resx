@@ -1347,13 +1347,6 @@ I agree to all of the foregoing:</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
-  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>C#/Visual Basic Language Server Client</value>
-  </data>
-  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>Live Share C#/Visual Basic Language Server Client</value>
-    <comment>'Live Share' is a product name and does not need to be localized.</comment>
-  </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
   </data>
@@ -1440,9 +1433,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
-  </data>
-  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
-    <value>Razor C# Language Server Client</value>
   </data>
   <data name="All_sources" xml:space="preserve">
     <value>All sources</value>

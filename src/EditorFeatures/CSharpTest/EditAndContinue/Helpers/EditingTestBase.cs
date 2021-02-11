@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             tree1.GetDiagnostics().Verify();
             tree2.GetDiagnostics().Verify();
 
-            var match = TopSyntaxComparer.Instance.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
+            var match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
             return match.GetTreeEdits();
         }
 
