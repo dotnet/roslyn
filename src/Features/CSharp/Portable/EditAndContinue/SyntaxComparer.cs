@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
         private bool DescendIntoChildren(SyntaxNode node)
-         => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
+            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
@@ -798,9 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => Classify(node.Kind(), node, out _) != Label.Ignored;
 
         protected internal override int LabelCount
-        {
-            get { return (int)Label.Count; }
-        }
+            => (int)Label.Count;
 
         protected internal override int TiedToAncestor(int label)
             => TiedToAncestor((Label)label);
