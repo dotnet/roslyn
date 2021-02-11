@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         internal void BindStringParameter(int parameterIndex, string value)
         {
             // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
+            //
+            // This is safe as sqlite will still copy our bytes over to its own internal memory (see
+            // conversation here: https://github.com/dotnet/roslyn/pull/51111#pullrequestreview-588169715)
+            // on the topic.  So it's fine that our own stackalloc'ed bytes will be gone when this function
+            // returns and our caller continues to interact with this SqlStatement instance.
             var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
             var utf8WithTrailingZeroByteCount = utf8ByteCount + 1;
 
