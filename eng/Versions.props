@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>8</MinorVersion>
     <!-- <Caravela> -->
-    <PatchVersion>5</PatchVersion>
+    <PatchVersion>6</PatchVersion>
     <PreReleaseVersionLabel>4</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <VersionSuffix>preview</VersionSuffix>
