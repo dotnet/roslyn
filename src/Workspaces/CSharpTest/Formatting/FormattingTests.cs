@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9859,6 +9858,33 @@ class C
         };
     }
 }", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TestParameterIndentation()
+        {
+            await AssertFormatAsync(@"
+using System.Diagnostics.CodeAnalysis;
+class D
+{
+    public void Foo(
+        [NotNull] string s,
+        int c,
+        [NotNull] object c)
+    {
+    }
+}",
+            @"
+using System.Diagnostics.CodeAnalysis;
+class D
+{
+    public void Foo(
+[NotNull] string s,
+                                                                                                                   int c,
+                                                    [NotNull] object c)
+    {
+    }
+}");
         }
     }
 }

@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddEmbeddedStatementsIndentationOperation(list, node);
 
             AddTypeParameterConstraintClauseOperation(list, node);
+
+            AddParameterListIndentationOperation(list, node);
+        }
+
+        private static void AddParameterListIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            if (node is ParameterListSyntax)
+            {
+                AddIndentBlockOperation(
+                    list,
+                    node.GetFirstToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true),
+                    node.GetLastToken(includeZeroWidth: true).GetPreviousToken(includeZeroWidth: true));
+            }
         }
 
         private static void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
