@@ -1211,7 +1211,9 @@ namespace CSharpSyntaxGenerator
                     node.Fields.Select(f => CamelCase(f.Name))));
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
+                // <Caravela>
                 WriteLine("Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
+                // </Caravela>
                 WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
@@ -1584,6 +1586,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
+            // <Caravela>
             // annotate parameters with original locations
             foreach (var field in nodeFields)
             {
@@ -1597,6 +1600,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine($"{CamelCase(field.Name)} = Caravela.Compiler.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
                 }
             }
+            // </Caravela>
 
             Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(

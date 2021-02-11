@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
+                // <Caravela>
                 public virtual ImmutableArray<Diagnostic> TransformerDiagnostics => default;
+                // </Caravela>
 
                 protected State(
                     ValueSource<Optional<Compilation>>? compilation,
@@ -201,7 +203,9 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>>? FinalCompilation { get; }
 
+                // <Caravela>
                 public override ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
+                // </Caravela>
 
                 public FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
@@ -210,7 +214,10 @@ namespace Microsoft.CodeAnalysis
                     TrackedGeneratorDriver generatorDriver,
                     bool hasSuccessfullyLoaded,
                     UnrootedSymbolSet? unrootedSymbolSet,
-                    ImmutableArray<Diagnostic> transformerDiagnostics)
+                    // <Caravela>
+                    ImmutableArray<Diagnostic> transformerDiagnostics = default
+                    // </Caravela>
+                    )
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatorDriver,
@@ -218,7 +225,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
+                    // <Caravela>
                     TransformerDiagnostics = transformerDiagnostics;
+                    // </Caravela>
 
                     if (generatorDriver.GeneratorDriver == null)
                     {

@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableDictionary<string, string?> _properties;
             private readonly bool _isSuppressed;
 
+            // <Caravela>
             private readonly Location? _originalLocation;
+            // </Caravela>
 
             private SimpleDiagnostic(
                 DiagnosticDescriptor descriptor,
@@ -41,7 +43,10 @@ namespace Microsoft.CodeAnalysis
                 object?[]? messageArgs,
                 ImmutableDictionary<string, string?>? properties,
                 bool isSuppressed,
-                Location? originalLocation = null)
+                // <Caravela>
+                Location? originalLocation = null
+                // </Caravela>
+                )
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
                     (warningLevel != 0 && severity == DiagnosticSeverity.Error))
@@ -58,7 +63,9 @@ namespace Microsoft.CodeAnalysis
                 _properties = properties ?? ImmutableDictionary<string, string?>.Empty;
                 _isSuppressed = isSuppressed;
 
+                // <Caravela>
                 _originalLocation = originalLocation;
+                // </Caravela>
             }
 
             internal static SimpleDiagnostic Create(
@@ -150,7 +157,9 @@ namespace Microsoft.CodeAnalysis
                 get { return _properties; }
             }
 
+            // <Caravela>
             internal Location OriginalLocation => _originalLocation ?? _location;
+            // </Caravela>
 
             public override bool Equals(Diagnostic? obj)
             {
@@ -200,7 +209,9 @@ namespace Microsoft.CodeAnalysis
 
                 if (location != _location)
                 {
+                    // <Caravela>
                     return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs, _properties, _isSuppressed, _location);
+                    // </Caravela>
                 }
 
                 return this;

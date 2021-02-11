@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
+            // <Caravela>
             for (int i = 0; i < items.Count; i++)
             {
                 var node = items[i].AsNode();
@@ -327,6 +328,7 @@ namespace Microsoft.CodeAnalysis
                     items[i] = newNode;
                 }
             }
+            // </Caravela>
 
             var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode!))!;
             if (newGreen.IsToken)

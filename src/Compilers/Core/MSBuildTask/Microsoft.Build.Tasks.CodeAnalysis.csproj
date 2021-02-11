@@ -8,7 +8,9 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <!-- <Caravela> -->
     <AutoGenerateAssemblyVersion>false</AutoGenerateAssemblyVersion>
+    <!-- </Caravela> -->
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
     

@@ -107,9 +107,11 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             foreach (var n in nodeOrTokens)
             {
+                // <Caravela>
                 var nodeOrToken = TreeTracker.TrackIfNeeded(n.AsNode()) ?? n;
 
                 this.Add(nodeOrToken);
+                // </Caravela>
             }
         }
 

@@ -950,7 +950,7 @@ oneMoreTime:
                             spSpan = TextSpan.FromBounds(syntax.SpanStart, syntax.Declaration.Span.End);
                         }
 
-                        this.EmitSequencePoint(syntax.SyntaxTree, spSpan);
+                        this.EmitSequencePoint(catchBlock.SyntaxTree, spSpan);
                     }
                 }
             }

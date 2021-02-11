@@ -64,7 +64,10 @@ namespace Microsoft.CodeAnalysis
         internal const int Succeeded = 0;
 
         private readonly string _clientDirectory;
+        
+        // <Caravela>
         private readonly string _workingDirectory;
+        // </Caravela>
 
         /// <summary>
         /// Fallback encoding that is lazily retrieved if needed. If <see cref="EncodedStringText.CreateFallbackEncoding"/> is
@@ -111,17 +114,25 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
+            // <Caravela>
             ImmutableArray<string> transformerOrder,
+            // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            // <Caravela>
             out ImmutableArray<ISourceGenerator> generators,
             out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins);
+            out ImmutableArray<object> plugins
+            // </Caravela>
+            );
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
             IEnumerable<string> allArgs = args;
             _clientDirectory = buildPaths.ClientDirectory;
+            
+            // <Caravela>
             _workingDirectory = buildPaths.WorkingDirectory;
+            // </Caravela>
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
@@ -736,9 +747,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
+        // <Caravela>
         private protected virtual Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
-        { return input; }
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins,
+            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+        {
+            return input;
+        }
+        // </Caravela>
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
@@ -774,10 +790,12 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
+            // <Caravela>
             if (ReportDiagnostics(TimeBomb.GetExplosionDiagnostics(), consoleOutput, errorLogger))
             {
                 return Failed;
             }
+            // </Caravela>
 
             var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
@@ -786,7 +804,9 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
+            // <Caravela>
             ImmutableArray<string> transformerOrder = default;
+            // </Caravela>
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
@@ -805,10 +825,14 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
                 }
 
+                // <Caravela>
                 globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.CaravelaCompilerTransformerOrder", out var transformerOrderString);
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
+                {
                     transformerOrder = transformerOrderString.Split(';').ToImmutableArray();
+                }
+                // </Caravela>
             }
 
             Compilation compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
@@ -838,8 +862,10 @@ namespace Microsoft.CodeAnalysis
                 ref compilation,
                 analyzers,
                 generators,
+                // <Caravela>
                 transformers,
                 plugins,
+                // </Caravela>
                 additionalTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
@@ -923,6 +949,7 @@ namespace Microsoft.CodeAnalysis
             return existing.WithAdditionalTreeOptions(builder.ToImmutable());
         }
 
+        // <Caravela>
         protected static bool ShouldDebugTransformedCode(AnalyzerConfigOptionsProvider options)
         {
             options.GlobalOptions.TryGetValue("build_property.CaravelaDebugTransformedCode", out var shouldDebugTransformedCodeString);
@@ -935,6 +962,7 @@ namespace Microsoft.CodeAnalysis
             options.GlobalOptions.TryGetValue("build_property.CaravelaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory);
             return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
         }
+        // </Caravela>
 
         /// <summary>
         /// Perform all the work associated with actual compilation
@@ -946,8 +974,10 @@ namespace Microsoft.CodeAnalysis
             ref Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
+            // <Caravela>
             ImmutableArray<ISourceTransformer> transfomers,
             ImmutableArray<object> plugins,
+            // </Caravela>
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -970,7 +1000,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag analyzerExceptionDiagnostics = null;
-            if (!analyzers.IsEmpty || !generators.IsEmpty || !transfomers.IsEmpty)
+            if (!analyzers.IsEmpty || !generators.IsEmpty
+                                   // <Caravela>
+                                   || !transfomers.IsEmpty
+                                  // </Caravela>
+                                   )
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
@@ -1033,7 +1067,11 @@ namespace Microsoft.CodeAnalysis
                                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                                 }
 
+                                // <Caravela>
+                                // Bug repor https://github.com/dotnet/roslyn/pull/49128. Scheduled for 16.9.
+                                // var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                // </Caravela>
                                 if (fileStream is object)
                                 {
                                     using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
@@ -1089,6 +1127,7 @@ namespace Microsoft.CodeAnalysis
                     reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
                 }
 
+                // <Caravela>
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBefore = compilation;
@@ -1118,15 +1157,18 @@ namespace Microsoft.CodeAnalysis
 
                             var path = prefixRemover(tree.FilePath);
 
-                            ensurePathIsUnique();
+                            EnsurePathIsUnique();
 
                             var newTree = tree
                                 // TODO: this causes https://github.com/dotnet/roslyn/issues/47278; fix that bug in Roslyn
-                                .WithRootAndOptions(tree.GetRoot(cancellationToken).NormalizeWhitespace(), tree.Options);
+                                .WithRootAndOptions(tree.GetRoot(cancellationToken), tree.Options);
 
                             var text = newTree.GetText(cancellationToken);
+                            
                             if (!text.CanBeEmbedded)
+                            {
                                 text = SourceText.From(text.ToString(), Encoding.UTF8);
+                            }
 
                             newTree = newTree.WithChangedText(text);
 
@@ -1159,7 +1201,7 @@ namespace Microsoft.CodeAnalysis
 
                             compilation = compilation.ReplaceSyntaxTree(tree, newTree);
 
-                            void ensurePathIsUnique()
+                            void EnsurePathIsUnique()
                             {
                                 // tree has no path, generate one
                                 if (string.IsNullOrWhiteSpace(path))
@@ -1180,6 +1222,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+                // </Caravela>
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);

@@ -16,9 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static BoundStatement AddSequencePoint(BoundStatement node)
         {
+            // <Caravela> changed from constructor call to call to Create method
             var nodeSyntax = TreeTracker.GetPreTransformationSyntax(node.Syntax);
 
             return BoundSequencePoint.Create(nodeSyntax, node);
+            // </Caravela>
         }
 
         internal static BoundStatement AddSequencePoint(VariableDeclaratorSyntax declaratorSyntax, BoundStatement rewrittenStatement)
@@ -26,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node;
             TextSpan? part;
             GetBreakpointSpan(declaratorSyntax, out node, out part);
+            // <Caravela> changed from constructor call to call to Create method
             var result = BoundSequencePoint.Create(node, part, rewrittenStatement);
+            // </Caravela>
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }

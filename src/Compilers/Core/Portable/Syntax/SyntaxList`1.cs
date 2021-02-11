@@ -59,8 +59,10 @@ namespace Microsoft.CodeAnalysis
 
             foreach (TNode node in nodes)
             {
+                // <Caravela>
                 var newNode = TreeTracker.TrackIfNeeded(node);
                 builder.Add(newNode);
+                // </Caravela>
             }
 
             return builder.ToList().Node;
@@ -331,10 +333,12 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxList<TNode>);
             }
 
+            // <Caravela>
             for (int i = 0; i < items.Count; i++)
             {
                 items[i] = TreeTracker.TrackIfNeeded(items[i]);
             }
+            // </Caravela>
 
             var newGreen = creator.CreateList(items.Select(n => n.Green));
             return new SyntaxList<TNode>(newGreen!.CreateRed());

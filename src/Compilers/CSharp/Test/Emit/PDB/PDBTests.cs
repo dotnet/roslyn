@@ -479,7 +479,7 @@ public class C
 ");
         }
 
-        [Fact(Skip = "debugEntryPoint in VerifyPdb does not work with Caravela.Compiler transformation")]
+        [Fact]
         public void CustomDebugEntryPoint_DLL()
         {
             var source = @"class C { static void F() { } }";
@@ -502,7 +502,7 @@ public class C
             Assert.Equal(0, peEntryPointToken);
         }
 
-        [Fact(Skip = "debugEntryPoint in VerifyPdb does not work with Caravela.Compiler transformation")]
+        [Fact]
         public void CustomDebugEntryPoint_EXE()
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
@@ -552,9 +552,11 @@ public class C
             var d_int_g_int = d_int_g.Construct(stInt);
 
             var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2.GetPublicSymbol());
-            result.Diagnostics.Verify(
-                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
-                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+            // <Caravela>: Caravela allows debugEntryPoint from a different compilation, because it needs to map it from original compilation to transformed compilation
+            //result.Diagnostics.Verify(
+            //    // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+            //    Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+            // </Caravela>
 
             result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int.GetPublicSymbol());
             result.Diagnostics.Verify(

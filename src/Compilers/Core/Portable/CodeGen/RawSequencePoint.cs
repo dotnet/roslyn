@@ -25,9 +25,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal RawSequencePoint(SyntaxTree syntaxTree, int ilMarker, TextSpan span)
         {
+            // <Caravela>
 #if DEBUG
             Debug.Assert(!TreeTracker.IsUndebuggable(syntaxTree));
 #endif
+            // </Caravela>
 
             this.SyntaxTree = syntaxTree;
             this.ILMarker = ilMarker;

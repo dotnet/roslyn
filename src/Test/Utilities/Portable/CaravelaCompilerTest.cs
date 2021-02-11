@@ -37,6 +37,16 @@ namespace Roslyn.Test.Utilities
             {
                 static SyntaxToken ChangeWhitespace(SyntaxToken token)
                 {
+                    if (token.IsPartOfStructuredTrivia())
+                    {
+                        if (token.Kind() is SyntaxKind.XmlTextLiteralToken)
+                        {
+                            token = token.WithTrailingTrivia(
+                                token.TrailingTrivia.Add(SyntaxFactory.Space));
+                        }
+                        return token;
+                    }
+
                     token = token.ReplaceTrivia(
                         token.GetAllTrivia().Where(
                             t => t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)),
@@ -50,7 +60,7 @@ namespace Roslyn.Test.Utilities
                 foreach (var tree in compilation.SyntaxTrees)
                 {
                     var newRoot = tree.GetRoot().ReplaceTokens(
-                        tree.GetRoot().DescendantTokens(), (_, token) => ChangeWhitespace(token));
+                        tree.GetRoot().DescendantTokens(descendIntoTrivia: true), (_, token) => ChangeWhitespace(token));
 
                     compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
                 }

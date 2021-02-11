@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -13,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
+        // <Caravela>
         static DiagnosticInfo GetPreTransformationInfo(DiagnosticInfo info)
         {
             for (int i = 0; i < info.Arguments.Length; i++)
@@ -23,9 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return info;
         }
+        // </Caravela>
 
         internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
+            // <Caravela> - Call GetPreTransformationInfo
             : base(GetPreTransformationInfo(info), location, isSuppressed)
+            // </Caravela>
         {
         }
 

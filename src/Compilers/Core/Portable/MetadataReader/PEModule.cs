@@ -1627,7 +1627,9 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_attributeByteArrayValueExtractor);
         }
 
-        internal bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string> value)
+        // <Caravela>: make internal
+        internal bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string> value) 
+            // </Caravela>
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringArrayValueExtractor);
         }

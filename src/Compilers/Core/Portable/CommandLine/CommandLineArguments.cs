@@ -471,17 +471,25 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
             bool skipAnalyzers,
+            // <Caravela>
             ImmutableArray<string> transformerOrder,
+            // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
+            // <Caravela>
             out ImmutableArray<ISourceTransformer> transfomers,
-            out ImmutableArray<object> plugins)
+            out ImmutableArray<object> plugins
+            // </Caravela>
+            )
         {
             var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             var generatorBuilder = ImmutableArray.CreateBuilder<ISourceGenerator>();
+            
+            // <Caravela>
             var transformerBuilder = ImmutableArray.CreateBuilder<ISourceTransformer>();
             var transformerOrders = new List<ImmutableArray<string>>();
             var pluginBuilder = ImmutableArray.CreateBuilder<object>();
+            // </Caravela>
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -540,14 +548,19 @@ namespace Microsoft.CodeAnalysis
                 if (!skipAnalyzers)
                     resolvedReference.AddAnalyzers(analyzerBuilder, language);
                 resolvedReference.AddGenerators(generatorBuilder, language);
+                
+                // <Caravela>
                 resolvedReference.AddTransformers(transformerBuilder, language);
                 resolvedReference.AddTransformerOrder(transformerOrders);
                 resolvedReference.AddCompilerPlugins(pluginBuilder, language);
+                // </Caravela>
+                
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
             resolvedReferences.Free();
 
+            // <Caravela>
             if (!transformerOrder.IsDefaultOrEmpty)
                 transformerOrders.Add(transformerOrder);
 
@@ -555,6 +568,8 @@ namespace Microsoft.CodeAnalysis
 
             plugins = pluginBuilder.ToImmutable();
             transfomers = transformerBuilder.ToImmutable();
+            // </Caravela>
+            
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
         }

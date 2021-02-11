@@ -372,7 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var syntax = node.SwitchLabels.Last().Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
+                    // <Caravela> dont call ToString on syntax
                                 new SourceLocation(syntax), syntax);
+                    // </Caravela>
             }
         }
 

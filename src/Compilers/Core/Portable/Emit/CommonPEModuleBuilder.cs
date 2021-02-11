@@ -616,7 +616,9 @@ namespace Microsoft.CodeAnalysis.Emit
             => ImmutableArray<TNamedTypeSymbol>.Empty;
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
+        // <Caravela> - added needDeclaration, needed by Ldtoken
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool needDeclaration = false);
+        // </Caravela>
         internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
         internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics)

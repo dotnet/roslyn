@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
+            // <Caravela>
             // GetDiagnostics() has side-effects that some tests are relying on
             _ = c.GetDiagnostics();
 
@@ -117,6 +118,7 @@ CaravelaCompilerTest.TokenPerLineTransformer());
             diagnostics.Verify(expected);
             VerifyAssemblyIds(compilation, diagnostics);
 
+            // </Caravela>
             return c;
         }
 

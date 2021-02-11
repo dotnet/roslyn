@@ -50,9 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
         }
 
+        // <Caravela>
         public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
         {
             return compilation => CSharpTransformerDriver.RunTransformers(compilation, transformers, plugins, analyzerConfigProvider, new List<ResourceDescription>(), assemblyLoader);
         }
+        // </Caravela>
     }
 }

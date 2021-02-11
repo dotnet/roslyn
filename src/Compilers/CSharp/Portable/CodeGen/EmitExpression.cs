@@ -327,12 +327,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitLoadFunction((BoundFunctionPointerLoad)expression, used);
                     break;
 
+                // <Caravela>
                 case BoundKind.GetRuntimeHandleExpression:
                     if (used)
                     {
                         EmitLdtoken((BoundGetRuntimeHandleExpression)expression);
                     }
                     break;
+                // </Caravela>
 
                 default:
                     // Code gen should not be invoked if there are errors.
@@ -3118,6 +3120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        // <Caravela>
         private void EmitLdtoken(BoundGetRuntimeHandleExpression node)
         {
             _builder.EmitOpCode(ILOpCode.Ldtoken);
@@ -3135,6 +3138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 default: throw ExceptionUtilities.Unreachable;
             }
         }
+        // </Caravela>
 
         /// <summary>
         /// Emit code for a conditional (aka ternary) operator.

@@ -2202,12 +2202,17 @@ namespace Microsoft.CodeAnalysis
                     var existingDoc = documentsBuilder.TryGetDebugDocumentForNormalizedPath(normalizedPath);
                     if (existingDoc == null)
                     {
+                        // <Caravela>
                         var actualTree = TreeTracker.GetPreTransformationSyntax(tree.GetRoot())?.SyntaxTree ?? tree;
+                        // </Caravela>
 
                         documentsBuilder.AddDebugDocument(new Cci.DebugSourceDocument(
                             normalizedPath,
                             DebugSourceDocumentLanguageId,
-                            () => actualTree.GetDebugSourceInfo()));
+                            // <Caravela>
+                            () => actualTree.GetDebugSourceInfo()
+                            // </Caravela>
+                        ));
                     }
                 }
             }

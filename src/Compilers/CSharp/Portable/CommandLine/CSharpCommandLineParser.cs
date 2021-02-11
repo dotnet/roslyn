@@ -1801,10 +1801,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (string path in paths)
             {
+                // <Caravela>
                 // Caravela.Compiler.Interface.dll is specified as analyzer assembly, so that source generators that run inside VS can reference it
                 // but within Caravela.Compiler, these types have to be loaded from MS.CA
-                if (Path.GetFileName(path) == "Caravela.Compiler.Interface.dll")
+                if (string.Equals(Path.GetFileName(path), "Caravela.Compiler.Interface.dll", StringComparison.OrdinalIgnoreCase))
+                {
                     continue;
+                }
+                // </Caravela>
+                
 
                 yield return new CommandLineAnalyzerReference(path);
             }

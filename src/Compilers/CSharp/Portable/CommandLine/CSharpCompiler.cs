@@ -285,8 +285,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
             consoleOutput.WriteLine();
+            // <Caravela> Print out copyright line
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine3, Culture));
             consoleOutput.WriteLine();
+            // </Caravela>
         }
 
         public override void PrintLangVersions(TextWriter consoleOutput)
@@ -344,13 +346,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             bool skipAnalyzers,
+            // <Caravela>
             ImmutableArray<string> transformerOrder,
+            // </Caravela>
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
+            // <Caravela>
             out ImmutableArray<ISourceTransformer> transformers,
-            out ImmutableArray<object> plugins)
+            out ImmutableArray<object> plugins
+            // </Caravela>
+            )
         {
+            // <Caravela>
             Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
+            // </Caravela>
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -393,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilationOut;
         }
 
+        // <Caravela>
         private protected override Compilation RunTransformers(
             ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
             DiagnosticBag diagnostics)
@@ -462,5 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return compilation;
         }
+        // </Caravela>
     }
 }

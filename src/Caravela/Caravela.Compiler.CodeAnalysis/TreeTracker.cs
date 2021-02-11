@@ -114,7 +114,7 @@ namespace Caravela.Compiler
                 if (annotation is not null)
                     break;
 
-                ancestor = ancestor.Parent;
+                ancestor = ancestor.ParentOrStructuredTriviaParent;
             }
 
             return (ancestor, annotation);
@@ -134,15 +134,15 @@ namespace Caravela.Compiler
         }
 
         [return: NotNull]
-        internal static T FindNode<T>(this SyntaxNode ancestor, TextSpan span) where T : SyntaxNode?
+        internal static T FindNode<T>(this SyntaxNode ancestor, TextSpan span, bool findInsideTrivia) where T : SyntaxNode?
         {
             SyntaxNode? foundNode;
 
             // span is the very end of the ancestor, which is technically not inside it, so FindNode would throw
             if (span.IsEmpty && span.Start == ancestor.EndPosition)
-                foundNode = ancestor.DescendantNodes().Last();
+                foundNode = ancestor.DescendantNodes(descendIntoTrivia: findInsideTrivia).Last();
             else
-                foundNode = ancestor.FindNode(span, getInnermostNodeForTie: true);
+                foundNode = ancestor.FindNode(span, findInsideTrivia: findInsideTrivia, getInnermostNodeForTie: true);
 
             // we were looking for node with zero width (like OmittedArraySizeExpression or a missing node), but found something larger
             // FindNode uses FindToken, which does not return zero-width tokens, so we use it ourselves, but then look just before it
@@ -183,7 +183,7 @@ namespace Caravela.Compiler
 
             var originalPosition = node.Position - ancestor.Position + preTransformationAncestor.Position;
             var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
-            return preTransformationAncestor.FindNode<T>(nodeOriginalSpan);
+            return preTransformationAncestor.FindNode<T>(nodeOriginalSpan, node.IsPartOfStructuredTrivia());
         }
 
         private static SyntaxToken LocatePreTransformationSyntax(SyntaxToken token, SyntaxNode parent, SyntaxAnnotation annotation)
@@ -198,7 +198,7 @@ namespace Caravela.Compiler
             if (originalPosition == preTransformationAncestor.EndPosition)
                 foundToken = preTransformationAncestor.GetLastToken(includeZeroWidth: true);
             else
-                foundToken = preTransformationAncestor.FindToken(originalPosition);
+                foundToken = preTransformationAncestor.FindToken(originalPosition, findInsideTrivia: token.IsPartOfStructuredTrivia());
 
             if (foundToken.FullSpan != new TextSpan(originalPosition, token.FullWidth))
             {
@@ -206,7 +206,7 @@ namespace Caravela.Compiler
 
                 do
                 {
-                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true);
+                    foundToken = foundToken.GetPreviousToken(includeZeroWidth: true, includeDocumentationComments: token.IsPartOfStructuredTrivia());
                 } while (foundToken.FullWidth == 0 && foundToken.RawKind != token.RawKind && foundToken.RawKind != 0);
 
                 Debug.Assert(foundToken.RawKind == token.RawKind);
@@ -232,6 +232,21 @@ namespace Caravela.Compiler
                 return AnnotateToken(token, preTransformationToken.Value);
 
             return token;
+        }
+
+        public static SyntaxTrivia TrackIfNeeded(SyntaxTrivia trivia)
+        {
+            if (trivia.GetStructure() is SyntaxNode structure)
+            {
+                var newStructure = TrackIfNeeded(structure);
+                if (newStructure != structure)
+                {
+                    // copied from SyntaxFactory.Trivia(StructuredTriviaSyntax), which can't be called here, because it's C#-specific
+                    return new SyntaxTrivia(default(SyntaxToken), newStructure.Green, position: 0, index: 0);
+                }
+            }
+
+            return trivia;
         }
 
         public static bool NeedsTracking<T>([NotNullWhen(true)] T node, [NotNullWhen(true)] out T preTransformationNode) where T : SyntaxNode?

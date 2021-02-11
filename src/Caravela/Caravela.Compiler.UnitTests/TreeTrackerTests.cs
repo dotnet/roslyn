@@ -14,7 +14,7 @@ namespace Caravela.Compiler.UnitTests
 
             var omittedExpression = type.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
 
-            Assert.Same(omittedExpression, TreeTracker.FindNode<OmittedArraySizeExpressionSyntax>(type, omittedExpression.FullSpan));
+            Assert.Same(omittedExpression, TreeTracker.FindNode<OmittedArraySizeExpressionSyntax>(type, omittedExpression.FullSpan, findInsideTrivia: false));
         }
 
         [Fact]

@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal static SyntaxList<T> ToGreenList<T>(this SyntaxNode? node) where T : GreenNode
         {
+            // <Caravela>
             node = TreeTracker.TrackIfNeeded(node);
+            // </Caravela>
 
             return node != null ?
                 ToGreenList<T>(node.Green) :
@@ -21,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static SeparatedSyntaxList<T> ToGreenSeparatedList<T>(this SyntaxNode? node) where T : GreenNode
         {
+            // <Caravela>
             node = TreeTracker.TrackIfNeeded(node);
+            // <?Caravela>
 
             return node != null ?
                 new SeparatedSyntaxList<T>(ToGreenList<T>(node.Green)) :
