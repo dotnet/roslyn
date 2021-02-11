@@ -3210,7 +3210,7 @@ oneMoreTime:
             while (true)
             {
                 testExpression = currentConditionalAccess.Operation;
-                if (!IsConditionalAccessInstancePresentInChildren(currentConditionalAccess.WhenNotNull))
+                if (!isConditionalAccessInstancePresentInChildren(currentConditionalAccess.WhenNotNull))
                 {
                     // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
                     //                      a None operation is created and all children are dropped.
@@ -3300,6 +3300,24 @@ oneMoreTime:
                 _currentConditionalAccessTracker.Free();
                 _currentConditionalAccessTracker = previousTracker;
             }
+
+            static bool isConditionalAccessInstancePresentInChildren(IOperation operation)
+            {
+                // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
+                // until we either reach the bottom, or find the conditional access.
+                Operation currentOperation = (Operation)operation;
+                while (currentOperation.ChildOperations.GetEnumerator() is var enumerator && enumerator.MoveNext())
+                {
+                    if (enumerator.Current is IConditionalAccessInstanceOperation)
+                    {
+                        return true;
+                    }
+
+                    currentOperation = (Operation)enumerator.Current;
+                }
+
+                return false;
+            }
         }
 
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)
@@ -3310,42 +3328,11 @@ oneMoreTime:
             return VisitConditionalAccessTestExpression(testExpression);
         }
 
-        private static bool IsConditionalAccessInstancePresentInChildren(IOperation operation)
-        {
-            // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
-            // until we either reach the bottom, or find the conditional access.
-            Operation currentOperation = (Operation)operation;
-            while (currentOperation.ChildOperations.GetEnumerator() is var enumerator && enumerator.MoveNext())
-            {
-                if (enumerator.Current is IConditionalAccessInstanceOperation)
-                {
-                    return true;
-                }
-
-                currentOperation = (Operation)enumerator.Current;
-            }
-
-            return false;
-        }
-
         private IOperation VisitConditionalAccessTestExpression(IOperation testExpression)
         {
             Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
             SyntaxNode testExpressionSyntax = testExpression.Syntax;
             ITypeSymbol? testExpressionType = testExpression.Type;
-
-            // In the case of repeated bad conditional accesses where the child node isn't present, we can end up
-            // in a situation in which there is no conditional access instance in the children of the test expression,
-            // but we are expecting the test expression to contain them. Because no nested IConditionalAccessInstance
-            // exists, we'll never hit the visit method to recurse into this again. To deal with that, we manually
-            // visit the child node in that case. This can happen for nested xml conditional accesses, see ConditionalAccessFlow_13
-            // in IOperationTests_IConditionalAccessExpression.vb. Any later flow access of the receiver is dropped,
-            // the known instance of this happening is tracked by https://github.com/dotnet/roslyn/issues/27564
-
-            if (_currentConditionalAccessTracker.Operations.Count > 0 && !IsConditionalAccessInstancePresentInChildren(testExpression))
-            {
-                _ = VisitConditionalAccessTestExpression(_currentConditionalAccessTracker.Operations.Pop());
-            }
 
             var frame = PushStackFrame();
             PushOperand(VisitRequired(testExpression));
