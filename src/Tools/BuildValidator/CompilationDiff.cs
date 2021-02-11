@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
 
 namespace BuildValidator
@@ -47,6 +48,7 @@ namespace BuildValidator
             CompilationOptionsReader optionsReader,
             Compilation producedCompilation,
             IMethodSymbol? debugEntryPoint,
+            ILogger logger,
             Options options)
         {
             using var rebuildPeStream = new MemoryStream();
@@ -76,7 +78,17 @@ namespace BuildValidator
                     .Select(pair => EmbeddedText.FromSource(pair.path, pair.text)),
                 cancellationToken: CancellationToken.None);
 
-            if (emitResult.Success)
+            if (!emitResult.Success)
+            {
+                using var diagsScope = logger.BeginScope($"Diagnostics");
+                foreach (var diag in emitResult.Diagnostics)
+                {
+                    logger.LogError(diag.ToString());
+                }
+
+                return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
+            }
+            else
             {
                 var originalBytes = File.ReadAllBytes(originalBinaryPath.FullName);
                 var rebuildBytes = rebuildPeStream.ToArray();
@@ -84,28 +96,17 @@ namespace BuildValidator
                 var bytesEqual = originalBytes.SequenceEqual(rebuildBytes);
                 if (!bytesEqual)
                 {
-                    Console.WriteLine($"Rebuild of {originalBinaryPath.Name} was not equivalent to the original.");
-                    if (!options.OpenDiff && options.DebugPath is null)
+                    logger.LogError($"Rebuild of {originalBinaryPath.Name} was not equivalent to the original.");
+                    if (!options.Debug)
                     {
-                        Console.WriteLine("Pass the --openDiff argument to open a visualization diff in VS Code.");
-                        Console.WriteLine("Alternatively pass --debugPath to write a visualization to disk.");
+                        logger.LogInformation("Pass the --debug argument and re-run to write the visualization of the original and rebuild to disk.");
                     }
                     else
                     {
-                        Console.WriteLine("Creating a diff...");
+                        logger.LogInformation("Creating a diff...");
 
-                        var debugPath = options.DebugPath ?? Path.Combine(Path.GetTempPath(), "BuildValidator");
-
-                        // TODO: do this once at the beginning
-                        try
-                        {
-                            Directory.Delete(debugPath, recursive: true);
-                        }
-                        catch (IOException)
-                        {
-                            // no-op
-                        }
-                        Console.WriteLine($@"Writing diffs to ""{debugPath}""");
+                        var debugPath = options.DebugPath;
+                        logger.LogInformation($@"Writing diffs to ""{Path.GetFullPath(debugPath)}""");
 
                         var assemblyName = Path.GetFileNameWithoutExtension(originalBinaryPath.Name);
                         var assemblyDebugPath = Path.Combine(debugPath, assemblyName);
@@ -167,20 +168,10 @@ namespace BuildValidator
                         File.WriteAllText(Path.Combine(assemblyDebugPath, "compare-pe.mdv.ps1"), $@"code --diff (Join-Path $PSScriptRoot ""{originalPeMdvPath.Substring(assemblyDebugPath.Length)}"") (Join-Path $PSScriptRoot ""{rebuildPeMdvPath.Substring(assemblyDebugPath.Length)}"")");
                         File.WriteAllText(Path.Combine(assemblyDebugPath, "compare-pdb.mdv.ps1"), $@"code --diff (Join-Path $PSScriptRoot ""{originalPdbMdvPath.Substring(assemblyDebugPath.Length)}"") (Join-Path $PSScriptRoot ""{rebuildPdbMdvPath.Substring(assemblyDebugPath.Length)}"")");
                         File.WriteAllText(Path.Combine(assemblyDebugPath, "compare-il.ps1"), $@"code --diff (Join-Path $PSScriptRoot ""{ildasmOriginalOutputPath.Substring(assemblyDebugPath.Length)}"") (Join-Path $PSScriptRoot ""{ildasmRebuildOutputPath.Substring(assemblyDebugPath.Length)}"")");
-
-                        if (options.OpenDiff)
-                        {
-                            Console.WriteLine("Opening a pwsh window to where the compare scripts are located..");
-                            Process.Start(new ProcessStartInfo("pwsh") { WorkingDirectory = assemblyDebugPath, UseShellExecute = true });
-                        }
                     }
                 }
 
                 return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
-            }
-            else
-            {
-                return new CompilationDiff(emitResult.Diagnostics, originalBinaryPath.FullName);
             }
 
             void writeVisualization(string outPath, MetadataReader pdbReader)

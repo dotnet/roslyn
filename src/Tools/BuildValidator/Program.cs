@@ -48,7 +48,7 @@ namespace BuildValidator
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
-                new Option<string[]>(
+                new Option<string[]?>(
                     "--referencesPaths", "Additional paths to referenced assemblies"
                 ),
                 new Option<bool>(
@@ -58,19 +58,24 @@ namespace BuildValidator
                     "--quiet", "Do not output log information to console"
                 ),
                 new Option<bool>(
-                    "--openDiff", "Open a diff tool when rebuild failures are found"
+                    "--debug", "Output debug info when rebuild is not equal to the original"
                 ),
-                new Option<string>(
-                    "--debugPath", "(optional) Path to output debug visualization of the rebuild"
+                new Option<string?>(
+                    "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, string[], bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create<string, string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string assembliesPath, string sourcePath, string[] referencesPaths, bool verbose, bool quiet, bool openDiff, string? debugPath)
+        static int HandleCommand(string assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
         {
-            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, openDiff, debugPath);
+            // If user provided a debug path then assume we should write debug outputs.
+            debug |= debugPath is object;
+            debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
+            referencesPaths ??= Array.Empty<string>();
+
+            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, debug, debugPath);
 
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
@@ -84,9 +89,21 @@ namespace BuildValidator
                 loggerFactory.AddProvider(new DemoLoggerProvider());
             }
 
+            var logger = loggerFactory.CreateLogger<Program>();
             try
             {
-                var logger = loggerFactory.CreateLogger<Program>();
+                var fullDebugPath = Path.GetFullPath(debugPath);
+                logger.LogInformation($@"Using debug folder: ""{fullDebugPath}""");
+                Directory.Delete(debugPath, recursive: true);
+                logger.LogInformation($@"Cleaned debug folder: ""{fullDebugPath}""");
+            }
+            catch (IOException)
+            {
+                // no-op
+            }
+
+            try
+            {
                 var sourceResolver = new LocalSourceResolver(options, loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
@@ -104,7 +121,7 @@ namespace BuildValidator
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                logger.LogError(ex, ex.Message);
                 throw;
             }
         }
@@ -152,11 +169,6 @@ namespace BuildValidator
                 foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))
                 {
                     logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
-                    using var diagsScope = logger.BeginScope($"Diagnostics");
-                    foreach (var diag in diff.Diagnostics)
-                    {
-                        logger.LogError(diag.ToString());
-                    }
                     success = false;
                 }
             }
@@ -192,8 +204,7 @@ namespace BuildValidator
                     return null;
                 }
 
-                logger.LogInformation($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
-                using var _ = logger.BeginScope("");
+                using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
 
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
                 var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
@@ -202,8 +213,7 @@ namespace BuildValidator
                     optionsReader,
                     Path.GetFileNameWithoutExtension(originalBinary.Name));
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), options);
-                logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
+                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
                 return compilationDiff;
 
                 IMethodSymbol? getDebugEntryPoint()
