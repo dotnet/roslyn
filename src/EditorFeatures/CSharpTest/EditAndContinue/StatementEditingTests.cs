@@ -1897,7 +1897,9 @@ foreach (var (a, b) in e1) { }
 
             // changes were made to the outer lambda signature:
             edits.VerifyEdits(
-                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4", "Insert [q]@4", "Delete [()]@4");
+                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
