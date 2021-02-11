@@ -27,21 +27,6 @@
         <target state="translated">Evite o sufixo 'Opt'</target>
         <note />
       </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Evite várias linhas em branco</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Evite várias linhas em branco</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">As chaves não podem ter linhas em branco entre elas</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
         <target state="translated">Esta é uma refatoração que simplifica o processo de criação de acessadores de teste usando o padrão 'TestAccessor'.</target>
@@ -307,16 +292,6 @@
         <target state="translated">Os métodos de teste assíncronos não exigem o sufixo 'Async'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Remover as linhas em branco entre as chaves</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Remover as linhas em branco extras</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'.</target>
@@ -470,11 +445,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}' é exportado com MEFv2 e, portanto, precisa ser marcado com 'SharedAttribute'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">As instruções precisam ser colocadas em suas próprias linhas</target>
         <note />
       </trans-unit>
     </body>

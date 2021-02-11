@@ -27,21 +27,6 @@
         <target state="translated">请避免使用 "Opt" 后缀</target>
         <note />
       </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">避免出现多个空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">避免出现多个空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">括号之间不能有空白行</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
         <source>This is a refactoring which simplifies the process of creating test accessors using the 'TestAccessor' pattern.</source>
         <target state="translated">这是一种重构，它简化了使用 "TestAccessor" 模式创建测试访问器的过程。</target>
@@ -307,16 +292,6 @@
         <target state="translated">异步测试方法不需要 "Async" 后缀</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">删除括号之间的空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">删除多余的空白行</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的实例必须是 "using" 变量。</target>
@@ -470,11 +445,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">“{0}”是通过 MEFv2 导出的，因此必须使用 "SharedAttribute" 标记</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">语句必须放在其自己的行上</target>
         <note />
       </trans-unit>
     </body>
