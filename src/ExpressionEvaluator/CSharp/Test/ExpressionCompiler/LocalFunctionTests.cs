@@ -447,6 +447,86 @@ class C
 
         [Fact]
         [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
+        public void LocalFunctionWithCapturedParameterHidingOuterScopeVariable()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(42);
+    }
+
+    void M(int x)
+    {
+        local(string.Empty);
+        local2();
+
+        void local(string x)
+        {
+            GetValue(out var something);
+            inner(); // set breakpoint here and inspect `x`
+
+            void inner()
+            {
+                Console.WriteLine(x);
+            }
+        }
+
+        void local2()
+        {
+            Console.Write(x);
+        }
+    }
+
+    void GetValue(out int x)
+    {
+        x = 42;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>g__local|1_0");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+                Assert.Equal(new[] { "this", "x", "something" }, locals.SelectAsArray(l => l.LocalName));
+                Assert.Equal("<>x.<>m1(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m1").Method.ToString());
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
+                int V_1) //something
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass1_1.x""
+  IL_0006:  ret
+}");
+                locals.Free();
+
+                testData = new CompilationTestData();
+                context.CompileExpression("x", out var error, testData);
+                Assert.Null(error);
+                Assert.Equal("<>x.<>m0(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m0").Method.ToString());
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (C.<>c__DisplayClass1_1 V_0, //CS$<>8__locals0
+                int V_1) //something
+  IL_0000:  ldloc.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass1_1.x""
+  IL_0006:  ret
+}");
+            });
+        }
+
+        [Fact]
+        [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
         public void LocalFunctionWithoutOuterScopeVariable()
         {
             var source = @"
@@ -503,6 +583,78 @@ class C
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            });
+        }
+        [Fact]
+        [WorkItem(51056, "https://github.com/dotnet/roslyn/issues/51056")]
+        public void LocalFunctionWithLocalHidingOuterScopeVariable()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(42);
+    }
+
+    void M(int x)
+    {
+        local();
+        local2();
+
+        void local()
+        {
+            string x = string.Empty;
+            GetValue(out var something); // captures 'this' so causes use of a display class from outer scope
+            Console.WriteLine(x); // set breakpoint here and inspect `x` (should display a `string`, not an `int`)
+        }
+
+        void local2()
+        {
+            Console.Write(x);
+        }
+    }
+
+    void GetValue(out int x)
+    {
+        x = 42;
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.<M>g__local|1_0");
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                // TODO2 this throws because we're trying to add the same key twice to a dictionary
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
+                Assert.Equal(new[] { "this", "x", "something" }, locals.SelectAsArray(l => l.LocalName));
+                Assert.Equal("<>x.<>m1(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m1").Method.ToString());
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //something
+  IL_0000:  ldarg.1
+  IL_0001:  ret
+}");
+                locals.Free();
+
+                testData = new CompilationTestData();
+                context.CompileExpression("x", out var error, testData);
+                Assert.Null(error);
+                Assert.Equal("<>x.<>m0(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m0").Method.ToString());
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //something
+  IL_0000:  ldarg.1
   IL_0001:  ret
 }");
             });
