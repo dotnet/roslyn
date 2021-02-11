@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<CSharpIntroduceParameterService, ExpressionSyntax>
     {
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpIntroduceParameterService()
         {
         }
@@ -47,13 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var annotatedExpression = new SyntaxAnnotation();
             var expressionWithAnnotation = expression.WithAdditionalAnnotations(annotatedExpression);
-            var updatedSolutionWithParameter = await AddParameterAsync(document, expressionWithAnnotation, parameterName, cancellationToken).ConfigureAwait(false);
+            var newDocument = document.Document.WithSyntaxRoot(document.Root.ReplaceNode(expression, expressionWithAnnotation));
+            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            var updatedExpression = (ExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+
+            var methodExpression = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, true);
+            var symbolInfo = semanticModel.GetDeclaredSymbol(methodExpression, cancellationToken);
+
+            var updatedSolutionWithParameter = await AddParameterAsync(newSemanticDocument, updatedExpression, parameterName, cancellationToken).ConfigureAwait(false);
             var updatedSemanticDocument = await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
 
-            expression = (ExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
-            return await IntroduceParameterConvertExpressionAsync(updatedSemanticDocument, expression, (NameSyntax)syntaxGenerator.IdentifierName(parameterName), allOccurrences, cancellationToken).ConfigureAwait(false);
-
-            //return solution.GetDocument(invocationDocument.Id);
+            var newExpression = (ExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+            return await IntroduceParameterConvertExpressionAsync(document, updatedSemanticDocument, newExpression, symbolInfo, (NameSyntax)syntaxGenerator.IdentifierName(parameterName), allOccurrences, cancellationToken).ConfigureAwait(false);
         }
 
         private static Task<Solution> AddParameterAsync(SemanticDocument document, ExpressionSyntax expression, string parameterName, CancellationToken cancellationToken)
@@ -79,57 +86,45 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         private async Task<Document> IntroduceParameterConvertExpressionAsync(
+            SemanticDocument originalDocument,
             SemanticDocument document,
-            ExpressionSyntax expression,
+            ExpressionSyntax newExpression,
+            IMethodSymbol methodSymbol,
             NameSyntax parameterName,
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var block = (BlockSyntax)expression.Ancestors().FirstOrDefault(s => s is BlockSyntax);
+            var block = (BlockSyntax)newExpression.Ancestors().FirstOrDefault(s => s is BlockSyntax);
             SyntaxNode scope = block;
 
             // If we're within a non-static local function, our scope for the new local declaration is expanded to include the enclosing member.
-            var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
+            /*var localFunction = block.GetAncestor<LocalFunctionStatementSyntax>();
             if (localFunction != null && !localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword)))
             {
                 scope = block.GetAncestor<MemberDeclarationSyntax>();
-            }
+            }*/
 
-            var matches = FindMatches(document, expression, document, scope, allOccurrences, cancellationToken);
-            Debug.Assert(matches.Contains(expression));
+            var matches = FindMatches(document, newExpression, document, scope, allOccurrences, cancellationToken);
+            Debug.Assert(matches.Contains(newExpression));
 
-            (document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
+            var innermostCommonBlock = matches.Single().Parent;
 
-            // Our original expression should have been one of the matches, which were tracked as part
-            // of complexification, so we can retrieve the latest version of the expression here.
-            expression = document.Root.GetCurrentNode(expression);
-
-            var root = document.Root;
-            SyntaxNode innermostCommonBlock;
-
-            if (matches.Count == 1)
+            var methodCallSites = await FindCallSitesAsync(originalDocument, methodSymbol, cancellationToken).ConfigureAwait(false);
+            foreach (var callSite in methodCallSites)
             {
-                // if there was only one match, or all the matches came from the same statement
-                var statement = matches.Single();
 
-                innermostCommonBlock = statement.Parent;
-            }
-            else
-            {
-                innermostCommonBlock = matches.FindInnermostCommonNode(IsBlockLike);
             }
 
+            var dict = TieExpressionToParameters(newExpression);
             var newInnerMostBlock = Rewrite(
-                document, expression, parameterName, document, innermostCommonBlock, allOccurrences, cancellationToken);
+                document, newExpression, parameterName, document, innermostCommonBlock, allOccurrences, cancellationToken);
             var newRoot = document.Root.ReplaceNode(innermostCommonBlock, newInnerMostBlock);
+
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        /*
-        private static async Task<SyntaxNode> UpdateCallSitesAsync(
+        private static async Task<ImmutableArray<SyntaxNode>> FindCallSitesAsync(
             SemanticDocument document,
-            BlockSyntax block,
-            ExpressionSyntax expression,
             IMethodSymbol methodSymbol,
             CancellationToken cancellationToken)
         {
@@ -139,22 +134,28 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 methodSymbol, document.Document.Project.Solution, progress: progress,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
-            var methods = referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition).OfType<IMethodSymbol>().Distinct().ToImmutableArray();
+            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations).Distinct().ToImmutableArray();
+            var methodCallSites = new ArrayBuilder<SyntaxNode>();
 
-        }*/
+            foreach (var refLocation in referencedLocations)
+            {
+                methodCallSites.Add(refLocation.Location.FindNode(cancellationToken).Parent);
+            }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+            return methodCallSites.ToImmutable();
+        }
 
-        protected override IEnumerable<SyntaxNode> GetContainingExecutableBlocks(ExpressionSyntax expression)
-            => expression.GetAncestorsOrThis<BlockSyntax>();
-
-        protected override bool CanReplace(ExpressionSyntax expression)
-            => true;
-
-        protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
+        private static Dictionary<IdentifierNameSyntax, ParameterSyntax> TieExpressionToParameters(ExpressionSyntax expression)
         {
-            var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
-            return localFunction != null && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword);
+            var nameToParameterDict = new Dictionary<IdentifierNameSyntax, ParameterSyntax>();
+            var y = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
+            return nameToParameterDict;
+        }
+
+        protected override bool ExpressionWithinParameterizedMethod(ExpressionSyntax expression)
+        {
+            var outerMethod = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, true);
+            return outerMethod.ParameterList.Parameters.Count > 0;
         }
 
         protected override TNode RewriteCore<TNode>(

@@ -31,13 +31,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        public TExpressionSyntax Expression { get; private set; }
         protected abstract Task<Document> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
-        protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
-        protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
-            => block.OverlapsHiddenPosition(cancellationToken);
-        protected abstract bool CanReplace(TExpressionSyntax expression);
-        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
+        protected abstract bool ExpressionWithinParameterizedMethod(TExpressionSyntax expression);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -59,19 +54,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            Expression = await document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
-            if (Expression == null || CodeRefactoringHelpers.IsNodeUnderselected(Expression, textSpan))
+            var expression = await document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+            if (expression == null || CodeRefactoringHelpers.IsNodeUnderselected(expression, textSpan))
             {
                 return null;
             }
 
-            var expressionType = semanticDocument.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
+            var expressionType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (expressionType is IErrorTypeSymbol)
             {
                 return null;
             }
 
-            var containingType = Expression.AncestorsAndSelf()
+            var containingType = expression.AncestorsAndSelf()
                 .Select(n => semanticDocument.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                 .OfType<INamedTypeSymbol>()
                 .FirstOrDefault();
@@ -85,9 +80,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (Expression != null)
+            if (expression != null)
             {
-                var (title, actions) = AddActions(semanticDocument, cancellationToken);
+                var (title, actions) = AddActions(semanticDocument, expression);
 
                 if (actions.Length > 0)
                 {
@@ -98,100 +93,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         }
 
-        private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, CancellationToken cancellationToken)
+        private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression)
         {
             var actionsBuilder = new ArrayBuilder<CodeAction>();
-            var enclosingBlocks = GetContainingExecutableBlocks(Expression);
-            if (enclosingBlocks.Any())
+            if (ExpressionWithinParameterizedMethod(expression))
             {
-                // If we're inside a block, then don't even try the other options (like field,
-                // constructor initializer, etc.).  This is desirable behavior.  If we're in a 
-                // block in a field, then we're in a lambda, and we want to offer to generate
-                // a local, and not a field.
-                if (IsInBlockContext(semanticDocument, cancellationToken))
-                {
-                    var block = enclosingBlocks.FirstOrDefault();
+                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, false));
+                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, true));
 
-                    if (!BlockOverlapsHiddenPosition(block, cancellationToken))
-                    {
-                        actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, false));
-                        actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, false, true));
-
-                        if (enclosingBlocks.All(b => !BlockOverlapsHiddenPosition(b, cancellationToken)))
-                        {
-                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true, false));
-                            actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, Expression, true, true));
-                        }
-                    }
-                }
+                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, false));
+                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, true));
             }
+
             return (FeaturesResources.Introduce_parameter, actionsBuilder.ToImmutable());
         }
 
-        protected static ITypeSymbol GetTypeSymbol(
-            SemanticDocument document,
-            TExpressionSyntax expression,
-            CancellationToken cancellationToken,
-            bool objectAsDefault = true)
-        {
-            var semanticModel = document.SemanticModel;
-            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
-
-            if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
-                typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() == true)
-            {
-                return typeInfo.ConvertedType;
-            }
-
-            if (typeInfo.Type != null)
-            {
-                return typeInfo.Type;
-            }
-
-            if (typeInfo.ConvertedType != null)
-            {
-                return typeInfo.ConvertedType;
-            }
-
-            if (objectAsDefault)
-            {
-                return semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
-            }
-
-            return null;
-        }
-
-        private bool IsInBlockContext(SemanticDocument semanticDocument,
-                CancellationToken cancellationToken)
-        {
-            /* if (!IsInTypeDeclarationOrValidCompilationUnit())
-             {
-                 return false;
-             }*/
-
-            // If refer to a query property, then we use the query context instead.
-            var bindingMap = GetSemanticMap(semanticDocument, cancellationToken);
-            if (bindingMap.AllReferencedSymbols.Any(s => s is IRangeVariableSymbol))
-            {
-                return false;
-            }
-
-            var type = GetTypeSymbol(semanticDocument, Expression, cancellationToken, objectAsDefault: false);
-            if (type == null || type.SpecialType == SpecialType.System_Void)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public SemanticMap GetSemanticMap(SemanticDocument semanticDocument, CancellationToken cancellationToken)
-        {
-            var semanticMap = semanticDocument.SemanticModel.GetSemanticMap(Expression, cancellationToken);
-            return semanticMap;
-        }
-
-        protected ISet<TExpressionSyntax> FindMatches(
+        protected static ISet<TExpressionSyntax> FindMatches(
            SemanticDocument originalDocument,
            TExpressionSyntax expressionInOriginal,
            SemanticDocument currentDocument,
@@ -212,7 +129,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return result;
         }
 
-        private bool NodeMatchesExpression(
+        private static bool NodeMatchesExpression(
             SemanticModel originalSemanticModel,
             SemanticModel currentSemanticModel,
             TExpressionSyntax expressionInOriginal,
@@ -226,7 +143,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return true;
             }
 
-            if (allOccurrences && CanReplace(nodeInCurrent))
+            if (allOccurrences)
             {
                 // Original expression and current node being semantically equivalent isn't enough when the original expression 
                 // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
@@ -255,14 +172,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         return IsInstanceMemberReference(currentOperation);
                     }
 
-                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
-                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
-                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
-                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
-                    {
-                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
-                    }
-
                     return true;
                 }
             }
@@ -271,49 +180,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             static bool IsInstanceMemberReference(IOperation operation)
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
-        }
-        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatementsAsync(
-            SemanticDocument semanticDocument,
-            ISet<TExpressionSyntax> matches,
-            CancellationToken cancellationToken)
-        {
-            // First, track the matches so that we can get back to them later.
-            var newRoot = semanticDocument.Root.TrackNodes(matches);
-            var newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot);
-            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-            var newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
-
-            // Next, expand the topmost parenting expression of each match, being careful
-            // not to expand the matches themselves.
-            var topMostExpressions = newMatches
-                .Select(m => m.AncestorsAndSelf().OfType<TExpressionSyntax>().Last())
-                .Distinct();
-
-            newRoot = await newSemanticDocument.Root
-                .ReplaceNodesAsync(
-                    topMostExpressions,
-                    computeReplacementAsync: async (oldNode, newNode, ct) =>
-                    {
-                        return await Simplifier
-                            .ExpandAsync(
-                                oldNode,
-                                newSemanticDocument.Document,
-                                expandInsideNode: node =>
-                                {
-                                    return !(node is TExpressionSyntax expression)
-                                        || !newMatches.Contains(expression);
-                                },
-                                cancellationToken: ct)
-                            .ConfigureAwait(false);
-                    },
-                    cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
-
-            newDocument = newSemanticDocument.Document.WithSyntaxRoot(newRoot);
-            newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
-            newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
-
-            return (newSemanticDocument, newMatches);
         }
 
         protected TNode Rewrite<TNode>(
@@ -333,7 +199,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
             var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                         .WithAdditionalAnnotations(Formatter.Annotation);
+                                         .WithAdditionalAnnotations(Formatter.Annotation, RenameAnnotation.Create());
 
             return RewriteCore(withinNodeInCurrent, replacement, matches);
         }
