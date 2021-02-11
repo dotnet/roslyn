@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 fields.Free();
-
+                retExpr = F.LogicalOr(F.ObjectEqual(F.This(), other), retExpr);
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
