@@ -73,7 +73,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             const int OptimizedLengthThreshold = 2048;
 
             // Attempt to stackalloc utf8 converted small strings to avoid lots of allocs.
-            //
+            // This code can be removed once we move to a build of sqlitepcl that contains:
+            // https://github.com/ericsink/SQLitePCL.raw/pull/401
+
             // This is safe as sqlite will still copy our bytes over to its own internal memory (see
             // conversation here: https://github.com/dotnet/roslyn/pull/51111#pullrequestreview-588169715)
             // on the topic.  So it's fine that our own stackalloc'ed bytes will be gone when this function
