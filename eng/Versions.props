@@ -225,6 +225,7 @@
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>2.0.4</SQLitePCLRawbundle_greenVersion>
+    <SQLitePCLRawproviderdynamic_cdeclVersion>2.0.4</SQLitePCLRawproviderdynamic_cdeclVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>16.7.3069</MicrosoftVSSDKBuildToolsVersion>
     <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>
