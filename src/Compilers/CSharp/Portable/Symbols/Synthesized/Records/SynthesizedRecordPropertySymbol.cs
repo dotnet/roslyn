@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
             bool isOverride,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: syntax,

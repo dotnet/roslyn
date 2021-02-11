@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string PropertyName = "EqualityContract";
 
-        public SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, DiagnosticBag diagnostics)
+        public SynthesizedRecordEqualityContractProperty(SourceMemberContainerTypeSymbol containingType, BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),

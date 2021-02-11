@@ -3420,7 +3420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         End If
 
                                     ElseIf implementingSet.Count = 1 Then
-                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0)))
+                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
                                     End If
                                 End If
                             Next

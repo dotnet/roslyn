@@ -1005,10 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
-                Dim useSiteErrorInfo = overriddenAccessor.GetUseSiteErrorInfo()
-                If useSiteErrorInfo IsNot Nothing Then
-                    diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, overridingAccessor.Locations(0)))
-                End If
+                diagnostics.Add(overriddenAccessor.GetUseSiteInfo(), overridingAccessor.Locations(0))
             End If
         End Sub
 
