@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -14,12 +15,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// </summary>
     internal interface IWorkspaceProjectContextFactory
     {
-        /// <inheritdoc cref="CreateProjectContextAsync(string, string, string, Guid, object, string)"/>
+        /// <inheritdoc cref="CreateProjectContextAsync"/>
         [Obsolete("Use CreateProjectContextAsync instead")]
         IWorkspaceProjectContext CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
 
         /// <summary>
-        /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the project.
+        /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to
+        /// lazily initialize the properties and items for the project.  Cancellation is supported and will not leave
+        /// the workspace in a partially completed state.
         /// </summary>
         /// <param name="languageName">Project language.</param>
         /// <param name="projectUniqueName">Unique name for the project.</param>
@@ -27,6 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="projectGuid">Project guid.</param>
         /// <param name="hierarchy">Obsolete. The argument is ignored.</param>
         /// <param name="binOutputPath">Initial project binary output path.</param>
-        Task<IWorkspaceProjectContext> CreateProjectContextAsync(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
+        Task<IWorkspaceProjectContext> CreateProjectContextAsync(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath, CancellationToken cancellationToken);
     }
 }

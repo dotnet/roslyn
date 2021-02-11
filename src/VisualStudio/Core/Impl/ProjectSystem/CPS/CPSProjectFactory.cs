@@ -5,16 +5,13 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -47,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             return _threadingContext.JoinableTaskFactory.Run(async () =>
                 await ((IWorkspaceProjectContextFactory)this).CreateProjectContextAsync(
-                    languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath).ConfigureAwait(false));
+                    languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None).ConfigureAwait(false));
         }
 
         async Task<IWorkspaceProjectContext> IWorkspaceProjectContextFactory.CreateProjectContextAsync(
@@ -56,15 +53,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string projectFilePath,
             Guid projectGuid,
             object hierarchy,
-            string binOutputPath)
+            string binOutputPath,
+            CancellationToken cancellationToken)
         {
             var visualStudioProject = await CreateVisualStudioProjectAsync(
-                languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid).ConfigureAwait(false);
+                languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid, cancellationToken).ConfigureAwait(false);
             return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
         }
 
         private async Task<VisualStudioProject> CreateVisualStudioProjectAsync(
-            string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+            string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
         {
             var creationInfo = new VisualStudioProjectCreationInfo
             {
@@ -73,7 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 ProjectGuid = projectGuid,
             };
 
-            var visualStudioProject = _projectFactory.CreateAndAddToWorkspace(projectUniqueName, languageName, creationInfo);
+            var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
+
+            // At this point we've mutated the workspace.  So we're no longer cancellable.
+            cancellationToken = default;
 
             if (languageName == LanguageNames.FSharp)
             {

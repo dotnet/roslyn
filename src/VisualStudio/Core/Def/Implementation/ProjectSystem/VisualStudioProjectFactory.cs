@@ -51,14 +51,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
             => _threadingContext.JoinableTaskFactory.Run(async () => await CreateAndAddToWorkspaceAsync(
-                projectSystemName, language, creationInfo).ConfigureAwait(false));
+                projectSystemName, language, creationInfo, CancellationToken.None).ConfigureAwait(false));
 
-        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
+        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync().ConfigureAwait(false);
+            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
+
+            // From this point on, we start mutating the solution.  So make us non cancellable.
+            cancellationToken = default;
 
             var id = ProjectId.CreateNewId(projectSystemName);
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;

@@ -1955,11 +1955,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal async Task EnsureDocumentOptionProvidersInitializedAsync()
+        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
         {
             // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
             // UI-affinitized experimentation service
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _foregroundObject.AssertIsForeground();
 
