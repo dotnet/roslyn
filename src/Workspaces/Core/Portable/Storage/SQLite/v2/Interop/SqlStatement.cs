@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 {
                     Span<byte> bytes = stackalloc byte[utf8ByteCount];
 #if NETCOREAPP
-                Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
+                    Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
 #else
                     unsafe
                     {
