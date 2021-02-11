@@ -244,6 +244,8 @@
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
     <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="THIRD-PARTY-NOTICES.txt" Visible="false" Pack="true"/>
+  </ItemGroup>
+  <ItemGroup>    
     <None Include="$(PackageLicenseFullPath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
   </ItemGroup>
   <!-- </Caravela> -->
