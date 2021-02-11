@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Continue below to add the items
             }
 
-            using var en = collection!.GetEnumerator();
+            using var en = collection.GetEnumerator();
             while (en.MoveNext())
             {
                 Add(en.Current);

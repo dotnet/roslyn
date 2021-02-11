@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, segment.Offset, destinationArray, copied, segment.Count);
+                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
                 copied += segment.Count;
             }
         }
@@ -121,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, segment.Offset, destinationArray, copied, segment.Count);
+                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
                 copied += segment.Count;
             }
         }
