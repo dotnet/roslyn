@@ -5853,6 +5853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindExpression(left, diagnostics);
         }
 
+        // Avoid inlining to minimize stack size in caller.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private BoundExpression BindLeftIdentifierOfPotentialColorColorMemberAccess(IdentifierNameSyntax left, DiagnosticBag diagnostics)
         {
