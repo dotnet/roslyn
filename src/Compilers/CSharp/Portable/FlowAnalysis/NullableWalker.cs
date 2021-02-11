@@ -5117,6 +5117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            ApplyMemberPostConditions(receiverSlot, method);
+        }
+
+        private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)
+        {
+            Debug.Assert(receiverSlot >= 0);
             do
             {
                 var type = method.ContainingType;
