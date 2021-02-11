@@ -824,7 +824,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
                 // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
-                using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2, out var hashInput);
+                var projectIdBytes = projectId.Id.ToByteArray();
+                using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2 + projectIdBytes.Length, out var hashInput);
+                hashInput.AddRange(projectIdBytes);
                 hashInput.AddRange(Encoding.Unicode.GetBytes(generatorName));
 
                 // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
