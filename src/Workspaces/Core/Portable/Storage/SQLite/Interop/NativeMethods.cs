@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
         /// <summary>
         /// <paramref name="val"><see cref="Encoding.UTF8"/> encoded bytes of a text value.  Span
-        /// does not need to be zero-terminated.</paramref>
+        /// should not be NUL-terminated.</paramref>
         /// </summary>
         public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> val)
         {
