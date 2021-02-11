@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         // test dynamic scenario
         // test whether reflection use property despite modreq?
         // test behavior of old compiler with modreq. For example VB
-        // test with ambiguous IsExternalInit types
 
         [Fact]
         public void TestCSharp8()
@@ -4606,6 +4605,159 @@ class UsePia
                 //         var x2 = new UsePia() { Property2 = { Property = 43 } };
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("ITest28.Property").WithLocation(9, 47)
                 );
+        }
+
+        [Fact]
+        public void PickAmbiguousAttributeFromCorlib()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+}
+
+//namespace System.Reflection
+//{
+//    public class AssemblyVersionAttribute : Attribute
+//    {
+//        public AssemblyVersionAttribute(String version) { }
+//    }
+//}
+";
+
+            string source = @"
+public class C
+{
+    public int Property { get; init; }
+}
+";
+            var corlibWithoutIsExternalInitRef = CreateEmptyCompilation(corlib_cs, assemblyName: "corlibWithoutIsExternalInit")
+                .EmitToImageReference();
+
+            var corlibWithIsExternalInitRef = CreateEmptyCompilation(corlib_cs + IsExternalInitTypeDefinition, assemblyName: "corlibWithIsExternalInit")
+                .EmitToImageReference();
+
+            var libWithIsExternalInitRef = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit")
+                .ToMetadataReference();
+
+            var libWithIsExternalInitRef2 = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit2")
+                .ToMetadataReference();
+
+            {
+                // attribute in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithoutIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifier = getUsedModifier(comp);
+                Assert.True(modifier.Modifier.IsInSource());
+            }
+
+            {
+                // attribute in corlib and in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifier = getUsedModifier(comp);
+                Assert.True(modifier.Modifier.IsInSource());
+            }
+
+            {
+                // attribute in corlib, in library and in source
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifier = getUsedModifier(comp);
+                Assert.True(modifier.Modifier.IsInSource());
+            }
+
+            {
+                // attribute in corlib and in two libraries
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            {
+                // attribute in corlib and in two libraries (corlib in middle)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            {
+                // attribute in corlib and in two libraries (corlib last)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            {
+                // attribute in corlib and in two libraries, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // attribute in two libraries
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // attribute in two libraries, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    //     public int Property { get; init; }
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    );
+            }
+
+            {
+                // attribute in corlib and in a library
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            {
+                // attribute in corlib and in a library (reverse order)
+                var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            {
+                // attribute in corlib and in a library, but flag is set
+                var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
+                    options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
+                comp.VerifyEmitDiagnostics();
+                var modifiers = getUsedModifier(comp);
+                Assert.Equal("libWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+            }
+
+            static CustomModifier getUsedModifier(CSharpCompilation comp)
+            {
+                return ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+            }
         }
     }
 }

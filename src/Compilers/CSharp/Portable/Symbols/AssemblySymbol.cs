@@ -782,9 +782,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeReferences,
             bool isWellKnownType,
             out (AssemblySymbol, AssemblySymbol) conflicts,
-            DiagnosticBag warnings = null,
+            DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
+            Debug.Assert(warnings is null || isWellKnownType);
+
             conflicts = default;
             NamedTypeSymbol result;
 
@@ -818,9 +820,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Lookup in references
+            bool onlyConsiderCorLib = false;
             foreach (var assembly in assemblies)
             {
                 Debug.Assert(!(this is SourceAssemblySymbol && assembly.IsMissing)); // Non-source assemblies can have missing references
+
+                if (onlyConsiderCorLib && assembly != CorLibrary)
+                {
+                    continue;
+                }
 
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
@@ -858,11 +866,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
                     }
+                    else if (isWellKnownType && warnings is null)
+                    {
+                        // For well-known types after C# 7, we prefer corlib (unless ignoreCorLibraryDuplicatedTypes is set)
+                        if (IsInCorLib(result))
+                        {
+                            // ignore candidate
+                            continue;
+                        }
+                        if (IsInCorLib(candidate))
+                        {
+                            // drop previous result
+                            result = candidate;
+                            continue;
+                        }
+                    }
 
-                    if (warnings == null)
+                    if (warnings is null)
                     {
                         conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
+                        if (isWellKnownType)
+                        {
+                            onlyConsiderCorLib = true;
+                            continue;
+                        }
                     }
                     else
                     {

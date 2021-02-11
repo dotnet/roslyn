@@ -24810,7 +24810,9 @@ namespace System
             var libWithVTRef = libWithVT.EmitToImageReference();
 
             var comp = CSharpCompilation.Create("test", references: new[] { libWithVTRef, corlibWithVTRef });
-            Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType());
+            var found = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.False(found.IsErrorType());
+            Assert.Equal("corlib", found.ContainingAssembly.Name);
 
             var comp2 = comp.WithOptions(comp.Options.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
             var tuple2 = comp2.GetWellKnownType(WellKnownType.System_ValueTuple_T2);

@@ -4413,10 +4413,12 @@ public class Test
     public ref readonly int M() => throw null;
 }";
 
-            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
-                // (4,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                //     public ref readonly int M() => throw null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 12));
+            var comp = CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics();
+
+            // we prefer the type from corlib
+            var m = comp.GlobalNamespace.GetTypeMember("Test").GetMethod("M");
+            var attribute = m.RefCustomModifiers.Single().Modifier;
+            Assert.NotNull(attribute.ContainingAssembly.GetTypeByMetadataName("System.Object"));
         }
 
         [Fact]

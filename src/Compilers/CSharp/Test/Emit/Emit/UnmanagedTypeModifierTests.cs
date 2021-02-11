@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1055,10 +1056,7 @@ public class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
-                // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
-                // public class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
+            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics();
         }
 
         [Fact]
