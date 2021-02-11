@@ -345,6 +345,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
                 Assert.Equal(new[] { "this", "x", "something" }, locals.SelectAsArray(l => l.LocalName));
+                Assert.Equal("<>x.<>m1(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m1").Method.ToString());
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -358,6 +359,7 @@ class C
                 testData = new CompilationTestData();
                 context.CompileExpression("x", out var error, testData);
                 Assert.Null(error);
+                Assert.Equal("<>x.<>m0(C, string, ref C.<>c__DisplayClass1_0)", testData.GetMethodData("<>x.<>m0").Method.ToString());
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
@@ -414,6 +416,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
                 Assert.Equal(new[] { "this", "x" }, locals.SelectAsArray(l => l.LocalName));
+                Assert.Equal("<>x.<>m1(C, int)", testData.GetMethodData("<>x.<>m1").Method.ToString());
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "x", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -429,6 +432,7 @@ class C
                 context.CompileExpression("x", out var error, testData);
                 Assert.Null(error);
 
+                Assert.Equal("<>x.<>m0(C, int)", testData.GetMethodData("<>x.<>m0").Method.ToString());
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        7 (0x7)
@@ -480,6 +484,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out var typeName, testData: testData);
                 Assert.Equal(new[] { "x" }, locals.SelectAsArray(l => l.LocalName));
+                Assert.Equal("<>x.<>m0(string)", testData.GetMethodData("<>x.<>m0").Method.ToString());
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -492,6 +497,7 @@ class C
                 testData = new CompilationTestData();
                 context.CompileExpression("x", out var error, testData);
                 Assert.Null(error);
+                Assert.Equal("<>x.<>m0(string)", testData.GetMethodData("<>x.<>m0").Method.ToString());
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        2 (0x2)
