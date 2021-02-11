@@ -180,10 +180,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("int **p;", "int** p;")]
         [InlineData("int**p1,p2;", "int** p1, p2;")]
         [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [InlineData("int **p1, p2;", "int** p1, p2;")]
         [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
         public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
         {
             TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerReturnTypeOfIndexer()
+        {
+            var text = @"public unsafe class C
+{
+  int*this[int x,int y]{get=>(int*)0;}
+}";
+            var expected = @"public unsafe class C
+{
+  int* this[int x, int y] { get => (int*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
         }
 
         private void TestNormalizeStatement(string text, string expected)

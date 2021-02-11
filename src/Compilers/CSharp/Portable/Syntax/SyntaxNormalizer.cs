@@ -502,7 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             // The last asterisk of a pointer declaration should be followed by a space.
-            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent is PointerTypeSyntax && next.IsKind(SyntaxKind.IdentifierToken))
+            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent is PointerTypeSyntax &&
+                (next.IsKind(SyntaxKind.IdentifierToken) || next.Parent.IsKind(SyntaxKind.IndexerDeclaration)))
             {
                 return true;
             }
