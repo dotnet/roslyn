@@ -1465,6 +1465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
         {
+            if (member is FieldSymbol && forDiagnostics && this.IsTupleType)
+            {
+                // There is a problem with binding types of fields in tuple types.
+                // Skipping verification for them temporarily. 
+                return;
+            }
+
             if (member is NamedTypeSymbol type)
             {
                 Debug.Assert(forDiagnostics);
