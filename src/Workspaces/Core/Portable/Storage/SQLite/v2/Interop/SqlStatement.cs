@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
 
@@ -15,19 +14,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// either <see cref="Result.DONE"/> if the command completed and produced no
     /// value, or <see cref="Result.ROW"/> if it evaluated out to a sql row that can
     /// then be queried.
-    /// 
+    /// <para/>
     /// If a statement is parameterized then parameters can be provided by the 
     /// BindXXX overloads.  Bind is 1-based (to match sqlite).  
-    /// 
+    /// <para/>
     /// When done executing a statement, the statement should be <see cref="Reset"/>.
     /// The easiest way to ensure this is to just use a 'using' statement along with
     /// a <see cref="ResettableSqlStatement"/>.  By resetting the statement, it can
     /// then be used in the future with new bound parameters.
-    /// 
+    /// <para/>
     /// Finalization/destruction of the underlying raw sqlite statement is handled
     /// by <see cref="SqlConnection.Close_OnlyForUseBySQLiteConnectionPool"/>.
     /// </summary>
-    internal struct SqlStatement
+    internal readonly struct SqlStatement
     {
         private readonly SqlConnection _connection;
         private readonly SafeSqliteStatementHandle _rawStatement;
