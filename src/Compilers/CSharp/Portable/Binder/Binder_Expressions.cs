@@ -5884,20 +5884,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var leftType = boundValue.Type;
                         Debug.Assert((object)leftType != null);
 
-                            var leftName = left.Identifier.ValueText;
-                            if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
+                        var leftName = left.Identifier.ValueText;
+                        if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
+                        {
+                            var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+                            var boundType = BindNamespaceOrType(left, typeDiagnostics);
+                            if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything2))
                             {
-                                var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
-                                var boundType = BindNamespaceOrType(left, typeDiagnostics);
-                                if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything2))
-                                {
-                                    // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
-                                    boundValue = BindToNaturalType(boundValue, valueDiagnostics);
-                                    return new BoundTypeOrValueExpression(left,
-                                        new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
-                                }
+                                // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
+                                boundValue = BindToNaturalType(boundValue, valueDiagnostics);
+                                return new BoundTypeOrValueExpression(left,
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
                             }
-                            break;
+                        }
+                        break;
 
                         // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
                 }
