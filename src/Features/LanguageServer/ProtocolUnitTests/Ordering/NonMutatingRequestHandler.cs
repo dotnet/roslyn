@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public string Method => nameof(NonMutatingRequestHandler);
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
