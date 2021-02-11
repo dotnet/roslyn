@@ -1621,14 +1621,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyEntryPoint == null)
             {
                 EntryPoint? entryPoint;
-                MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
+                var simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
 
                 if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
                 {
                     if (simpleProgramEntryPointSymbol is object)
                     {
                         var diagnostics = BindingDiagnosticBag.GetInstance();
-                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, NoLocation.Singleton);
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, simpleProgramEntryPointSymbol.ReturnTypeSyntax.Location);
                         entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
                     }
                     else

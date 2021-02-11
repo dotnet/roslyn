@@ -13,6 +13,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal interface IRequestHandler
     {
+        /// <summary>
+        /// The LSP method that this <see cref="IRequestHandler"/> implements.
+        /// </summary>
+        string Method { get; }
+
+        /// <summary>
+        /// Whether or not the solution state on the server is modified
+        /// as a part of handling this request.
+        /// </summary>
+        bool MutatesSolutionState { get; }
     }
 
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler

@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+        internal override SyntaxTrivia EndOfLine(string text)
+            => SyntaxFactory.EndOfLine(text);
+
         internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
         {
             return SyntaxFactory.LocalDeclarationStatement(

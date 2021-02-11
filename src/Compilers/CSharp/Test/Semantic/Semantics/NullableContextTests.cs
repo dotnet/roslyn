@@ -61,7 +61,7 @@ class C
     void M() {{}}
 }}";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypes(globalContext));
+            var comp = CreateCompilation(source, options: WithNullable(globalContext));
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -93,7 +93,7 @@ partial class C
     void M2();
 }";
 
-            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
 
             var syntaxTree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(syntaxTree1);

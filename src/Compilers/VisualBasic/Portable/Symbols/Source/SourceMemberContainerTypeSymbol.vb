@@ -3401,20 +3401,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Only check interfaces that our base type does NOT implement.
                         If Not Me.BaseTypeNoUseSiteDiagnostics.ImplementsInterface(iface, comparer:=Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                             For Each ifaceMember In iface.GetMembers()
-                                If ifaceMember.RequiresImplementation() AndAlso ShouldReportImplementationError(ifaceMember) Then
+                                If ifaceMember.RequiresImplementation() Then
                                     Dim implementingSet As MultiDictionary(Of Symbol, Symbol).ValueSet = map(ifaceMember)
                                     Dim useSiteInfo = ifaceMember.GetUseSiteInfo()
-                                    If implementingSet.Count = 0 Then
-                                        'member was not implemented.
-                                        Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
-                                                                                        If(Me.IsStructureType(), "Structure", "Class"),
-                                                                                        CustomSymbolDisplayFormatter.ShortErrorName(Me),
-                                                                                        ifaceMember,
-                                                                                        CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(iface)))
-                                        diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
 
-                                    ElseIf implementingSet.Count = 1 Then ' Otherwise, a duplicate implementation error is reported above
-                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                    If ShouldReportImplementationError(ifaceMember) Then
+                                        If implementingSet.Count = 0 Then
+                                            'member was not implemented.
+                                            Dim diag = If(useSiteInfo.DiagnosticInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
+                                                                            If(Me.IsStructureType(), "Structure", "Class"),
+                                                                            CustomSymbolDisplayFormatter.ShortErrorName(Me),
+                                                                            ifaceMember,
+                                                                            CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(iface)))
+                                            diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
+
+                                        ElseIf implementingSet.Count = 1 Then ' Otherwise, a duplicate implementation error is reported above
+                                            diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                        End If
+
+                                    ElseIf implementingSet.Count = 1 Then
+                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0)))
                                     End If
                                 End If
                             Next

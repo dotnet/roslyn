@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
-            bool isOverride)
+            bool isOverride,
+            DiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: syntax,
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                backingParameter.Locations[0])
+                backingParameter.Locations[0],
+                diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;
         }

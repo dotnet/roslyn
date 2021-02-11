@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        private const string DefaultIndexerName = "Item";
-
         internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
@@ -114,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Type.GetRefKind(),
                 memberName,
                 syntax.AttributeLists,
-                location)
+                location,
+                diagnostics)
         {
             if (IsAutoProperty)
             {

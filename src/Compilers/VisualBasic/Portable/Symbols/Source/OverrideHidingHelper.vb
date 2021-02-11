@@ -1004,6 +1004,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ReportBadOverriding(errorId, overridingAccessor, overriddenAccessor, diagnostics)
                     End If
                 End If
+
+                Dim useSiteErrorInfo = overriddenAccessor.GetUseSiteErrorInfo()
+                If useSiteErrorInfo IsNot Nothing Then
+                    diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, overridingAccessor.Locations(0)))
+                End If
             End If
         End Sub
 
