@@ -1669,13 +1669,17 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
         public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnClass()
         {
             var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
 .class public auto ansi beforefieldinit C`6<T1, T2, T3, T4, T5, T6>
     extends [mscorlib]System.Object
 {
     // Methods
     .method public hidebysig static 
         void M1 (
-            method !T1 modopt(!T2) & modopt(!T3) *(!T4 modopt(!T5) & modopt(!T6)) param
+            method class A`1<!T1> modopt(class A`1<!T2>) & modopt(class A`1<!T3>) *(class A`1<!T4> modopt(class A`1<!T5>) & modopt(class A`1<!T6>)) param
         ) cil managed 
     {
         ret
@@ -1698,14 +1702,7 @@ class D6 {}
 ";
 
             var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
-
-            // This method should theoretically be supported by the language, but our custom modifier code doesn't decode these modifiers today.
-            // https://github.com/dotnet/roslyn/issues/51037
-            comp.VerifyDiagnostics(
-                // (4,31): error CS0570: 'C<T1, T2, T3, T4, T5, T6>.M1(?)' is not supported by the language
-                //     C<D1, D2, D3, D4, D5, D6>.M1(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("C<T1, T2, T3, T4, T5, T6>.M1(?)").WithLocation(4, 31)
-            );
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1713,21 +1710,25 @@ class D6 {}
 
             var symbol = model.GetSymbolInfo(invocation);
 
-            Assert.Null(symbol.Symbol);
-            AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(? param)", symbol.CandidateSymbols.Single().ToTestDisplayString());
+            AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           symbol.Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
         public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnMethod()
         {
             var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
 .class public auto ansi beforefieldinit C
     extends [mscorlib]System.Object
 {
     // Methods
     .method public hidebysig static 
         void M1<T1, T2, T3, T4, T5, T6> (
-            method !!T1 modopt(!!T2) & modopt(!!T3) *(!!T4 modopt(!!T5) & modopt(!!T6)) param
+            method class A`1<!!T1> modopt(class A`1<!!T2>) & modopt(class A`1<!!T3>) *(class A`1<!!T4> modopt(class A`1<!!T5>) & modopt(class A`1<!!T6>)) param
         ) cil managed 
     {
         ret
@@ -1750,14 +1751,7 @@ class D6 {}
 ";
 
             var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
-
-            // This method should theoretically be supported by the language, but our custom modifier code doesn't decode these modifiers today.
-            // https://github.com/dotnet/roslyn/issues/51037
-            comp.VerifyDiagnostics(
-                // (4,7): error CS0570: 'C.M1<T1, T2, T3, T4, T5, T6>(?)' is not supported by the language
-                //     C.M1<D1, D2, D3, D4, D5, D6>(null);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M1<D1, D2, D3, D4, D5, D6>").WithArguments("C.M1<T1, T2, T3, T4, T5, T6>(?)").WithLocation(4, 7)
-            );
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1765,8 +1759,82 @@ class D6 {}
 
             var symbol = model.GetSymbolInfo(invocation);
 
-            Assert.Null(symbol.Symbol);
-            AssertEx.Equal("void C.M1<D1, D2, D3, D4, D5, D6>(? param)", symbol.CandidateSymbols.Single().ToTestDisplayString());
+            AssertEx.Equal("void C.M1<D1, D2, D3, D4, D5, D6>(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public static int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall) Field
+}
+";
+
+            var code = @"
+unsafe
+{
+    delegate* unmanaged<int> ptr = M(C.Field);
+
+    delegate* unmanaged<T> M<T>(T arg) => null;
+}
+";
+
+            var comp = CreateCompilationWithIL(code, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var localSyntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            AssertEx.Equal("ptr = M(C.Field)", localSyntax.ToString());
+            var local = (ILocalSymbol)model.GetDeclaredSymbol(localSyntax)!;
+
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", local.Type.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(localSyntax.Initializer!.Value);
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts_InIL()
+        {
+            var cDefinition = @"
+public class C<T>
+{
+    public unsafe delegate* unmanaged<T> M() => null;
+}
+";
+            var cComp = CreateCompilation(cDefinition, assemblyName: "cLib");
+
+            var il = @"
+.assembly extern cLib
+{
+  .ver 0:0:0:0
+}
+.class public auto ansi beforefieldinit D
+    extends class [cLib]C`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall)>
+{
+}
+";
+
+            var comp = CreateCompilationWithIL("", il, references: new[] { cComp.ToMetadataReference() }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var d = comp.GetTypeByMetadataName("D");
+            var m = d!.BaseTypeNoUseSiteDiagnostics.GetMethod("M");
+
+            var funcPtrType = (FunctionPointerTypeSymbol)m.ReturnType;
+            AssertEx.Equal("delegate* unmanaged[Stdcall, Cdecl]<System.Int32 modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>", funcPtrType.ToTestDisplayString());
+            AssertEx.SetEqual(new[]
+                {
+                    "System.Runtime.CompilerServices.CallConvCdecl",
+                    "System.Runtime.CompilerServices.CallConvStdcall"
+                },
+                funcPtrType.Signature.GetCallingConventionModifiers().Select(c => ((CSharpCustomModifier)c).ModifierSymbol.ToTestDisplayString()));
         }
 
         [Fact]
