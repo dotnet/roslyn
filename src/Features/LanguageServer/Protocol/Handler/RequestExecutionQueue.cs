@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-                    var context = CreateRequestContext(work);
+                    var context = CreateRequestContext(work, out var workspace);
 
                     if (work.MutatesSolutionState)
                     {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lspSolutionCache.Remove(context.Workspace);
+                        _lspSolutionCache.Remove(workspace);
                     }
                     else
                     {
@@ -256,13 +256,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem)
+        private RequestContext CreateRequestContext(QueueItem queueItem, out Workspace workspace)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return RequestContext.Create(queueItem.RequiresLSPSolution, queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
+            return RequestContext.Create(queueItem.RequiresLSPSolution, queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse, out workspace);
         }
     }
 }

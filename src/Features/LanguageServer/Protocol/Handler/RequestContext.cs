@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
-            IDocumentChangeTracker? documentChangeTracker)
+            IDocumentChangeTracker? documentChangeTracker,
+            out Workspace workspace)
         {
             // Go through each registered workspace, find the solution that contains the document that
             // this request is for, and then updates it based on the state of the world as we know it, based on the
@@ -60,7 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(workspaceSolution.Workspace, solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
+                workspace = workspaceSolution.Workspace;
+                return new RequestContext(solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
             }
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // document text. If document id is null here, this will just return null
             document = lspSolution.GetDocument(document?.Id);
 
-            return new RequestContext(lspSolution.Workspace, lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+            workspace = lspSolution.Workspace;
+            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -158,11 +161,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
-        /// The workspace that the documeny was found in, if any, if <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/> has a non-null return.
-        /// </summary>
-        public readonly Workspace Workspace;
-
-        /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
         public readonly Solution? Solution;
@@ -182,9 +180,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        private RequestContext(Workspace workspace, Solution? solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        private RequestContext(Solution? solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
         {
-            Workspace = workspace;
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
