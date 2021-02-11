@@ -810,7 +810,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudio16_9_Preview3OrHigherMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public async Task TestOpenProject_AssemblyNameIsPath()
         {
@@ -826,7 +826,7 @@ class C1
                 var project = solution.Projects.First();
                 var comp = await project.GetCompilationAsync();
                 Assert.Equal("ReproApp", comp.AssemblyName);
-                var expectedOutputPath = GetParentDirOfParentDirOfContainingDir(project.FilePath);
+                var expectedOutputPath = Path.GetDirectoryName(project.FilePath);
                 Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
             }
         }
