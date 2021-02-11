@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
