@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -57,11 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
-            // UI-affinitized experimentation service
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitialized();
-            await TaskScheduler.Default;
+            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync().ConfigureAwait(false);
 
             var id = ProjectId.CreateNewId(projectSystemName);
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
@@ -131,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     w.OnProjectAdded(projectInfo);
                 }
 
-                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language, CancellationToken.None);
             });
 
             return project;

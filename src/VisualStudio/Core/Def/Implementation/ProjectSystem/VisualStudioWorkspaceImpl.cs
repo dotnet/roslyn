@@ -1606,10 +1606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 base.OnProjectRemoved(projectId);
 
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
-                {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    RefreshProjectExistsUIContextForLanguage(languageName);
-                });
+                    await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false));
             }
         }
 
@@ -1958,8 +1955,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void EnsureDocumentOptionProvidersInitialized()
+        internal async Task EnsureDocumentOptionProvidersInitializedAsync()
         {
+            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
+            // UI-affinitized experimentation service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             _foregroundObject.AssertIsForeground();
 
             if (_documentOptionsProvidersInitialized)
@@ -1979,9 +1980,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void RefreshProjectExistsUIContextForLanguage(string language)
+        internal void RefreshProjectExistsUIContextForLanguage(string language, CancellationToken cancellationToken)
+            => _foregroundObject.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                await RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(false));
+
+        private async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
         {
             // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
+            await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _foregroundObject.AssertIsForeground();
 
             lock (_gate)
