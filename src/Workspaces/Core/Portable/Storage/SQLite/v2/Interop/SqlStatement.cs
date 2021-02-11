@@ -77,11 +77,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             // on the topic.  So it's fine that our own stackalloc'ed bytes will be gone when this function
             // returns and our caller continues to interact with this SqlStatement instance.
             var utf8ByteCount = Encoding.UTF8.GetByteCount(value);
-            var utf8WithTrailingZeroByteCount = utf8ByteCount + 1;
-
-            if (utf8WithTrailingZeroByteCount <= 512)
+            if (utf8ByteCount <= 512)
             {
-                Span<byte> bytes = stackalloc byte[utf8WithTrailingZeroByteCount];
+                Span<byte> bytes = stackalloc byte[utf8ByteCount];
 #if NETCOREAPP
                 Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
 #else
@@ -90,11 +88,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                     fixed (char* charsPtr = value)
                     fixed (byte* bytesPtr = bytes)
                     {
-                        Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(charsPtr, value.Length, bytesPtr, utf8WithTrailingZeroByteCount) == utf8ByteCount);
+                        Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(charsPtr, value.Length, bytesPtr, utf8ByteCount) == utf8ByteCount);
                     }
                 }
 #endif
-                bytes[utf8WithTrailingZeroByteCount - 1] = 0;
                 _connection.ThrowIfNotOk(NativeMethods.sqlite3_bind_text(_rawStatement, parameterIndex, bytes));
             }
             else
