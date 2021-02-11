@@ -57,6 +57,16 @@
         <target state="translated">허용:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">명확하게 하기 위해 항상</target>
@@ -572,6 +582,11 @@
         <target state="translated">새 형식 이름:</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="new">New line preferences (experimental):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">public이 아닌 메서드</target>
@@ -725,6 +740,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">리포지토리</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="new">Require:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
