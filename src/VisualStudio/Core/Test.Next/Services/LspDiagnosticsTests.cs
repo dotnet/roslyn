@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Shell = Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
@@ -354,7 +355,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
+            var languageServer = await CreateLanguageServerAsync(serverStream, serverStream, workspace, diagnosticService).ConfigureAwait(false);
 
             // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
@@ -375,13 +376,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
+            static async Task<InProcLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
 
-                var languageServer = new InProcLanguageServer(
+                var languageServer = await InProcLanguageServer.CreateAsync(
                     languageClient: new TestLanguageClient(),
                     inputStream,
                     outputStream,
@@ -390,7 +391,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     mockDiagnosticService,
                     listenerProvider,
                     lspWorkspaceRegistrationService,
-                    clientName: null);
+                    asyncServiceProvider: null,
+                    clientName: null,
+                    CancellationToken.None).ConfigureAwait(false);
                 return languageServer;
             }
         }
@@ -570,7 +573,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         private class TestLanguageClient : AbstractInProcLanguageClient
         {
             public TestLanguageClient()
-                : base(null!, null!, null, null!, null!, null)
+                : base(null!, null!, null, null!, null!, null!, null)
             {
             }
 
