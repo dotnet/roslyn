@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.SQLite
     /// </summary>
     internal abstract class AbstractSQLitePersistentStorageService : AbstractPersistentStorageService
     {
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LoadLibrary(string dllToLoad);
-
         protected static bool TryInitializeLibraries() => s_initialized.Value;
 
         private static readonly Lazy<bool> s_initialized = new(() => TryInitializeLibrariesLazy());
