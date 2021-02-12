@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     fields.Free();
                 }
 
+                // Compare references
+                retExpression = F.LogicalOr(F.ObjectEqual(F.This(), boundLocal), retExpression);
+
                 // Final return statement
                 BoundStatement retStatement = F.Return(retExpression);
 
