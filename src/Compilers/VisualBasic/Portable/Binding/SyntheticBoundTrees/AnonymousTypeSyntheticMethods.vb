@@ -216,6 +216,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Final equality check: <valIsNotNothing> AndAlso <combinedFieldCheck>
                 Dim finalEqualityCheck = BuildAndAlso(valIsNotNothing, combinedFieldCheck, booleanType)
 
+                Dim meIsValCheck = BuildIsCheck(boundMeReference, boundValReference, booleanType)
+
+                ' Me Is val OrElse (<valIsNotNothing> AndAlso <combinedFieldCheck>)
+                finalEqualityCheck = BuildOrElse(meIsValCheck, finalEqualityCheck, booleanType)
+
                 ' Create a bound block 
                 Return New BoundBlock(syntax, Nothing,
                                       ImmutableArray.Create(localMyFieldBoxed, localOtherFieldBoxed),
@@ -310,6 +315,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private Function BuildAndAlso(left As BoundExpression, right As BoundExpression, booleanType As TypeSymbol) As BoundExpression
                 Return New BoundBinaryOperator(Syntax, BinaryOperatorKind.AndAlso,
+                                               left, right, False, booleanType).MakeCompilerGenerated()
+            End Function
+
+            Private Function BuildOrElse(left As BoundExpression, right As BoundExpression, booleanType As TypeSymbol) As BoundExpression
+                Return New BoundBinaryOperator(Syntax, BinaryOperatorKind.OrElse,
                                                left, right, False, booleanType).MakeCompilerGenerated()
             End Function
         End Class
