@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => Methods.TextDocumentDocumentHighlightName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 

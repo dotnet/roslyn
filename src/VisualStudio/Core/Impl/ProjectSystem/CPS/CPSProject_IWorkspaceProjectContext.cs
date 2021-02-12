@@ -177,6 +177,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
             }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)

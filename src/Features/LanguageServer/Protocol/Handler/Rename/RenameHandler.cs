@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => LSP.Methods.TextDocumentRenameName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
