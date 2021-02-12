@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
         public override Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document, $"Got a change request for {request.TextDocument.Uri} but the document was not found in a workspace");
-
             var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
             // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
