@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
-        [WorkItem(51196, "https://github.com/dotnet/roslyn/issues/51196")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/51196: skipping to unblock merge."), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
             int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -150,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/51196: skipping to unblock merge.")]
-        [WorkItem(51196, "https://github.com/dotnet/roslyn/issues/51196")]
+        [Fact]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void DeeplyNestedGeneric()
@@ -231,8 +229,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/51196: skipping to unblock merge.")]
-        [WorkItem(51196, "https://github.com/dotnet/roslyn/issues/51196")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void NestedIfStatements()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -278,8 +275,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/51196: skipping to unblock merge.")]
-        [WorkItem(51196, "https://github.com/dotnet/roslyn/issues/51196")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
