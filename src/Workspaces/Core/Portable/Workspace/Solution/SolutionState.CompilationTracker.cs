@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis
 
             private void WriteState(State state, SolutionServices solutionServices)
             {
-                Contract.ThrowIfTrue(ReadState() is FinalState, "Tried to write over a tracker's final state.")
-
                 if (solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
@@ -262,12 +260,13 @@ namespace Microsoft.CodeAnalysis
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
-                var finalState = new FinalState(
+                var finalState = FinalState.Create(
                     new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                     new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                     inProgressCompilation,
                     hasSuccessfullyLoaded: false,
                     sourceGeneratedDocuments,
+                    inProgressCompilation,
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
@@ -844,12 +843,13 @@ namespace Microsoft.CodeAnalysis
 
                     compilation = compilation.AddSyntaxTrees(generatedDocuments.Select(d => d.SyntaxTree));
 
-                    var finalState = new FinalState(
+                    var finalState = FinalState.Create(
                         State.CreateValueSource(compilation, solution.Services),
                         State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                         compilationWithoutGeneratedFiles,
                         hasSuccessfullyLoaded,
                         generatedDocuments,
+                        compilation,
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 

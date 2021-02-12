@@ -203,14 +203,13 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
-                public FinalState(
+                private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    ProjectId projectId,
-                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                    UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
@@ -218,6 +217,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
+                    UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (GeneratedDocuments.IsEmpty)
                     {
@@ -226,18 +226,33 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
                         Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
                     }
+                }
 
-                    // finalCompilationSource.GetValue().Value must succeed.  Our caller either passes us a constant
-                    // source (which will succeed), or a WeakSource, but to a compilation that is strongly held through
-                    // other values on their stack.  So this is safe to call.
-                    var finalCompilation = finalCompilationSource.GetValue().Value;
-                    Contract.ThrowIfNull(finalCompilation);
-
+                /// <param name="finalCompilation">Not held onto</param>
+                /// <param name="projectId">Not held onto</param>
+                /// <param name="metadataReferenceToProjectId">Not held onto</param>
+                public static FinalState Create(
+                    ValueSource<Optional<Compilation>> finalCompilationSource,
+                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation compilationWithoutGeneratedFiles,
+                    bool hasSuccessfullyLoaded,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation finalCompilation,
+                    ProjectId projectId,
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
-                    this.UnrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
+                    var unrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
                     RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+
+                    return new FinalState(
+                        finalCompilationSource,
+                        compilationWithoutGeneratedFilesSource,
+                        compilationWithoutGeneratedFiles,
+                        hasSuccessfullyLoaded,
+                        generatedDocuments, unrootedSymbolSet);
                 }
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
