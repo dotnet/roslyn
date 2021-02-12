@@ -103,17 +103,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We want to compute the document's text just once.
                 documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+                var completionChange = await completionService.GetChangeAsync(
+                    document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 // If possible, we want to compute the item's range just once as well.
                 // Individual items can override this range later.
-                defaultSpan = list.Items.First().Span;
+                defaultSpan = completionChange.TextChange.Span;
                 defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan.Value, documentText);
+            }
+
+            using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
+            foreach (var item in list.Items)
+            {
+                var lspCompletionItem = await CreateLSPCompletionItemAsync(
+                    request, document, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
+                    completionService, returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                lspCompletionItems.Add(lspCompletionItem);
             }
 
             return new LSP.VSCompletionList
             {
-                Items = list.Items.Select(item => CreateLSPCompletionItem(
-                    request, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
-                    returnTextEdits, documentText, defaultSpan, defaultRange)).ToArray(),
+                Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
 
@@ -134,69 +144,70 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return true;
             }
 
-            static LSP.CompletionItem CreateLSPCompletionItem(
+            static async Task<LSP.CompletionItem> CreateLSPCompletionItemAsync(
                 LSP.CompletionParams request,
+                Document document,
                 CompletionItem item,
                 long? resultId,
                 bool useVSCompletionItem,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                CompletionService completionService,
                 bool returnTextEdits,
-                SourceText? documentText = null,
-                TextSpan? defaultSpan = null,
-                LSP.Range? defaultRange = null)
+                SourceText? documentText,
+                TextSpan? defaultSpan,
+                LSP.Range? defaultRange,
+                CancellationToken cancellationToken)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(
-                        request, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        returnTextEdits, documentText, defaultSpan, defaultRange);
+                    var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
+                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache, completionService,
+                        returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(
-                        request, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        returnTextEdits, documentText, defaultSpan, defaultRange);
+                    var roslynCompletionItem = await CreateCompletionItemAsync<LSP.CompletionItem>(
+                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache, completionService,
+                        returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     return roslynCompletionItem;
                 }
             }
 
-            static TCompletionItem CreateCompletionItem<TCompletionItem>(
+            static async Task<TCompletionItem> CreateCompletionItemAsync<TCompletionItem>(
                 LSP.CompletionParams request,
+                Document document,
                 CompletionItem item,
                 long? resultId,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                CompletionService completionService,
                 bool returnTextEdits,
-                SourceText? documentText = null,
-                TextSpan? defaultSpan = null,
-                LSP.Range? defaultRange = null) where TCompletionItem : LSP.CompletionItem, new()
+                SourceText? documentText,
+                TextSpan? defaultSpan,
+                LSP.Range? defaultRange,
+                CancellationToken cancellationToken) where TCompletionItem : LSP.CompletionItem, new()
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
-                var insertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
 
                 LSP.TextEdit? textEdit = null;
                 if (returnTextEdits)
                 {
-                    Contract.ThrowIfNull(documentText);
-                    Contract.ThrowIfNull(defaultSpan);
-                    Contract.ThrowIfNull(defaultRange);
-
-                    textEdit = new LSP.TextEdit()
-                    {
-                        NewText = insertText,
-                        Range = item.Span == defaultSpan.Value
-                            ? defaultRange
-                            : ProtocolConversions.TextSpanToRange(item.Span, documentText),
-                    };
+                    textEdit = await GenerateTextEdit(
+                        document, item, completionService, documentText, defaultSpan, defaultRange,
+                        textEdit, cancellationToken).ConfigureAwait(false);
                 }
 
                 var completionItem = new TCompletionItem
                 {
-                    TextEdit = returnTextEdits ? textEdit : null,
-                    InsertText = returnTextEdits ? null : insertText,
+                    TextEdit = returnTextEdits
+                        ? textEdit
+                        : null,
+                    InsertText = returnTextEdits
+                        ? null
+                        : item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText,
                     Label = completeDisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
@@ -211,6 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
+
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
                 if (commitCharacters != null)
                 {
@@ -218,6 +230,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 return completionItem;
+
+                static async Task<LSP.TextEdit> GenerateTextEdit(
+                    Document document,
+                    CompletionItem item,
+                    CompletionService completionService,
+                    SourceText? documentText,
+                    TextSpan? defaultSpan,
+                    LSP.Range? defaultRange,
+                    LSP.TextEdit? textEdit,
+                    CancellationToken cancellationToken)
+                {
+                    Contract.ThrowIfNull(documentText);
+                    Contract.ThrowIfNull(defaultSpan);
+                    Contract.ThrowIfNull(defaultRange);
+
+                    var completionChange = await completionService.GetChangeAsync(
+                        document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var completionChangeSpan = completionChange.TextChange.Span;
+
+                    textEdit = new LSP.TextEdit()
+                    {
+                        NewText = completionChange.TextChange.NewText ?? "",
+                        Range = completionChangeSpan == defaultSpan.Value
+                            ? defaultRange
+                            : ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
+                    };
+                    return textEdit;
+                }
             }
 
             static string[]? GetCommitCharacters(CompletionItem item, Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> currentRuleCache)
