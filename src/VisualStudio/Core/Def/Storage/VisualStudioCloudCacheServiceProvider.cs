@@ -23,9 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioCloudCacheServiceProvider(
-            [Import("Microsoft.VisualStudio.Shell.SVsServiceProvider")] Shell.IAsyncServiceProvider serviceProvider)
+            SVsServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
         public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)

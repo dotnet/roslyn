@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // words, if we've cached the information when in the DEBUG state of the project, but we lookup when in the
             // RELEASE state, we'll still find the entry.  The data may be inaccurate, but that's ok as this is just for
             // temporary classifying until the real classifier takes over when the solution fully loads.
-            var projectKey = new ProjectKey(SolutionKey.ToSolutionKey(project.Solution), project.Id, project.FilePath, project.Name, Checksum.Null);
-            return new DocumentKey(projectKey, document.Id, document.FilePath, document.Name);
+            var projectKey = new ProjectKey(SolutionKey.ToSolutionKey(project.Solution), project.State, project.Id, project.FilePath, project.Name, Checksum.Null);
+            return new DocumentKey(projectKey, document.State, document.Id, document.FilePath, document.Name);
         }
     }
 }

@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(ICloudCacheServiceProvider), ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(ICloudCacheServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemoteCloudCacheServiceProvider : ICloudCacheServiceProvider
     {
         [ImportingConstructor]

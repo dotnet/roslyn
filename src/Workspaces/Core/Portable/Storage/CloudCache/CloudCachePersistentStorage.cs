@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.Storage
         private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
         private static readonly CloudCacheContainerKey s_solutionKey = new("Roslyn.Solution");
 
+        /// <summary>
+        /// Cache from project green nodes to the container keys we've computed for it (and the documents inside of it).
+        /// We can avoid computing these container keys when called repeatedly for the same projects/documents.
+        /// </summary>
         private static readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey> s_projectToContainerKey = new();
 
         private readonly ICloudCacheService _cacheService;
