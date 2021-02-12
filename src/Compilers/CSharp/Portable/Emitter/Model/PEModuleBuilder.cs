@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -673,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
 
-            DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info != null)
             {
                 Symbol.ReportUseSiteDiagnostic(info,
@@ -690,21 +691,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
-        }
-
-        internal sealed override Cci.INamedTypeReference GetSystemType(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
-
-            DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                Symbol.ReportUseSiteDiagnostic(info,
-                                               diagnostics,
-                                               syntaxOpt != null ? syntaxOpt.Location : NoLocation.Singleton);
-            }
-
-            return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()
@@ -848,12 +834,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (namedTypeSymbol.OriginalDefinition.Kind == SymbolKind.ErrorType)
             {
                 ErrorTypeSymbol errorType = (ErrorTypeSymbol)namedTypeSymbol.OriginalDefinition;
-                DiagnosticInfo diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                DiagnosticInfo diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
 
                 if (diagInfo == null && namedTypeSymbol.Kind == SymbolKind.ErrorType)
                 {
                     errorType = (ErrorTypeSymbol)namedTypeSymbol;
-                    diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                    diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
                 }
 
                 // Try to decrease noise by not complaining about the same type over and over again.
@@ -966,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
             if ((object)declaredBase != null)
             {
-                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                var diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo;
                 if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(diagnosticInfo, location);
@@ -1679,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
-            return GetAdditionalTopLevelTypes(context.Diagnostics)
+            return GetAdditionalTopLevelTypes()
 #if DEBUG
                    .Select(type => type.GetCciAdapter())
 #endif
@@ -1693,6 +1679,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    .Select(type => type.GetCciAdapter())
 #endif
                    ;
+        }
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        {
+            return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
         }
     }
 }

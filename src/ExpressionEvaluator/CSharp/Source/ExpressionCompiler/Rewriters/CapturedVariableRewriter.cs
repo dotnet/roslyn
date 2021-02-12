@@ -95,9 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var syntax = node.Syntax;
             var rewrittenThis = GenerateThisReference(node);
             var baseType = node.Type;
-            HashSet<DiagnosticInfo> unusedUseSiteDiagnostics = null;
-            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref unusedUseSiteDiagnostics);
-            Debug.Assert(unusedUseSiteDiagnostics == null || !conversion.IsValid || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
+            CompoundUseSiteInfo<AssemblySymbol> discardedSiteInfo =
+#if DEBUG
+                default;
+#else
+                CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+#endif
+            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref discardedSiteInfo);
+            Debug.Assert(discardedSiteInfo.Diagnostics == null || !conversion.IsValid || discardedSiteInfo.Diagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
 
             // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwhile to
             // introduce a bunch of new overloads to accommodate isBaseConversion.
