@@ -88,18 +88,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 try
                 {
                     await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
-                    Metrics.RecordSuccess();
+                    this.Metrics.RecordSuccess();
                 }
                 catch (OperationCanceledException)
                 {
                     _logger.TraceInformation($"{MethodName} - Canceled");
-                    Metrics.RecordCancellation();
+                    this.Metrics.RecordCancellation();
                     throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.TraceException(ex);
-                    Metrics.RecordFailure();
+                    this.Metrics.RecordFailure();
                     throw;
                 }
                 finally

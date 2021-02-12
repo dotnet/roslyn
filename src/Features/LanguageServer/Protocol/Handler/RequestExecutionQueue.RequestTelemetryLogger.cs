@@ -37,23 +37,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public void UpdateTelemetryData(string methodName, TimeSpan queuedDuration, TimeSpan requestDuration, Result result)
             {
-                // Update the overall queue time metrics since the time in queue is not specific to the LSP method.
+                // Find the bucket corresponding to the queued duration and update the count of durations in that bucket.
+                // This is not broken down per method as time in queue is not specific to an LSP method.
                 _histogramLogAggregator?.IncreaseCount(QueuedDurationKey, Convert.ToDecimal(queuedDuration.TotalMilliseconds));
 
                 // Store the request time metrics per LSP method.
                 _histogramLogAggregator?.IncreaseCount(methodName, Convert.ToDecimal(requestDuration.TotalMilliseconds));
-                switch (result)
-                {
-                    case Result.Succeeded:
-                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._succeededCount);
-                        break;
-                    case Result.Failed:
-                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._failedCount);
-                        break;
-                    case Result.Cancelled:
-                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._cancelledCount);
-                        break;
-                }
+                _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
             }
 
             /// <summary>
@@ -84,12 +74,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         m["server"] = _serverTypeName;
                         m["method"] = kvp.Key;
-                        m["successful"] = kvp.Value._succeededCount;
-                        m["failed"] = kvp.Value._failedCount;
-                        m["cancelled"] = kvp.Value._cancelledCount;
-                        m["bucketsize"] = requestExecutionDuration?.BucketSize;
-                        m["maxbucketvalue"] = requestExecutionDuration?.MaxBucketValue;
-                        m["buckets"] = requestExecutionDuration?.GetBucketsAsString();
+                        m["successful"] = kvp.Value.SucceededCount;
+                        m["failed"] = kvp.Value.FailedCount;
+                        m["cancelled"] = kvp.Value.CancelledCount;
+                    }));
+
+                    Logger.Log(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(LogType.Trace, m =>
+                    {
+                        m["server"] = _serverTypeName;
+                        m["method"] = kvp.Key;
+                        m["bucketsize_ms"] = requestExecutionDuration?.BucketSize;
+                        m["maxbucketvalue_ms"] = requestExecutionDuration?.MaxBucketValue;
+                        m["bucketdata"] = requestExecutionDuration?.GetBucketsAsString();
                     }));
                 }
 
@@ -98,13 +94,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _histogramLogAggregator = null;
             }
 
+            /// <summary>
+            /// Creates a histogram log aggregator where request durations (ms) are distributed into buckets of
+            /// size 50ms, with the largets bucket starting at 5000ms.
+            /// </summary>
             private static HistogramLogAggregator CreateLogAggregator() => new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 5000);
 
             private class Counter
             {
-                public int _succeededCount;
-                public int _failedCount;
-                public int _cancelledCount;
+                private int _succeededCount;
+                private int _failedCount;
+                private int _cancelledCount;
+
+                public int SucceededCount => _succeededCount;
+                public int FailedCount => _failedCount;
+                public int CancelledCount => _cancelledCount;
+
+                public void IncrementCount(Result result)
+                {
+                    switch (result)
+                    {
+                        case Result.Succeeded:
+                            Interlocked.Increment(ref _succeededCount);
+                            break;
+                        case Result.Failed:
+                            Interlocked.Increment(ref _failedCount);
+                            break;
+                        case Result.Cancelled:
+                            Interlocked.Increment(ref _cancelledCount);
+                            break;
+                    }
+                }
             }
 
             internal enum Result
