@@ -3200,8 +3200,6 @@ oneMoreTime:
             }
 
             IConditionalAccessOperation currentConditionalAccess = operation;
-
-            currentConditionalAccess = operation;
             IOperation testExpression;
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             var previousTracker = _currentConditionalAccessTracker;
