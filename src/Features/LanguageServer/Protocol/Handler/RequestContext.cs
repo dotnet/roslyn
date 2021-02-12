@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 workspace = workspaceSolution.Workspace;
-                return new RequestContext(solution: null, clientCapabilities, clientName, document: null, documentChangeTracker);
+                return new RequestContext(solution: null, _logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker);
             }
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
