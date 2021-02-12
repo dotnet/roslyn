@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
             End Select
 
-            Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbDestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
+            Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbDestination, GetEnclosingBinder(boundExpression.Syntax), CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
         End Function
 
         ''' <summary>
@@ -791,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If elementType IsNot Nothing AndAlso Not elementType.IsErrorType() Then
                 If current IsNot Nothing AndAlso Not current.Type.IsErrorType() Then
-                    currentConversion = New Conversion(Conversions.ClassifyConversion(current.Type, elementType, useSiteDiagnostics:=Nothing))
+                    currentConversion = New Conversion(Conversions.ClassifyConversion(current.Type, elementType, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
                 End If
 
                 Dim boundCurrentConversion As BoundExpression = enumeratorInfo.CurrentConversion
@@ -799,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' NOTE: What VB calls the current conversion is used to convert the current placeholder to the iteration
                     ' variable type.  In the terminology of the public API, this is a conversion from the element type to the
                     ' iteration variable type, and is referred to as the element conversion.
-                    elementConversion = New Conversion(Conversions.ClassifyConversion(elementType, boundCurrentConversion.Type, useSiteDiagnostics:=Nothing))
+                    elementConversion = New Conversion(Conversions.ClassifyConversion(elementType, boundCurrentConversion.Type, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
                 End If
             End If
 
@@ -1226,8 +1226,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _guardedQueryBindersMap As New Dictionary(Of SyntaxNode, ImmutableArray(Of Binder))()
         Private ReadOnly _guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
 
-        Private ReadOnly _guardedDiagnostics As DiagnosticBag = New DiagnosticBag()
-
         ' If implicit variable declaration is in play, then we must bind everything
         ' up front in order to get all implicit local variables declared.
         ' Because order of declaration is important, and any expression could declare
@@ -1242,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.GuardedIncrementalBind(Me.Root, Me.RootBinder)
 
                         ' after this call, RootBinder.AllImplicitVariableDeclarationsAreHandled = True
-                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(Me._guardedDiagnostics)
+                        Me.RootBinder.DisallowFurtherImplicitVariableDeclaration(BindingDiagnosticBag.Discarded)
                     End If
                 Finally
                     _rwLock.ExitWriteLock()
@@ -1901,7 +1899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If bound.IsDefault Then
                         ' Bind the node and cache any associated bound nodes we find.
-                        Dim boundNode = Me.Bind(binder, node, Me._guardedDiagnostics)
+                        Dim boundNode = Me.Bind(binder, node, BindingDiagnosticBag.Discarded)
                         SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedBoundNodeMap, node)
                     End If
 
@@ -1955,7 +1953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(enclosingBinder.IsSemanticModelBinder)
             Dim binder = New IncrementalBinder(Me, enclosingBinder)
-            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, Me._guardedDiagnostics)
+            Dim boundRoot As BoundNode = Me.Bind(binder, bindingRoot, BindingDiagnosticBag.Discarded)
 
             ' if the node could not be bound, there's nothing more to do.
             If boundRoot Is Nothing Then
@@ -2075,7 +2073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End Function
 
-            Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
+            Public Overrides Function BindStatement(node As StatementSyntax, diagnostics As BindingDiagnosticBag) As BoundStatement
                 ' Check the bound node cache to see if the statement was already bound.
                 Dim boundNodes As ImmutableArray(Of BoundNode) = _binding.GuardedGetBoundNodesFromMap(node)
 

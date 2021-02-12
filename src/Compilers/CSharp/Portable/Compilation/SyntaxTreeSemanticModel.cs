@@ -230,9 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will be one in the binder chain and one isn't necessarily required for the batch case.
                         binder = new LocalScopeBinder(binder);
 
-                        var diagnostics = DiagnosticBag.GetInstance();
-                        BoundExpression bound = binder.BindExpression((ExpressionSyntax)node, diagnostics);
-                        diagnostics.Free();
+                        BoundExpression bound = binder.BindExpression((ExpressionSyntax)node, BindingDiagnosticBag.Discarded);
 
                         SymbolInfo info = GetSymbolInfoForNode(options, bound, bound, boundNodeForSyntacticParent: null, binderOpt: null);
                         if ((object)info.Symbol != null)
@@ -253,8 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(node));
                 if (binder != null)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref discardedUseSiteInfo);
 
                     // NOTE: We don't need to call GetSymbolInfoForSymbol because the symbols
                     // can only be parameters or type parameters.
@@ -344,59 +342,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // determine if this type is part of a base declaration being resolved
                     var basesBeingResolved = GetBasesBeingResolved(type);
 
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    try
+                    if (SyntaxFacts.IsNamespaceAliasQualifier(type))
                     {
-                        if (SyntaxFacts.IsNamespaceAliasQualifier(type))
+                        return binder.BindNamespaceAliasSymbol(node as IdentifierNameSyntax, BindingDiagnosticBag.Discarded);
+                    }
+                    else if (SyntaxFacts.IsInTypeOnlyContext(type))
+                    {
+                        if (!type.IsVar)
                         {
-                            return binder.BindNamespaceAliasSymbol(node as IdentifierNameSyntax, diagnostics);
+                            return binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol;
                         }
-                        else if (SyntaxFacts.IsInTypeOnlyContext(type))
+
+                        Symbol result = bindVarAsAliasFirst
+                            ? binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol
+                            : null;
+
+                        // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
+                        // as the type of a declared field.  This should only happen for GetAliasInfo
+                        // calls on implicitly-typed fields (rare?).  If it becomes a problem, then we
+                        // probably need to have the FieldSymbol retain alias info when it does its own
+                        // binding and expose it to us here.
+
+                        if ((object)result == null || result.Kind == SymbolKind.ErrorType)
                         {
-                            if (!type.IsVar)
+                            // We might be in a field declaration with "var" keyword as the type name.
+                            // Implicitly typed field symbols are not allowed in regular C#,
+                            // but they are allowed in interactive scenario.
+                            // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
+                            // Note that for regular C#, fieldSymbol.Type would be an error type.
+
+                            var variableDecl = type.Parent as VariableDeclarationSyntax;
+                            if (variableDecl != null && variableDecl.Variables.Any())
                             {
-                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
-                            }
-
-                            Symbol result = bindVarAsAliasFirst
-                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol
-                                : null;
-
-                            // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
-                            // as the type of a declared field.  This should only happen for GetAliasInfo
-                            // calls on implicitly-typed fields (rare?).  If it becomes a problem, then we
-                            // probably need to have the FieldSymbol retain alias info when it does its own
-                            // binding and expose it to us here.
-
-                            if ((object)result == null || result.Kind == SymbolKind.ErrorType)
-                            {
-                                // We might be in a field declaration with "var" keyword as the type name.
-                                // Implicitly typed field symbols are not allowed in regular C#,
-                                // but they are allowed in interactive scenario.
-                                // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
-                                // Note that for regular C#, fieldSymbol.Type would be an error type.
-
-                                var variableDecl = type.Parent as VariableDeclarationSyntax;
-                                if (variableDecl != null && variableDecl.Variables.Any())
+                                var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
+                                if ((object)fieldSymbol != null)
                                 {
-                                    var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
-                                    if ((object)fieldSymbol != null)
-                                    {
-                                        result = fieldSymbol.Type;
-                                    }
+                                    result = fieldSymbol.Type;
                                 }
                             }
+                        }
 
-                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
-                        }
-                        else
-                        {
-                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null).Symbol;
-                        }
+                        return result ?? binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol;
                     }
-                    finally
+                    else
                     {
-                        diagnostics.Free();
+                        return binder.BindNamespaceOrTypeOrAliasSymbol(type, BindingDiagnosticBag.Discarded, basesBeingResolved, basesBeingResolved != null).Symbol;
                     }
                 }
             }
@@ -1281,9 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
         {
             AliasSymbol aliasOpt;
-            DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).Type;
-            discarded.Free();
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
 
             return AttributeSemanticModel.Create(
                 this,

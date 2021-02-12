@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // If this was deletion, then we control the entire behavior of deletion ourselves.
                 if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
                 {
-                    return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters);
+                    return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, hasSuggestedItemOptions);
                 }
 
                 Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
@@ -400,7 +400,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionTriggerReason filterTriggerKind,
             List<MatchResult> matchResults,
             string filterText,
-            ImmutableArray<CompletionFilterWithState> filters)
+            ImmutableArray<CompletionFilterWithState> filters,
+            bool hasSuggestedItemOptions)
         {
             var matchingItems = matchResults.Where(r => r.MatchedFilterText);
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
@@ -454,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 //   text that originally appeared before the dot
                 // * deleting through a word from the end keeps that word selected
                 // This also preserves the behavior the VB had through Dev12.
-                hardSelect = bestMatchResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
+                hardSelect = !hasSuggestedItemOptions && bestMatchResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
                 index = matchResults.IndexOf(bestMatchResult.Value);
             }
             else
