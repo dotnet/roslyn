@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -21,16 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         public string ExtractClassTitle => ServicesVSResources.Extract_Base_Class;
         public ExtractClassViewModel ViewModel { get; }
         public MemberSelection MemberSelectionControl { get; }
-        public NewTypeDestinationSelection DestinationSelectionControl { get; }
 
         public ExtractClassDialog(ExtractClassViewModel viewModel)
         {
             ViewModel = viewModel;
-
             DataContext = ViewModel;
-
             MemberSelectionControl = new MemberSelection(ViewModel.MemberSelectionViewModel);
-            DestinationSelectionControl = new NewTypeDestinationSelection(ViewModel.DestinationViewModel);
+
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
         }

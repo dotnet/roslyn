@@ -594,6 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
 
+            ConstantValueUtils.CheckLangVersionForConstantValue(convertedExpression, diagnostics);
+
             // Certain contexts allow default parameter values syntactically but they are ignored during
             // semantic analysis. They are:
 

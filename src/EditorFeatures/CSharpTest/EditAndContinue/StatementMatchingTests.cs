@@ -38,7 +38,7 @@ Console.WriteLine(1)/*4*/;
 
             // pre-matched:
 
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
 
             var actual = ToMatchingPairs(match);
 
@@ -52,7 +52,7 @@ Console.WriteLine(1)/*4*/;
 
             // not pre-matched:
 
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2);
+            match = SyntaxComparer.Statement.ComputeMatch(m1, m2);
 
             actual = ToMatchingPairs(match);
 
@@ -80,7 +80,7 @@ Console.WriteLine(2);
             var m2 = MakeMethodBody(src2);
 
             var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs

@@ -157,18 +157,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
                 else
                 {
-                    Func<RoslynCompletion.CompletionItem, bool> predicate = c
-                        => CompareItems(c.DisplayText, expectedItemOrNull)
-                              && CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? "")
-                              && CompareItems(c.InlineDescription, inlineDescription ?? "")
-                              && (expectedDescriptionOrNull != null ? completionService.GetDescriptionAsync(document, c).Result.Text == expectedDescriptionOrNull : true)
-                              && (glyph.HasValue ? c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)) : true)
-                              && (matchPriority.HasValue ? (int)c.Rules.MatchPriority == matchPriority.Value : true)
-                              && (matchingFilters != null ? FiltersMatch(matchingFilters, c) : true)
-                              && (flags != null ? flags.Value == c.Flags : true);
-
-                    AssertEx.Any(items, predicate);
+                    AssertEx.Any(items, Predicate);
                 }
+            }
+
+            bool Predicate(RoslynCompletion.CompletionItem c)
+            {
+                if (!CompareItems(c.DisplayText, expectedItemOrNull))
+                    return false;
+                if (!CompareItems(c.DisplayTextSuffix, displayTextSuffix ?? ""))
+                    return false;
+                if (!CompareItems(c.InlineDescription, inlineDescription ?? ""))
+                    return false;
+                if (expectedDescriptionOrNull != null && completionService.GetDescriptionAsync(document, c).Result.Text != expectedDescriptionOrNull)
+                    return false;
+                if (glyph.HasValue && !c.Tags.SequenceEqual(GlyphTags.GetTags((Glyph)glyph.Value)))
+                    return false;
+                if (matchPriority.HasValue && c.Rules.MatchPriority != matchPriority.Value)
+                    return false;
+                if (matchingFilters != null && !FiltersMatch(matchingFilters, c))
+                    return false;
+                if (flags != null && flags.Value != c.Flags)
+                    return false;
+
+                return true;
             }
         }
 
@@ -553,6 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyProviderCommitCheckResultsAsync(
             Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt)
         {
+            document = WithChangedOptions(document);
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
@@ -628,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
-                                                   string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 

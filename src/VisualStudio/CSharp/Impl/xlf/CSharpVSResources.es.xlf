@@ -2,13 +2,33 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="translated">Agregar las directivas using que faltan al pegar</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="new">Allow blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="new">Allow embedded statements on same line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Aplicar todas las reglas de formato de C# (sangría, ajuste, espaciado)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
+        <source>Automatically show completion list in argument lists</source>
         <target state="needs-review-translation">Mostrar automáticamente la lista de finalización en las listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
@@ -52,11 +72,6 @@
         <target state="translated">General</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Generar suscripción de eventos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">En los operadores relacionales:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
@@ -64,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
-        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <target state="translated">Insertar // al comienzo de las líneas nuevas al escribir comentarios //</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -87,9 +102,14 @@
         <target state="translated">Realizar limpieza de código adicional durante la aplicación de formato</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <target state="translated">Preferir la creación implícita de objetos cuando el tipo sea aparente</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -124,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
-        <target state="new">Show hints for 'new' expressions</target>
+        <target state="translated">Mostrar sugerencias para las expresiones "new"</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">Mostrar elementos de espacios de nombres no importados (experimental)</target>
+        <target state="translated">Mostrar elementos de espacios de nombres no importados</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -265,11 +285,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Poner la llave de apertura en una línea nueva para los métodos y las funciones locales</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Colocar llave de apertura en la nueva línea para los inicializadores de objeto, colección y matriz</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">

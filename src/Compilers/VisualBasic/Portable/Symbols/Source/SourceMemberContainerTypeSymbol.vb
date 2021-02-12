@@ -3402,20 +3402,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' Only check interfaces that our base type does NOT implement.
                         If Not Me.BaseTypeNoUseSiteDiagnostics.ImplementsInterface(iface, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
                             For Each ifaceMember In iface.GetMembers()
-                                If ifaceMember.RequiresImplementation() AndAlso ShouldReportImplementationError(ifaceMember) Then
+                                If ifaceMember.RequiresImplementation() Then
                                     Dim implementingSet As MultiDictionary(Of Symbol, Symbol).ValueSet = map(ifaceMember)
                                     Dim useSiteErrorInfo = ifaceMember.GetUseSiteErrorInfo()
-                                    If implementingSet.Count = 0 Then
-                                        'member was not implemented.
-                                        Dim diag = If(useSiteErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
+
+                                    If ShouldReportImplementationError(ifaceMember) Then
+                                        If implementingSet.Count = 0 Then
+                                            'member was not implemented.
+                                            Dim diag = If(useSiteErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMember3,
                                                                             If(Me.IsStructureType(), "Structure", "Class"),
                                                                             CustomSymbolDisplayFormatter.ShortErrorName(Me),
                                                                             ifaceMember,
                                                                             CustomSymbolDisplayFormatter.ShortNameWithTypeArgs(iface)))
-                                        diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
+                                            diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
 
-                                    ElseIf implementingSet.Count = 1 AndAlso ' Otherwise, a duplicate implementation error is reported above
+                                        ElseIf implementingSet.Count = 1 AndAlso ' Otherwise, a duplicate implementation error is reported above
                                            useSiteErrorInfo IsNot Nothing Then
+                                            diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, implementingSet.Single.Locations(0)))
+                                        End If
+
+                                    ElseIf useSiteErrorInfo IsNot Nothing AndAlso implementingSet.Count = 1 Then
                                         diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, implementingSet.Single.Locations(0)))
                                     End If
                                 End If
@@ -3558,6 +3564,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         member,
                                         nextMember,
                                         SymbolComparisonResults.AllMismatches And Not (SymbolComparisonResults.CallingConventionMismatch Or SymbolComparisonResults.ConstraintMismatch))
+
+                                    Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
 
                                     ' only report diagnostics if the signature is considered equal following VB rules.
                                     If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
@@ -3738,6 +3746,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          SymbolComparisonResults.CustomModifierMismatch Or
                          SymbolComparisonResults.NameMismatch))
 
+                Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
                 ' only report diagnostics if the signature is considered equal following VB rules.
                 If (comparisonResults And significantDiff) = 0 Then
                     ReportOverloadsErrors(comparisonResults, method, nextMethod, method.Locations(0), diagnostics)
@@ -3820,6 +3830,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ReportOverloadsErrors(comparisonResults As SymbolComparisonResults, firstMember As Symbol, secondMember As Symbol, location As Location, diagnostics As DiagnosticBag)
+            Debug.Assert((comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) = 0)
+
             If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then

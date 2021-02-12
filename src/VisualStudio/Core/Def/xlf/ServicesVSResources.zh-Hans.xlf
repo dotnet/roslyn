@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../ServicesVSResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ServicesVSResources.resx">
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
@@ -57,6 +57,16 @@
         <target state="translated">允许:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">为始终保持清楚起见</target>
@@ -109,11 +119,6 @@
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
-        <source>C#/Visual Basic Language Server Client</source>
         <target state="translated">C#/Visual Basic 语言服务器客户端</target>
         <note />
       </trans-unit>
@@ -154,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
-        <target state="new">Color hints</target>
+        <target state="translated">颜色提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -164,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
-        <target state="new">Comments</target>
+        <target state="translated">备注</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -189,17 +194,17 @@
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
-        <target state="new">Display all hints while pressing Alt+F1</target>
+        <target state="translated">按 Alt+F1 时显示所有提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
-        <target state="needs-review-translation">显示内联参数名称提示(实验)(_L)</target>
+        <target state="translated">显示内联参数名称提示(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
-        <target state="new">Display inline type hints</target>
+        <target state="translated">显示内联类型提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -229,12 +234,12 @@
       </trans-unit>
       <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
         <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">启用 Razor“拉取”诊断(实验性，需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">启用“拉取”诊断(实验性，需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -304,7 +309,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+        <target state="translated">内联提示(实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -341,11 +346,6 @@
         <source>Kind</source>
         <target state="translated">种类</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
-        <source>Live Share C#/Visual Basic Language Server Client</source>
-        <target state="translated">Live Share C#/Visual Basic 语言服务器客户端</target>
-        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -569,7 +569,12 @@
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
         <source>New Type Name:</source>
-        <target state="new">New Type Name:</target>
+        <target state="translated">新类型名称:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="new">New line preferences (experimental):</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -702,11 +707,6 @@
         <target state="translated">拉取成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Razor C# 语言服务器客户端</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">正规表达式</target>
@@ -725,6 +725,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">存储库</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="new">Require:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -814,22 +819,27 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
-        <target state="new">Show hints for everything else</target>
+        <target state="translated">显示其他所有内容的提示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">显示创建隐式对象的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
-        <target state="new">Show hints for lambda parameter types</target>
+        <target state="translated">显示 lambda 参数类型的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
-        <target state="new">Show hints for literals</target>
+        <target state="translated">显示文本提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
-        <target state="new">Show hints for variables with inferred types</target>
+        <target state="translated">显示具有推断类型的变量的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -839,12 +849,17 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
-        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <target state="translated">当参数名称与方法的意图匹配时禁止显示提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
-        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <target state="translated">当参数名称只有后缀不同时禁止显示提示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -2171,16 +2186,6 @@ Additional information: {1}</source>
       <trans-unit id="type_is_apparent_from_assignment_expression">
         <source>type is apparent from assignment expression</source>
         <target state="translated">赋值表达式中类型明显</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">获取有关“{0}”的帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">从必应获取有关“{0}”的帮助</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_down">

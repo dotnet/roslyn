@@ -12,6 +12,16 @@
         <target state="translated">'{0}' 문에 중괄호를 추가합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="new">Blank line not allowed after constructor initializer colon</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="new">Consecutive braces must not have blank line between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">switch 문을 식으로 변환</target>
@@ -29,7 +39,12 @@
       </trans-unit>
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
-        <target state="new">Discard can be removed</target>
+        <target state="translated">무시 항목은 제거할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="new">Embedded statements must be on their own line</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -89,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnessary_discard">
         <source>Remove unnecessary discard</source>
-        <target state="new">Remove unnecessary discard</target>
+        <target state="translated">불필요한 무시 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -214,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
-        <target state="new">Use 'new(...)'</target>
+        <target state="translated">'new(...)' 사용</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -279,7 +294,7 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="new">'new' expression can be simplified</target>
+        <target state="translated">'new' 식을 간단하게 줄일 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">

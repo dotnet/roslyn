@@ -15,20 +15,24 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     internal abstract class AbstractInProcLanguageClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
+        private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
+
         /// <summary>
         /// Legacy support for LSP push diagnostics.
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
-        private readonly Workspace _workspace;
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+
+        protected readonly Workspace Workspace;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -67,19 +71,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         public AbstractInProcLanguageClient(
-            AbstractRequestHandlerProvider requestHandlerProvider,
+            AbstractRequestDispatcherFactory requestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider asyncServiceProvider,
             string? diagnosticsClientName)
         {
-            _requestHandlerProvider = requestHandlerProvider;
-            _workspace = workspace;
+            _requestDispatcherFactory = requestDispatcherFactory;
+            Workspace = workspace;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
-            _solutionProvider = solutionProvider;
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
+            _asyncServiceProvider = asyncServiceProvider;
         }
 
         /// <summary>
@@ -87,23 +93,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract VSServerCapabilities GetCapabilities();
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
+            if (_languageServer is not null)
+            {
+                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
+
+                await _languageServer.DisposeAsync().ConfigureAwait(false);
+            }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(
+            _languageServer = await InProcLanguageServer.CreateAsync(
                 this,
                 serverStream,
                 serverStream,
-                _requestHandlerProvider,
-                _workspace,
+                _requestDispatcherFactory.CreateRequestDispatcher(),
+                Workspace,
                 _diagnosticService,
                 _listenerProvider,
-                _solutionProvider,
-                clientName: _diagnosticsClientName);
+                _lspWorkspaceRegistrationService,
+                _asyncServiceProvider,
+                _diagnosticsClientName,
+                cancellationToken).ConfigureAwait(false);
 
-            return Task.FromResult(new Connection(clientStream, clientStream));
+            return new Connection(clientStream, clientStream);
         }
 
         /// <summary>

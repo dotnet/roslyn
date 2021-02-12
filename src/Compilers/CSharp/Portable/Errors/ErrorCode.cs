@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
         ERR_DiscardTypeInferenceFailed = 8183,
-        ERR_MixedDeconstructionUnsupported = 8184,
+        // ERR_MixedDeconstructionUnsupported = 8184,
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
@@ -1925,6 +1925,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EqualityContractRequiresGetter = 8906,
         WRN_UnreadRecordParameter = 8907,
         ERR_BadFieldTypeInRecord = 8908,
+
+        WRN_DoNotCompareFunctionPointers = 8909,
+        ERR_RecordAmbigCtor = 8910,
+        ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
 
         #endregion diagnostics introduced for C# 9.0
 

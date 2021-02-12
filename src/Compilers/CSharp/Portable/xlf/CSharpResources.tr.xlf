@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
-        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <target state="translated">'{0}' türü, kayıt alanı için kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <target state="translated">'{0}', '{2}' türünün arabirim listesinde zaten '{1}' olarak listelenmiş.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
-        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <target state="translated">'{0}' kayıt eşitlik anlaşması özelliğinin get erişimcisine sahip olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -427,9 +427,14 @@
         <target state="translated">'{0}' ile '{1}' işlev işaretçisi arasındaki başvurular uyuşmuyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
-        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <target state="translated">İşlev işaretçisi, adlandırılmış bağımsız değişkenler ile çağrılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -454,17 +459,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">'{0}' türü, new() işleminin hedef türü olarak kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">{0} için hedef tür yok</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">Bu bağlamda new() kullanımı geçerli değildir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -777,6 +782,11 @@
         <target state="translated">'{0}': 'readonly' erişimcilerde yalnızca özellik veya dizin oluşturucusu hem alma hem ayarlama erişimcisine sahipse kullanılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">Birincil oluşturucu, sentezlenmiş kopya oluşturucusuyla çakışıyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">'{1}', '{0}' öğesinden daha dar bir kaçış kapsamı içerdiğinden '{0}' öğesine '{1}' ref ataması yapılamıyor.</target>
@@ -942,24 +952,39 @@
         <target state="translated">'{0}', 'UnmanagedCallersOnly' özniteliğine sahip ve temsilci türüne dönüştürülemez. Bu yöntem için bir işlev işaretçisi edinin.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="IDS_FeatureDiscards">
-        <source>discards</source>
-        <target state="translated">atmalar</target>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">birlikte değişken dönüşler</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_AnalyzerReferencesFramework">
-        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
-        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
-      </trans-unit>
-      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
-        <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="translated">atılabilir değişkenler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">hedeflenen türde nesne oluşturma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">'{1}' türünü içeren '{0}' bütünleştirilmiş kodu, desteklenmeyen .NET Framework'e başvuruyor.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">Yüklenen bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">Aynı işleve yönelik işaretçiler birbirinden farklı olabileceğinden işlev işaretçilerinin karşılaştırılması beklenmeyen bir sonuç verebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">İşlev işaretçisi değerlerini karşılaştırma</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -981,6 +1006,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">Kayıt, 'GetHashCode' değil, 'Equals' tanımlıyor.</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -1447,9 +1477,9 @@
         <target state="translated">birleştirme ataması</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="translated">birlikte değişken dönüşler</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">sabit düz metin arasına kod eklenmiş dizeler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -2893,12 +2923,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">'{0}' parametresi okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -3298,7 +3328,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsMustHaveReferenceType">
         <source>The as operator must be used with a reference type or nullable type ('{0}' is a non-nullable value type)</source>
-        <target state="translated">As işleci bir başvuru türüyle veya null olabilen bir türle birlikte kullanılmalıdır ('{0}', null olamayan bir değer türüdür)</target>
+        <target state="translated">As işleci bir başvuru türüyle veya null atanabilir bir türle birlikte kullanılmalıdır ('{0}', null atanamaz bir değer türüdür)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowercaseEllSuffix">
@@ -4148,7 +4178,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="needs-review-translation">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' veya 'void' sözcüklerinden hemen önce gelebilir</target>
+        <target state="translated">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot dönüş türünden hemen önce gelebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -10485,11 +10515,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">Throw ifadesine bu bağlamda izin verilmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Ayrıştırma deyiminin sol tarafında, bildirim ve ifadeler birlikte kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">

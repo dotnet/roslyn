@@ -37,16 +37,6 @@
         <target state="translated">Ainda quer continuar? Isso pode produzir código desfeito.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">Erro ao criar a instância de CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">Erro ao criar instância de CodeFixProvider '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">itens de namespaces não importados</target>
@@ -72,6 +62,16 @@
         <target state="translated">A Formatação do Documento executou uma limpeza adicional</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="new">Get help for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="new">Get help for '{0}' from Bing</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">Ir Para a Base</target>
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">Dicas Embutidas</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -122,11 +122,6 @@
         <target state="translated">Pontuação</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Não há suporte para a remoção do documento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renomear _arquivo (o tipo não corresponde ao nome do arquivo)</target>
@@ -144,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">Dividir o comentário</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +254,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">Tipos de Usuário – Registros</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -1100,7 +1095,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetro(s) "out/ref".
+        <target state="translated">Podemos corrigir o erro ao não fazer struct de parâmetro(s) "out/ref". 
 Deseja continuar?</target>
         <note />
       </trans-unit>

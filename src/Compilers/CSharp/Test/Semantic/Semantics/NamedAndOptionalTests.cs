@@ -1350,6 +1350,47 @@ System.Runtime.InteropServices.UnknownWrapper
             }
         }
 
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void IUnknownConstant_MissingType()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    static void M0([Optional, MarshalAs(UnmanagedType.Interface)] object param) { }
+    static void M1([Optional, IUnknownConstant] object param) { }
+    static void M2([Optional, IDispatchConstant] object param) { }
+    static void M3([Optional] object param) { }
+
+    static void M()
+    {
+        M0();
+        M1();
+        M2();
+        M3();
+    }
+}
+";
+            CompileAndVerify(source).VerifyDiagnostics();
+
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Type__Missing);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.UnknownWrapper..ctor'
+                //         M1();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M1()").WithArguments("System.Runtime.InteropServices.UnknownWrapper", ".ctor").WithLocation(15, 9),
+                // (16,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.DispatchWrapper..ctor'
+                //         M2();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M2()").WithArguments("System.Runtime.InteropServices.DispatchWrapper", ".ctor").WithLocation(16, 9),
+                // (17,9): error CS0656: Missing compiler required member 'System.Type.Missing'
+                //         M3();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3()").WithArguments("System.Type", "Missing").WithLocation(17, 9));
+        }
+
         [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
         [Fact()]
         public void ComOptionalRefParameter()
@@ -2353,6 +2394,98 @@ public class C
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
             CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        public void InvalidConversionForDefaultArgument_InIL()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig instance int32  M1([opt] int32 s) cil managed
+  {
+    .param [1] = ""abc""
+    // Code size 2 (0x2)
+    .maxstack 8
+
+    IL_0000: ldarg.1
+    IL_0001: ret
+  } // end of method P::M1
+} // end of class P
+";
+
+            var csharp = @"
+class C
+{
+    public static void Main()
+    {
+         P p = new P();
+         System.Console.Write(p.M1());
+    }
+}
+";
+            var comp = CreateCompilationWithIL(csharp, il, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //          System.Console.Write(p.M1());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.M1()").WithArguments("string", "int").WithLocation(7, 31));
+        }
+
+        [Fact]
+        public void DefaultArgument_LoopInUsage()
+        {
+            var csharp = @"
+class C
+{
+    static object F(object param = F()) => param; // 1
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS1736: Default parameter value for 'param' must be a compile-time constant
+                //     static object F(object param = F()) => param; // 1
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("param").WithLocation(4, 36));
+
+            var method = comp.GetMember<MethodSymbol>("C.F");
+            var param = method.Parameters.Single();
+            Assert.Equal(ConstantValue.Bad, param.ExplicitDefaultConstantValue);
+        }
+
+        [Fact]
+        public void DefaultValue_Boxing()
+        {
+            var csharp = @"
+class C
+{
+    void M1(object obj = 1) // 1
+    {
+    }
+
+    C(object obj = System.DayOfWeek.Monday) // 2
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M1(object obj = 1) // 1
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(4, 20),
+                // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     C(object obj = System.DayOfWeek.Monday) // 2
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
         }
     }
 }

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -17,8 +16,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspMethod(LSP.Methods.TextDocumentRenameName, mutatesSolutionState: false), Shared]
-    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
+    internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,11 +26,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+        public override string Method => LSP.Methods.TextDocumentRenameName;
 
-        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+
+        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            WorkspaceEdit? workspaceEdit = null;
             var document = context.Document;
             if (document != null)
             {
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
-                    return workspaceEdit;
+                    return null;
                 }
 
                 var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
@@ -60,26 +63,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
                 var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
-                using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var documentEdits);
-                foreach (var docId in changedDocuments)
-                {
-                    var oldDoc = oldSolution.GetRequiredDocument(docId);
-                    var newDoc = renamedSolution.GetRequiredDocument(docId);
 
-                    var textChanges = await textDiffService.GetTextChangesAsync(oldDoc, newDoc, cancellationToken).ConfigureAwait(false);
-                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textDocumentEdit = new TextDocumentEdit
-                    {
-                        TextDocument = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() },
-                        Edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray()
-                    };
-                    documentEdits.Add(textDocumentEdit);
-                }
+                var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
+                    textDiffService, cancellationToken).ConfigureAwait(false);
 
-                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits.ToArray() };
+                return new WorkspaceEdit { DocumentChanges = documentEdits };
             }
 
-            return workspaceEdit;
+            return null;
         }
     }
 }

@@ -895,6 +895,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ReportBadOverriding(ERRID.ERR_InvalidOverrideDueToReturn2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverridingPropertyKind2, member, overriddenMember, diagnostics)
+                ElseIf (comparisonResults And SymbolComparisonResults.PropertyInitOnlyMismatch) <> 0 Then
+                    ReportBadOverriding(ERRID.ERR_OverridingInitOnlyProperty, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.ParamArrayMismatch) <> 0 Then
                     ReportBadOverriding(ERRID.ERR_OverrideWithArrayVsParamArray2, member, overriddenMember, diagnostics)
                 ElseIf (comparisonResults And SymbolComparisonResults.OptionalParameterTypeMismatch) <> 0 Then
@@ -1001,6 +1003,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Not ConsistentAccessibility(overridingAccessor, overriddenAccessor, errorId) Then
                         ReportBadOverriding(errorId, overridingAccessor, overriddenAccessor, diagnostics)
                     End If
+                End If
+
+                Dim useSiteErrorInfo = overriddenAccessor.GetUseSiteErrorInfo()
+                If useSiteErrorInfo IsNot Nothing Then
+                    diagnostics.Add(New VBDiagnostic(useSiteErrorInfo, overridingAccessor.Locations(0)))
                 End If
             End If
         End Sub

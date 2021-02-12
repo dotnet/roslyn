@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -28,18 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => _defaultCapabilitiesProvider.GetCapabilities();

@@ -45,6 +45,7 @@
       "src\\Compilers\\VisualBasic\\Test\\Symbol\\Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.vbproj",
       "src\\Compilers\\VisualBasic\\Test\\Syntax\\Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests.vbproj",
       "src\\Compilers\\VisualBasic\\vbc\\vbc.csproj",
+      "src\\Dependencies\\Collections\\Microsoft.CodeAnalysis.Collections.shproj",
       "src\\Dependencies\\PooledObjects\\Microsoft.CodeAnalysis.PooledObjects.shproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Compilers.Package.csproj",
       "src\\NuGet\\Microsoft.CodeAnalysis.Package.csproj",

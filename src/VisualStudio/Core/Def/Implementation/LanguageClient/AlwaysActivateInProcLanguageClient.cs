@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -33,23 +35,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
             IGlobalOptionService globalOptionService,
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }
 
-        public override string Name
-            => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
+        public override string Name => "C#/Visual Basic Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
-                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
-                // This flag ensures that cntrl+, search locally uses the old editor APIs so that only cntrl+Q search is powered via LSP.
+                TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true,
+                },
+                SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
+                // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
             };

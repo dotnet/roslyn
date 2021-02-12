@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend Class VisualBasicDebuggerIntelliSenseContext
         Inherits AbstractDebuggerIntelliSenseContext
 
-        Private _innerMostContainingNodeIsExpression As Boolean = False
+        Private _innerMostContainingNodeIsExpression As Boolean
 
         Public Sub New(wpfTextView As IWpfTextView,
                 vsTextView As IVsTextView,

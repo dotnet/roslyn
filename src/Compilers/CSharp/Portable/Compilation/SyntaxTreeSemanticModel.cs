@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -41,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
+#nullable enable
         internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
             _compilation = compilation;
@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetDiagnosticsForSyntaxTree(
             CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
+#nullable disable
 
         /// <summary>
         /// Gets the enclosing binder associated with the node
@@ -773,8 +774,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
-            var memberModel = Compilation.NullableSemanticAnalysisEnabled ? GetMemberModel(position) : null;
+            var memberModel = IsNullableAnalysisEnabledAtSpeculativePosition(position, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
+        }
+
+        internal bool IsNullableAnalysisEnabledAtSpeculativePosition(int position, SyntaxNode speculativeSyntax)
+        {
+            Debug.Assert(speculativeSyntax.SyntaxTree != SyntaxTree);
+
+            // https://github.com/dotnet/roslyn/issues/50234: CSharpSyntaxTree.IsNullableAnalysisEnabled() does not differentiate
+            // between no '#nullable' directives and '#nullable restore' - it returns null in both cases. Since we fallback to the
+            // directives in the original syntax tree, we're not handling '#nullable restore' correctly in the speculative text.
+            return ((CSharpSyntaxTree)speculativeSyntax.SyntaxTree).IsNullableAnalysisEnabled(speculativeSyntax.Span) ??
+                Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
         }
 
         private MemberSemanticModel GetMemberModel(int position)
@@ -2347,13 +2359,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {
-            if (!(symbol is LocalSymbol || symbol is ParameterSymbol || symbol is MethodSymbol)
-                || symbol.Locations.IsDefaultOrEmpty)
+            Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
+
+            if (symbol.Locations.IsDefaultOrEmpty)
             {
                 return symbol;
             }
 
-            var position = CheckAndAdjustPosition(symbol.Locations[0].SourceSpan.Start);
+            var location = symbol.Locations[0];
+            // The symbol may be from a distinct syntax tree - perhaps the
+            // symbol was returned from LookupSymbols() for instance.
+            if (location.SourceTree != this.SyntaxTree)
+            {
+                return symbol;
+            }
+
+            var position = CheckAndAdjustPosition(location.SourceSpan.Start);
             var memberModel = GetMemberModel(position);
             return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
         }

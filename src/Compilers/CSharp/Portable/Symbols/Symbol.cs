@@ -854,6 +854,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
         {
+#if DEBUG
+            if (ContainingSymbol is SourceMemberContainerTypeSymbol container)
+            {
+                container.AssertMemberExposure(this, forDiagnostics: true);
+            }
+#endif
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
@@ -1020,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type, AllowedRequiredModifierType allowedRequiredModifierType)
         {
-            return (type.DefaultType.TypeKind != TypeKind.TypeParameter && DeriveUseSiteDiagnosticFromType(ref result, type.Type)) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers, allowedRequiredModifierType);
         }
 

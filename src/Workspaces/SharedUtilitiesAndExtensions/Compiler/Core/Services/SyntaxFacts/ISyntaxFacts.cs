@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
-        bool SupportsNotPattern(ParseOptions options);
-        bool SupportsThrowExpression(ParseOptions options);
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
+        bool SupportsRecord(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -143,6 +144,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
+
+        void GetPartsOfInterpolationExpression(SyntaxNode node,
+            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken);
+        bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
 
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
@@ -275,8 +280,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node);
 
         bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
-        bool IsObjectInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node);
-        bool IsObjectInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
+        bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node);
+        bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
 
         bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
@@ -387,6 +392,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node);
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);

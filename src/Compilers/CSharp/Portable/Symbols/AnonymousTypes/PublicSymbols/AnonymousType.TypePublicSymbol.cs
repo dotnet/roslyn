@@ -330,10 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsRecord => false;
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
-                Debug.Assert(isValueTypeOverrideOpt == null);
-
                 if (ReferenceEquals(this, t2))
                 {
                     return true;

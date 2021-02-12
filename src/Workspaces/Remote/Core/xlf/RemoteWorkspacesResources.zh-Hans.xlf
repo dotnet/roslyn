@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../RemoteWorkspacesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../RemoteWorkspacesResources.resx">
     <body>
       <trans-unit id="FeatureName_AssetSynchronization">
         <source>Asset synchronization</source>
-        <target state="new">Asset synchronization</target>
+        <target state="translated">资产同步</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_AsynchronousOperationListener">
         <source>Asynchronous operation listener</source>
-        <target state="new">Asynchronous operation listener</target>
+        <target state="translated">异步操作侦听器</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
@@ -42,6 +42,11 @@
         <target state="translated">文档亮点</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
         <target state="translated">封装字段重构</target>
@@ -72,6 +77,11 @@
         <target state="translated">导航到</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="new">Navigation bar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">项目遥测集合</target>
@@ -94,7 +104,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
-        <target state="new">Asset provider</target>
+        <target state="translated">资产提供商</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

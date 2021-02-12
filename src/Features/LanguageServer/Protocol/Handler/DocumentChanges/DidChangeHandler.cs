@@ -13,9 +13,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentDidChangeName, mutatesSolutionState: true)]
-    internal class DidChangeHandler : IRequestHandler<LSP.DidChangeTextDocumentParams, object>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentDidChangeName)]
+    internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,11 +23,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+        public override string Method => LSP.Methods.TextDocumentDidChangeName;
 
-        public async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => true;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
+
+        public override async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document);
+            Contract.ThrowIfNull(context.Document, $"Got a change request for {request.TextDocument.Uri} but the document was not found in a workspace");
 
             var text = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

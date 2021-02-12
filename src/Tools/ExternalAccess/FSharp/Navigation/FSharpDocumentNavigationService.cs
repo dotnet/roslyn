@@ -6,6 +6,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -22,58 +23,58 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         {
         }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given position in the specified document.
-        /// </summary>
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
+            => CanNavigateToSpan(workspace, documentId, textSpan, CancellationToken.None);
+
+        public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentId, textSpan);
+            return service.CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
         }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given line/offset in the specified document.
-        /// </summary>
         public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
+            => CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, CancellationToken.None);
+
+        public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset);
+            return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, cancellationToken);
         }
 
-        /// <summary>
-        /// Determines whether it is possible to navigate to the given virtual position in the specified document.
-        /// </summary>
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace)
+            => CanNavigateToPosition(workspace, documentId, position, virtualSpace, CancellationToken.None);
+
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace);
+            return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
-        /// <summary>
-        /// Navigates to the given position in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
+            => TryNavigateToSpan(workspace, documentId, textSpan, options, CancellationToken.None);
+
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentId, textSpan, options);
+            return service.TryNavigateToSpan(workspace, documentId, textSpan, options, cancellationToken);
         }
 
-        /// <summary>
-        /// Navigates to the given line/offset in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
+            => TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options, CancellationToken.None);
+
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options);
+            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options, cancellationToken);
         }
 
-        /// <summary>
-        /// Navigates to the given virtual position in the specified document, opening it if necessary.
-        /// </summary>
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
+            => TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, CancellationToken.None);
+
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options);
+            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken);
         }
     }
 }

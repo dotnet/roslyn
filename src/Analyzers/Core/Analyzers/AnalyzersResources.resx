@@ -334,4 +334,25 @@
   <data name="Use_increment_operator" xml:space="preserve">
     <value>Use '++' operator</value>
   </data>
+  <data name="Avoid_multiple_blank_lines" xml:space="preserve">
+    <value>Avoid multiple blank lines</value>
+  </data>
+  <data name="Blank_line_required_between_block_and_subsequent_statement" xml:space="preserve">
+    <value>Blank line required between block and subsequent statement</value>
+  </data>
+  <data name="Change_namespace_to_match_folder_structure" xml:space="preserve">
+    <value>Change namespace to match folder structure</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Namespace_0_does_not_match_folder_structure_expected_1" xml:space="preserve">
+    <value>Namespace "{0}" does not match folder structure, expected "{1}"</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Namespace_does_not_match_folder_structure" xml:space="preserve">
+    <value>Namespace does not match folder structure</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Simplify_LINQ_expression" xml:space="preserve">
+    <value>Simplify LINQ expression</value>
+  </data>
 </root>

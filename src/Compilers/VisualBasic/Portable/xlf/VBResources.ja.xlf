@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">初期化専用プロパティ '{0}' は、オブジェクト メンバー初期化子を使用する場合か、インスタンス コンストラクター内の 'Me'、'MyClass'、'MyBase' でのみ割り当てることができます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
@@ -22,6 +27,16 @@
         <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' では、初期化専用 '{1}' をオーバーライドできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">初期化専用 '{0}' を実装することはできません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
@@ -37,9 +52,24 @@
         <target state="translated">ターゲット ランタイムは、インターフェイスのメンバーの 'Protected'、'Protected Friend'、'Private Protected' のアクセシビリティをサポートしていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">共有された WithEvents 変数のイベントを、別の種類のメソッドで処理することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行連結後のコメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">初期化専用セッターを使用して、'ByRef' プロパティに割り当てるか、そのプロパティを渡します</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -461,6 +491,50 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">型引数に Nothing は使用できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">ジェネレーターで次の例外がスローされました:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">ジェネレーターはソースを生成できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">ジェネレーターで次の例外がスローされました:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">ジェネレーターを初期化できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">

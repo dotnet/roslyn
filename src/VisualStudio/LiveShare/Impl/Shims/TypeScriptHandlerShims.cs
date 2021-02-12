@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -47,13 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
         });
 
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
+        public TypeScriptCompletionHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), new CompletionListCache())
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public Task<LanguageServer.Protocol.CompletionList?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             // However, this works through liveshare on the LSP client, but not the LSP extension.
             // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
             var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
-            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
+            var context = this.CreateRequestContext(request, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(request, context, cancellationToken);
         }
     }
@@ -70,18 +72,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionResolveName)]
     internal class TypeScriptCompletionResolverHandlerShim : CompletionResolveHandler, ILspRequestHandler<LanguageServer.Protocol.CompletionItem, LanguageServer.Protocol.CompletionItem, Solution>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+            : base(completionListCache: new CompletionListCache())
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public Task<LanguageServer.Protocol.CompletionItem> HandleAsync(LanguageServer.Protocol.CompletionItem param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var context = this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities());
+            var context = this.CreateRequestContext(param, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(param, context, cancellationToken);
         }
     }
@@ -89,13 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
     internal class TypeScriptDocumentSymbolsHandlerShim : DocumentSymbolsHandler, ILspRequestHandler<DocumentSymbolParams, SymbolInformation[], Solution>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptDocumentSymbolsHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptDocumentSymbolsHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public async Task<SymbolInformation[]> HandleAsync(DocumentSymbolParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
@@ -107,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
             }
 
-            var context = this.CreateRequestContext(param, _solutionProvider, clientCapabilities);
+            var context = this.CreateRequestContext(param, _workspaceRegistrationService, clientCapabilities);
             var response = await base.HandleRequestAsync(param, context, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
@@ -118,20 +121,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentImplementationName)]
     internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, LanguageServer.Protocol.Location[], Solution>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptFindImplementationsHandlerShim(ILspSolutionProvider solutionProvider, IThreadingContext threadingContext)
+        public TypeScriptFindImplementationsHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService, IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public Task<LanguageServer.Protocol.Location[]> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
+            var context = this.CreateRequestContext(request, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(request, context, cancellationToken);
         }
 
@@ -146,19 +149,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
     internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp, Solution>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
-            ILspSolutionProvider solutionProvider) : base(allProviders)
+            ILspWorkspaceRegistrationService workspaceRegistrationService) : base(allProviders)
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         public Task<SignatureHelp> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var context = this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities());
+            var context = this.CreateRequestContext(param, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(param, context, cancellationToken);
         }
     }
@@ -166,20 +169,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
     internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?, Solution>
     {
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptWorkspaceSymbolsHandlerShim(ILspSolutionProvider solutionProvider, IAsynchronousOperationListenerProvider listenerProvider)
+        public TypeScriptWorkspaceSymbolsHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService, IAsynchronousOperationListenerProvider listenerProvider)
             : base(listenerProvider)
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
         }
 
         [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
         public Task<SymbolInformation[]?> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
+            var context = this.CreateRequestContext(request, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(request, context, cancellationToken);
         }
     }
@@ -189,14 +192,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// </summary>
     internal static class Extensions
     {
-        public static LSP.RequestContext CreateRequestContext<TRequest, TResponse>(this IRequestHandler<TRequest, TResponse> requestHandler, TRequest request, ILspSolutionProvider provider, ClientCapabilities clientCapabilities, string? clientName = null)
+        public static LSP.RequestContext CreateRequestContext<TRequest, TResponse>(this IRequestHandler<TRequest, TResponse> requestHandler, TRequest request, ILspWorkspaceRegistrationService workspaceRegistrationService, ClientCapabilities clientCapabilities, string? clientName = null)
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            var (documentId, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
-            var document = solution.GetDocument(documentId);
-
-            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, documentChangeTracker: null);
+            return LSP.RequestContext.Create(textDocument, clientName, NoOpLspLogger.Instance, clientCapabilities, workspaceRegistrationService, null, null);
         }
     }
 }

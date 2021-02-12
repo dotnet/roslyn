@@ -116,27 +116,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object?[] { uiCultureLCID, cultureLCID },
                     cancellationToken).ConfigureAwait(false);
 
-                if (AsynchronousOperationListenerProvider.IsEnabled && !IsRpsMachine())
-                {
-                    await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
-                        (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-                }
+                await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
+                    (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
                 client.Started();
                 return client;
-            }
-
-            static bool IsRpsMachine()
-            {
-                try
-                {
-                    return Environment.MachineName.StartsWith("dtl-");
-                }
-                catch
-                {
-                    return false;
-                }
             }
         }
 

@@ -7,13 +7,15 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -25,19 +27,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
-            XamlLanguageServerProtocol languageServerProtocol,
+            XamlRequestDispatcherFactory xamlDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            XamlSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
         }
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => Resources.Xaml_Language_Server_Client;
+        public override string Name => "XAML Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
@@ -51,8 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.None
+                    Change = TextDocumentSyncKind.None,
+                    OpenClose = false
                 },
+                SupportsDiagnosticRequests = true,
             };
     }
 }

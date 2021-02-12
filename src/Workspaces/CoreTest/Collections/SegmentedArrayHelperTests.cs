@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Roslyn.Utilities;
 using Xunit;
 
