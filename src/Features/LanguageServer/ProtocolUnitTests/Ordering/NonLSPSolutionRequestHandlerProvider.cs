@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 #nullable disable
 
 using System;
@@ -11,50 +12,42 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(MutatingRequestHandler.MethodName)]
-    internal class MutatingRequestHandlerProvider : AbstractRequestHandlerProvider
+    [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName)]
+    internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandlerProvider()
+        public NonLSPSolutionRequestHandlerProvider()
         {
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
-            return ImmutableArray.Create<IRequestHandler>(new MutatingRequestHandler());
+            return ImmutableArray.Create<IRequestHandler>(new NonLSPSolutionRequestHandler());
         }
     }
 
-    internal class MutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
+    internal class NonLSPSolutionRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
-        public const string MethodName = nameof(MutatingRequestHandler);
-        private const int Delay = 100;
+        public const string MethodName = nameof(NonLSPSolutionRequestHandler);
 
         public string Method => MethodName;
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => false;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
-        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
-            var response = new TestResponse
-            {
-                Solution = context.Solution,
-                StartTime = DateTime.UtcNow
-            };
+            Assert.Null(context.Solution);
 
-            await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);
-
-            response.EndTime = DateTime.UtcNow;
-
-            return response;
+            return Task.FromResult(new TestResponse());
         }
     }
 }
