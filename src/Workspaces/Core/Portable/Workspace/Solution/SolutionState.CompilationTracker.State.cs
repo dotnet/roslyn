@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
                 /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
                 /// compilation (or any of it's assemblies) may produce new assembly symbols.
                 /// </summary>
-                public readonly UnrootedSymbolSet? UnrootedSymbolSet;
+                public readonly UnrootedSymbolSet UnrootedSymbolSet;
 
                 /// <summary>
                 /// The final compilation, with all references and source generators run. This is distinct from
