@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis
                     // the solution exposes that allows the user to map back from symbols to project information.
 
                     this.UnrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
-                    RecordAssemblySymbols(projectId, finalCompilationSource.GetValue().Value, metadataReferenceToProjectId);
+                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
                 }
 
                 private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
