@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
 
+            /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
+            public readonly bool RequiresLSPSolution;
+
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
             public readonly string MethodName;
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public QueueItem(
                 bool mutatesSolutionState,
+                bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
                 string? clientName,
                 string methodName,
@@ -64,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 ActivityId = activityId;
                 MutatesSolutionState = mutatesSolutionState;
+                RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
                 MethodName = methodName;

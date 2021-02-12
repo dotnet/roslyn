@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentDidChangeName)]
-    internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object>
+    internal class DidChangeHandler : AbstractStatelessRequestHandler<LSP.DidChangeTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,14 +26,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public override string Method => LSP.Methods.TextDocumentDidChangeName;
 
         public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => false;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidChangeTextDocumentParams request) => request.TextDocument;
 
-        public override async Task<object> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+        public override Task<object?> HandleRequestAsync(LSP.DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document, $"Got a change request for {request.TextDocument.Uri} but the document was not found in a workspace");
-
-            var text = await context.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = context.GetTrackedDocumentSourceText(request.TextDocument.Uri);
 
             // Per the LSP spec, each text change builds upon the previous, so we don't need to translate
             // any text positions between changes, which makes this quite easy.
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 
             context.UpdateTrackedDocument(request.TextDocument.Uri, text);
 
-            return true;
+            return SpecializedTasks.Default<object>();
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
         public abstract string Command { get; }
 
         public abstract bool MutatesSolutionState { get; }
+        public abstract bool RequiresLSPSolution { get; }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request);
 

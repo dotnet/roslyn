@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensRangeName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
