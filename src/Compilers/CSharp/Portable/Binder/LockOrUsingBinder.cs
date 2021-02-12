@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
-                var expressionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                var expressionDiagnostics = BindingDiagnosticBag.GetInstance();
                 BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 if (targetTypeOpt is object)
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundExpression = originalBinder.BindToNaturalType(boundExpression, diagnostics);
+                    boundExpression = originalBinder.BindToNaturalType(boundExpression, expressionDiagnostics);
                 }
                 Interlocked.CompareExchange(ref _lazyExpressionAndDiagnostics, new ExpressionAndDiagnostics(boundExpression, expressionDiagnostics.ToReadOnlyAndFree()), null);
             }
