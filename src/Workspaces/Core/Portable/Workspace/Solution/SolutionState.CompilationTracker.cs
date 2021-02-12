@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
 
             private void WriteState(State state, SolutionServices solutionServices)
             {
+                Contract.ThrowIfTrue(ReadState() is FinalState, "Tried to write over a tracker's final state.")
+
                 if (solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
