@@ -12,12 +12,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         /// <summary>
-        /// Logs metadata on how many / failure rate of requests
+        /// Logs metadata on LSP requests (duration, success / failure metrics)
         /// for this particular LSP server instance.
         /// </summary>
         internal class RequestTelemetryLogger : IDisposable
         {
+            private const string QueuedDurationKey = "QueuedDuration";
+
             private readonly string _serverTypeName;
+            private HistogramLogAggregator? _histogramLogAggregator;
 
             /// <summary>
             /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -29,21 +32,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 _serverTypeName = serverTypeName;
                 _requestCounters = new ConcurrentDictionary<string, Counter>();
+                _histogramLogAggregator = CreateLogAggregator();
             }
 
-            public void LogSuccess(string methodName)
+            public void UpdateTelemetryData(string methodName, TimeSpan queuedDuration, TimeSpan requestDuration, Result result)
             {
-                Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._successfulCount);
-            }
+                // Update the overall queue time metrics since the time in queue is not specific to the LSP method.
+                _histogramLogAggregator?.IncreaseCount(QueuedDurationKey, Convert.ToDecimal(queuedDuration.TotalMilliseconds));
 
-            public void LogCancel(string methodName)
-            {
-                Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._cancelledCount);
-            }
-
-            public void LogFailure(string methodName)
-            {
-                Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._failedCount);
+                // Store the request time metrics per LSP method.
+                _histogramLogAggregator?.IncreaseCount(methodName, Convert.ToDecimal(requestDuration.TotalMilliseconds));
+                switch (result)
+                {
+                    case Result.Succeeded:
+                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._succeededCount);
+                        break;
+                    case Result.Failed:
+                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._failedCount);
+                        break;
+                    case Result.Cancelled:
+                        Interlocked.Increment(ref _requestCounters.GetOrAdd(methodName, new Counter())._cancelledCount);
+                        break;
+                }
             }
 
             /// <summary>
@@ -52,27 +62,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public void Dispose()
             {
+                if (_histogramLogAggregator is null || _histogramLogAggregator.IsEmpty)
+                {
+                    return;
+                }
+
+                var queuedDurationCounter = _histogramLogAggregator.GetValue(QueuedDurationKey);
+                Logger.Log(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m["server"] = _serverTypeName;
+                    m["bucketsize"] = queuedDurationCounter?.BucketSize;
+                    m["maxbucketvalue"] = queuedDurationCounter?.MaxBucketValue;
+                    m["buckets"] = queuedDurationCounter?.GetBucketsAsString();
+                }));
+
                 foreach (var kvp in _requestCounters)
                 {
+                    var requestExecutionDuration = _histogramLogAggregator.GetValue(kvp.Key);
+
                     Logger.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
                     {
                         m["server"] = _serverTypeName;
                         m["method"] = kvp.Key;
-                        m["successful"] = kvp.Value._successfulCount;
+                        m["successful"] = kvp.Value._succeededCount;
                         m["failed"] = kvp.Value._failedCount;
                         m["cancelled"] = kvp.Value._cancelledCount;
+                        m["bucketsize"] = requestExecutionDuration?.BucketSize;
+                        m["maxbucketvalue"] = requestExecutionDuration?.MaxBucketValue;
+                        m["buckets"] = requestExecutionDuration?.GetBucketsAsString();
                     }));
                 }
 
                 // Clear telemetry we've published in case dispose is called multiple times.
                 _requestCounters.Clear();
+                _histogramLogAggregator = null;
             }
+
+            private static HistogramLogAggregator CreateLogAggregator() => new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 5000);
 
             private class Counter
             {
-                public int _successfulCount;
+                public int _succeededCount;
                 public int _failedCount;
                 public int _cancelledCount;
+            }
+
+            internal enum Result
+            {
+                Succeeded,
+                Failed,
+                Cancelled
             }
         }
     }

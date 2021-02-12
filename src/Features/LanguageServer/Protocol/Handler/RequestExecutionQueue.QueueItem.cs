@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
+            public readonly RequestMetrics Metrics;
+
             public QueueItem(
                 bool mutatesSolutionState,
                 ClientCapabilities clientCapabilities,
@@ -56,9 +59,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 TextDocumentIdentifier? textDocument,
                 Guid activityId,
                 ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
                 Func<RequestContext, CancellationToken, Task> callbackAsync,
                 CancellationToken cancellationToken)
             {
+                Metrics = new RequestMetrics(methodName, telemetryLogger);
+
                 _callbackAsync = callbackAsync;
                 _logger = logger;
 
@@ -82,15 +88,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 try
                 {
                     await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    Metrics.RecordSuccess();
                 }
                 catch (OperationCanceledException)
                 {
                     _logger.TraceInformation($"{MethodName} - Canceled");
+                    Metrics.RecordCancellation();
                     throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.TraceException(ex);
+                    Metrics.RecordFailure();
                     throw;
                 }
                 finally
