@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis
                 var unrootedSymbolSet = (state as FinalState)?.UnrootedSymbolSet;
                 if (unrootedSymbolSet == null)
                 {
-                    // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
-                    // tracker).  So we have nothing to check this symbol against.
+                    // this was not a tracker that has handed out a compilation (all compilations handed out must be
+                    // owned by a 'FinalState').  So this symbol could not be from us.
                     return false;
                 }
 
