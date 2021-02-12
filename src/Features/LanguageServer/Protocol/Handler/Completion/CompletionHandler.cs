@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
             // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+            Contract.ThrowIfNull(context.Solution);
             var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
             var returnTextEdits = featureFlagService.IsExperimentEnabled("Roslyn.LSP.Completion");
 
