@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
 
-                // PROTOTYPE(UsedAssemblyReferences): This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
+                // This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
                 if (disposeMethod is null)
                 {
                     return rewrittenBody;

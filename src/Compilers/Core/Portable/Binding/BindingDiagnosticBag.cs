@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal abstract class BindingDiagnosticBag // PROTOTYPE(UsedAssemblyReferences): Is there a better name for this and the derived types?
+    internal abstract class BindingDiagnosticBag
     {
         public readonly DiagnosticBag? DiagnosticBag;
 
@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    // PROTOTYPE(UsedAssemblyReferences): Measure performance impact of collecting more information during binding by using this class.
     internal abstract class BindingDiagnosticBag<TAssemblySymbol> : BindingDiagnosticBag
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
