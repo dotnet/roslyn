@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
+            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             var cacheService = await _provider.CreateCacheAsync(cancellationToken).ConfigureAwait(false);
             var relativePathBase = await cacheService.GetRelativePathBaseAsync(cancellationToken).ConfigureAwait(false);

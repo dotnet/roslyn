@@ -43,28 +43,31 @@ namespace Microsoft.CodeAnalysis.Storage
         public override void Dispose()
             => _cacheService.Dispose();
 
-        private CloudCacheContainerKey? GetContainerKey(ProjectKey projectKey, Project? bulkLoadSnapshot)
+        private CloudCacheContainerKey? GetContainerKey(ProjectKey projectKey)
         {
-            return bulkLoadSnapshot != null
-                ? s_projectToContainerKey.GetValue(bulkLoadSnapshot.State, _projectToContainerKeyCallback).ContainerKey
+            var state = projectKey.ProjectState;
+            return state != null
+                ? s_projectToContainerKey.GetValue(state, _projectToContainerKeyCallback).ContainerKey
                 : ProjectCacheContainerKey.CreateProjectContainerKey(_mustSucceed, this.SolutionFilePath, projectKey);
         }
 
-        private CloudCacheContainerKey? GetContainerKey(DocumentKey documentKey, Document? bulkLoadSnapshot)
+        private CloudCacheContainerKey? GetContainerKey(DocumentKey documentKey)
         {
-            return bulkLoadSnapshot != null
-                ? s_projectToContainerKey.GetValue(bulkLoadSnapshot.Project.State, _projectToContainerKeyCallback).GetValue(bulkLoadSnapshot.State)
+            var projectState = documentKey.Project.ProjectState;
+            var documentState = documentKey.DocumentState;
+            return projectState != null && documentState != null
+                ? s_projectToContainerKey.GetValue(projectState, _projectToContainerKeyCallback).GetValue(documentState)
                 : ProjectCacheContainerKey.CreateDocumentContainerKey(_mustSucceed, this.SolutionFilePath, documentKey);
         }
 
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => ChecksumMatchesAsync(name, checksum, s_solutionKey, cancellationToken);
 
-        protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(name, checksum, GetContainerKey(projectKey, bulkLoadSnapshot), cancellationToken);
+        public override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(name, checksum, GetContainerKey(projectKey), cancellationToken);
 
-        protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey, bulkLoadSnapshot), cancellationToken);
+        public override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
 
         private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
@@ -80,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
             => ReadStreamAsync(name, checksum, s_solutionKey, cancellationToken);
 
-        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(name, checksum, GetContainerKey(projectKey, bulkLoadSnapshot), cancellationToken);
+        public override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(name, checksum, GetContainerKey(projectKey), cancellationToken);
 
-        protected override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, Document? bulkLoadSnapshot, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(name, checksum, GetContainerKey(documentKey, bulkLoadSnapshot), cancellationToken);
+        public override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
 
         private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
@@ -132,11 +135,11 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => WriteStreamAsync(name, stream, checksum, s_solutionKey, cancellationToken);
 
-        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? bulkLoadProject, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(projectKey, bulkLoadProject), cancellationToken);
+        public override Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(projectKey), cancellationToken);
 
-        protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? bulkLoadDocument, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey, bulkLoadDocument), cancellationToken);
+        public override Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey), cancellationToken);
 
         private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
