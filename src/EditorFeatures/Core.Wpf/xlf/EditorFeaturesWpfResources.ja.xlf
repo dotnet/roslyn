@@ -7,16 +7,6 @@
         <target state="translated">名前変更の実行でエラーが発生しました: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">提案を収集しています - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">提案を収集しています - ソリューションが完全に読み込まれるのを待機しています</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">正規表現 - コメント</target>
