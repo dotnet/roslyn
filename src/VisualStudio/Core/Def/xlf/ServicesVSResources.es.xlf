@@ -57,6 +57,16 @@
         <target state="translated">Permitir:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Siempre por claridad</target>
@@ -110,11 +120,6 @@
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
         <target state="translated">Cliente de lenguaje de diagnóstico de C#/Visual Basic</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
-        <source>C#/Visual Basic Language Server Client</source>
-        <target state="translated">Cliente de servidor del lenguaje C#/Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -342,11 +347,6 @@
         <target state="translated">Tipo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
-        <source>Live Share C#/Visual Basic Language Server Client</source>
-        <target state="translated">Cliente de servidor de lenguaje C#/Visual Basic de Live Share</target>
-        <note>'Live Share' is a product name and does not need to be localized.</note>
-      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Análisis en directo (extensión VSIX)</target>
@@ -572,6 +572,11 @@
         <target state="translated">Nombre de tipo nuevo:</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="new">New line preferences (experimental):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Miembros no públicos</target>
@@ -702,11 +707,6 @@
         <target state="translated">Extraer miembros</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="translated">Cliente de servidor de lenguaje C# de Razor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">Expresiones regulares</target>
@@ -725,6 +725,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">Repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="new">Require:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -850,6 +855,11 @@
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
         <target state="translated">Suprimir las sugerencias cuando los nombres de parámetro solo se diferencien por el sufijo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="new">Symbols without references</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

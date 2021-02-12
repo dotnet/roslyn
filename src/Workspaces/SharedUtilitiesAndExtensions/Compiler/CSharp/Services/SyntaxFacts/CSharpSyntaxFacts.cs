@@ -940,6 +940,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node?.Kind() == SyntaxKind.NamespaceDeclaration;
 
+        public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
+            => node is NamespaceDeclarationSyntax namespaceDeclaration
+            ? namespaceDeclaration.Name
+            : null;
+
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
