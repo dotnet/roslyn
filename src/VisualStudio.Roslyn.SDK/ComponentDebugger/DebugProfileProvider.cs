@@ -83,13 +83,24 @@ namespace Roslyn.ComponentDebugger
 
         private static bool TryGetTargetProject(ConfiguredProject project, ILaunchProfile? profile, out UnconfiguredProject? targetProject)
         {
-            var targetProjectPath = profile?.OtherSettings?.ContainsKey(Constants.TargetProjectPropertyName) == true
-                                    ? profile.OtherSettings[Constants.TargetProjectPropertyName].ToString()
-                                    : string.Empty;
+            targetProject = null;
+            if (TryGetOtherSettingAsString(profile, Constants.TargetProjectPropertyName, out var targetProjectPath))
+            {
+                // PROTOTYPE: we should eval / expand the path to work with env/msbuild variables etc.
+                targetProject = project.Services.ProjectService.LoadedUnconfiguredProjects.SingleOrDefault(p => p.FullPath == targetProjectPath);
+            }
 
-            // PROTOTYPE: we should eval / expand the path to work with env/msbuild variables etc.
-            targetProject = project.Services.ProjectService.LoadedUnconfiguredProjects.SingleOrDefault(p => p.FullPath == targetProjectPath);
             return targetProject is object;
+        }
+
+        private static bool TryGetOtherSettingAsString(ILaunchProfile? profile, string key, out string? value)
+        {
+            value = null;
+            if (profile?.OtherSettings?.ContainsKey(key) == true)
+            {
+                value = profile.OtherSettings[key] as string;
+            }
+            return value is string;
         }
     }
 }

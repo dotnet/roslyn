@@ -4,7 +4,7 @@
 
 namespace Roslyn.ComponentDebugger
 {
-    internal class Constants
+    internal static class Constants
     {
         public const string RoslynComponentPropertyName = "IsRoslynComponent";
 
