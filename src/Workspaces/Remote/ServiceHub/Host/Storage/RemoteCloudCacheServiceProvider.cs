@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 
 #pragma warning disable ISB001 // Dispose of proxies
             // cache service will be disposed inside VisualStudioCloudCachePersistentStorage.Dispose
-            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_9.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
             Contract.ThrowIfNull(cacheService);

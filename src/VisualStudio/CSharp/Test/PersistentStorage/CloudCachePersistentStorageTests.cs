@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 BrokeredServices =
                 {
-                    { VisualStudioServices.VS2019_9.SolutionService.Moniker, solutionService },
-                    { VisualStudioServices.VS2019_9.FileSystem.Moniker, fileSystem },
+                    { VisualStudioServices.VS2019_10.SolutionService.Moniker, solutionService },
+                    { VisualStudioServices.VS2019_10.FileSystem.Moniker, fileSystem },
                     { FrameworkServices.Authorization.Moniker, new AuthorizationServiceMock() },
                 },
             };
