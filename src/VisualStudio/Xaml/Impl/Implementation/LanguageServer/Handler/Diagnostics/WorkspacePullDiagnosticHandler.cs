@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
@@ -42,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// </summary>
         protected override ImmutableArray<Document> GetDocuments(RequestContext context)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
             var projects = context.Solution.GetXamlProjects();
             foreach (var project in projects)

@@ -3458,10 +3458,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref useSiteDiagnostics);
+            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref useSiteDiagnostics);
 
             TypeWithAnnotations inferredType;
-            if ((object)bestType != null)
+            if (bestType is { })
             {
                 // Note: so long as we have a best type, we can proceed.
                 var bestTypeWithObliviousAnnotation = TypeWithAnnotations.Create(bestType);
@@ -5117,6 +5117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            ApplyMemberPostConditions(receiverSlot, method);
+        }
+
+        private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)
+        {
+            Debug.Assert(receiverSlot >= 0);
             do
             {
                 var type = method.ContainingType;

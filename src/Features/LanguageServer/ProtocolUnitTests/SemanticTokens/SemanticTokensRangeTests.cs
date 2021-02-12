@@ -42,6 +42,7 @@ static class C { }
                 ResultId = "1"
             };
 
+            await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
             Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
