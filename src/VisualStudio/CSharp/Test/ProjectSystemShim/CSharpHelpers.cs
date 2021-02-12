@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -84,7 +85,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectFilePath,
                 projectGuid,
                 hierarchy,
-                binOutputPath);
+                binOutputPath,
+                CancellationToken.None);
 
             cpsProject.SetOptions(ImmutableArray.Create(commandLineArguments));
 
@@ -102,7 +104,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 projectFilePath,
                 Guid.NewGuid(),
                 hierarchy,
-                binOutputPath: null);
+                binOutputPath: null,
+                CancellationToken.None);
         }
 
         private static string GetOutputPathFromArguments(string[] commandLineArguments)
