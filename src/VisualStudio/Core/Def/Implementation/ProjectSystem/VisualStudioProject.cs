@@ -403,6 +403,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             set => _workspace.SetMaxLanguageVersion(Id, value);
         }
 
+        internal string DependencyNodeTargetIdentifier
+        {
+            set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
+        }
+
         #region Batching
 
         public BatchScope CreateBatchScope()
