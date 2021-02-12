@@ -196,8 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (returnTextEdits)
                 {
                     textEdit = await GenerateTextEdit(
-                        document, item, completionService, documentText, defaultSpan, defaultRange,
-                        textEdit, cancellationToken).ConfigureAwait(false);
+                        document, item, completionService, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 }
 
                 var completionItem = new TCompletionItem
@@ -238,7 +237,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SourceText? documentText,
                     TextSpan? defaultSpan,
                     LSP.Range? defaultRange,
-                    LSP.TextEdit? textEdit,
                     CancellationToken cancellationToken)
                 {
                     Contract.ThrowIfNull(documentText);
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var completionChangeSpan = completionChange.TextChange.Span;
 
-                    textEdit = new LSP.TextEdit()
+                    var textEdit = new LSP.TextEdit()
                     {
                         NewText = completionChange.TextChange.NewText ?? "",
                         Range = completionChangeSpan == defaultSpan.Value
