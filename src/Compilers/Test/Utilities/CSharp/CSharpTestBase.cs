@@ -570,22 +570,22 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
+        protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Enable);
+            return WithNullable(options, NullableContextOptions.Enable);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypesFalse(CSharpCompilationOptions options = null)
+        protected static CSharpCompilationOptions WithNullableDisable(CSharpCompilationOptions options = null)
         {
-            return WithNonNullTypes(options, NullableContextOptions.Disable);
+            return WithNullable(options, NullableContextOptions.Disable);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypes(NullableContextOptions nullableContextOptions)
+        protected static CSharpCompilationOptions WithNullable(NullableContextOptions nullableContextOptions)
         {
-            return WithNonNullTypes(null, nullableContextOptions);
+            return WithNullable(null, nullableContextOptions);
         }
 
-        protected static CSharpCompilationOptions WithNonNullTypes(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
+        protected static CSharpCompilationOptions WithNullable(CSharpCompilationOptions options, NullableContextOptions nullableContextOptions)
         {
             return (options ?? TestOptions.ReleaseDll).WithNullableContextOptions(nullableContextOptions);
         }
@@ -2326,8 +2326,8 @@ namespace System
             {
                 return new List<object[]>()
                 {
-                    new object[] { WithNonNullTypesTrue(TestOptions.DebugDll) },
-                    new object[] { WithNonNullTypesFalse(TestOptions.DebugDll) }
+                    new object[] { WithNullableEnable(TestOptions.DebugDll) },
+                    new object[] { WithNullableDisable(TestOptions.DebugDll) }
                 };
             }
         }
@@ -2338,8 +2338,8 @@ namespace System
             {
                 return new List<object[]>()
                 {
-                    new object[] { WithNonNullTypesTrue(TestOptions.ReleaseDll) },
-                    new object[] { WithNonNullTypesFalse(TestOptions.ReleaseDll) }
+                    new object[] { WithNullableEnable(TestOptions.ReleaseDll) },
+                    new object[] { WithNullableDisable(TestOptions.ReleaseDll) }
                 };
             }
         }

@@ -1004,6 +1004,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ReportBadOverriding(errorId, overridingAccessor, overriddenAccessor, diagnostics)
                     End If
                 End If
+
+                diagnostics.Add(overriddenAccessor.GetUseSiteInfo(), overridingAccessor.Locations(0))
             End If
         End Sub
 

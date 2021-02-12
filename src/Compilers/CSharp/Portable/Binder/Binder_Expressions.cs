@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -5835,6 +5836,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindLeftOfPotentialColorColorMemberAccess(ExpressionSyntax left, BindingDiagnosticBag diagnostics)
         {
+            if (left is IdentifierNameSyntax identifier)
+            {
+                return BindLeftIdentifierOfPotentialColorColorMemberAccess(identifier, diagnostics);
+            }
+
+            // NOTE: it is up to the caller to call CheckValue on the result.
+            return BindExpression(left, diagnostics);
+        }
+
+        // Avoid inlining to minimize stack size in caller.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private BoundExpression BindLeftIdentifierOfPotentialColorColorMemberAccess(IdentifierNameSyntax left, BindingDiagnosticBag diagnostics)
+        {
             // SPEC: 7.6.4.1 Identical simple names and type names
             // SPEC: In a member access of the form E.I, if E is a single identifier, and if the meaning of E as
             // SPEC: a simple-name (spec 7.6.2) is a constant, field, property, local variable, or parameter with the
@@ -5843,63 +5857,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: a member of the type E in both cases. In other words, the rule simply permits access to the 
             // SPEC: static members and nested types of E where a compile-time error would otherwise have occurred. 
 
-            if (left.Kind() == SyntaxKind.IdentifierName)
+            var valueDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+            var boundValue = BindIdentifier(left, invoked: false, indexed: false, diagnostics: valueDiagnostics);
+
+            Symbol leftSymbol;
+            if (boundValue.Kind == BoundKind.Conversion)
             {
-                var node = (IdentifierNameSyntax)left;
-                var valueDiagnostics = BindingDiagnosticBag.Create(diagnostics);
-                var boundValue = BindIdentifier(node, invoked: false, indexed: false, diagnostics: valueDiagnostics);
-
-                Symbol leftSymbol;
-                if (boundValue.Kind == BoundKind.Conversion)
-                {
-                    // BindFieldAccess may insert a conversion if binding occurs
-                    // within an enum member initializer.
-                    leftSymbol = ((BoundConversion)boundValue).Operand.ExpressionSymbol;
-                }
-                else
-                {
-                    leftSymbol = boundValue.ExpressionSymbol;
-                }
-
-                if ((object)leftSymbol != null)
-                {
-                    switch (leftSymbol.Kind)
-                    {
-                        case SymbolKind.Field:
-                        case SymbolKind.Local:
-                        case SymbolKind.Parameter:
-                        case SymbolKind.Property:
-                        case SymbolKind.RangeVariable:
-                            var leftType = boundValue.Type;
-                            Debug.Assert((object)leftType != null);
-
-                            var leftName = node.Identifier.ValueText;
-                            if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
-                            {
-                                var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
-                                var boundType = BindNamespaceOrType(node, typeDiagnostics);
-                                if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything2))
-                                {
-                                    // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
-                                    boundValue = BindToNaturalType(boundValue, valueDiagnostics);
-                                    return new BoundTypeOrValueExpression(left,
-                                        new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
-                                }
-                            }
-                            break;
-
-                            // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
-                    }
-                }
-
-                // Not a Color Color case; return the bound member.
-                // NOTE: it is up to the caller to call CheckValue on the result.
-                diagnostics.AddRange(valueDiagnostics);
-                return boundValue;
+                // BindFieldAccess may insert a conversion if binding occurs
+                // within an enum member initializer.
+                leftSymbol = ((BoundConversion)boundValue).Operand.ExpressionSymbol;
+            }
+            else
+            {
+                leftSymbol = boundValue.ExpressionSymbol;
             }
 
+            if ((object)leftSymbol != null)
+            {
+                switch (leftSymbol.Kind)
+                {
+                    case SymbolKind.Field:
+                    case SymbolKind.Local:
+                    case SymbolKind.Parameter:
+                    case SymbolKind.Property:
+                    case SymbolKind.RangeVariable:
+                        var leftType = boundValue.Type;
+                        Debug.Assert((object)leftType != null);
+
+                        var leftName = left.Identifier.ValueText;
+                        if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
+                        {
+                            var typeDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+                            var boundType = BindNamespaceOrType(left, typeDiagnostics);
+                            if (TypeSymbol.Equals(boundType.Type, leftType, TypeCompareKind.ConsiderEverything2))
+                            {
+                                // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
+                                boundValue = BindToNaturalType(boundValue, valueDiagnostics);
+                                return new BoundTypeOrValueExpression(left,
+                                    new BoundTypeOrValueData(leftSymbol, boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType);
+                            }
+                        }
+                        break;
+
+                        // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
+                }
+            }
+
+            // Not a Color Color case; return the bound member.
             // NOTE: it is up to the caller to call CheckValue on the result.
-            return BindExpression(left, diagnostics);
+            diagnostics.AddRange(valueDiagnostics);
+            return boundValue;
         }
 
         // returns true if name matches a using alias in scope
