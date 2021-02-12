@@ -5903,11 +5903,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-                // Not a Color Color case; return the bound member.
-                // NOTE: it is up to the caller to call CheckValue on the result.
-                diagnostics.AddRange(valueDiagnostics);
-                return boundValue;
-            }
+            // Not a Color Color case; return the bound member.
+            // NOTE: it is up to the caller to call CheckValue on the result.
+            diagnostics.AddRange(valueDiagnostics);
+            return boundValue;
+        }
 
         // returns true if name matches a using alias in scope
         // NOTE: when true is returned, the corresponding using is also marked as "used" 
