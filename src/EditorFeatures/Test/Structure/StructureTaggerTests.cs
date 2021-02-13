@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     [UseExportProvider]
     public class StructureTaggerTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task CSharpOutliningTagger_RegionIsDefinition()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [CombinatorialData]
+        public async Task CSharpOutliningTagger(bool collapseRegionsWhenCollapsingToDefinitions)
         {
             var code =
 @"using System;
@@ -43,55 +44,16 @@ namespace MyNamespace
 
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true)));
+                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, collapseRegionsWhenCollapsingToDefinitions)));
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 
             // ensure all 4 outlining region tags were found
             Assert.Equal(4, tags.Count);
 
-            // ensure the method and #region outlining spans are marked as implementation
+            // ensure the method and possibly #region outlining spans are marked as implementation
             Assert.False(tags[0].IsImplementation);
-            Assert.True(tags[1].IsImplementation);
-            Assert.False(tags[2].IsImplementation);
-            Assert.True(tags[3].IsImplementation);
-
-            // verify line counts
-            var hints = tags.Select(x => x.GetCollapsedHintForm()).Cast<ViewHostingControl>().Select(vhc => vhc.TextView_TestOnly).ToList();
-            Assert.Equal(12, hints[0].TextSnapshot.LineCount); // namespace
-            Assert.Equal(9, hints[1].TextSnapshot.LineCount); // region
-            Assert.Equal(7, hints[2].TextSnapshot.LineCount); // class
-            Assert.Equal(4, hints[3].TextSnapshot.LineCount); // method
-            hints.Do(v => v.Close());
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task CSharpOutliningTagger_RegionIsNotDefinition()
-        {
-            var code =
-@"using System;
-namespace MyNamespace
-{
-#region MyRegion
-    public class MyClass
-    {
-        static void Main(string[] args)
-        {
-            int x = 5;
-        }
-    }
-#endregion
-}";
-
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
-            var tags = await GetTagsFromWorkspaceAsync(workspace);
-
-            // ensure all 4 outlining region tags were found
-            Assert.Equal(4, tags.Count);
-
-            // ensure only the method is marked as implementation
-            Assert.False(tags[0].IsImplementation);
-            Assert.False(tags[1].IsImplementation);
+            Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, tags[1].IsImplementation);
             Assert.False(tags[2].IsImplementation);
             Assert.True(tags[3].IsImplementation);
 
