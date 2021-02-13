@@ -1678,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.Type), (PositionalPatternClauseSyntax?)Visit(node.PositionalPatternClause), (LengthPatternClauseSyntax?)Visit(node.LengthPatternClause), (PropertyPatternClauseSyntax?)Visit(node.PropertyPatternClause), (VariableDesignationSyntax?)Visit(node.Designation));
 
         public override SyntaxNode? VisitLengthPatternClause(LengthPatternClauseSyntax node)
-            => node.Update(VisitToken(node.OpenBracketToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), VisitToken(node.CloseBracketToken));
+            => node.Update(VisitToken(node.OpenBracketToken), (PatternSyntax?)Visit(node.Pattern), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Subpatterns), VisitToken(node.CloseParenToken));
@@ -3580,16 +3580,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.RecursivePattern(default, default, default, default, default);
 
         /// <summary>Creates a new LengthPatternClauseSyntax instance.</summary>
-        public static LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken)
+        public static LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
-            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            return (LengthPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.LengthPatternClause((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
+            return (LengthPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.LengthPatternClause((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, pattern == null ? null : (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
         /// <summary>Creates a new LengthPatternClauseSyntax instance.</summary>
-        public static LengthPatternClauseSyntax LengthPatternClause(PatternSyntax pattern)
+        public static LengthPatternClauseSyntax LengthPatternClause(PatternSyntax? pattern = default)
             => SyntaxFactory.LengthPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), pattern, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
@@ -3605,16 +3604,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
-        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxKind kind, SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
         {
+            switch (kind)
+            {
+                case SyntaxKind.PropertyPatternClause:
+                case SyntaxKind.ListPatternClause: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            return (PropertyPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
+            return (PropertyPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause(kind, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
         /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
-        public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default)
-            => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxKind kind, SeparatedSyntaxList<SubpatternSyntax> subpatterns = default)
+            => SyntaxFactory.PropertyPatternClause(kind, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new SubpatternSyntax instance.</summary>
         public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, PatternSyntax pattern)

@@ -710,4 +710,149 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
+
+    partial class BoundDagPropertyEvaluation
+    {
+        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, BoundDagTemp input,
+            bool hasErrors = false)
+            : this(syntax, property, index: 0, input, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagMethodEvaluation
+    {
+        public BoundDagMethodEvaluation(SyntaxNode syntax, MethodSymbol method, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, method, index: 0, input, hasErrors)
+        {
+        }
+
+        public BoundDagMethodEvaluation(SyntaxNode syntax, MethodSymbol method, int index, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, method, countTemp: null, enumeratorTemp: null, currentProperty: null, index, input, hasErrors)
+        {
+        }
+    }
+
+#if false
+    partial class BoundDagRelationalTest
+    {
+        public BoundDagRelationalTest(SyntaxNode syntax, BinaryOperatorKind operatorKind, ConstantValue value,
+            BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, operatorKind, value, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagExplicitNullTest
+    {
+        public BoundDagExplicitNullTest(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagValueTest : BoundDagTest
+    {
+        public BoundDagValueTest(SyntaxNode syntax, ConstantValue value, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, value, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagTypeEvaluation : BoundDagEvaluation
+    {
+        public BoundDagTypeEvaluation(SyntaxNode syntax, TypeSymbol type, BoundDagTest? next, bool hasErrors = false)
+            : this(syntax, type, null, next, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagFieldEvaluation : BoundDagEvaluation
+    {
+        public BoundDagFieldEvaluation(SyntaxNode syntax, FieldSymbol field, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, field, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagPropertyEvaluation : BoundDagEvaluation
+    {
+        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, int index, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, property, index, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagIndexEvaluation : BoundDagEvaluation
+    {
+        public BoundDagIndexEvaluation(SyntaxNode syntax, PropertySymbol? propertyOpt, BoundDagTemp lengthTemp, int index, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, propertyOpt, lengthTemp, index, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagArrayEvaluation : BoundDagEvaluation
+    {
+        public BoundDagArrayEvaluation(SyntaxNode syntax, ImmutableArray<BoundDagTemp> lengthTemps, ImmutableArray<int> indices, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, lengthTemps, indices, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagArrayLengthEvaluation : BoundDagEvaluation
+    {
+        public BoundDagArrayLengthEvaluation(SyntaxNode syntax, int dimension, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, dimension, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagSliceEvaluation : BoundDagEvaluation
+    {
+        public BoundDagSliceEvaluation(SyntaxNode syntax, MethodSymbol? sliceMethodOpt, BoundDagTemp lengthTemp, int startIndex, int endIndex, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, sliceMethodOpt, lengthTemp, startIndex, endIndex, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagTypeTest : BoundDagTest
+    {
+        public BoundDagTypeTest(SyntaxNode syntax, TypeSymbol type, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, type, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagNonNullTest : BoundDagTest
+    {
+        public BoundDagNonNullTest(SyntaxNode syntax, bool isExplicitTest, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, isExplicitTest, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagTypeEvaluation : BoundDagEvaluation
+    {
+        public BoundDagTypeEvaluation(SyntaxNode syntax, TypeSymbol type, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, type, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagDeconstructEvaluation : BoundDagEvaluation
+    {
+        public BoundDagDeconstructEvaluation(SyntaxNode syntax, MethodSymbol deconstructMethod, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, deconstructMethod, input, null, hasErrors)
+        {
+        }
+    }
+
+    partial class BoundDagEnumeratorEvaluation : BoundDagEvaluation
+    {
+        public BoundDagEnumeratorEvaluation(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, enumeratorInfo, input, null, hasErrors)
+        {
+        }
+    }
+#endif
 }

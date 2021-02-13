@@ -269,13 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.RecursivePattern(null, null, null, null, null);
 
         private static Syntax.InternalSyntax.LengthPatternClauseSyntax GenerateLengthPatternClause()
-            => InternalSyntaxFactory.LengthPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+            => InternalSyntaxFactory.LengthPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), null, InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.PositionalPatternClauseSyntax GeneratePositionalPatternClause()
             => InternalSyntaxFactory.PositionalPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static Syntax.InternalSyntax.PropertyPatternClauseSyntax GeneratePropertyPatternClause()
-            => InternalSyntaxFactory.PropertyPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => InternalSyntaxFactory.PropertyPatternClause(SyntaxKind.PropertyPatternClause, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.SubpatternSyntax GenerateSubpattern()
             => InternalSyntaxFactory.Subpattern(null, GenerateDiscardPattern());
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLengthPatternClause();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind);
-            Assert.NotNull(node.Pattern);
+            Assert.Null(node.Pattern);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -10014,13 +10014,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.RecursivePattern(default(TypeSyntax), default(PositionalPatternClauseSyntax), default(LengthPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
 
         private static LengthPatternClauseSyntax GenerateLengthPatternClause()
-            => SyntaxFactory.LengthPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
+            => SyntaxFactory.LengthPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), default(PatternSyntax), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static PositionalPatternClauseSyntax GeneratePositionalPatternClause()
             => SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static PropertyPatternClauseSyntax GeneratePropertyPatternClause()
-            => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => SyntaxFactory.PropertyPatternClause(SyntaxKind.PropertyPatternClause, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static SubpatternSyntax GenerateSubpattern()
             => SyntaxFactory.Subpattern(default(NameColonSyntax), GenerateDiscardPattern());
@@ -11483,7 +11483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLengthPatternClause();
 
             Assert.Equal(SyntaxKind.OpenBracketToken, node.OpenBracketToken.Kind());
-            Assert.NotNull(node.Pattern);
+            Assert.Null(node.Pattern);
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithPattern(node.Pattern).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);

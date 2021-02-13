@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public partial class PatternParsingTests : ParsingTests
+    public class PatternParsingTests : ParsingTests
     {
         private new void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
         {

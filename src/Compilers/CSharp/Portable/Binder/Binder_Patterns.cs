@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (subpat.NameColon != null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NamedSubpatternInListPattern, subpat.NameColon.Location);
+                    diagnostics.Add(ErrorCode.ERR_ListPatternWithNames, subpat.NameColon.Location);
                     hasErrors = true;
                 }
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private BoundListPatternInfo BindListPattern(RecursivePatternSyntax node, BoundPattern? lengthPattern, TypeSymbol inputType, bool permitDesignations, ref bool hasErrors, DiagnosticBag diagnostics)
+        private BoundListPatternInfo BindListPatternClause(RecursivePatternSyntax node, BoundPattern? lengthPattern, TypeSymbol inputType, bool permitDesignations, ref bool hasErrors, DiagnosticBag diagnostics)
         {
             if (inputType.IsSZArray())
             {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#if false // TODO(alrz) multidimensional arrays?
+#if false // TODO(alrz) multi-dimensional arrays?
         private BoundListPatternInfo BindListPatternWithArray(
             PropertyPatternClauseSyntax node, ArrayTypeSymbol inputType,
             bool permitDesignations, bool hasErrors, DiagnosticBag diagnostics,
@@ -995,23 +995,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
             }
 
-            BoundPattern? lengthPattern = node.LengthPatternClause is not null
+            BoundPattern? lengthPattern = node.LengthPatternClause?.Pattern is not null
                 ? BindPattern(node.LengthPatternClause.Pattern, this.Compilation.GetSpecialType(SpecialType.System_Int32), ExternalScope, permitDesignations, hasErrors, diagnostics)
                 : null;
 
-            bool shouldBindPropertyPatternClauseAsListPattern =
-                (node.PropertyPatternClause is not null &&
-                 node.PropertyPatternClause.Subpatterns.Count > 0 &&
-                 node.PropertyPatternClause.Subpatterns[0].NameColon == null);
-
-            // TODO(alrz) This does not accept [0]{P:P}
-            BoundListPatternInfo? listPatternInfo = lengthPattern is not null || shouldBindPropertyPatternClauseAsListPattern
-                ? BindListPattern(node, lengthPattern, inputType, permitDesignations, ref hasErrors, diagnostics)
-                : null;
-
-            ImmutableArray<BoundSubpattern> properties = node.PropertyPatternClause is not null && !shouldBindPropertyPatternClauseAsListPattern
-                ? BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors)
-                : default;
+            (BoundListPatternInfo? list, ImmutableArray<BoundSubpattern> properties) = node.PropertyPatternClause?.Kind() == SyntaxKind.ListPatternClause || lengthPattern is not null
+                ? (BindListPatternClause(node, lengthPattern, inputType, permitDesignations, ref hasErrors, diagnostics), default(ImmutableArray<BoundSubpattern>))
+                : (null, BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors));
 
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
@@ -1025,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
-                deconstruction: deconstructionSubpatterns, properties: properties, listPatternInfo: listPatternInfo, variable: variableSymbol,
+                deconstruction: deconstructionSubpatterns, properties: properties, listPatternInfo: list, variable: variableSymbol,
                 variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
                 narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors: hasErrors);
         }

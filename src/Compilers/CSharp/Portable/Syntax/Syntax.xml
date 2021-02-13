@@ -2003,7 +2003,8 @@
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
     <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
     <Field Name="LengthPatternClause" Type="LengthPatternClauseSyntax" Optional="true" />
-    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
+    <!-- TODO(alrz) The name is now irrelevant, should we rename it? -->
+    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true"/>
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
@@ -2014,7 +2015,7 @@
     <Field Name="OpenBracketToken" Type="SyntaxToken">
       <Kind Name="OpenBracketToken"/>
     </Field>
-    <Field Name="Pattern" Type="PatternSyntax"/>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
     <Field Name="CloseBracketToken" Type="SyntaxToken">
       <Kind Name="CloseBracketToken"/>
     </Field>
@@ -2031,6 +2032,7 @@
   </Node>
   <Node Name="PropertyPatternClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="PropertyPatternClause"/>
+    <Kind Name="ListPatternClause"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>

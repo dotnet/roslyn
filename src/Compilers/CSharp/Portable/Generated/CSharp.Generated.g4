@@ -607,7 +607,7 @@ subpattern
   ;
 
 length_pattern_clause
-  : '[' pattern ']'
+  : '[' pattern? ']'
   ;
 
 property_pattern_clause

@@ -307,6 +307,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var subpatterns = pattern.Subpatterns;
             var info = pattern.EnumeratorInfo;
 
+            // TODO(alrz)
+            bool needToMatchLength = pattern.LengthPattern != null || pattern.HasSlice && pattern.Subpatterns[^1].Kind != BoundKind.SlicePattern;
+
             MethodSymbol moveNextMethod = info.MoveNextInfo.Method;
             PropertySymbol currentProperty = (PropertySymbol)info.CurrentPropertyGetter.AssociatedSymbol;
 
@@ -324,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (slice.PatternOpt != null)
                     {
-                        // TODO(alrz) error
+                        // TODO(alrz) Report in binding
                         throw new NotImplementedException();
                     }
 
@@ -414,12 +417,12 @@ done:
             {
                 Tests lengthTests = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(pattern.Subpatterns.Length - index), countTemp);
                 Tests lengthPatternTests = pattern.LengthPattern is not null ? MakeTestsAndBindings(countTemp, pattern.LengthPattern, bindings) : Tests.True.Instance;
-                IValueSet? values1 = lengthTests.ComputeValueSet();
-                IValueSet? values2 = lengthPatternTests.ComputeValueSet();
-                if (values1 is null || values2 is null || values1.Intersect(values2) is not IValueSet<int> { IsContiguous: true } lengthValueSet)
+                IValueSet values1 = lengthTests.ComputeIntValueSet();
+                IValueSet values2 = lengthPatternTests.ComputeIntValueSet();
+                if (values1.Intersect(values2) is not IValueSet<int> { IsContiguous: true } lengthValueSet)
                 {
-                    // TODO(alrz) error
-                    throw new NotImplementedException();
+                    _diagnostics.Add(ErrorCode.ERR_InvalidLengthPattern, (pattern.LengthPattern ?? (BoundNode)pattern).Syntax.Location);
+                    return (lengthTests, Tests.False.Instance, Tests.False.Instance);
                 }
 
                 (int minLength, int maxLength) = lengthValueSet.GetRange();
@@ -441,10 +444,12 @@ done:
 
         private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPatternWithArray pattern, ArrayBuilder<BoundPatternBinding> bindings)
         {
+            if (input.Type.IsErrorType())
+                return Tests.True.Instance;
             Debug.Assert(input.Type.IsSZArray());
             var getLengthProperty = (PropertySymbol)this._compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
             return MakeTestsAndBindingsForListPattern(input, pattern, bindings, getLengthProperty, getItemProperty: null);
-            // TODO(alrz) md arrays
+            // TODO(alrz) multi-dimensional arrays
 #if false
             var syntax = pattern.Syntax;
             var subpatterns = pattern.Subpatterns;
@@ -548,7 +553,7 @@ done:
             var syntax = pattern.Syntax;
             var subpatternCount = pattern.Subpatterns.Length;
 
-            var tests = ArrayBuilder<Tests>.GetInstance(3 + subpatternCount * 2);
+            var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatternCount * 2);
             MakeCheckNotNull(input, syntax, isExplicitTest: false, tests);
 
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, input);
@@ -558,6 +563,8 @@ done:
                 ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatternCount - 1), lengthTemp)
                 : new BoundDagValueTest(syntax, ConstantValue.Create(subpatternCount), lengthTemp));
             tests.Add(lengthTest);
+            if (pattern.LengthPattern != null)
+                tests.Add(MakeTestsAndBindings(lengthTemp, pattern.LengthPattern, bindings));
 
             int index = 0;
             foreach (var subpattern in pattern.Subpatterns)
@@ -1953,7 +1960,7 @@ done:
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
 
-            public abstract IValueSet? ComputeValueSet();
+            public abstract IValueSet ComputeIntValueSet();
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             public abstract string Dump(Func<BoundDagTest, string> dump);
@@ -1976,7 +1983,7 @@ done:
                 {
                     whenTrue = whenFalse = this;
                 }
-                public override IValueSet? ComputeValueSet() => ValueSetFactory.ForInt.AllValues;
+                public override IValueSet ComputeIntValueSet() => ValueSetFactory.ForInt.AllValues;
             }
 
             /// <summary>
@@ -1997,7 +2004,7 @@ done:
                 {
                     whenTrue = whenFalse = this;
                 }
-                public override IValueSet? ComputeValueSet() => ValueSetFactory.ForInt.NoValues;
+                public override IValueSet ComputeIntValueSet() => ValueSetFactory.ForInt.NoValues;
             }
 
             /// <summary>
@@ -2038,11 +2045,10 @@ done:
                 public override string Dump(Func<BoundDagTest, string> dump) => dump(this.Test);
                 public override bool Equals(object? obj) => this == obj || obj is One other && this.Test.Equals(other.Test);
                 public override int GetHashCode() => this.Test.GetHashCode();
-                public override IValueSet? ComputeValueSet()
+                public override IValueSet ComputeIntValueSet()
                 {
-                    var fac = ValueSetFactory.ForType(this.Test.Input.Type);
-                    if (fac is null)
-                        return null;
+                    Debug.Assert(this.Test.Input.Type.SpecialType == SpecialType.System_Int32);
+                    var fac = ValueSetFactory.ForInt;
                     return this.Test switch
                     {
                         BoundDagRelationalTest test => fac.Related(test.Relation.Operator(), test.Value),
@@ -2093,7 +2099,7 @@ done:
                 }
                 public override bool Equals(object? obj) => this == obj || obj is Not n && Negated.Equals(n.Negated);
                 public override int GetHashCode() => Hash.Combine(Negated.GetHashCode(), typeof(Not).GetHashCode());
-                public override IValueSet? ComputeValueSet() => this.Negated.ComputeValueSet()?.Complement();
+                public override IValueSet ComputeIntValueSet() => this.Negated.ComputeIntValueSet().Complement();
             }
 
             public abstract class SequenceTests : Tests
@@ -2209,15 +2215,12 @@ done:
 
                     return RemainingTests[0].ComputeSelectedTest();
                 }
-                public override IValueSet? ComputeValueSet()
+                public override IValueSet ComputeIntValueSet()
                 {
-                    var result = RemainingTests[0].ComputeValueSet();
-                    for (var index = 1; index < RemainingTests.Length && result is not null; index++)
+                    var result = RemainingTests[0].ComputeIntValueSet();
+                    for (var index = 1; index < RemainingTests.Length; index++)
                     {
-                        var values = RemainingTests[index].ComputeValueSet();
-                        if (values is null)
-                            break;
-                        result = result.Intersect(values);
+                        result = result.Intersect(RemainingTests[index].ComputeIntValueSet());
                     }
                     return result;
                 }
@@ -2265,15 +2268,12 @@ done:
                     remainingTests.Free();
                     return result;
                 }
-                public override IValueSet? ComputeValueSet()
+                public override IValueSet ComputeIntValueSet()
                 {
-                    var result = RemainingTests[0].ComputeValueSet();
-                    for (var index = 1; index < RemainingTests.Length && result is not null; index++)
+                    var result = RemainingTests[0].ComputeIntValueSet();
+                    for (var index = 1; index < RemainingTests.Length; index++)
                     {
-                        var values = RemainingTests[index].ComputeValueSet();
-                        if (values is null)
-                            break;
-                        result = result.Union(values);
+                        result = result.Union(RemainingTests[index].ComputeIntValueSet());
                     }
                     return result;
                 }

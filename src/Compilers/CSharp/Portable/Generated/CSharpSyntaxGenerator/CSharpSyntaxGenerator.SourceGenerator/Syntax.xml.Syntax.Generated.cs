@@ -5082,11 +5082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var positionalPatternClause = this.PositionalPatternClause ?? SyntaxFactory.PositionalPatternClause();
             return WithPositionalPatternClause(positionalPatternClause.WithSubpatterns(positionalPatternClause.Subpatterns.AddRange(items)));
         }
-        public RecursivePatternSyntax AddPropertyPatternClauseSubpatterns(params SubpatternSyntax[] items)
-        {
-            var propertyPatternClause = this.PropertyPatternClause ?? SyntaxFactory.PropertyPatternClause();
-            return WithPropertyPatternClause(propertyPatternClause.WithSubpatterns(propertyPatternClause.Subpatterns.AddRange(items)));
-        }
     }
 
     /// <remarks>
@@ -5106,18 +5101,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LengthPatternClauseSyntax)this.Green).openBracketToken, Position, 0);
 
-        public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
+        public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
 
         public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LengthPatternClauseSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1)! : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1) : null;
 
         internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLengthPatternClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLengthPatternClause(this);
 
-        public LengthPatternClauseSyntax Update(SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken)
+        public LengthPatternClauseSyntax Update(SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
         {
             if (openBracketToken != this.OpenBracketToken || pattern != this.Pattern || closeBracketToken != this.CloseBracketToken)
             {
@@ -5130,7 +5125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public LengthPatternClauseSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Pattern, this.CloseBracketToken);
-        public LengthPatternClauseSyntax WithPattern(PatternSyntax pattern) => Update(this.OpenBracketToken, pattern, this.CloseBracketToken);
+        public LengthPatternClauseSyntax WithPattern(PatternSyntax? pattern) => Update(this.OpenBracketToken, pattern, this.CloseBracketToken);
         public LengthPatternClauseSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Pattern, closeBracketToken);
     }
 
@@ -5192,6 +5187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.PropertyPatternClause"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ListPatternClause"/></description></item>
     /// </list>
     /// </remarks>
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
@@ -5227,7 +5223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
             {
-                var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+                var newNode = SyntaxFactory.PropertyPatternClause(this.Kind(), openBraceToken, subpatterns, closeBraceToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
