@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
@@ -58,8 +59,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
-            // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
+            // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
+            // moved off we'll need to fix up it's constructor to be free-threaded.
+
+            // Since we're on the UI thread here anyways, use that as an opportunity to grab the
+            // IVsSolution object and solution file path.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+
+            var solution = (IVsSolution2)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+            var solutionFilePath = ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
+                ? filePath
+                : null;
+
+            await TaskScheduler.Default;
 
             await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
 
@@ -103,21 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
-                    // Fetch the current solution path. Since we're on the UI thread right now, we can do that.
-                    var solutionFilePath = _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                        if (solution != null)
-                        {
-                            if (ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _)))
-                                return filePath;
-                        }
-
-                        // Paranoia: if the call failed, we definitely don't want to use any stuff that was set
-                        return null;
-                    });
-
                     var solutionSessionId = GetSolutionSessionId();
 
                     w.OnSolutionAdded(
