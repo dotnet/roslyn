@@ -17,6 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SyntaxNormalizerTests
     {
         [Fact]
+        [WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            var code = @"$""Printed: { new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""";
+
+            var syntaxNode = SyntaxFactory.ParseExpression(code).NormalizeWhitespace();
+            var text = syntaxNode.ToFullString();
+
+            //we test only for line breaks because they caused that the produced text couldn't be parsed after NormalizeWhitespace
+            //the concrete formatting (e.g. spaces, tabs) should be ignored here
+            Assert.True(!text.Contains('\n'));
+        }
+
+        [Fact]
         public void TestNormalizeExpression1()
         {
             TestNormalizeExpression("!a", "!a");
