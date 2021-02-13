@@ -410,7 +410,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -448,7 +448,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -482,7 +482,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 

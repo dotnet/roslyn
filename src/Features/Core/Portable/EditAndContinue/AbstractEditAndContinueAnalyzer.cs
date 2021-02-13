@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -305,6 +306,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
+        protected abstract void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics);
+
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isNonLeaf);
@@ -519,7 +522,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-                var lineEdits = new List<LineChange>();
+                var lineEdits = new List<SourceLineUpdate>();
 
                 AnalyzeTrivia(
                     oldText,
@@ -1297,14 +1300,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var pair in lambdaBodyMatch.Matches)
                 {
-                    // Body match of a lambda whose body is an expression has the lambda as a root.
-                    // The lambda has already been included when enumerating parent body matches.
-                    Debug.Assert(
-                        !map.ContainsKey(pair.Key) ||
-                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
-
-                    map[pair.Key] = pair.Value;
-                    reverseMap[pair.Value] = pair.Key;
+                    if (!map.ContainsKey(pair.Key))
+                    {
+                        map[pair.Key] = pair.Value;
+                        reverseMap[pair.Value] = pair.Key;
+                    }
                 }
             }
 
@@ -1379,6 +1379,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var match = ComputeBodyMatch(oldBody, newBody, lazyKnownMatches);
+
+            if (IsLocalFunction(match.OldRoot) && IsLocalFunction(match.NewRoot))
+            {
+                ReportLocalFunctionsDeclarationRudeEdits(match, diagnostics);
+            }
 
             if (lazyRudeEdits != null)
             {
@@ -1969,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Match<SyntaxNode> topMatch,
             Dictionary<SyntaxNode, EditKind> editMap,
             [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out] List<LineChange> lineEdits,
+            [Out] List<SourceLineUpdate> lineEdits,
             [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
@@ -2020,7 +2025,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var requiresUpdate = false;
                 var isFirstToken = true;
                 var firstTokenLineDelta = 0;
-                LineChange firstTokenLineChange = default;
+                SourceLineUpdate firstTokenLineChange = default;
                 bool oldHasToken;
                 bool newHasToken;
                 while (true)
@@ -2053,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         isFirstToken = false;
                         firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new LineChange(oldPosition.Line, newPosition.Line) : default;
+                        firstTokenLineChange = (lineDelta != 0) ? new SourceLineUpdate(oldPosition.Line, newPosition.Line) : default;
                     }
                     else if (firstTokenLineDelta != lineDelta)
                     {
@@ -2082,10 +2087,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            lineEdits.Sort(CompareLineChanges);
+            lineEdits.Sort(CompareLineUpdates);
         }
 
-        private static int CompareLineChanges(LineChange x, LineChange y)
+        private static int CompareLineUpdates(SourceLineUpdate x, SourceLineUpdate y)
             => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
@@ -3933,7 +3938,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Match<SyntaxNode> topMatch,
                 Dictionary<SyntaxNode, EditKind> editMap,
                 [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-                [Out] List<LineChange> lineEdits,
+                [Out] List<SourceLineUpdate> lineEdits,
                 [Out] List<RudeEditDiagnostic> diagnostics,
                 CancellationToken cancellationToken)
             {

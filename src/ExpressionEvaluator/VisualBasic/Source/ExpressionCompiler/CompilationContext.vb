@@ -200,6 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim objectType = Me.Compilation.GetSpecialType(SpecialType.System_Object)
             Dim allTypeParameters = GetAllTypeParameters(_currentFrame)
             Dim additionalTypes = ArrayBuilder(Of NamedTypeSymbol).GetInstance()
+            Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
 
             Dim typeVariablesType As EENamedTypeSymbol = Nothing
             If Not argumentsOnly AndAlso allTypeParameters.Length > 0 Then
@@ -209,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 typeVariablesType = New EENamedTypeSymbol(
                     Me.Compilation.SourceModule.GlobalNamespace,
                     objectType,
-                    Nothing,
+                    syntax,
                     _currentFrame,
                     ExpressionCompilerConstants.TypeVariablesClassName,
                     Function(m, t)
@@ -225,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim synthesizedType As New EENamedTypeSymbol(
                 Me.Compilation.SourceModule.GlobalNamespace,
                 objectType,
-                Nothing,
+                syntax,
                 _currentFrame,
                 typeName,
                 Function(m, container)
@@ -242,10 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 End If
 
                                 Dim methodName = GetNextMethodName(methodBuilder)
-                                Dim syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken))
                                 Dim local = PlaceholderLocalSymbol.Create(typeNameDecoder, _currentFrame, [alias])
                                 ' Skip pseudo-variables with errors.
-                                If local.GetUseSiteErrorInfo()?.Severity = DiagnosticSeverity.Error Then
+                                If local.GetUseSiteInfo().DiagnosticInfo?.Severity = DiagnosticSeverity.Error Then
                                     Continue For
                                 End If
                                 Dim aliasMethod = Me.CreateMethod(
@@ -488,7 +488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function BindExpression(binder As Binder, syntax As ExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
-            Dim expression = binder.BindExpression(syntax, diagnostics)
+            Dim bindingDiagnostics = New BindingDiagnosticBag(diagnostics)
+            Dim expression = binder.BindExpression(syntax, bindingDiagnostics)
 
             Dim flags = DkmClrCompilationResultFlags.None
             If Not IsAssignableExpression(binder, expression) Then
@@ -504,9 +505,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Try
 
             If IsStatement(expression) Then
-                expression = binder.ReclassifyInvocationExpressionAsStatement(expression, diagnostics)
+                expression = binder.ReclassifyInvocationExpressionAsStatement(expression, bindingDiagnostics)
             Else
-                expression = binder.MakeRValue(expression, diagnostics)
+                expression = binder.MakeRValue(expression, bindingDiagnostics)
             End If
 
             Select Case expression.Type.SpecialType
@@ -523,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Shared Function IsAssignableExpression(binder As Binder, expression As BoundExpression) As Boolean
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
             Dim value = binder.ReclassifyAsValue(expression, diagnostics)
             Dim result = False
             If Binder.IsValidAssignmentTarget(value) AndAlso Not diagnostics.HasAnyErrors() Then
@@ -554,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared Function BindStatement(binder As Binder, syntax As StatementSyntax, diagnostics As DiagnosticBag, <Out> ByRef resultProperties As ResultProperties) As BoundStatement
             resultProperties = New ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect Or DkmClrCompilationResultFlags.ReadOnlyResult)
-            Return binder.BindStatement(syntax, diagnostics).MakeCompilerGenerated()
+            Return binder.BindStatement(syntax, New BindingDiagnosticBag(diagnostics)).MakeCompilerGenerated()
         End Function
 
         Private Shared Function CreateBinderChain(
@@ -769,9 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Else
                         Debug.Assert(importRecord.Alias Is Nothing) ' Represented as ImportTargetKind.NamespaceOrType in old-format PDBs.
 
-                        Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                        typeSymbol = importBinder.BindTypeSyntax(targetSyntax, unusedDiagnostics)
-                        unusedDiagnostics.Free()
+                        typeSymbol = importBinder.BindTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                         Debug.Assert(typeSymbol IsNot Nothing)
 
@@ -790,14 +789,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     Else
                         If importsBuilder Is Nothing Then
                             importsBuilder = ArrayBuilder(Of NamespaceOrTypeAndImportsClausePosition).GetInstance()
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(typeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     End If
 
                 ' Dev12 treats the current namespace the same as any other namespace (see ProcedureContext::LoadImportsAndDefaultNamespaceNormal).
@@ -809,9 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         Return False
                     End If
 
-                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                    unusedDiagnostics.Free()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                     Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
 
@@ -829,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position))
+                        importsBuilder.Add(New NamespaceOrTypeAndImportsClausePosition(namespaceOrTypeSymbol, position, ImmutableArray(Of AssemblySymbol).Empty))
                     Else
                         Dim aliasSymbol As New AliasSymbol(importBinder.Compilation, importBinder.ContainingNamespaceOrType, [alias], namespaceOrTypeSymbol, NoLocation.Singleton)
 
@@ -838,13 +835,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         End If
 
                         ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                        aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
                     End If
 
                 Case ImportTargetKind.NamespaceOrType ' Aliased namespace or type (native PDB only)
-                    Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, unusedDiagnostics)
-                    unusedDiagnostics.Free()
+                    Dim namespaceOrTypeSymbol = importBinder.BindNamespaceOrTypeSyntax(targetSyntax, BindingDiagnosticBag.Discarded)
 
                     Debug.Assert(namespaceOrTypeSymbol IsNot Nothing)
 
@@ -863,7 +858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
 
                     ' There's no real syntax, so there's no real position.  We'll give them separate numbers though.
-                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position)
+                    aliases([alias]) = New AliasAndImportsClausePosition(aliasSymbol, position, ImmutableArray(Of AssemblySymbol).Empty)
 
                 Case ImportTargetKind.XmlNamespace
                     If xmlImports Is Nothing Then

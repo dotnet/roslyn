@@ -144,12 +144,6 @@
   <data name="Regex_OtherEscape" xml:space="preserve">
     <value>Regex - Other Escape</value>
   </data>
-  <data name="Gathering_Suggestions_0" xml:space="preserve">
-    <value>Gathering Suggestions - '{0}'</value>
-  </data>
-  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
-    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
-  </data>
   <data name="Error_performing_rename_0" xml:space="preserve">
     <value>Error performing rename: '{0}'</value>
   </data>

@@ -2070,6 +2070,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">래핑</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}'은(는) Null이거나 비워 둘 수 없습니다.</target>
@@ -3386,18 +3391,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">사용할 수 없음</target>
+        <source>Not Available ⚠</source>
+        <target state="needs-review-translation">사용할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">탐색 모음을 사용하여 컨텍스트를 전환할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

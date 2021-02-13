@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,11 +64,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public SignatureHelpSymbolParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IEnumerable<SymbolDisplayPart> displayParts,
-            IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
-            IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
-            IEnumerable<SymbolDisplayPart> selectedDisplayParts = null)
+            IEnumerable<SymbolDisplayPart>? prefixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? suffixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? selectedDisplayParts = null)
         {
             Name = name ?? string.Empty;
             IsOptional = isOptional;
@@ -147,11 +145,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<SymbolDisplayPart>> documentationFactory,
+            Func<CancellationToken, IEnumerable<SymbolDisplayPart>>? documentationFactory,
             IEnumerable<SymbolDisplayPart> displayParts,
-            IEnumerable<SymbolDisplayPart> prefixDisplayParts = null,
-            IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
-            IEnumerable<SymbolDisplayPart> selectedDisplayParts = null)
+            IEnumerable<SymbolDisplayPart>? prefixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? suffixDisplayParts = null,
+            IEnumerable<SymbolDisplayPart>? selectedDisplayParts = null)
             : this(name, isOptional,
                   documentationFactory is null ? null : c => documentationFactory(c).ToTaggedText(),
                   displayParts.ToTaggedText(),
@@ -164,11 +162,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public SignatureHelpParameter(
             string name,
             bool isOptional,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IEnumerable<TaggedText> displayParts,
-            IEnumerable<TaggedText> prefixDisplayParts = null,
-            IEnumerable<TaggedText> suffixDisplayParts = null,
-            IEnumerable<TaggedText> selectedDisplayParts = null)
+            IEnumerable<TaggedText>? prefixDisplayParts = null,
+            IEnumerable<TaggedText>? suffixDisplayParts = null,
+            IEnumerable<TaggedText>? selectedDisplayParts = null)
         {
             Name = name ?? string.Empty;
             IsOptional = isOptional;

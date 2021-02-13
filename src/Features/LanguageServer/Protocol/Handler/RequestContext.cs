@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -21,13 +22,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal readonly struct RequestContext
     {
         public static RequestContext Create(
+            bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
             string? clientName,
             ILspLogger _logger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
-            IDocumentChangeTracker? documentChangeTracker)
+            IDocumentChangeTracker? documentChangeTracker,
+            out Workspace workspace)
         {
             // Go through each registered workspace, find the solution that contains the document that
             // this request is for, and then updates it based on the state of the world as we know it, based on the
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is null)
             {
-                _logger.TraceInformation("Request contained no document id");
+                _logger.TraceInformation("Request contained no text document identifier");
             }
             else
             {
@@ -58,6 +61,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             documentChangeTracker ??= new NoOpDocumentChangeTracker();
 
+            // If the handler doesn't need an LSP solution we do two important things:
+            // 1. We don't bother building the LSP solution for perf reasons
+            // 2. We explicitly don't give the handler a solution or document, even if we could
+            //    so they're not accidentally operating on stale solution state.
+            if (!requiresLSPSolution)
+            {
+                workspace = workspaceSolution.Workspace;
+                return new RequestContext(solution: null, _logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker);
+            }
+
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
             // If we got a document back, we need pull it out of our updated solution so the handler is operating on the
@@ -67,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 document = lspSolution.GetRequiredDocument(document.Id);
             }
 
+            workspace = lspSolution.Workspace;
             return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
@@ -118,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var workspace = workspaceSolution.Workspace;
 
             // If we have a cached solution we can use it, unless the workspace solution it was based on
-            // is not the current one. 
+            // is not the current one.
             if (solutionCache is null ||
                 !solutionCache.TryGetValue(workspace, out var cacheInfo) ||
                 workspaceSolution != cacheInfo.workspaceSolution)
@@ -163,9 +177,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IDocumentChangeTracker _documentChangeTracker;
 
         /// <summary>
-        /// The solution state that the request should operate on.
+        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
-        public readonly Solution Solution;
+        public readonly Solution? Solution;
 
         /// <summary>
         /// The client capabilities for the request.
@@ -188,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly Action<string> _traceInformation;
 
         public RequestContext(
-            Solution solution,
+            Solution? solution,
             Action<string> traceInformation,
             ClientCapabilities clientCapabilities,
             string? clientName,
@@ -215,6 +229,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void UpdateTrackedDocument(Uri documentUri, SourceText changedText)
             => _documentChangeTracker.UpdateTrackedDocument(documentUri, changedText);
 
+        public SourceText GetTrackedDocumentSourceText(Uri documentUri)
+            => _documentChangeTracker.GetTrackedDocumentSourceText(documentUri);
+
         /// <summary>
         /// Allows a mutating request to close a document and stop it being tracked.
         /// </summary>
@@ -234,6 +251,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => Enumerable.Empty<(Uri DocumentUri, SourceText Text)>();
+
+            public SourceText GetTrackedDocumentSourceText(Uri documentUri) => null!;
 
             public bool IsTracking(Uri documentUri) => false;
             public void StartTracking(Uri documentUri, SourceText initialText) { }

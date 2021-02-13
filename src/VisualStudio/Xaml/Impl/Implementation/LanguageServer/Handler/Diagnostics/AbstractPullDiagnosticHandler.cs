@@ -25,12 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
-        public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams request);
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         /// <summary>
         /// Gets the progress object to stream results to.
@@ -58,8 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
-        public async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
             // Get the set of results the request said were previously reported.

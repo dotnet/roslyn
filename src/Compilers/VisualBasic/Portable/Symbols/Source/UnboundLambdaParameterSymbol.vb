@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 flags As SourceParameterFlags,
                                                 ordinal As Integer,
                                                 binder As Binder,
-                                                diagBag As DiagnosticBag) As ParameterSymbol
+                                                diagBag As BindingDiagnosticBag) As ParameterSymbol
             If (flags And SourceParameterFlags.ParamArray) <> 0 Then
                 ' 'Lambda' parameters cannot be declared 'ParamArray'.
                 Binder.ReportDiagnostic(diagBag, GetModifierToken(syntax.Modifiers, SyntaxKind.ParamArrayKeyword), ERRID.ERR_ParamArrayIllegal1, StringConstants.Lambda)

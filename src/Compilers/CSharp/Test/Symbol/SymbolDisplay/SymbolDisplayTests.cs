@@ -5522,7 +5522,7 @@ class B
     static object?[] F2(object[]? o) => null;
     static A<object>? F3(A<object?> o) => null;
 }";
-            var comp = (Compilation)CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue());
+            var comp = (Compilation)CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable());
             var formatWithoutNonNullableModifier = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
