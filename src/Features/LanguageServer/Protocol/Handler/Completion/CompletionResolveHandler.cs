@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            var selectedItem = list.Items.FirstOrDefault(i => i.DisplayText == data.DisplayText);
+            var selectedItem = list.Items.FirstOrDefault(i => i.DisplayTextPrefix + i.DisplayText + i.DisplayTextSuffix == data.CompleteDisplayText);
             if (selectedItem == null)
             {
                 return completionItem;

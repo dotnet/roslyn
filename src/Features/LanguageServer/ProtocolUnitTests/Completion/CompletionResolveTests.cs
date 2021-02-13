@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var completionItem = await CreateCompletionItemAsync(
-                "A", LSP.CompletionItemKind.Class, tags, completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
+                label: "A", LSP.CompletionItemKind.Class, tags, completionParams, document,
+                commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
