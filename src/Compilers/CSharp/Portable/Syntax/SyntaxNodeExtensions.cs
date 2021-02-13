@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
             this ExpressionSyntax? syntax,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
             refKind = RefKind.None;
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)
         {
             if (IsDeconstructionCompatibleArgument(expression))
             {

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class CompilationExtensions
     {
         internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+        internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
 
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,

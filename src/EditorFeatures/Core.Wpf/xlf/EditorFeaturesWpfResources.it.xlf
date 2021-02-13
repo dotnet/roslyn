@@ -7,16 +7,6 @@
         <target state="translated">Si è verificato un errore durante la ridenominazione: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Raccolta dei suggerimenti - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Raccolta dei suggerimenti - In attesa del completamento del caricamento della soluzione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">Regex - Commento</target>

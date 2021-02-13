@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CompletionResolveHandler(CompletionListCache completionListCache)
         {
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = completionItem.Detail,
                 Documentation = completionItem.Documentation,
                 FilterText = completionItem.FilterText,
+                Icon = completionItem is LSP.VSCompletionItem vsCompletionItem ? vsCompletionItem.Icon : null,
                 InsertText = completionItem.InsertText,
                 InsertTextFormat = completionItem.InsertTextFormat,
                 Kind = completionItem.Kind,

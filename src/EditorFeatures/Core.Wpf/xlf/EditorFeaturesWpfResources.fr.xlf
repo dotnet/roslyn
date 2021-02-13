@@ -7,16 +7,6 @@
         <target state="translated">Erreur au moment du renommage : '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Collecte des suggestions - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Collecte des suggestions - Attente du chargement complet de la solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">Regex - commentaire</target>

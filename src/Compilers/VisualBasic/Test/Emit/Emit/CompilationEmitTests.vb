@@ -1037,6 +1037,52 @@ End Class
 Sub(comp) comp.AssertTheseDiagnostics())
         End Sub
 
+        <Fact, WorkItem(49470, "https://github.com/dotnet/roslyn/issues/49470")>
+        Public Sub RefAssemblyClient_EventBackingField()
+            Dim lib_vb = "
+Imports System
+
+Public Class Button
+    Public Event Click As EventHandler
+End Class
+
+Public Class Base
+    Protected WithEvents Button1 As Button
+End Class
+"
+            Dim source_vb = "
+Imports System
+
+Public Class Derived
+    Inherits Base
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+    End Sub
+End Class
+"
+            Dim libComp = CreateCompilationWithMscorlib40({Parse(lib_vb)}, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Assert.Equal({"Sub Base..ctor()",
+                         "Base._Button1 As Button",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         libComp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+
+            Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Dim libImage = libComp.EmitToImageReference(options)
+
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libImage})
+            AssertNoDiagnostics(comp)
+
+            ' The logic in PENamedTypeSymbol.CreateFields chooses not to import the field, but its presence still matters.
+            Assert.Equal({"Sub Base..ctor()",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         comp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
         Private Sub VerifyRefAssemblyClient(lib_vb As String, client_vb As String, validator As Action(Of VisualBasicCompilation), Optional debugFlag As Integer = -1)
             ' Whether the library is compiled in full, as metadata-only, or as a ref assembly should be transparent
             ' to the client and the validator should be able to verify the same expectations.

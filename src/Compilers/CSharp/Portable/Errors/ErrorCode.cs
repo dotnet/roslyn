@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerLineNumberPreferredOverCallerFilePath = 7082,
         ERR_InvalidDynamicCondition = 7083,
         ERR_WinRtEventPassedByRef = 7084,
-        ERR_ByRefReturnUnsupported = 7085,
+        //ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
         ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
