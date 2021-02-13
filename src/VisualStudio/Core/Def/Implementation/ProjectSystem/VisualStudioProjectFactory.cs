@@ -132,7 +132,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     w.OnProjectAdded(projectInfo);
                 }
 
-                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language, CancellationToken.None);
+                _threadingContext.JoinableTaskFactory.Run(() =>
+                    _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None));
             });
 
             return project;
@@ -152,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
         {
             return _threadingContext.JoinableTaskFactory.Run(() =>
-                ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, cancellationToken));
+                ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, CancellationToken.None));
         }
 
         async Task<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
