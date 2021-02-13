@@ -2000,7 +2000,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
         {
-            // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
+            // We must be on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
             await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _foregroundObject.AssertIsForeground();
