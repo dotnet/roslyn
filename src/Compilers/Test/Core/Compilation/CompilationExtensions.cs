@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+// Uncomment to enable the IOperation test hook on all test runs. Do not commit this uncommented.
+//#define ROSLYN_TEST_IOPERATION
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +32,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
     {
-        internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+        internal static bool EnableVerifyIOperation { get; } =
+#if ROSLYN_TEST_IOPERATION
+            true;
+#else
+            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+#endif
+
         internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
 
         internal static ImmutableArray<byte> EmitToArray(
