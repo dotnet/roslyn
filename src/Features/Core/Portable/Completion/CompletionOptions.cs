@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
         // It is intended for testing purposes only.
         public static readonly PerLanguageOption2<bool> UseLSPPrototypeBehavior =
             new(nameof(CompletionOptions), nameof(UseLSPPrototypeBehavior), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.UseLSPPrototypeCompletion"));
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.UseLSPPrototypeBehavior"));
 
         public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
         {
