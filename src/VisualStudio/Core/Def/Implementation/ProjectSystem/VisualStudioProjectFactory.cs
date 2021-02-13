@@ -47,15 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
-        [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
-        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
-            => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
-
-        [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
-        public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
-            => _threadingContext.JoinableTaskFactory.Run(() => CreateAndAddToWorkspaceAsync(
-                projectSystemName, language, creationInfo, CancellationToken.None));
-
         public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
