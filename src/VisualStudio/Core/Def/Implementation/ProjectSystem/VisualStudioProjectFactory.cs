@@ -46,14 +46,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
+        [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
             => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
 
+        [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
-            => _threadingContext.JoinableTaskFactory.Run(async () => await CreateAndAddToWorkspaceAsync(
-                projectSystemName, language, creationInfo, CancellationToken.None).ConfigureAwait(false));
+            => _threadingContext.JoinableTaskFactory.Run(() => CreateAndAddToWorkspaceAsync(
+                projectSystemName, language, creationInfo, CancellationToken.None));
 
-        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
+        public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
+            string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is moved off we'll need to fix up it's constructor to be free-threaded.
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
@@ -150,13 +153,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
         {
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, cancellationToken));
+        }
+
+        async Task<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
+            string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
+        {
             var projectInfo = new VisualStudioProjectCreationInfo
             {
                 FilePath = projectFilePath,
                 Hierarchy = hierarchy,
                 ProjectGuid = projectGuid,
             };
-            var visualStudioProject = this.CreateAndAddToWorkspace(projectSystemName, language, projectInfo);
+            var visualStudioProject = await this.CreateAndAddToWorkspaceAsync(projectSystemName, language, projectInfo, cancellationToken).ConfigureAwait(false);
             return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
         }
     }
