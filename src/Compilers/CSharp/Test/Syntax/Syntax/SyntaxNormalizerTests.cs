@@ -27,7 +27,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             //we test only for line breaks because they caused that the produced text couldn't be parsed after NormalizeWhitespace
             //the concrete formatting (e.g. spaces, tabs) should be ignored here
-            Assert.True(!text.Contains('\n'));
+            Assert.True(!text.Contains("\n"));
+
+            var parsed = SyntaxFactory.ParseExpression(text);
+            Assert.False(parsed.HasErrors);
+        }
+
+        [Fact]
+        [WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            var code = @"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");";
+
+            var syntaxNode = SyntaxFactory.ParseStatement(code).NormalizeWhitespace();
+            var text = syntaxNode.ToFullString();
+            var parsed = SyntaxFactory.ParseStatement(text);
+            Assert.False(parsed.HasErrors);
         }
 
         [Fact]
