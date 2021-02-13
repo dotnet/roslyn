@@ -926,6 +926,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (node.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
             {
+                /*
+                 * Just for non verbatim strings we want to make sure that the formatting of interpolations does not emit line breaks.
+                 * See: https://github.com/dotnet/roslyn/issues/50742
+                 * 
+                 * The flag _inSingleLineInterpolation is set to true while visiting InterpolatedStringExpressionSyntax and checked in LineBreaksAfter
+                 * to suppress adding newlines.
+                 */
                 var old = _inSingleLineInterpolation;
                 _inSingleLineInterpolation = true;
                 try
