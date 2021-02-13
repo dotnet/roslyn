@@ -12,37 +12,4 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken);
     }
-
-#if false
-
-    [ExportWorkspaceServiceFactory(typeof(ICloudCacheServiceProvider)), Shared]
-    internal class DefaultCloudCacheServiceProviderFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultCloudCacheServiceProviderFactory()
-        {
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new DefaultCloudCacheServiceProvider(workspaceServices);
-
-        private class DefaultCloudCacheServiceProvider : ICloudCacheServiceProvider
-        {
-            private readonly HostWorkspaceServices _workspaceServices;
-
-            public DefaultCloudCacheServiceProvider(HostWorkspaceServices workspaceServices)
-                => _workspaceServices = workspaceServices;
-
-            public ValueTask<ICloudCacheService?> CreateCacheAsync()
-            {
-                if (_workspaceServices.Workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
-                    throw new InvalidOperationException("Could not find host exported cloud cache");
-
-                return new((ICloudCacheService?)null);
-            }
-        }
-    }
-
-#endif
 }
