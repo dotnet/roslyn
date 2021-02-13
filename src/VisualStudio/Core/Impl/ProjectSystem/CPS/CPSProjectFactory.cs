@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,22 +33,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             IThreadingContext threadingContext,
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
-            IProjectCodeModelFactory projectCodeModelFactory)
+            IProjectCodeModelFactory projectCodeModelFactory,
+            SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
+            _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath)
         {
-            return _threadingContext.JoinableTaskFactory.Run(async () =>
-                await ((IWorkspaceProjectContextFactory)this).CreateProjectContextAsync(
-                    languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None).ConfigureAwait(false));
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None));
         }
 
-        async Task<IWorkspaceProjectContext> IWorkspaceProjectContextFactory.CreateProjectContextAsync(
+        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
             string projectUniqueName,
             string projectFilePath,
@@ -56,18 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath,
             CancellationToken cancellationToken)
         {
-            var visualStudioProject = await CreateVisualStudioProjectAsync(
-                languageName, projectUniqueName, projectFilePath, hierarchy as IVsHierarchy, projectGuid, cancellationToken).ConfigureAwait(false);
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
-        }
-
-        private async Task<VisualStudioProject> CreateVisualStudioProjectAsync(
-            string languageName, string projectUniqueName, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
-        {
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 FilePath = projectFilePath,
-                Hierarchy = hierarchy,
+                Hierarchy = hierarchy as IVsHierarchy,
                 ProjectGuid = projectGuid,
             };
 
@@ -78,16 +72,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (languageName == LanguageNames.FSharp)
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var shell = (IVsShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(false);
 
                 // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
                 // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself
                 // so we're caught in the middle doing this.
-                shell.LoadPackage(Guids.FSharpPackageId, out _);
+                var packageId = Guids.FSharpPackageId;
+                await shell.LoadPackageAsync(ref packageId);
             }
 
-            return visualStudioProject;
+            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
         }
     }
 }
