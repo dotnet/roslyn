@@ -47,6 +47,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 
+        public Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
+            => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
+
         public async Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
         {
