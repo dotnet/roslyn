@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     w.OnProjectAdded(projectInfo);
                 }
 
-                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage_NoLock(language);
             });
 
             return project;

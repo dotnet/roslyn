@@ -1523,6 +1523,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        /// <inheritdoc cref="ApplyChangeToWorkspace(Action{Workspace})"/>
+        public async Task ApplyChangeToWorkspaceAsync(Func<Workspace, Task> action)
+        {
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                await action(this).ConfigureAwait(false);
+            }
+        }
+
         /// <summary>
         /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
         /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
@@ -1547,24 +1556,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var oldSolution = this.CurrentSolution;
                 var solutionChangeAccumulator = mutation(oldSolution);
 
-                if (!solutionChangeAccumulator.HasChange)
-                {
-                    return;
-                }
-
-                foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
-                {
-                    this.ClearDocumentData(documentId);
-                }
-
-                SetCurrentSolution(solutionChangeAccumulator.Solution);
-                RaiseWorkspaceChangedEventAsync(
-                    solutionChangeAccumulator.WorkspaceChangeKind,
-                    oldSolution,
-                    solutionChangeAccumulator.Solution,
-                    solutionChangeAccumulator.WorkspaceChangeProjectId,
-                    solutionChangeAccumulator.WorkspaceChangeDocumentId);
+                ApplyBatchChangeToWorkspaceWorker(oldSolution, solutionChangeAccumulator);
             }
+        }
+
+        /// <inheritdoc cref="ApplyBatchChangeToWorkspace"/>
+        public async Task ApplyBatchChangeToWorkspaceAsync(Func<CodeAnalysis.Solution, Task<SolutionChangeAccumulator>> mutation)
+        {
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                var oldSolution = this.CurrentSolution;
+                var solutionChangeAccumulator = await mutation(oldSolution).ConfigureAwait(false);
+
+                ApplyBatchChangeToWorkspaceWorker(oldSolution, solutionChangeAccumulator);
+            }
+        }
+
+        private void ApplyBatchChangeToWorkspaceWorker(CodeAnalysis.Solution oldSolution, SolutionChangeAccumulator solutionChangeAccumulator)
+        {
+            if (!solutionChangeAccumulator.HasChange)
+            {
+                return;
+            }
+
+            foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
+            {
+                this.ClearDocumentData(documentId);
+            }
+
+            SetCurrentSolution(solutionChangeAccumulator.Solution);
+            RaiseWorkspaceChangedEventAsync(
+                solutionChangeAccumulator.WorkspaceChangeKind,
+                oldSolution,
+                solutionChangeAccumulator.Solution,
+                solutionChangeAccumulator.WorkspaceChangeProjectId,
+                solutionChangeAccumulator.WorkspaceChangeDocumentId);
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -1618,7 +1644,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    RefreshProjectExistsUIContextForLanguage(languageName);
+                    RefreshProjectExistsUIContextForLanguage_NoLock(languageName);
                 });
             }
         }
@@ -1997,23 +2023,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void RefreshProjectExistsUIContextForLanguage(string language)
+        internal void RefreshProjectExistsUIContextForLanguage_NoLock(string language)
         {
             // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
             _foregroundObject.AssertIsForeground();
 
-            using (_gate.DisposableWait())
-            {
-                var uiContext =
-                    _languageToProjectExistsUIContext.GetOrAdd(
-                        language,
-                        l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+            // This can only be called when the caller holds the gate.
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+            var uiContext =
+                _languageToProjectExistsUIContext.GetOrAdd(
+                    language,
+                    l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-                if (uiContext != null && !uiContext.IsZombie)
-                {
-                    uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
-                }
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+            if (uiContext != null && !uiContext.IsZombie)
+            {
+                uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
             }
         }
     }
