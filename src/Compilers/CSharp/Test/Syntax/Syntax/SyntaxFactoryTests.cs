@@ -535,6 +535,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            var code = @"$""Printed: { new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""";
+
+            var syntaxNode = SyntaxFactory.ParseExpression(code).NormalizeWhitespace();
+            var aText = syntaxNode.ToFullString();
+
+            Assert.True(!aText.Contains('\n'));
+        }
+
+        [Fact]
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnCoalescing()
         {
