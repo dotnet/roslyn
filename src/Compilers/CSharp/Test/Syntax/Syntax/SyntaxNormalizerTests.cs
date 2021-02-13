@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
-        [Fact]
-        [WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {
             var code = @"$""Printed: { new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""";
