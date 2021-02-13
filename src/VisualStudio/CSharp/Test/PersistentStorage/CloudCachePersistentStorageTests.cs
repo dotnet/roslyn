@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
         {
             var provider = new TestCloudCacheServiceProvider(relativePathBase);
+
+            // `mustSucceed: false` is intentional.  Our tests do actually validate that if you ask for things like
+            // different checksums, that that properly returns 'false'.
             return new CloudCachePersistentStorageService(provider, locationService, mustSucceed: false);
         }
     }
