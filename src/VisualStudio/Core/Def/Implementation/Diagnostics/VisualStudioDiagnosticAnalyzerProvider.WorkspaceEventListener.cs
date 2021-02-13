@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
         /// <summary>
-        /// Loads VSIX analyzers into <see cref="VisualStudioWorkspace"/> when it's loaded.
+        /// Loads VSIX analyzers into workspaces that provide <see cref="ISolutionAnalyzerSetterWorkspaceService"/> when they are loaded.
         /// </summary>
         [Export]
         [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive), Shared]
@@ -46,15 +48,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public void StartListening(Workspace workspace, object serviceOpt)
             {
-                if (workspace is VisualStudioWorkspaceImpl or InteractiveWorkspace)
+                var setter = workspace.Services.GetService<ISolutionAnalyzerSetterWorkspaceService>();
+                if (setter != null)
                 {
                     // fire and forget
                     var token = _listener.BeginAsyncOperation(nameof(InitializeWorkspaceAsync));
-                    _ = Task.Run(() => InitializeWorkspaceAsync(workspace)).CompletesAsyncOperation(token);
+                    _ = Task.Run(() => InitializeWorkspaceAsync(setter)).CompletesAsyncOperation(token);
                 }
             }
 
-            private async Task InitializeWorkspaceAsync(Workspace workspace)
+            private async Task InitializeWorkspaceAsync(ISolutionAnalyzerSetterWorkspaceService setter)
             {
                 try
                 {
@@ -62,16 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                     var references = provider.GetAnalyzerReferencesInExtensions();
                     LogWorkspaceAnalyzerCount(references.Length);
-
-                    if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
-                    {
-                        vsWorkspace.ApplyChangeToWorkspace(w =>
-                            w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
-                    }
-                    else
-                    {
-                        workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
-                    }
+                    setter.SetAnalyzerReferences(references);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
