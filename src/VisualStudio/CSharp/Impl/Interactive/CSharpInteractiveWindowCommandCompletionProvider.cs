@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Order(Before = PredefinedCompletionProviderNames.Keyword)]
     internal sealed class CSharpInteractiveWindowCommandCompletionProvider : AbstractInteractiveWindowCommandCompletionProvider
     {
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInteractiveWindowCommandCompletionProvider()
@@ -37,19 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string GetCompletionString(string commandName)
-        {
-            return commandName;
-        }
+            => commandName;
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
-        }
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+            => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
 
-        protected override async Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken)
-        {
-            return await tree.IsBeforeFirstTokenAsync(position, cancellationToken).ConfigureAwait(false) &&
-                   tree.IsPreProcessorKeywordContext(position, cancellationToken);
-        }
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
+
+        protected override bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            => tree.IsBeforeFirstToken(position, cancellationToken) &&
+               tree.IsPreProcessorKeywordContext(position, cancellationToken);
     }
 }
