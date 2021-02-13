@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             var provider = new TestCloudCacheServiceProvider(relativePathBase);
 
-            // `mustSucceed: false` is intentional.  Our tests do actually validate that if you ask for things like
-            // different checksums, that that properly returns 'false'.
+            // `mustSucceed: false` is intentional.  Our tests do actually validate that if you pass invalid paths
+            // around that the db fails.
             return new CloudCachePersistentStorageService(provider, locationService, mustSucceed: false);
         }
     }
