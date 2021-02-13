@@ -9232,11 +9232,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Nejde najít typ spolupráce, který odpovídá vloženému typu {0}. Nechybí odkaz na sestavení?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Návratový typ podle odkazu ref {0} se nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Název modulu {0} uložený v {1} musí odpovídat svému názvu souboru.</target>

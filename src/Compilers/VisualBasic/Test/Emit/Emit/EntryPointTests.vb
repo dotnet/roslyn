@@ -117,7 +117,8 @@ End Class
                 Diagnostic(ERRID.ERR_MoreThanOneValidMainWasFound2).WithArguments("a", "C.Main(), C.Main(a As String())"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ERR_MultipleEntryPoints_Script()
             Dim vbx = <text>
 Public Shared Sub Main()
@@ -733,7 +734,8 @@ End Class
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("G.P.Q"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ERR_NoMainInClass_Script()
             Dim vbx = <text>
 System.Console.WriteLine(2)

@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteDiagnostics);
+                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)leftType != null);
             }
 
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteDiagnostics);
+                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)rightType != null);
             }
 
@@ -899,13 +899,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteInfo);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteInfo);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

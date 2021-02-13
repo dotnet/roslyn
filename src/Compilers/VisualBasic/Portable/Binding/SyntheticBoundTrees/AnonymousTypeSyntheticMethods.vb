@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private Class AnonymousTypeConstructorSymbol
             Inherits SynthesizedConstructorBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeEqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeGetHashCodeMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousType_IEquatable_EqualsMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Partial Private NotInheritable Class AnonymousTypeToStringMethodSymbol
             Inherits SynthesizedRegularMethodBase
 
-            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
                 methodBodyBinder = Nothing
 
                 Dim syntax As SyntaxNode = Me.Syntax

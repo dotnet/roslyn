@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
@@ -31,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,6 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             CompletionResolveData data;
             if (completionItem.Data is JToken token)
             {

@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public abstract string Method { get; }
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticService diagnosticService)
@@ -167,6 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private static Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(
             RequestContext context, DiagnosticParams[] previousResults)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             var result = new Dictionary<Document, DiagnosticParams>();
             foreach (var diagnosticParams in previousResults)
             {
@@ -213,6 +216,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             if (previousResults == null)
                 return;
 

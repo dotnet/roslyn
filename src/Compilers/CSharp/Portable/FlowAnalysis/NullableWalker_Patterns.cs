@@ -367,9 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagTypeEvaluation e:
                                     {
                                         var output = new BoundDagTemp(e.Syntax, e.Type, e);
-                                        HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                                         int outputSlot;
-                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref discardedDiagnostics).Kind)
+                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref discardedUseSiteInfo).Kind)
                                         {
                                             case ConversionKind.Identity:
                                             case ConversionKind.ImplicitReference:
@@ -627,11 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isDerivedType(TypeSymbol derivedType, TypeSymbol baseType)
             {
-                HashSet<DiagnosticInfo> discardedDiagnostics = null;
                 if (derivedType.IsErrorType() || baseType.IsErrorType())
                     return true;
 
-                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedDiagnostics).Kind switch
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedUseSiteInfo).Kind switch
                 {
                     ConversionKind.Identity => true,
                     ConversionKind.ImplicitReference => true,
@@ -780,10 +780,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             TypeSymbol inferredType =
-                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo) : null)
                     ?? node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);

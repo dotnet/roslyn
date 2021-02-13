@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)
             {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (parameter.Name == name)
                 {
-                    result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteDiagnostics));
+                    result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteInfo));
                 }
             }
         }

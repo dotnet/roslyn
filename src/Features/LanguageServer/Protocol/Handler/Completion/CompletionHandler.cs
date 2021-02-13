@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCompletionName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CompletionHandler(
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,

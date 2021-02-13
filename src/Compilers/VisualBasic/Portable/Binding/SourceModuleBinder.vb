@@ -30,12 +30,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function CheckAccessibility(sym As Symbol,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
                                                      Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return If(IgnoresAccessibility,
                 AccessCheckResult.Accessible,
-                AccessCheck.CheckSymbolAccessibility(sym, _sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
+                AccessCheck.CheckSymbolAccessibility(sym, _sourceModule.ContainingSourceAssembly, useSiteInfo, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
         End Function
 
         Public Overrides ReadOnly Property OptionStrict As OptionStrict

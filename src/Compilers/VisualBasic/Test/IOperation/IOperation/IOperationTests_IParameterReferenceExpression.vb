@@ -854,7 +854,9 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Public S
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40679: The test hook is blocked by this issue.
+        <WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <WorkItem(40679, "https://github.com/dotnet/roslyn/issues/40679")>
         Public Sub ParameterReference_LateAddressOfOperator()
             Dim source = <![CDATA[
 Option Strict Off
