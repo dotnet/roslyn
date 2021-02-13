@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
+    /// <summary>
+    /// Clone of the platform's Microsoft.VisualStudio.RpcContracts.Caching.ICacheService, but defined so we can
+    /// reference it in the workspace layer, and function if it is not present.
+    /// </summary>
     internal interface ICloudCacheService : IDisposable
     {
         Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken);

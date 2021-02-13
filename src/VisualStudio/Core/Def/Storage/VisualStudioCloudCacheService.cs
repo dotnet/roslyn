@@ -11,6 +11,10 @@ using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
+    /// <summary>
+    /// Tiny wrappers that takes the platform <see cref="ICacheService"/> and wraps it to our own layers as an <see
+    /// cref="ICloudCacheService"/>.
+    /// </summary>
     internal class VisualStudioCloudCacheService : ICloudCacheService
     {
         private readonly ICacheService _cacheService;
