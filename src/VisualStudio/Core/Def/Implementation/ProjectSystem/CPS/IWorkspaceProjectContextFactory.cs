@@ -20,9 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         IWorkspaceProjectContext CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
 
         /// <summary>
-        /// Creates and initializes a new Workspace project and returns a <see cref="IWorkspaceProjectContext"/> to
-        /// lazily initialize the properties and items for the project.  Cancellation is supported and will not leave
-        /// the workspace in a partially completed state.
+        /// Creates and initializes a new Workspace project and returns a <see
+        /// cref="IWorkspaceProjectContext"/> to lazily initialize the properties and items for the
+        /// project.  This method guarantees that either the project is added (and the returned task
+        /// completes) or cancellation is observed and no project is added.
         /// </summary>
         /// <param name="languageName">Project language.</param>
         /// <param name="projectUniqueName">Unique name for the project.</param>
