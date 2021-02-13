@@ -259,9 +259,8 @@ class A
         }
 
         [Fact]
-        [WorkItem(47743, "https://github.com/dotnet/roslyn/issues/47743")]
         [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
-        public async Task TestGetRegexCompletionsTargetTypedAsync()
+        public async Task TestGetRegexCompletionsReplaceTextAsync()
         {
             var markup =
 @"using System.Text.RegularExpressions;
