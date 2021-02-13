@@ -10,6 +10,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
+    /// <summary>
+    /// Cache of our own internal roslyn storage keys to the equivalent platform cloud cache keys.  Cloud cache keys can
+    /// store a lot of date in them (like their 'dimensions' dictionary.  We don't want to continually recreate these as
+    /// we read/write date to the db.
+    /// </summary>
     internal class ProjectCacheContainerKey
     {
         private static readonly ImmutableSortedDictionary<string, string?> EmptyDimensions = ImmutableSortedDictionary.Create<string, string?>(StringComparer.Ordinal);

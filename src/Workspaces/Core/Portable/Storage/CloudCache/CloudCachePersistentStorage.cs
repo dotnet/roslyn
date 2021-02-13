@@ -14,6 +14,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
+    /// <summary>
+    /// Implementation of Roslyn's <see cref="IPersistentStorage"/> sitting on top of the platform's cloud storage
+    /// system.
+    /// </summary>
     internal class CloudCachePersistentStorage : AbstractPersistentStorage
     {
         private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
@@ -25,7 +29,14 @@ namespace Microsoft.CodeAnalysis.Storage
         /// </summary>
         private static readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey> s_projectToContainerKey = new();
 
+        /// <summary>
+        /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
+        /// </summary>
         private readonly ICloudCacheService _cacheService;
+
+        /// <summary>
+        /// Optional boolean controlling if we fail over gracefully or fail fast.  For local testing purposes.
+        /// </summary>
         private readonly bool _mustSucceed;
 
         private readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey>.CreateValueCallback _projectToContainerKeyCallback;
@@ -47,6 +58,10 @@ namespace Microsoft.CodeAnalysis.Storage
         public override void Dispose()
             => _cacheService.Dispose();
 
+        /// <summary>
+        /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
+        /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
+        /// </summary>
         private CloudCacheContainerKey? GetContainerKey(ProjectKey projectKey)
         {
             var state = projectKey.ProjectState;
@@ -55,6 +70,10 @@ namespace Microsoft.CodeAnalysis.Storage
                 : ProjectCacheContainerKey.CreateProjectContainerKey(_mustSucceed, this.SolutionFilePath, projectKey);
         }
 
+        /// <summary>
+        /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
+        /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
+        /// </summary>
         private CloudCacheContainerKey? GetContainerKey(DocumentKey documentKey)
         {
             var projectState = documentKey.Project.ProjectState;
@@ -75,8 +94,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
+            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // solution folder) then we can't proceed.
             if (containerKey == null)
-                return false;
+                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : false;
 
             using var bytes = s_byteArrayPool.GetPooledObject();
             checksum.WriteTo(bytes.Object);
@@ -95,6 +116,8 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
+            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // solution folder) then we can't proceed.
             if (containerKey == null)
                 return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : null;
 
@@ -147,8 +170,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
+            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // solution folder) then we can't proceed.
             if (containerKey == null)
-                return false;
+                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : false;
 
             if (checksum == null)
             {
