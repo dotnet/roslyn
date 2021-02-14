@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
 
             // At this point we've mutated the workspace.  So we're no longer cancellable.
-            cancellationToken = default;
+            cancellationToken = CancellationToken.None;
 
             if (languageName == LanguageNames.FSharp)
             {
