@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,8 +13,10 @@ using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
              ch == '/' || (ch == '\\' && !PathUtilities.IsUnixLikePlatform);
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// <code>r</code> for metadata reference directive, <code>load</code> for source file directive.
+        /// </summary>
+        protected abstract string DirectiveName { get; }
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -33,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
                 {
@@ -60,8 +65,33 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             }
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
-            => true;
+        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        {
+            var lineStart = text.Lines.GetLineFromPosition(caretPosition).Start;
+
+            // check if the line starts with {whitespace}#{whitespace}{DirectiveName}{whitespace}"
+
+            var poundIndex = text.IndexOfNonWhiteSpace(lineStart, caretPosition - lineStart);
+            if (poundIndex == -1 || text[poundIndex] != '#')
+            {
+                return false;
+            }
+
+            var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, caretPosition - poundIndex - 1);
+            if (directiveNameStartIndex == -1 || !text.ContentEquals(directiveNameStartIndex, DirectiveName))
+            {
+                return false;
+            }
+
+            var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length;
+            var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, caretPosition - directiveNameEndIndex);
+            if (quoteIndex == -1 || text[quoteIndex] != '"')
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         private static string GetPathThroughLastSlash(string quotedPath, int quotedPathStart, int position)
         {
@@ -70,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             const int QuoteLength = 1;
 
             var positionInQuotedPath = position - quotedPathStart;
-            var path = quotedPath.Substring(QuoteLength, positionInQuotedPath - QuoteLength).Trim();
+            var path = quotedPath[QuoteLength..positionInQuotedPath].Trim();
             var afterLastSlashIndex = AfterLastSlashIndex(path, path.Length);
 
             // We want the portion up to, and including the last slash if there is one.  That way if
@@ -134,24 +164,34 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             ImmutableArray<string> extensions,
             CompletionItemRules completionRules)
         {
-            var serviceOpt = document.Project.Solution.Workspace.Services.GetService<IScriptEnvironmentService>();
-            var searchPaths = serviceOpt?.MetadataReferenceSearchPaths ?? ImmutableArray<string>.Empty;
+            ImmutableArray<string> referenceSearchPaths;
+            string? baseDirectory;
+            if (document.Project.CompilationOptions?.MetadataReferenceResolver is RuntimeMetadataReferenceResolver resolver)
+            {
+                referenceSearchPaths = resolver.PathResolver.SearchPaths;
+                baseDirectory = resolver.PathResolver.BaseDirectory;
+            }
+            else
+            {
+                referenceSearchPaths = ImmutableArray<string>.Empty;
+                baseDirectory = null;
+            }
 
             return new FileSystemCompletionHelper(
                 Glyph.OpenFolder,
                 itemGlyph,
-                searchPaths,
-                GetBaseDirectory(document, serviceOpt),
+                referenceSearchPaths,
+                GetBaseDirectory(document, baseDirectory),
                 extensions,
                 completionRules);
         }
 
-        private static string GetBaseDirectory(Document document, IScriptEnvironmentService environmentOpt)
+        private static string? GetBaseDirectory(Document document, string? baseDirectory)
         {
             var result = PathUtilities.GetDirectoryName(document.FilePath);
             if (!PathUtilities.IsAbsolute(result))
             {
-                result = environmentOpt?.BaseDirectory;
+                result = baseDirectory;
                 Debug.Assert(result == null || PathUtilities.IsAbsolute(result));
             }
 

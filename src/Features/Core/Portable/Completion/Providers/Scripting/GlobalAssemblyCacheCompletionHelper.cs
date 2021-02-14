@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal sealed class GlobalAssemblyCacheCompletionHelper
     {

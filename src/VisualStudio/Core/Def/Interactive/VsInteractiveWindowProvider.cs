@@ -55,12 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
             _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
-                specializedContentType: CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName);
+                specializedContentType: InteractiveWindowContentTypes.CommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
 
-        protected abstract InteractiveEvaluator CreateInteractiveEvaluator(
+        protected abstract CSharpInteractiveEvaluator CreateInteractiveEvaluator(
             SVsServiceProvider serviceProvider,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
