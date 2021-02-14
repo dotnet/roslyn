@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
-            cancellationToken = default;
+            cancellationToken = CancellationToken.None;
 
             var id = ProjectId.CreateNewId(projectSystemName);
             var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
