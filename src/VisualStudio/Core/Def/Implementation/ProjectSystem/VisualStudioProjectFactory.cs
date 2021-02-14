@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
@@ -39,12 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
         public Task<VisualStudioProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -61,7 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            var solution = (IVsSolution2)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+            // ConfigureAwait(true) as we have to come back to the UI thread to call GetSolutionInfo.
+            var solution = await _serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>().ConfigureAwait(true);
             var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
                 ? filePath
                 : null;
@@ -147,11 +151,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
         {
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, CancellationToken.None));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+                await ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, CancellationToken.None).ConfigureAwait(false));
         }
 
-        async Task<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
+        async ValueTask<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
             string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
         {
             var projectInfo = new VisualStudioProjectCreationInfo
