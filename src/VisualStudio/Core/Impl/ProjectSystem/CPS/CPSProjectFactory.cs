@@ -81,6 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 await shell.LoadPackageAsync(ref packageId);
             }
 
+            // CPSProject constructor has a UI thread dependencies currently, so switch back to the UI thread before proceeding.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
         }
     }
