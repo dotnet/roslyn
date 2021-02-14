@@ -7652,5 +7652,26 @@ record Person(string First, string Last);
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.RecordClassName);
         }
+
+        [Fact()]
+        public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
+        {
+            var text = @"
+class A {
+    delegate*<int, string> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<Int32, String>");
+        }
     }
 }

@@ -678,9 +678,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (e.g. field types, param types, etc), which just want the name whereas parameters are
             // used on their own or in the context of methods.
 
-            var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
+            var isFunctionPointerParameter = symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature };
+            var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType)
+                || isFunctionPointerParameter;
             var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
-                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
+                              && !isFunctionPointerParameter;
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
             if (includeBrackets && symbol.IsOptional)
