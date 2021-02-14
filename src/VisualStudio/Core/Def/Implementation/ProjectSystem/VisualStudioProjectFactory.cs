@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
             // ConfigureAwait(true) as we have to come back to the UI thread to call GetSolutionInfo.
-            var solution = await _serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>().ConfigureAwait(true);
+            var solution = (IVsSolution2?)await _serviceProvider.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
                 ? filePath
                 : null;
