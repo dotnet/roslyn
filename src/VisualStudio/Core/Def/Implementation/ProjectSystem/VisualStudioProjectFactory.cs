@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
             var solution = (IVsSolution2)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-            var solutionFilePath = ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
+            var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
                 ? filePath
                 : null;
 
