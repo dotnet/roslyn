@@ -152,38 +152,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact(Skip = "TODO(alrz)")]
+        [Fact]
         public void LengthPattern_05()
         {
             UsingExpression(@"c is int[][0]");
-            N(SyntaxKind.IsExpression);
+            N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
                 }
                 N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ArrayType);
+                N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.ArrayType);
                     {
-                        N(SyntaxKind.IntKeyword);
-                    }
-                    N(SyntaxKind.ArrayRankSpecifier);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.OmittedArraySizeExpression);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.CloseBracketToken);
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
                     }
-                    N(SyntaxKind.ArrayRankSpecifier);
+                    N(SyntaxKind.LengthPatternClause);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.NumericLiteralExpression);
+                        N(SyntaxKind.ConstantPattern);
                         {
-                            N(SyntaxKind.NumericLiteralToken, "0");
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
@@ -192,29 +198,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact(Skip = "TODO(alrz)")]
+        [Fact]
         public void LengthPattern_06()
         {
             UsingExpression(@"c is int[0]");
-            N(SyntaxKind.IsExpression);
+            N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
                 }
                 N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ArrayType);
+                N(SyntaxKind.RecursivePattern);
                 {
                     N(SyntaxKind.PredefinedType);
                     {
                         N(SyntaxKind.IntKeyword);
                     }
-                    N(SyntaxKind.ArrayRankSpecifier);
+                    N(SyntaxKind.LengthPatternClause);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.NumericLiteralExpression);
+                        N(SyntaxKind.ConstantPattern);
                         {
-                            N(SyntaxKind.NumericLiteralToken, "0");
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
@@ -223,18 +232,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact(Skip = "TODO(alrz)")]
+        [Fact]
         public void LengthPattern_07()
         {
             UsingExpression(@"c is List<int>[0]");
-            N(SyntaxKind.IsExpression);
+            N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "c");
                 }
                 N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.ArrayType);
+                N(SyntaxKind.RecursivePattern);
                 {
                     N(SyntaxKind.GenericName);
                     {
@@ -249,12 +258,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.ArrayRankSpecifier);
+                    N(SyntaxKind.LengthPatternClause);
                     {
                         N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.NumericLiteralExpression);
+                        N(SyntaxKind.ConstantPattern);
                         {
-                            N(SyntaxKind.NumericLiteralToken, "0");
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
@@ -267,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LengthPattern_08()
         {
             UsingExpression(@"c is [{}]");
-
             N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
