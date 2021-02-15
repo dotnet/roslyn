@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// <summary>
         /// Add or remove the braces for <param name="selectedNode"/>.
         /// </summary>
-        protected abstract void ModifySelectedNode(AutomaticLineEnderCommandArgs args, Document document, SyntaxNode selectedNode, int caretPosition, CancellationToken cancellationToken);
+        protected abstract void ModifySelectedNode(AutomaticLineEnderCommandArgs args, Document document, SyntaxNode selectedNode, bool addBrace, int caretPosition, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get the syntax node needs add/remove braces.
         /// </summary>
-        protected abstract SyntaxNode? GetValidNodeToModifyBraces(Document document, int caretPosition, CancellationToken cancellationToken);
+        protected abstract (SyntaxNode selectedNode, bool addBrace)? GetValidNodeToModifyBraces(Document document, int caretPosition, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
             => CommandState.Available;
@@ -120,11 +120,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 // 2. Append an ending string to the line. (For C#, it is semicolon ';', For VB, it is underline '_')
 
                 // Check if the node could be used to add/remove brace.
-                var selectedNode = GetValidNodeToModifyBraces(document, caretPosition, cancellationToken);
-                if (selectedNode != null)
+                var selectNodeAndOperationKind = GetValidNodeToModifyBraces(document, caretPosition, cancellationToken);
+                if (selectNodeAndOperationKind != null)
                 {
+                    var (selectedNode, addBrace) = selectNodeAndOperationKind.Value;
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                    ModifySelectedNode(args, document, selectedNode, caretPosition, cancellationToken);
+                    ModifySelectedNode(args, document, selectedNode, addBrace, caretPosition, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();
                     return;

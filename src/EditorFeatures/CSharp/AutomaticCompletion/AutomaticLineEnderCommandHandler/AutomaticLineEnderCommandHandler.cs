@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.AutomaticLineEnderCommandHandlerUtilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 {
@@ -356,12 +357,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             AutomaticLineEnderCommandArgs args,
             Document document,
             SyntaxNode selectedNode,
+            bool addBrace,
             int caretPosition,
             CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             // Add braces for the selected node
-            if (ShouldAddBraces(selectedNode, caretPosition))
+            if (addBrace)
             {
                 // For these syntax node, braces pair could be easily added by modify the syntax tree
                 if (selectedNode is BaseTypeDeclarationSyntax
@@ -413,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // Check if we need to remove braces for the node
-            if (ShouldRemoveBraces(selectedNode, caretPosition))
+            if (!addBrace)
             {
                 // Remove the braces and get the next caretPosition
                 var (newRoot, nextCaretPosition) = RemoveBraceFromSelectedNode(
@@ -949,7 +951,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             FormatAndApplyBasedOnEndToken(newDocument, insertionPosition + s_bracePair.Length - 1, cancellationToken);
         }
 
-        protected override SyntaxNode? GetValidNodeToModifyBraces(Document document, int caretPosition, CancellationToken cancellationToken)
+        protected override (SyntaxNode selectedNode, bool addBrace)? GetValidNodeToModifyBraces(Document document, int caretPosition, CancellationToken cancellationToken)
         {
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var token = root.FindTokenOnLeftOfPosition(caretPosition);
@@ -958,293 +960,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return null;
             }
 
-            return token.GetAncestor(node => ShouldAddBraces(node, caretPosition) || ShouldRemoveBraces(node, caretPosition));
-        }
-
-        private static bool WithinMethodBody(SyntaxNode node, int caretPosition)
-        {
-            if (node is BaseMethodDeclarationSyntax methodDeclarationNode)
+            foreach (var node in token.GetAncestors<SyntaxNode>())
             {
-                return methodDeclarationNode.Body?.Span.Contains(caretPosition) ?? false;
+                if (ShouldAddBraces(node, caretPosition))
+                {
+                    return (node, true);
+                }
+
+                if (ShouldRemoveBraces(node, caretPosition))
+                {
+                    return (node, false);
+                }
             }
 
-            if (node is LocalFunctionStatementSyntax localFunctionStatementNode)
-            {
-                return localFunctionStatementNode.Body?.Span.Contains(caretPosition) ?? false;
-            }
-
-            return false;
-        }
-
-        private static bool WithinEmbeddedStatement(SyntaxNode node, int caretPosition)
-            => node.GetEmbeddedStatement()?.Span.Contains(caretPosition) ?? false;
-
-        private static bool WithinAttributeLists(SyntaxNode node, int caretPosition)
-        {
-            var attributeLists = node.GetAttributeLists();
-            return attributeLists.Span.Contains(caretPosition);
-        }
-
-        private static bool WithinBraces(SyntaxNode? node, int caretPosition)
-        {
-            var (openBrace, closeBrace) = node.GetBraces();
-            return TextSpan.FromBounds(openBrace.SpanStart, closeBrace.Span.End).Contains(caretPosition);
+            return null;
         }
 
         private static bool ShouldRemoveBraces(SyntaxNode node, int caretPosition)
-        {
-            // Remove the braces if the ObjectCreationExpression has an empty Initializer.
-            if (node is ObjectCreationExpressionSyntax objectCreationNode
-                && objectCreationNode.Initializer != null
-                && objectCreationNode.Initializer.Expressions.IsEmpty())
+            => node switch
             {
-                return true;
-            }
-
-            // Only do this when it is an accessor in property
-            // Since it is illegal to have something like
-            // int this[int i] { get; set;}
-            // event EventHandler Bar {add; remove;}
-            if (node is AccessorDeclarationSyntax { Body: not null, ExpressionBody: null, Parent: not null } accessorDeclarationNode
-                && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration)
-                && accessorDeclarationNode.Body!.Span.Contains(caretPosition))
-            {
-                return true;
-            }
-
-            // If a property just has an empty accessorList, like
-            // int i $${ }
-            // then remove the braces and change it to a field
-            // int i;
-            if (node is PropertyDeclarationSyntax propertyDeclarationNode
-                && propertyDeclarationNode.AccessorList != null
-                && propertyDeclarationNode.ExpressionBody == null)
-            {
-                var accessorList = propertyDeclarationNode.AccessorList;
-                return accessorList.Span.Contains(caretPosition) && accessorList.Accessors.IsEmpty();
-            }
-
-            // If an event declaration just has an empty accessorList,
-            // like
-            // event EventHandler e$$  { }
-            // then change it to a event field declaration
-            // event EventHandler e;
-            if (node is EventDeclarationSyntax eventDeclarationNode
-                && eventDeclarationNode.AccessorList != null)
-            {
-                var accessorList = eventDeclarationNode.AccessorList;
-                return accessorList.Span.Contains(caretPosition) && accessorList.Accessors.IsEmpty();
-            }
-
-            return false;
-        }
+                ObjectCreationExpressionSyntax objectCreationExpressionNode => ShouldRemoveBraceForObjectCreationExpression(objectCreationExpressionNode),
+                AccessorDeclarationSyntax accessorDeclarationNode => ShouldRemoveBraceForAccessorDeclaration(accessorDeclarationNode, caretPosition),
+                PropertyDeclarationSyntax propertyDeclarationNode => ShouldRemoveBraceForPropertyDeclaration(propertyDeclarationNode, caretPosition),
+                EventDeclarationSyntax eventDeclarationNode => ShouldRemoveBraceForEventDeclaration(eventDeclarationNode, caretPosition),
+                _ => false,
+            };
 
         private static bool ShouldAddBraces(SyntaxNode node, int caretPosition)
-        {
-            // For namespace, make sure it has name there is no braces
-            if (node is NamespaceDeclarationSyntax { Name: IdentifierNameSyntax identifierName }
-                && !identifierName.Identifier.IsMissing
-                && HasNoBrace(node)
-                && !WithinAttributeLists(node, caretPosition)
-                && !WithinBraces(node, caretPosition))
+            => node switch
             {
-                return true;
-            }
-
-            // For class/struct/enum ..., make sure it has name and there is no braces.
-            if (node is BaseTypeDeclarationSyntax { Identifier: { IsMissing: false } }
-                && HasNoBrace(node)
-                && HasNoBrace(node)
-                && !WithinAttributeLists(node, caretPosition)
-                && !WithinBraces(node, caretPosition))
-            {
-                return true;
-            }
-
-            // For method, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
-            if (node is BaseMethodDeclarationSyntax { ExpressionBody: null, Body: null, ParameterList: { IsMissing: false }, SemicolonToken: { IsMissing: true } } baseMethodNode
-                && !WithinAttributeLists(node, caretPosition)
-                && !WithinMethodBody(node, caretPosition))
-            {
-                // Make sure we don't insert braces for method in Interface.
-                return !baseMethodNode.IsParentKind(SyntaxKind.InterfaceDeclaration);
-            }
-
-            // For local Function, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
-            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null, ParameterList: { IsMissing: false } }
-               && !WithinAttributeLists(node, caretPosition) && !WithinMethodBody(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is ObjectCreationExpressionSyntax { Initializer: null })
-            {
-                return true;
-            }
-
-            // Add braces for field and event field if they only have one variable, semicolon is missing & don't have readonly keyword
-            // Example:
-            // public int Bar$$ =>
-            // public int Bar
-            // {
-            //      $$
-            // }
-            // This would change field to property, and change event field to event declaration
-            if (node is BaseFieldDeclarationSyntax baseFieldDeclaration
-                && baseFieldDeclaration.Declaration.Variables.Count == 1
-                && baseFieldDeclaration.Declaration.Variables[0].Initializer == null
-                && !baseFieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
-                && baseFieldDeclaration.SemicolonToken.IsMissing)
-            {
-                return true;
-            }
-
-            if (node is AccessorDeclarationSyntax { Body: null, ExpressionBody: null, SemicolonToken: { IsMissing: true } })
-            {
-                return true;
-            }
-
-            // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
-            // use its parent's close brace as its own.
-            // Example:
-            // class Bar
-            // {
-            //      int th$$is[int i]
-            // }
-            // In this case, parser would think the last '}' belongs to the indexer, not the class.
-            // Therefore, only check if the open brace is missing for these 4 types of SyntaxNode
-            if (node is IndexerDeclarationSyntax indexerNode && ShouldAddBraceForIndexer(indexerNode, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is SwitchStatementSyntax { OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false }, OpenBraceToken: { IsMissing: true } } switchStatementNode
-                && !WithinBraces(switchStatementNode, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is TryStatementSyntax { TryKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } tryStatementNode
-                && !tryStatementNode.Block.Span.Contains(caretPosition))
-            {
-                return true;
-            }
-
-            if (node is CatchClauseSyntax { CatchKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } catchClauseNode
-                && !catchClauseNode.Block.Span.Contains(caretPosition))
-            {
-                return true;
-            }
-
-            if (node is FinallyClauseSyntax { FinallyKeyword: { IsMissing: false }, Block: { OpenBraceToken: { IsMissing: true } } } finallyClauseNode
-                && !finallyClauseNode.Block.Span.Contains(caretPosition))
-            {
-                return true;
-            }
-
-            // For all the embeddedStatementOwners,
-            // if the embeddedStatement is not block, insert the the braces if its statement is not block.
-            if (node is DoStatementSyntax { DoKeyword: { IsMissing: false }, Statement: not BlockSyntax } doStatementNode
-                && doStatementNode.DoKeyword.Span.Contains(caretPosition))
-            {
-                return true;
-            }
-
-            if (node is CommonForEachStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is ForStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is IfStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is ElseClauseSyntax elseClauseNode)
-            {
-                // In case it is an else-if clause, if the statement is IfStatement, use its insertion statement
-                // otherwise, use the end of the else keyword
-                // Example:
-                // Before: if (a)
-                //         {
-                //         } else i$$f (b)
-                // After: if (a)
-                //        {
-                //        } else if (b)
-                //        {
-                //            $$
-                //        }
-                if (elseClauseNode.Statement is IfStatementSyntax)
-                {
-                    return ShouldAddBraces(elseClauseNode.Statement, caretPosition);
-                }
-                else
-                {
-                    return elseClauseNode.Statement is not BlockSyntax && !WithinEmbeddedStatement(node, caretPosition);
-                }
-            }
-
-            if (node is LockStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is UsingStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            if (node is WhileStatementSyntax { Statement: not BlockSyntax, OpenParenToken: { IsMissing: false }, CloseParenToken: { IsMissing: false } }
-                && !WithinEmbeddedStatement(node, caretPosition))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ShouldAddBraceForIndexer(IndexerDeclarationSyntax indexerNode, int caretPosition)
-        {
-            if (WithinAttributeLists(indexerNode, caretPosition) ||
-                WithinBraces(indexerNode.AccessorList, caretPosition))
-            {
-                return false;
-            }
-
-            // Make sure it has brackets
-            var (openBracket, closeBracket) = indexerNode.ParameterList.GetBrackets();
-            if (openBracket.IsMissing || closeBracket.IsMissing)
-            {
-                return false;
-            }
-
-            // If both accessorList and body is empty
-            if ((indexerNode.AccessorList == null || indexerNode.AccessorList.IsMissing)
-                && indexerNode.ExpressionBody == null)
-            {
-                return true;
-            }
-
-            return indexerNode.AccessorList != null
-               && indexerNode.AccessorList.OpenBraceToken.IsMissing;
-        }
-
-        private static bool HasNoBrace(SyntaxNode node)
-        {
-            var (openBrace, closeBrace) = node.GetBraces();
-            return openBrace.IsKind(SyntaxKind.None) && closeBrace.IsKind(SyntaxKind.None)
-                || openBrace.IsMissing && closeBrace.IsMissing;
-        }
+                NamespaceDeclarationSyntax namespaceDeclarationNode => ShouldAddBraceForNamespaceDeclaration(namespaceDeclarationNode, caretPosition),
+                BaseTypeDeclarationSyntax baseTypeDeclarationNode => ShouldAddBraceForBaseTypeDeclaration(baseTypeDeclarationNode, caretPosition),
+                BaseMethodDeclarationSyntax baseMethodDeclarationNode => ShouldAddBraceForBaseMethodDeclaration(baseMethodDeclarationNode, caretPosition),
+                LocalFunctionStatementSyntax localFunctionStatementNode => ShouldAddBraceForLocalFunctionStatement(localFunctionStatementNode, caretPosition),
+                ObjectCreationExpressionSyntax objectCreationExpressionNode => ShouldAddBraceForObjectCreationExpression(objectCreationExpressionNode, caretPosition),
+                BaseFieldDeclarationSyntax baseFieldDeclarationNode => ShouldAddBraceForBaseFieldDeclaration(baseFieldDeclarationNode),
+                AccessorDeclarationSyntax accessorDeclarationNode => ShouldAddBraceForAccessorDeclaration(accessorDeclarationNode, caretPosition),
+                IndexerDeclarationSyntax indexerDeclarationNode => ShouldAddBraceForIndexerDeclaration(indexerDeclarationNode, caretPosition),
+                SwitchStatementSyntax switchStatementNode => ShouldAddBraceForSwitchStatement(switchStatementNode, caretPosition),
+                TryStatementSyntax tryStatementNode => ShouldAddBraceForTryStatement(tryStatementNode, caretPosition),
+                CatchClauseSyntax catchClauseNode => ShouldAddBraceForCatchClause(catchClauseNode, caretPosition),
+                FinallyClauseSyntax finallyClauseNode => ShouldAddBraceForFinallyClause(finallyClauseNode, caretPosition),
+                DoStatementSyntax doStatementNode => ShouldAddBraceForDoStatement(doStatementNode, caretPosition),
+                CommonForEachStatementSyntax commonForEachStatementNode => ShouldAddBraceForCommonForEachStatement(commonForEachStatementNode, caretPosition),
+                ForStatementSyntax forStatementNode => ShouldAddBraceForForStatement(forStatementNode, caretPosition),
+                IfStatementSyntax ifStatementNode => ShouldAddBraceForIfStatement(ifStatementNode, caretPosition),
+                ElseClauseSyntax elseClauseNode => ShouldAddBraceForElseClause(elseClauseNode, caretPosition),
+                LockStatementSyntax lockStatementNode => ShouldAddBraceForLockStatement(lockStatementNode, caretPosition),
+                UsingStatementSyntax usingStatementNode => ShouldAddBraceForUsingStatement(usingStatementNode, caretPosition),
+                WhileStatementSyntax whileStatementNode => ShouldAddBraceForWhileStatement(whileStatementNode, caretPosition),
+                _ => false,
+            };
 
         #endregion
     }
