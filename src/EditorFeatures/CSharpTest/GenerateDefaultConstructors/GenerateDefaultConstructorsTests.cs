@@ -1367,7 +1367,7 @@ record B
     public B(int x)
     {
     }
-}");
+}", index: 1);
         }
     }
 }
