@@ -15,6 +15,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -297,6 +299,51 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 .Add("a", "1").Add("b", "2");
             var exception = Assert.Throws<KeyNotFoundException>(() => map["c"]);
             Assert.Contains("'c'", exception.Message);
+        }
+
+        [Fact]
+        public void Ordering_NoRemoval()
+        {
+            var map = Empty<int, int>().AddRange(Enumerable.Range(0, 100).Select(i => KeyValuePairUtil.Create(i, i)));
+            AssertEx.Equal(Enumerable.Range(0, 100), map.Select(entry => entry.Value));
+
+            for (int i = 0; i < map.Count; i++)
+            {
+                Assert.Equal(i, map.GetAddedEntry(i).Key);
+                Assert.Equal(i, map.GetAddedEntry(i).Value);
+            }
+        }
+
+        [Fact]
+        public void Ordering_AfterRemoval()
+        {
+            var map = Empty<int, int>()
+                .AddRange(Enumerable.Range(0, 10).Select(i => KeyValuePairUtil.Create(i, i)))
+                .Remove(3);
+
+            Assert.Throws<InvalidOperationException>(() => map.GetAddedEntry(0));
+        }
+
+        [Fact]
+        public void Ordering_AfterRemovalAndCompact()
+        {
+            const int count = 6;
+            const int removeKey = 3;
+
+            var builder = Empty<int, int>()
+                .AddRange(Enumerable.Range(0, count).Select(i => KeyValuePairUtil.Create(i, i)))
+                .ToBuilder();
+
+            builder.Remove(removeKey);
+            builder.Compact();
+
+            var map = builder.ToImmutable();
+            for (int i = 0; i < map.Count; i++)
+            {
+                var e = (i < removeKey) ? i : i + 1;
+                Assert.Equal(e, map.GetAddedEntry(i).Key);
+                Assert.Equal(e, map.GetAddedEntry(i).Value);
+            }
         }
 
         protected override IImmutableDictionary<TKey, TValue> Empty<TKey, TValue>()

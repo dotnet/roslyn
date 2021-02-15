@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var serializer = projectState.LanguageServices.WorkspaceServices.GetService<ISerializerService>();
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            var textChecksumsTasks = projectState.DocumentStates.Values.Select(async state =>
+            var textChecksumsTasks = projectState.DocumentStates.States.Select(async state =>
             {
                 var documentStateChecksum = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;

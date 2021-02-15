@@ -181,6 +181,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return true;
             }
 
+            public void Compact()
+                => GetOrCreateMutableDictionary().Compact();
+
             public void RemoveRange(IEnumerable<TKey> keys)
             {
                 if (keys is null)

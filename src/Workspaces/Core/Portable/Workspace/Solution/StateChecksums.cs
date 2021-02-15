@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -220,11 +221,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
 
-            // verify input
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
-            Contract.ThrowIfFalse(this == stateChecksum);
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (searchingChecksumsLeft.Remove(Checksum))
             {

@@ -3,11 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -18,95 +24,144 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct TextDocumentStates<TState>
         where TState : TextDocumentState
     {
-        public static readonly TextDocumentStates<TState> Empty = new(ImmutableArray<DocumentId>.Empty, ImmutableDictionary<DocumentId, TState>.Empty);
+        private sealed class DocumentIdReadOnlyList : IReadOnlyList<DocumentId>
+        {
+            private readonly ImmutableSegmentedDictionary<DocumentId, TState> _dictionary;
 
-        /// <summary>
-        /// Ordered <see cref="DocumentId"/>s. This is always an <see cref="ImmutableArray{T}"/>,
-        /// but we hold on its boxed instance to avoid re-boxing when returning this value from public APIs.
-        /// </summary>
+            public DocumentIdReadOnlyList(ImmutableSegmentedDictionary<DocumentId, TState> dictionary)
+                => _dictionary = dictionary;
+
+            public DocumentId this[int index]
+                => _dictionary.GetAddedEntry(index).Key;
+
+            public int Count
+                => _dictionary.Count;
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+
+            public IEnumerator<DocumentId> GetEnumerator()
+                => _dictionary.Keys.GetEnumerator();
+        }
+
+        public static readonly TextDocumentStates<TState> Empty = new(ImmutableSegmentedDictionary<DocumentId, TState>.Empty);
+
         public readonly IReadOnlyList<DocumentId> Ids;
 
-        public readonly ImmutableDictionary<DocumentId, TState> Map;
+        /// <summary>
+        /// The entires in the map are enumerable and indexable (via <see cref="ImmutableSegmentedDictionary{DocumentId, TState}.GetAddedEntry(int)"/>) 
+        /// in the order in which they have been added. When an item is removed we rehash the remaining entries so that we can keep enumerating and indexing
+        /// in that order. This approach trades slower write operations for faster read operations.
+        /// </summary>
+        private readonly ImmutableSegmentedDictionary<DocumentId, TState> _map;
 
-        private TextDocumentStates(IReadOnlyList<DocumentId> ids, ImmutableDictionary<DocumentId, TState> map)
+        private TextDocumentStates(ImmutableSegmentedDictionary<DocumentId, TState> map)
         {
-            Debug.Assert(ids.All(id => map.ContainsKey(id)) && ids.Count == map.Count);
-
-            Ids = ids;
-            Map = map;
+            Ids = new DocumentIdReadOnlyList(map);
+            _map = map;
         }
 
-        public TextDocumentStates(ImmutableArray<DocumentId> ids, ImmutableDictionary<DocumentId, TState> map)
-            : this((IReadOnlyList<DocumentId>)ids, map)
-        {
-        }
-
-        public TextDocumentStates(IReadOnlyList<TState> states)
-            : this(states.SelectAsArray(state => state.Id),
-                   states.ToImmutableDictionary(state => state.Id))
+        public TextDocumentStates(IEnumerable<TState> states)
+            : this(states.ToImmutableSegmentedDictionary(state => state.Id))
         {
         }
 
         public TextDocumentStates(IEnumerable<DocumentInfo> infos, Func<DocumentInfo, TState> stateConstructor)
-            : this(infos.Select(info => info.Id).ToImmutableArray(),
-                   infos.ToImmutableDictionary(info => info.Id, stateConstructor))
+            : this(infos.ToImmutableSegmentedDictionary(info => info.Id, stateConstructor))
         {
         }
 
         public int Count
-            => Ids.Count;
+            => _map.Count;
 
         public bool IsEmpty
             => Count == 0;
 
         public bool Contains(DocumentId id)
-            => Map.ContainsKey(id);
+            => _map.ContainsKey(id);
 
-        public TState? GetValue(DocumentId documentId)
-            => Map.TryGetValue(documentId, out var state) ? state : null;
+        public bool TryGetState(DocumentId documentId, [NotNullWhen(true)] out TState? state)
+            => _map.TryGetValue(documentId, out state);
 
-        public TState GetRequiredValue(DocumentId documentId)
-            => Map.TryGetValue(documentId, out var state) ? state : throw ExceptionUtilities.Unreachable;
+        public TState? GetState(DocumentId documentId)
+            => _map.TryGetValue(documentId, out var state) ? state : null;
 
-        public IEnumerable<TState> Values
-        {
-            get
-            {
-                foreach (var id in Ids)
-                {
-                    yield return Map[id];
-                }
-            }
-        }
+        public TState GetRequiredState(DocumentId documentId)
+            => _map.TryGetValue(documentId, out var state) ? state : throw ExceptionUtilities.Unreachable;
 
-        private ImmutableArray<DocumentId> IdArray
-            => (ImmutableArray<DocumentId>)Ids;
+        /// <summary>
+        /// States in the order they were added.
+        /// </summary>
+        public IEnumerable<TState> States
+            => _map.Values;
 
         public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
-            => IdArray.SelectAsArray(static (id, args) => args.selector(args.Map[id]), (Map, selector));
-
-        public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
-            => IdArray.SelectAsArray(static (id, args) => args.selector(args.Map[id], args.arg), (Map, selector, arg));
-
-        public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
-            => new(IdArray.AddRange(states.Select(state => state.Id)),
-                    Map.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))));
-
-        public TextDocumentStates<TState> RemoveRange(ImmutableArray<DocumentId> ids)
-            => new(IdArray.RemoveRange(ids), Map.RemoveRange(ids));
-
-        internal TextDocumentStates<TState> SetValue(DocumentId id, TState state)
-            => new(Ids, Map.SetItem(id, state));
-
-        public TextDocumentStates<TState> UpdateValues<TArg>(Func<TState, TArg, TState> transformation, TArg arg)
         {
-            var newMap = Map;
-            foreach (var (id, state) in Map)
+            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+
+            foreach (var (_, state) in _map)
             {
-                newMap = newMap.SetItem(id, transformation(state, arg));
+                builder.Add(selector(state));
             }
 
-            return new(Ids, newMap);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableArray<TValue> SelectAsArray<TValue, TArg>(Func<TState, TArg, TValue> selector, TArg arg)
+        {
+            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+
+            foreach (var (_, state) in _map)
+            {
+                builder.Add(selector(state, arg));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public async ValueTask<ImmutableArray<TValue>> SelectAsArrayAsync<TValue, TArg>(Func<TState, TArg, CancellationToken, ValueTask<TValue>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<TValue>.GetInstance(out var builder);
+
+            foreach (var (_, state) in _map)
+            {
+                builder.Add(await selector(state, arg, cancellationToken).ConfigureAwait(true));
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
+            => new(_map.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))));
+
+        public TextDocumentStates<TState> RemoveRange(ImmutableArray<DocumentId> ids)
+        {
+            var builder = _map.ToBuilder();
+
+            foreach (var id in ids)
+            {
+                builder.Remove(id);
+            }
+
+            // Have to call Compact in order to preserve ordering invariant.
+            builder.Compact();
+
+            return new(builder.ToImmutable());
+        }
+
+        internal TextDocumentStates<TState> SetState(DocumentId id, TState state)
+            => new(_map.SetItem(id, state));
+
+        public TextDocumentStates<TState> UpdateStates<TArg>(Func<TState, TArg, TState> transformation, TArg arg)
+        {
+            var builder = _map.ToBuilder();
+
+            foreach (var (id, state) in _map)
+            {
+                builder[id] = transformation(state, arg);
+            }
+
+            return new(builder.ToImmutable());
         }
 
         /// <summary>
@@ -114,9 +169,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetChangedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var id in Ids)
+            foreach (var (id, _) in _map)
             {
-                if (oldStates.Map.TryGetValue(id, out var oldState) && oldState != Map[id])
+                if (oldStates._map.TryGetValue(id, out var oldState) && oldState != _map[id])
                 {
                     yield return id;
                 }
@@ -128,9 +183,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetAddedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var id in Ids)
+            foreach (var (id, _) in _map)
             {
-                if (!oldStates.Map.ContainsKey(id))
+                if (!oldStates._map.ContainsKey(id))
                 {
                     yield return id;
                 }
@@ -142,9 +197,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var id in oldStates.Ids)
+            foreach (var (id, _) in oldStates._map)
             {
-                if (!Map.ContainsKey(id))
+                if (!_map.ContainsKey(id))
                 {
                     yield return id;
                 }
@@ -152,6 +207,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool HasAnyStateChanges(TextDocumentStates<TState> oldStates)
-            => !Values.SequenceEqual(oldStates.Values);
+            => !_map.Values.SequenceEqual(oldStates._map.Values);
     }
 }

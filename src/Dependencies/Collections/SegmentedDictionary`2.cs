@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Collections
     /// <remarks>
     /// <para>This collection has the same performance characteristics as <see cref="Dictionary{TKey, TValue}"/>, but
     /// uses segmented arrays to avoid allocations in the Large Object Heap.</para>
+    /// 
+    /// <para>The enumerator of the dictionary yields entries in the order they were added to the dictionary provided that 
+    /// no entry has been removed since the dictionary was created.</para>
     /// </remarks>
     /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
@@ -35,14 +38,40 @@ namespace Microsoft.CodeAnalysis.Collections
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
         private ulong _fastModMultiplier;
+
+        /// <summary>
+        /// Number of used slots.
+        /// </summary>
         private int _count;
+
         private int _freeList;
+
+        /// <summary>
+        /// Number of used slots that represent a removed entry.
+        /// </summary>
         private int _freeCount;
+
         private int _version;
         private readonly IEqualityComparer<TKey>? _comparer;
         private KeyCollection? _keys;
         private ValueCollection? _values;
         private const int StartOfFreeList = -3;
+
+        // copy constructor
+        internal SegmentedDictionary(SegmentedDictionary<TKey, TValue> other)
+        {
+            _comparer = other._comparer;
+
+            if (other._buckets.Length > 0)
+            {
+                _buckets = other._buckets.CloneImpl();
+                _entries = other._entries.CloneImpl();
+                _fastModMultiplier = other._fastModMultiplier;
+                _count = other._count;
+                _freeList = other._freeList;
+                _freeCount = other._freeCount;
+            }
+        }
 
         public SegmentedDictionary()
             : this(0, null)
@@ -174,6 +203,30 @@ namespace Microsoft.CodeAnalysis.Collections
                 var modified = TryInsert(key, value, InsertionBehavior.OverwriteExisting);
                 Debug.Assert(modified);
             }
+        }
+
+        /// <summary>
+        /// Gets <paramref name="index"/>-th entry added to the dictionary.
+        /// </summary>
+        /// <remarks>
+        /// Requires that no entry has been removed from the dictionary since the dictionary was created or
+        /// <see cref="Compact()"/> was called.
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">An entry has been removed from the dictionary.</exception>
+        public KeyValuePair<TKey, TValue> GetAddedEntry(int index)
+        {
+            if (_freeCount > 0)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (index < 0 || index >= _count)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+            }
+
+            ref var entry = ref _entries[index];
+            return new(entry._key, entry._value);
         }
 
         public void Add(TKey key, TValue value)
@@ -945,6 +998,15 @@ ReturnNotFound:
         /// once it is known that no new elements will be added.
         /// </remarks>
         public void TrimExcess(int capacity)
+            => TrimExcess(capacity, forceCompact: false);
+
+        /// <summary>
+        /// Compacts the underlying storage.
+        /// </summary>
+        public void Compact()
+            => TrimExcess(Count, forceCompact: true);
+
+        private void TrimExcess(int capacity, bool forceCompact)
         {
             if (capacity < Count)
             {
@@ -954,24 +1016,27 @@ ReturnNotFound:
             var newSize = HashHelpers.GetPrime(capacity);
             var oldEntries = _entries;
             var currentCapacity = oldEntries.Length;
-            if (newSize >= currentCapacity)
+            if (newSize >= currentCapacity && !forceCompact)
             {
                 return;
             }
 
             var oldCount = _count;
             _version++;
-            Initialize(newSize);
+            if (newSize < currentCapacity)
+            {
+                Initialize(newSize);
+            }
+
             var entries = _entries;
             var count = 0;
             for (var i = 0; i < oldCount; i++)
             {
-                var hashCode = oldEntries[i]._hashCode; // At this point, we know we have entries.
                 if (oldEntries[i]._next >= -1)
                 {
                     ref var entry = ref entries[count];
                     entry = oldEntries[i];
-                    ref var bucket = ref GetBucket(hashCode);
+                    ref var bucket = ref GetBucket(entry._hashCode);
                     entry._next = bucket - 1; // Value in _buckets is 1-based
                     bucket = count + 1;
                     count++;

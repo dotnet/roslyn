@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.Values.Select(state => state.SyntaxTree));
+                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.SyntaxTree));
 
                     // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
                     // properly record assembly symbols for.
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = compilationWithoutGeneratedDocuments;
                 }
 
-                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.Values.Select(state => state.SyntaxTree));
+                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.SyntaxTree));
 
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis
                     var compilation = CreateEmptyCompilation();
 
                     var trees = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count);
-                    foreach (var document in ProjectState.DocumentStates.Values)
+                    foreach (var document in ProjectState.DocumentStates.States)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         // Include the tree even if the content of the document failed to load.
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis
                         generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder);
                     }
 
-                    compilation = compilation.AddSyntaxTrees(generatedDocuments.Values.Select(state => state.SyntaxTree));
+                    compilation = compilation.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
 
                     var finalState = FinalState.Create(
                         State.CreateValueSource(compilation, solution.Services),
@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis
                 // If we are in FinalState, then we have correctly ran generators and then know the final contents of the
                 // Compilation. The GeneratedDocuments can be filled for intermediate states, but those aren't guaranteed to be
                 // correct and can be re-ran later.
-                return state is FinalState finalState ? finalState.GeneratedDocuments.GetValue(documentId) : null;
+                return state is FinalState finalState ? finalState.GeneratedDocuments.GetState(documentId) : null;
             }
 
             #region Versions

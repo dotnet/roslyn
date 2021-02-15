@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         private DocumentState GetRequiredDocumentState(DocumentId documentId)
-            => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredValue(documentId);
+            => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredState(documentId);
 
         private TextDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
-            => GetRequiredProjectState(documentId.ProjectId).AdditionalDocumentStates.GetRequiredValue(documentId);
+            => GetRequiredProjectState(documentId.ProjectId).AdditionalDocumentStates.GetRequiredState(documentId);
 
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
-            => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredValue(documentId);
+            => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
         internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis
                     var projectState = GetProjectState(documentId.ProjectId);
                     if (projectState != null)
                     {
-                        var document = projectState.DocumentStates.GetValue(documentId);
+                        var document = projectState.DocumentStates.GetState(documentId);
                         if (document != null)
                         {
                             // does this document really have the syntax tree?
@@ -539,9 +539,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
-            => projectState.DocumentStates.Values
-                   .Concat(projectState.AdditionalDocumentStates.Values)
-                   .Concat(projectState.AnalyzerConfigDocumentStates.Values);
+            => projectState.DocumentStates.States
+                   .Concat(projectState.AdditionalDocumentStates.States)
+                   .Concat(projectState.AnalyzerConfigDocumentStates.States);
 
         /// <summary>
         /// Create a new solution instance without the project specified.
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredValue(documentId),
+                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.DocumentStates.GetRequiredValue(documentId),
+                (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
                 (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
         }
 
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredValue(documentId),
+                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
                 (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
         }
 
@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.DocumentStates.GetRequiredValue(newDocument.Id);
+            var oldDocument = oldProject.DocumentStates.GetRequiredState(newDocument.Id);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
 
             return ForkProject(
@@ -1418,7 +1418,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredValue(newDocument.Id);
+            var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredState(newDocument.Id);
 
             return ForkProject(
                 newProject,
@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetValue(documentId);
+                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
                 if (doc != null)
                 {
                     if (!doc.TryGetText(out var existingText) || existingText != text)

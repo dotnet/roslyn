@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentStates.Count);
 
-                    foreach (var documentState in _state.DocumentStates.Values)
+                    foreach (var documentState in _state.DocumentStates.States)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));

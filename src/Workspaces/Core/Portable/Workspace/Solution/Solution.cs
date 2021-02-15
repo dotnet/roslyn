@@ -1647,7 +1647,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.DocumentStates.GetValue(documentId);
+            var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist

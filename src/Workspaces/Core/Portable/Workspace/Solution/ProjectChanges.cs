@@ -116,17 +116,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get changed documents.
         /// When <paramref name="onlyGetDocumentsWithTextChanges"/> is true, only get documents with text changes (we only check text source, not actual content);
-        /// otherwise get documents with any changes i.e. <see cref="DocumentState"/> changes:
-        /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
+        /// otherwise get documents with any changes i.e. <see cref="ParseOptions"/>, <see cref="SourceCodeKind"/> and file path.
         /// </summary>
         public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
             => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
 
         internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
         {
-            foreach (var newState in _newProject.State.DocumentStates.Values)
+            foreach (var newState in _newProject.State.DocumentStates.States)
             {
-                var oldState = _oldProject.State.DocumentStates.GetValue(newState.Id);
+                var oldState = _oldProject.State.DocumentStates.GetState(newState.Id);
                 if (oldState == null)
                 {
                     // document was removed

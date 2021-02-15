@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)

@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis
             DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions));
             AdditionalDocumentStates = new TextDocumentStates<TextDocumentState>(projectInfoFixed.AdditionalDocuments, info => new TextDocumentState(info, solutionServices));
 
-            _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates.Map, AdditionalDocumentStates.Map, c), cacheResult: true);
-            _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates.Map, AdditionalDocumentStates.Map, c), cacheResult: true);
+            _lazyLatestDocumentVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
+            _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(DocumentStates, AdditionalDocumentStates, c), cacheResult: true);
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
             // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
@@ -156,26 +156,26 @@ namespace Microsoft.CodeAnalysis
             return projectInfo;
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(IImmutableDictionary<DocumentId, DocumentState> documentStates, IImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var (_, doc) in documentStates)
+            foreach (var state in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!doc.IsGenerated)
+                if (!state.IsGenerated)
                 {
-                    var version = await doc.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                    var version = await state.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
                     latestVersion = version.GetNewerVersion(latestVersion);
                 }
             }
 
-            foreach (var (_, additionalDoc) in additionalDocumentStates)
+            foreach (var state in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var version = await additionalDoc.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                var version = await state.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
@@ -184,8 +184,8 @@ namespace Microsoft.CodeAnalysis
 
         private AsyncLazy<VersionStamp> CreateLazyLatestDocumentTopLevelChangeVersion(
             TextDocumentState newDocument,
-            IImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
-            IImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates)
+            TextDocumentStates<DocumentState> newDocumentStates,
+            TextDocumentStates<TextDocumentState> newAdditionalDocumentStates)
         {
             if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
             {
@@ -203,23 +203,23 @@ namespace Microsoft.CodeAnalysis
             return newVersion.GetNewerVersion(oldVersion);
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(IImmutableDictionary<DocumentId, DocumentState> documentStates, IImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var (_, doc) in documentStates)
+            foreach (var state in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var version = await doc.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                var version = await state.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
-            foreach (var (_, additionalDoc) in additionalDocumentStates)
+            foreach (var state in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var version = await additionalDoc.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                var version = await state.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis
             return new AsyncLazy<CachingAnalyzerConfigSet>(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
-                    var tasks = analyzerConfigDocumentStates.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
+                    var tasks = analyzerConfigDocumentStates.States.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                     var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis
 
             return With(
                 projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-                documentStates: DocumentStates.UpdateValues(static (state, options) => state.UpdateParseOptions(options), options));
+                documentStates: DocumentStates.UpdateStates(static (state, options) => state.UpdateParseOptions(options), options));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
@@ -653,22 +653,22 @@ namespace Microsoft.CodeAnalysis
             // We create a new CachingAnalyzerConfigSet for the new snapshot to avoid holding onto cached information
             // for removed documents.
             return With(
-                projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()).WithDocuments(SpecializedCollections.EmptyEnumerable<DocumentInfo>()),
+                projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
                 documentStates: TextDocumentStates<DocumentState>.Empty,
                 analyzerConfigSet: ComputeAnalyzerConfigSetValueSource(AnalyzerConfigDocumentStates));
         }
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
         {
-            var oldDocument = DocumentStates.GetRequiredValue(newDocument.Id);
+            var oldDocument = DocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
             {
                 return this;
             }
 
-            var newDocumentStates = DocumentStates.SetValue(newDocument.Id, newDocument);
+            var newDocumentStates = DocumentStates.SetState(newDocument.Id, newDocument);
             GetLatestDependentVersions(
-                newDocumentStates.Map, AdditionalDocumentStates.Map, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                newDocumentStates, AdditionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return With(
@@ -679,15 +679,15 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateAdditionalDocument(TextDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
         {
-            var oldDocument = AdditionalDocumentStates.GetRequiredValue(newDocument.Id);
+            var oldDocument = AdditionalDocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
             {
                 return this;
             }
 
-            var newDocumentStates = AdditionalDocumentStates.SetValue(newDocument.Id, newDocument);
+            var newDocumentStates = AdditionalDocumentStates.SetState(newDocument.Id, newDocument);
             GetLatestDependentVersions(
-                DocumentStates.Map, newDocumentStates.Map, oldDocument, newDocument, recalculateDependentVersions, textChanged,
+                DocumentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
 
             return this.With(
@@ -698,13 +698,13 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument)
         {
-            var oldDocument = AnalyzerConfigDocumentStates.GetRequiredValue(newDocument.Id);
+            var oldDocument = AnalyzerConfigDocumentStates.GetRequiredState(newDocument.Id);
             if (oldDocument == newDocument)
             {
                 return this;
             }
 
-            var newDocumentStates = AnalyzerConfigDocumentStates.SetValue(newDocument.Id, newDocument);
+            var newDocumentStates = AnalyzerConfigDocumentStates.SetState(newDocument.Id, newDocument);
 
             return CreateNewStateForChangedAnalyzerConfigDocuments(newDocumentStates);
         }
@@ -723,18 +723,12 @@ namespace Microsoft.CodeAnalysis
 
             var hasOrderChanged = false;
 
-            for (var i = 0; i < documentIds.Length; ++i)
+            for (var i = 0; i < documentIds.Length; i++)
             {
-                var documentId = documentIds[i];
-
-                if (!DocumentStates.Contains(documentId))
-                {
-                    throw new InvalidOperationException($"The document '{documentId}' does not exist in the project.");
-                }
-
-                if (DocumentStates.Ids[i] != documentId)
+                if (DocumentStates.Ids[i] != documentIds[i])
                 {
                     hasOrderChanged = true;
+                    break;
                 }
             }
 
@@ -743,14 +737,17 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
+            var reorderedStates = documentIds.Select(id =>
+                DocumentStates.GetState(id) ?? throw new InvalidOperationException($"The document '{id}' does not exist in the project."));
+
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
-                documentStates: new(documentIds, DocumentStates.Map));
+                documentStates: new(reorderedStates));
         }
 
         private void GetLatestDependentVersions(
-            IImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
-            IImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates,
+            TextDocumentStates<DocumentState> newDocumentStates,
+            TextDocumentStates<TextDocumentState> newAdditionalDocumentStates,
             TextDocumentState oldDocument, TextDocumentState newDocument,
             bool recalculateDependentVersions, bool textChanged,
             out AsyncLazy<VersionStamp> dependentDocumentVersion, out AsyncLazy<VersionStamp> dependentSemanticVersion)

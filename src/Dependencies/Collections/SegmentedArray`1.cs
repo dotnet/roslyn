@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public object Clone()
+            => CloneImpl();
+
+        internal SegmentedArray<T> CloneImpl()
         {
             var items = (T[][])_items.Clone();
             for (var i = 0; i < items.Length; i++)

@@ -173,20 +173,25 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _projectState.AdditionalDocumentStates.Ids;
 
         /// <summary>
+        /// All the additional document IDs associated with this project.
+        /// </summary>
+        internal IReadOnlyList<DocumentId> AnalyzerConfigDocumentIds => _projectState.AnalyzerConfigDocumentStates.Ids;
+
+        /// <summary>
         /// All the regular documents associated with this project. Documents produced from source generators are returned by
         /// <see cref="GetSourceGeneratedDocumentsAsync(CancellationToken)"/>.
         /// </summary>
-        public IEnumerable<Document> Documents => _projectState.DocumentStates.Ids.Select(GetDocument)!;
+        public IEnumerable<Document> Documents => DocumentIds.Select(GetDocument)!;
 
         /// <summary>
         /// All the additional documents associated with this project.
         /// </summary>
-        public IEnumerable<TextDocument> AdditionalDocuments => _projectState.AdditionalDocumentStates.Ids.Select(GetAdditionalDocument)!;
+        public IEnumerable<TextDocument> AdditionalDocuments => AdditionalDocumentIds.Select(GetAdditionalDocument)!;
 
         /// <summary>
         /// All the <see cref="AnalyzerConfigDocument"/>s associated with this project.
         /// </summary>
-        public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => _projectState.AnalyzerConfigDocumentStates.Ids.Select(GetAnalyzerConfigDocument)!;
+        public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => AnalyzerConfigDocumentIds.Select(GetAnalyzerConfigDocument)!;
 
         /// <summary>
         /// True if the project contains a document with the specified ID.
@@ -222,40 +227,19 @@ namespace Microsoft.CodeAnalysis
         /// Get the document in this project with the specified document Id.
         /// </summary>
         public Document? GetDocument(DocumentId documentId)
-        {
-            if (!ContainsDocument(documentId))
-            {
-                return null;
-            }
-
-            return ImmutableHashMapExtensions.GetOrAdd(ref _idToDocumentMap, documentId, s_createDocumentFunction, this);
-        }
+            => ImmutableHashMapExtensions.GetOrAdd(ref _idToDocumentMap, documentId, s_tryCreateDocumentFunction, this);
 
         /// <summary>
         /// Get the additional document in this project with the specified document Id.
         /// </summary>
         public TextDocument? GetAdditionalDocument(DocumentId documentId)
-        {
-            if (!ContainsAdditionalDocument(documentId))
-            {
-                return null;
-            }
-
-            return ImmutableHashMapExtensions.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_createAdditionalDocumentFunction, this);
-        }
+            => ImmutableHashMapExtensions.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_tryCreateAdditionalDocumentFunction, this);
 
         /// <summary>
         /// Get the analyzer config document in this project with the specified document Id.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId documentId)
-        {
-            if (!ContainsAnalyzerConfigDocument(documentId))
-            {
-                return null;
-            }
-
-            return ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
-        }
+            => ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
 
         /// <summary>
         /// Gets all source generated documents in this project.
@@ -265,8 +249,8 @@ namespace Microsoft.CodeAnalysis
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an interator to avoid eagerly allocating all the document instances
-            return generatedDocumentStates.Values.Select(state =>
-                ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
+            return generatedDocumentStates.States.Select(state =>
+                ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 
         internal async ValueTask<IEnumerable<Document>> GetAllRegularAndSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
@@ -284,7 +268,7 @@ namespace Microsoft.CodeAnalysis
 
             // We'll have to run generators if we haven't already and now try to find it.
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
-            var generatedDocumentState = generatedDocumentStates.GetValue(documentId);
+            var generatedDocumentState = generatedDocumentStates.GetState(documentId);
             if (generatedDocumentState != null)
             {
                 return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, generatedDocumentState.Id, s_createSourceGeneratedDocumentFunction, (generatedDocumentState, this));
@@ -336,17 +320,17 @@ namespace Microsoft.CodeAnalysis
         internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
             => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
 
-        private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction =
-            (documentId, project) => new(project, project._projectState.DocumentStates.GetRequiredValue(documentId));
+        private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
+            (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
 
-        private static readonly Func<DocumentId, Project, AdditionalDocument> s_createAdditionalDocumentFunction =
-            (documentId, project) => new(project, project._projectState.AdditionalDocumentStates.GetRequiredValue(documentId));
+        private static readonly Func<DocumentId, Project, AdditionalDocument?> s_tryCreateAdditionalDocumentFunction =
+            (documentId, project) => project._projectState.AdditionalDocumentStates.TryGetState(documentId, out var state) ? new AdditionalDocument(project, state) : null;
 
-        private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction =
-            (documentId, project) => new(project, project._projectState.AnalyzerConfigDocumentStates.GetRequiredValue(documentId));
+        private static readonly Func<DocumentId, Project, AnalyzerConfigDocument?> s_tryCreateAnalyzerConfigDocumentFunction =
+            (documentId, project) => project._projectState.AnalyzerConfigDocumentStates.TryGetState(documentId, out var state) ? new AnalyzerConfigDocument(project, state) : null;
 
         private static readonly Func<DocumentId, (SourceGeneratedDocumentState state, Project project), SourceGeneratedDocument> s_createSourceGeneratedDocumentFunction =
-            (documentId, stateAndProject) => new(stateAndProject.project, stateAndProject.state);
+            (documentId, stateAndProject) => new SourceGeneratedDocument(stateAndProject.project, stateAndProject.state);
 
         /// <summary>
         /// Tries to get the cached <see cref="Compilation"/> for this project if it has already been created and is still cached. In almost all

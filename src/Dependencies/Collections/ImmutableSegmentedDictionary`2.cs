@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Collections
     /// 
     /// <para>This type is backed by segmented arrays to avoid using the Large Object Heap without impacting algorithmic
     /// complexity.</para>
+    /// 
+    /// <para>The enumerator of the dictionary yields entries in the order they were added to the dictionary provided that 
+    /// no entry has been removed since the dictionary was created.
+    /// </para>
     /// </remarks>
     /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
@@ -128,6 +132,13 @@ namespace Microsoft.CodeAnalysis.Collections
             get => ((IDictionary)_dictionary)[key];
             set => throw new NotSupportedException();
         }
+
+        /// <summary>
+        /// Gets <paramref name="index"/>-th entry added to the dictionary.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">An entry has been removed from the dictionary.</exception>
+        public KeyValuePair<TKey, TValue> GetAddedEntry(int index)
+            => _dictionary.GetAddedEntry(index);
 
         public static bool operator ==(ImmutableSegmentedDictionary<TKey, TValue> left, ImmutableSegmentedDictionary<TKey, TValue> right)
             => left.Equals(right);
@@ -234,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return self;
             }
 
-            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
+            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary);
             dictionary[key] = value;
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }

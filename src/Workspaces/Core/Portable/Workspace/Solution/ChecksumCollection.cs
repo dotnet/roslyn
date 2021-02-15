@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken) where TState : TextDocumentState
         {
-            foreach (var state in documentStates.Values)
+            foreach (var state in documentStates.States)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
