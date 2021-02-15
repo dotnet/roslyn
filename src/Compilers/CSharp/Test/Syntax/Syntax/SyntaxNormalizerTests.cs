@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [Fact]
-        [WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestVerbatimStringInterpolationWithLineBreaks()
         {
             TestNormalizeStatement(@"Console.WriteLine($@""Test with line
