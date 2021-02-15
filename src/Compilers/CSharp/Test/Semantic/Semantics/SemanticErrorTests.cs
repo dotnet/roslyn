@@ -3451,8 +3451,8 @@ class C
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (10,16): error CS0123: No overload for 'C.far<int>(int)' matches delegate 'boo'
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far<int>").WithArguments("C.far<int>(int)", "boo"));
+                // (10,16): error CS0123: No overload for 'far' matches delegate 'boo'
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far<int>").WithArguments("far", "boo"));
         }
 
         [WorkItem(539909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539909")]
@@ -3482,8 +3482,8 @@ class D
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (15,24): error CS0123: No overload for 'C<long>.far(long)' matches delegate 'boo'
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "C<long>.far").WithArguments("C<long>.far(long)", "boo").WithLocation(15, 24),
+                // (15,32): error CS0123: No overload for 'far' matches delegate 'boo'
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "far").WithArguments("far", "boo").WithLocation(15, 32),
                 // (16,32): error CS0123: No overload for 'par' matches delegate 'boo'
                 //         C<long>.goo += C<long>.par<byte>;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "par<byte>").WithArguments("par", "boo").WithLocation(16, 32),
