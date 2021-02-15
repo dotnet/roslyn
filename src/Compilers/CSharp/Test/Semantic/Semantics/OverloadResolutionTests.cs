@@ -11411,5 +11411,26 @@ class Program
                 Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
             }
         }
+
+        [WorkItem(51232, "https://github.com/dotnet/roslyn/issues/51232")]
+        [Fact]
+        public void DelegateTypeParameterOverload()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(Action<byte> a) { Console.Write(1); }
+    static void F(Action<int> a) { Console.Write(2); }
+    static void A(int n) { }
+
+    static void Main()
+    {
+        F(A);
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: @"2");
+        }
     }
 }
