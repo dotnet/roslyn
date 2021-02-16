@@ -5,13 +5,14 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal static class RazorCSharpProximityExpressionResolverService
     {
-        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex)
-            => CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, absoluteIndex);
+        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int absoluteIndex, CancellationToken cancellationToken)
+            => CSharpProximityExpressionsService.GetProximityExpressions(syntaxTree, absoluteIndex, cancellationToken);
     }
 }
