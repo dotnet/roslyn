@@ -11,26 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal partial class TaggerEventSources
     {
-        private class DiagnosticsChangedEventSource : AbstractTaggerEventSource
+        private class DiagnosticsChangedEventSource : AbstractDiagnosticsChangedEventSource
         {
-            private readonly ITextBuffer _subjectBuffer;
             private readonly IDiagnosticService _service;
 
             public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service, TaggerDelay delay)
-                : base(delay)
+                : base(subjectBuffer, delay)
             {
-                _subjectBuffer = subjectBuffer;
                 _service = service;
-            }
-
-            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
-            {
-                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-
-                if (document != null && document.Project.Solution.Workspace == e.Workspace && document.Id == e.DocumentId)
-                {
-                    this.RaiseChanged();
-                }
             }
 
             public override void Connect()
@@ -38,6 +26,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public override void Disconnect()
                 => _service.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+        }
+
+        private class CachedDiagnosticsChangedEventSource : AbstractDiagnosticsChangedEventSource
+        {
+            private readonly IDiagnosticCacheService _service;
+
+            public CachedDiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticCacheService service, TaggerDelay delay)
+                : base(subjectBuffer, delay)
+            {
+                _service = service;
+            }
+
+            public override void Connect()
+                => _service.CachedDiagnosticsUpdated += OnDiagnosticsUpdated;
+
+            public override void Disconnect()
+                => _service.CachedDiagnosticsUpdated -= OnDiagnosticsUpdated;
         }
     }
 }

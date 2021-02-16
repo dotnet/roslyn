@@ -99,10 +99,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return TaggerEventSources.Compose(
+            var sources = ImmutableArray.Create(
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Medium),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Short));
+
+            if (Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+            {
+                var cacheService = workspace.Services.GetService<IDiagnosticCacheService>();
+                if (cacheService != null)
+                {
+                    sources = sources.Add(TaggerEventSources.OnCachedDiagnosticsChanged(subjectBuffer, cacheService, TaggerDelay.Short));
+                }
+            }
+
+            return TaggerEventSources.Compose(sources);
         }
 
         protected internal abstract bool IsEnabled { get; }
@@ -140,8 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             if (diagnosticCacheService != null)
             {
                 // During solution load. if there's any cached diagnostics available,
-                // this service will (asynchronously) push updates to IDiagnosticService.
-                await diagnosticCacheService.TryLoadCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                // this service will push updates via CachedDiagnosticsUpdated event.
+                // Fire and forget.
+                _ = diagnosticCacheService.LoadCachedDiagnosticsAsync(document, cancellationToken);
             }
 
             // See if we've marked any spans as those we want to suppress diagnostics for.

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
         private const string CachedMessageFormat = "(Loaded from cache) - {0}";
 
         private readonly VisualStudioWorkspace _workspace;
-        private readonly UpdateTracker _updateTracker;
+        private readonly IDiagnosticService _diagnosticService;
         private readonly CacheUpdater _cacheUpdater;
 
         public VisualStudioDiagnosticCacheService(
@@ -34,7 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
-            _updateTracker = new(_workspace, registrationService, listenerProvider);
+            _diagnosticService = diagnosticService;
+
+            _currentSolutionPath = workspace.CurrentSolution.FilePath;
+            _errorListUpdateQueue = new TaskQueue(listenerProvider.GetListener(nameof(VisualStudioDiagnosticCacheService)), TaskScheduler.Default);
+            workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             var globalOperationNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
             _cacheUpdater = new(_workspace, diagnosticService, globalOperationNotificationService, CancellationToken.None);
@@ -42,11 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             Log("CreateService", nameof(VisualStudioDiagnosticCacheService));
         }
 
-        public async Task<bool> TryLoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        public async Task LoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace != _workspace)
             {
-                return false;
+                return;
             }
 
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -55,21 +59,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
             if (isFullyLoaded)
             {
-                return false;
+                return;
             }
 
             var cachedDiagnostics = await GetCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
             if (!cachedDiagnostics.IsDefaultOrEmpty)
             {
-                _updateTracker.TryUpdateDiagnosticsLoadedFromCache(document, cachedDiagnostics);
+                TryUpdateDiagnosticsLoadedFromCache(document, cachedDiagnostics);
             }
-
-            return true;
         }
 
         public void OnAnalyzeDocument(Document document)
         {
-            var isAnalyzedForFirstTime = _updateTracker.OnLiveAnalysisStarted(document);
+            var isAnalyzedForFirstTime = OnLiveAnalysisStarted(document);
             if (isAnalyzedForFirstTime && document.IsOpen())
             {
                 // Only need to do this once, i.e. only the first time, in case there no diagnostics in this document,
@@ -79,8 +81,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             }
         }
 
-        private static async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
+            if (TryGetLoadedCachedDiagnostics(document.Id, out var locallyCachedDiagnostics))
+            {
+                return locallyCachedDiagnostics;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

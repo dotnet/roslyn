@@ -84,7 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 _errorList = errorList;
 
-                _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
+                var diagnosticCacheService = workspace.Services.GetService<IDiagnosticCacheService>();
+
+                _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource, diagnosticCacheService);
                 _buildTableSource = new BuildTableDataSource(workspace, workspace.ExternalErrorDiagnosticUpdateSource);
 
                 AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());

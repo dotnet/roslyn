@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
         private class CacheUpdater : GlobalOperationAwareIdleProcessor
         {
             private readonly SemaphoreSlim _gate = new(initialCount: 0);
-            private readonly HashSet<DocumentId> _queued = new();
+            private readonly HashSet<DocumentId> _cacheUpdateQueued = new();
 
             private readonly Workspace _workspace;
             private readonly IDiagnosticService _diagnosticService;
@@ -56,10 +56,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                 await workspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<DocumentId> queued;
-                lock (_queued)
+                lock (_cacheUpdateQueued)
                 {
-                    queued = _queued.ToImmutableArray();
-                    _queued.Clear();
+                    queued = _cacheUpdateQueued.ToImmutableArray();
+                    _cacheUpdateQueued.Clear();
                 }
 
                 await CacheDiagnosticsAsync(queued, CancellationToken.None).ConfigureAwait(false);
@@ -83,9 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                     return;
                 }
 
-                lock (_queued)
+                lock (_cacheUpdateQueued)
                 {
-                    _queued.Add(documentId);
+                    _cacheUpdateQueued.Add(documentId);
                 }
 
                 UpdateLastAccessTime();

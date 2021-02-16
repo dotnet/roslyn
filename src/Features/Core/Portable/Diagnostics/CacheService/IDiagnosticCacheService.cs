@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -10,6 +12,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal interface IDiagnosticCacheService : IWorkspaceService
     {
-        Task<bool> TryLoadCachedDiagnosticsAsync(Document document, CancellationToken cancellation);
+        event EventHandler<DiagnosticsUpdatedArgs> CachedDiagnosticsUpdated;
+
+        Task LoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken);
+
+        bool TryGetLoadedCachedDiagnostics(DocumentId documentId, out ImmutableArray<DiagnosticData> cachedDiagnostics);
     }
+
+    internal interface ILoadedFromCache : ISupportLiveUpdate
+    { }
 }

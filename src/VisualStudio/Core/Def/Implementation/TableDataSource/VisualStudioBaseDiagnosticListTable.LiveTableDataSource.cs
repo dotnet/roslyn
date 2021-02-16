@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -38,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
+            private readonly IDiagnosticCacheService? _diagnosticCacheService;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null, IDiagnosticCacheService? diagnosticCacheService = null)
                 : base(workspace)
             {
                 _workspace = workspace;
@@ -57,7 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
 
                 _diagnosticService = diagnosticService;
-                ConnectToDiagnosticService(workspace, diagnosticService);
+                _diagnosticCacheService = diagnosticCacheService;
+                ConnectToDiagnosticService(workspace, diagnosticService, diagnosticCacheService);
 
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
@@ -207,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
-            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService, IDiagnosticCacheService? diagnosticCacheService)
             {
                 if (diagnosticService == null)
                 {
@@ -216,6 +217,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                if (diagnosticCacheService != null)
+                {
+                    diagnosticCacheService.CachedDiagnosticsUpdated += OnDiagnosticsUpdated;
+                }
 
                 PopulateInitialData(workspace, diagnosticService);
             }
@@ -288,12 +294,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
+                    ImmutableArray<DiagnosticData> diagnostics;
+                    if (_id is ILoadedFromCache)
+                    {
+                        _source._diagnosticCacheService!.TryGetLoadedCachedDiagnostics(_documentId!, out diagnostics);
+                        diagnostics = diagnostics.NullToEmpty();
+                    }
+                    else
+                    {
+                        diagnostics = _source._diagnosticService.GetPushDiagnosticsAsync(
+                            _workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                            .AsTask()
+                            .WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    }
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
-                        .AsTask()
-                        .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
-                                        .Where(ShouldInclude)
-                                        .Select(data => DiagnosticTableItem.Create(_workspace, data));
+                    var items = diagnostics.Where(ShouldInclude)
+                        .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
                     return items.ToImmutableArray();
                 }

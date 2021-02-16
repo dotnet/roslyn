@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 {
@@ -63,8 +63,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
         private class NoOpDiagnosticCacheService : IDiagnosticCacheService
         {
-            public Task<bool> TryLoadCachedDiagnosticsAsync(Document document, CancellationToken cancellation)
-                => SpecializedTasks.False;
+#pragma warning disable CS0067
+            public event EventHandler<DiagnosticsUpdatedArgs>? CachedDiagnosticsUpdated;
+#pragma warning restore CS0067
+
+            public Task LoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public bool TryGetLoadedCachedDiagnostics(DocumentId documentId, out ImmutableArray<DiagnosticData> cachedDiagnostics)
+            {
+                cachedDiagnostics = default;
+                return false;
+            }
         }
     }
 }

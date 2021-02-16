@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return new DiagnosticsChangedEventSource(subjectBuffer, service, delay);
         }
 
+        public static ITaggerEventSource OnCachedDiagnosticsChanged(
+            ITextBuffer subjectBuffer,
+            IDiagnosticCacheService service,
+            TaggerDelay delay)
+        {
+            return new CachedDiagnosticsChangedEventSource(subjectBuffer, service, delay);
+        }
+
         public static ITaggerEventSource OnParseOptionChanged(
             ITextBuffer subjectBuffer,
             TaggerDelay delay)
