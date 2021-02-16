@@ -1027,6 +1027,10 @@ ReturnNotFound:
             {
                 Initialize(newSize);
             }
+            else
+            {
+                ((IList)_buckets).Clear();
+            }
 
             var entries = _entries;
             var count = 0;
@@ -1045,6 +1049,7 @@ ReturnNotFound:
 
             _count = count;
             _freeCount = 0;
+            _freeList = -1;
         }
 
         bool ICollection.IsSynchronized => false;

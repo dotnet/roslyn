@@ -324,12 +324,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<InvalidOperationException>(() => map.GetAddedEntry(0));
         }
 
-        [Fact]
-        public void Ordering_AfterRemovalAndCompact()
+        [Theory]
+        [InlineData(6, 3)]
+        [InlineData(3, 1)]
+        public void Ordering_AfterRemovalAndCompact(int count, int removeKey)
         {
-            const int count = 6;
-            const int removeKey = 3;
-
             var builder = Empty<int, int>()
                 .AddRange(Enumerable.Range(0, count).Select(i => KeyValuePairUtil.Create(i, i)))
                 .ToBuilder();
@@ -343,6 +342,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 var e = (i < removeKey) ? i : i + 1;
                 Assert.Equal(e, map.GetAddedEntry(i).Key);
                 Assert.Equal(e, map.GetAddedEntry(i).Value);
+            }
+
+            // test some keys that collide
+            for (int i = 0; i < 2 * count; i++)
+            {
+                if (i == removeKey || i >= count)
+                {
+                    Assert.False(map.ContainsKey(i));
+                }
+                else
+                {
+                    Assert.True(map.TryGetValue(i, out var value));
+                    Assert.Equal(i, value);
+                }
             }
         }
 
