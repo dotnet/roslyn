@@ -1,0 +1,46 @@
+﻿<!-- Copies public nupkg files to the $/shipping directory so that they can later be published.
+     Don't include private packages in this directory -->
+<Project DefaultTargets="Build">
+
+    <PropertyGroup>
+        <!-- We only publish release builds -->
+        <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+    </PropertyGroup>
+
+    <Import Project="..\..\eng\Versions.props"/>
+
+    <PropertyGroup>
+        <PackagesDir>$(MSBuildThisFileDirectory)..\..\artifacts\packages\$(Configuration)\Shipping</PackagesDir>
+        <PublishDir>..\..\publish</PublishDir>
+        <Version>$(VersionPrefix)</Version>
+        <Version Condition="'$(VersionSuffix)'!=''">$(Version)-$(VersionSuffix)</Version>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <!-- This is the list of files that can be published to the public nuget.org -->
+        <!-- To avoid unintended publishing of artefacts, all items must be explicitly specified without wildcard -->
+
+        <PublicFile Include="$(PackagesDir)\Caravela.Compiler.$(Version).nupkg"/>
+        <PublicFile Include="$(PackagesDir)\Caravela.Compiler.Sdk.$(Version).nupkg"/>
+
+        <InternalFile Include="@(PublicFile)" />
+        <InternalFile Include="$(PackagesDir)\Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.CodeAnalysis.Workspaces.Lightweight.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Scripting.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.CSharp.Workspaces.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Features.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Scripting.Common.$(Version).nupkg"/>
+        <InternalFile Include="$(PackagesDir)\Caravela.Roslyn.CodeAnalysis.Workspaces.Common.$(Version).nupkg"/>
+        
+    </ItemGroup>
+    <Target Name="Build">
+        <Error Text="The VersionPrefix property has not been properly set." Condition="'$(VersionPrefix)'==''"/>
+        <MakeDir Directories="$(PublishDir)\public;$(PublishDir)\internal"/>
+        <Copy SourceFiles="@(PublicFile)" DestinationFolder="$(PublishDir)\public"/>
+        <Copy SourceFiles="@(InternalFile)" DestinationFolder="$(PublishDir)\internal"/>
+    </Target>
+</Project>
