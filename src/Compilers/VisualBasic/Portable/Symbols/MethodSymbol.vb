@@ -998,6 +998,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_IsPartialDefinition As Boolean Implements IMethodSymbol.IsPartialDefinition
+            Get
+                Return If(TryCast(Me, SourceMemberMethodSymbol)?.IsPartialDefinition, False)
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
             Get
                 Return Me.IsSub
