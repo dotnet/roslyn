@@ -3027,15 +3027,15 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-    <AbstractNode Name="BaseNamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
-        <Field Name="NamespaceKeyword" Type="SyntaxToken">
-            <Kind Name="NamespaceKeyword"/>
-        </Field>
-        <Field Name="Name" Type="NameSyntax"/>
-        <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
-        <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
-        <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
-    </AbstractNode>
+  <AbstractNode Name="BaseNamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
+    <Field Name="NamespaceKeyword" Type="SyntaxToken">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax"/>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+  </AbstractNode>
   <Node Name="NamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
     <Kind Name="NamespaceDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
