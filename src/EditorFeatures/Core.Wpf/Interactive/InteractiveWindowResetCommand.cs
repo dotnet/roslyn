@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -28,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     /// Represents a reset command which can be run from a REPL window.
     /// </summary>
     [Export(typeof(IInteractiveWindowCommand))]
-    [ContentType(CSharpVBInteractiveCommandsContentTypes.CSharpVBInteractiveCommandContentTypeName)]
-    internal sealed class ResetCommand : IInteractiveWindowCommand
+    [ContentType(InteractiveWindowContentTypes.CommandContentTypeName)]
+    internal sealed class InteractiveWindowResetCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "reset";
         private const string NoConfigParameterName = "noconfig";
@@ -43,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ResetCommand(IStandardClassificationService registry)
+        public InteractiveWindowResetCommand(IStandardClassificationService registry)
             => _registry = registry;
 
         public string Description
-            => InteractiveEditorFeaturesResources.Reset_the_execution_environment_to_the_initial_state_keep_history;
+            => EditorFeaturesWpfResources.Reset_the_execution_environment_to_the_initial_state_keep_history;
 
         public IEnumerable<string> DetailedDescription
             => null;
@@ -62,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             get
             {
-                yield return new KeyValuePair<string, string>(NoConfigParameterName, InteractiveEditorFeaturesResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
-                yield return new KeyValuePair<string, string>(PlatformNames, InteractiveEditorFeaturesResources.Interactive_host_process_platform);
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, EditorFeaturesWpfResources.Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script);
+                yield return new KeyValuePair<string, string>(PlatformNames, EditorFeaturesWpfResources.Interactive_host_process_platform);
             }
         }
 
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 return ExecutionResult.Failed;
             }
 
-            var evaluator = (InteractiveEvaluator)window.Evaluator;
+            var evaluator = (CSharpInteractiveEvaluator)window.Evaluator;
             evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             return window.Operations.ResetAsync(initialize);
         }

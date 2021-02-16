@@ -2,35 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    internal sealed class InteractiveWorkspace : Workspace
+    internal partial class InteractiveWorkspace : Workspace
     {
-        public readonly InteractiveEvaluator Evaluator;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
-        internal IInteractiveWindow Window { get; set; }
-        private SourceTextContainer _openTextContainer;
-        private DocumentId _openDocumentId;
+        private SourceTextContainer? _openTextContainer;
+        private DocumentId? _openDocumentId;
 
-        internal InteractiveWorkspace(HostServices hostServices, InteractiveEvaluator evaluator)
+        internal InteractiveWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
-            _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
-
-            Evaluator = evaluator;
         }
 
         protected override void Dispose(bool finalize)
@@ -41,35 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             base.Dispose(finalize);
         }
 
-        public new void SetCurrentSolution(Solution solution)
-        {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = base.SetCurrentSolution(solution);
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-        }
-
         public override bool CanOpenDocuments
-        {
-            get { return true; }
-        }
+            => true;
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => feature == ApplyChangesKind.ChangeDocument;
 
         public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
         {
             _openTextContainer = textContainer;
             _openDocumentId = documentId;
-            this.OnDocumentOpened(documentId, textContainer);
+            OnDocumentOpened(documentId, textContainer);
         }
 
         protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
@@ -78,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 return;
             }
+
+            Contract.ThrowIfNull(_openTextContainer);
 
             ITextSnapshot appliedText;
             using (var edit = _openTextContainer.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
@@ -93,16 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 appliedText = edit.Apply();
             }
 
-            this.OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
+            OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
         }
 
-        public new void ClearSolution()
-            => base.ClearSolution();
+        /// <summary>
+        /// Closes all open documents and empties the solution but keeps all solution-level analyzers.
+        /// </summary>
+        public void ResetSolution()
+        {
+            ClearOpenDocuments();
 
-        internal new void ClearOpenDocument(DocumentId documentId)
-            => base.ClearOpenDocument(documentId);
-
-        internal new void UnregisterText(SourceTextContainer textContainer)
-            => base.UnregisterText(textContainer);
+            var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
+            SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
+        }
     }
 }
