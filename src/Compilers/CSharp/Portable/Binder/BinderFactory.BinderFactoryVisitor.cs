@@ -781,8 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCore(parent.Parent);
                 }
 
-                // test for position equality in case the open brace token is missing:
-                // namespace X class C { }
+                // Anywhere after the `;` is in the 'body' of this namespace.
                 bool inBody = _position >= parent.SemicolonToken.EndPosition;
 
                 bool inUsing = IsInUsing(parent);
