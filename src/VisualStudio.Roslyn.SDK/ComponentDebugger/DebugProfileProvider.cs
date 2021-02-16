@@ -23,14 +23,15 @@ namespace Roslyn.ComponentDebugger
     public class DebugProfileProvider : IDebugProfileLaunchTargetsProvider
     {
         private readonly ConfiguredProject _configuredProject;
-
+        private readonly IDebugTokenReplacer _tokenReplacer;
         private readonly string _compilerRoot;
 
         [ImportingConstructor]
         [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-        public DebugProfileProvider(ConfiguredProject configuredProject, SVsServiceProvider? serviceProvider)
+        public DebugProfileProvider(ConfiguredProject configuredProject, IDebugTokenReplacer tokenReplacer, SVsServiceProvider? serviceProvider)
         {
             _configuredProject = configuredProject;
+            _tokenReplacer = tokenReplacer;
             _compilerRoot = GetCompilerRoot(serviceProvider);
         }
 
@@ -43,6 +44,7 @@ namespace Roslyn.ComponentDebugger
         public async Task<IReadOnlyList<IDebugLaunchSettings>> QueryDebugTargetsAsync(DebugLaunchOptions launchOptions, ILaunchProfile? profile)
         {
             // set up the managed (net fx) debugger to start a process
+            // https://github.com/dotnet/roslyn-sdk/issues/729
             var settings = new DebugLaunchSettings(launchOptions)
             {
                 LaunchDebugEngineGuid = Microsoft.VisualStudio.ProjectSystem.Debug.DebuggerEngines.ManagedOnlyEngine,
@@ -50,9 +52,10 @@ namespace Roslyn.ComponentDebugger
             };
 
             // try and get the target project
-            if (TryGetTargetProject(_configuredProject, profile, out var targetProjectUnconfigured))
+            var targetProjectUnconfigured = await TryGetTargetProjectAsync(profile).ConfigureAwait(false);
+            if (targetProjectUnconfigured is object)
             {
-                settings.CurrentDirectory = Path.GetDirectoryName(targetProjectUnconfigured!.FullPath);
+                settings.CurrentDirectory = Path.GetDirectoryName(targetProjectUnconfigured.FullPath);
                 var compiler = _configuredProject.Capabilities.Contains(ProjectCapabilities.VB) ? "vbc.exe" : "csc.exe";
                 settings.Executable = Path.Combine(_compilerRoot, compiler);
 
@@ -68,39 +71,35 @@ namespace Roslyn.ComponentDebugger
                 }
             }
 
-            //PROTOTYPE: we probably shouldn't return anything when we couldn't figure it out
+            // https://github.com/dotnet/roslyn-sdk/issues/728 : better error handling
             return new IDebugLaunchSettings[] { settings };
         }
 
         private static string GetCompilerRoot(SVsServiceProvider? serviceProvider)
         {
-            // PROTOTYPE: we should try and work out the compiler location from the project itself
+            // https://github.com/dotnet/roslyn-sdk/issues/729
             object rootDir = string.Empty;
             var shell = (IVsShell?)serviceProvider?.GetService(typeof(SVsShell));
             shell?.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out rootDir);
             return Path.Combine((string)rootDir, "MSBuild", "Current", "Bin", "Roslyn");
         }
 
-        private static bool TryGetTargetProject(ConfiguredProject project, ILaunchProfile? profile, out UnconfiguredProject? targetProject)
+        private async Task<UnconfiguredProject?> TryGetTargetProjectAsync(ILaunchProfile? profile)
         {
-            targetProject = null;
-            if (TryGetOtherSettingAsString(profile, Constants.TargetProjectPropertyName, out var targetProjectPath))
+            UnconfiguredProject? targetProject = null;
+            object? value = null;
+            profile?.OtherSettings?.TryGetValue(Constants.TargetProjectPropertyName, out value);
+
+            if (value is string targetProjectPath)
             {
-                // PROTOTYPE: we should eval / expand the path to work with env/msbuild variables etc.
-                targetProject = project.Services.ProjectService.LoadedUnconfiguredProjects.SingleOrDefault(p => p.FullPath == targetProjectPath);
+                // expand any variables in the path, and root it based on this project
+                var replacedProjectPath = await _tokenReplacer.ReplaceTokensInStringAsync(targetProjectPath, true).ConfigureAwait(false);
+                replacedProjectPath = _configuredProject.UnconfiguredProject.MakeRooted(replacedProjectPath);
+
+                targetProject = _configuredProject.Services.ProjectService.LoadedUnconfiguredProjects.SingleOrDefault(p => p.FullPath == replacedProjectPath);
             }
 
-            return targetProject is object;
-        }
-
-        private static bool TryGetOtherSettingAsString(ILaunchProfile? profile, string key, out string? value)
-        {
-            value = null;
-            if (profile?.OtherSettings?.ContainsKey(key) == true)
-            {
-                value = profile.OtherSettings[key] as string;
-            }
-            return value is string;
+            return targetProject;
         }
     }
 }

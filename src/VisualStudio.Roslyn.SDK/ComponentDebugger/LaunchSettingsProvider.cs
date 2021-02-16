@@ -33,7 +33,7 @@ namespace Roslyn.ComponentDebugger
 
         public string CommandName { get => Constants.CommandName; }
 
-        //PROTOTYPE: Localization
+        // https://github.com/dotnet/roslyn-sdk/issues/730 : localization
         public string FriendlyName { get => "Roslyn Component"; }
 
         public UserControl? CustomUI { get => new DebuggerOptions() { DataContext = _viewModel.GetValue() }; }
@@ -46,8 +46,8 @@ namespace Roslyn.ComponentDebugger
 
         public bool ShouldEnableProperty(string propertyName)
         {
-            // PROTOTYPE: we disable all the default options for a debugger.
-            // we might want to enable env vars and (potentially) the exe to allow
+            // we disable all the default options for a debugger.
+            // in the future we might want to enable env vars and (potentially) the exe to allow
             // customization of the compiler used?
             return false;
         }
@@ -56,11 +56,11 @@ namespace Roslyn.ComponentDebugger
         {
             var targetProjects = ArrayBuilder<ConfiguredProject>.GetInstance();
 
-            // PROTOTYPE: we'll assume the target projects are in the same configuration as this one (can they be different?)
+            // NOTE: we assume the target projects are in the same configuration as this one (can they be different?)
             var configuredProject = await _unconfiguredProject.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
             if (configuredProject is object)
             {
-                // PROTOTYPE: there is presumably a project system way of doing this?
+                // get the output assembly for this project
                 var projectArgs = await configuredProject.GetCompilationArgumentsAsync().ConfigureAwait(false);
                 var targetArg = projectArgs.LastOrDefault(a => a.StartsWith("/out:", StringComparison.OrdinalIgnoreCase));
                 var target = Path.GetFileName(targetArg);
@@ -71,7 +71,7 @@ namespace Roslyn.ComponentDebugger
                     var targetProject = await targetProjectUnconfigured.LoadConfiguredProjectAsync(configuredProject.ProjectConfiguration).ConfigureAwait(false);
                     if (targetProject is object)
                     {
-                        //PROTOTYPE: the below is deadlocking on certain projects. for now just list them all
+                        // https://github.com/dotnet/roslyn-sdk/issues/731: the below is deadlocking on certain projects. for now just list them all
                         targetProjects.Add(targetProject);
 
                         // check if the args contain the project as an analyzer ref

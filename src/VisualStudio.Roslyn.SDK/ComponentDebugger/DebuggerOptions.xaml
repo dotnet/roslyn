@@ -12,7 +12,7 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <!-- PROTOTYPE: Localization -->
+        <!-- https://github.com/dotnet/roslyn-sdk/issues/730 : Localization -->
         <Label Margin="4,4,3,5">Target Project:</Label>
         <ComboBox Grid.Column="1" Margin="5,7,2,6" ItemsSource="{Binding ProjectNames}" SelectedIndex="{Binding SelectedProjectIndex, Mode=TwoWay}" />
     </Grid>

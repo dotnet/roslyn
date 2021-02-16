@@ -23,7 +23,8 @@ namespace Roslyn.ComponentDebugger
 
         protected override async Task<ImmutableHashSet<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
-            // PROTOTYPE: an alternative could be to have 'IsRoslynComponent' just define the <Capability... directly in the managed.core targets?
+            // an alternative design could be to have 'IsRoslynComponent' just define the <Capability... directly in the managed.core targets
+            // but that would require a specific roslyn version to work, this allows it to be backwards compatible with older SDKs
             var caps = Empty.CapabilitiesSet;
             if (await IsRoslynComponentAsync(this.ConfiguredProject, cancellationToken).ConfigureAwait(false))
             {
