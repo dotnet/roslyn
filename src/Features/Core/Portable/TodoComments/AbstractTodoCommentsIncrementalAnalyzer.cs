@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// <summary>
         /// Set of documents that we have reported an non-empty set of todo comments for.  Used so that we don't bother
         /// notifying the host about documents with empty-todo lists (the common case). Note: no locking is needed for
-        /// this structure as the incremental analyzer is guaranteed to make all calls sequentially to us.
+        /// this set as the incremental analyzer is guaranteed to make all calls sequentially to us.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 // had todo comments in it, then fall through and notify the host so it can clear them out.
                 // Otherwise, bail out as there's no need to inform the host of this.
                 if (!_documentsWithTodoComments.Remove(document.Id))
-                {
                     return;
-                }
             }
             else
             {
