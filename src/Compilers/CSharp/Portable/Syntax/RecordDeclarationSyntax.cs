@@ -13,5 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return BaseList?.Types.FirstOrDefault() as PrimaryConstructorBaseTypeSyntax;
             }
         }
+
+        public RecordDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier,
+            TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            return Update(attributeLists, modifiers, keyword, recordModifier: default(SyntaxToken), identifier,
+                typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+        }
     }
 }

@@ -1455,9 +1455,11 @@ tryAgain:
             var keyword = ConvertToKeyword(this.EatToken());
 
             var outerSaveTerm = _termState;
+            SyntaxToken? recordModifier = null;
             if (keyword.Kind == SyntaxKind.RecordKeyword)
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
+                recordModifier = eatRecordModifierIfAvailable();
             }
 
             var saveTerm = _termState;
@@ -1621,6 +1623,7 @@ tryAgain:
                             attributes,
                             modifiers.ToList(),
                             keyword,
+                            recordModifier,
                             name,
                             typeParameters,
                             paramList,
@@ -1646,6 +1649,19 @@ tryAgain:
                 {
                     _pool.Free(constraints);
                 }
+            }
+
+            SyntaxToken? eatRecordModifierIfAvailable()
+            {
+                Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
+                if (CurrentToken is { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword })
+                {
+                    var result = EatToken();
+                    result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
+                    return result;
+                }
+
+                return null;
             }
         }
 
