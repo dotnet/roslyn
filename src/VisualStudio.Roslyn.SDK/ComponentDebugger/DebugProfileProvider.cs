@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.ProjectSystem.Debug;
 using Microsoft.VisualStudio.ProjectSystem.VS.Debug;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.ComponentDebugger
@@ -24,7 +25,7 @@ namespace Roslyn.ComponentDebugger
     {
         private readonly ConfiguredProject _configuredProject;
         private readonly IDebugTokenReplacer _tokenReplacer;
-        private readonly string _compilerRoot;
+        private readonly AsyncLazy<string> _compilerRoot;
 
         [ImportingConstructor]
         [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
@@ -32,7 +33,7 @@ namespace Roslyn.ComponentDebugger
         {
             _configuredProject = configuredProject;
             _tokenReplacer = tokenReplacer;
-            _compilerRoot = GetCompilerRoot(serviceProvider);
+            _compilerRoot = new AsyncLazy<string>(() => GetCompilerRootAsync(serviceProvider), ThreadHelper.JoinableTaskFactory);
         }
 
         public Task OnAfterLaunchAsync(DebugLaunchOptions launchOptions, ILaunchProfile profile) => Task.CompletedTask;
@@ -57,7 +58,8 @@ namespace Roslyn.ComponentDebugger
             {
                 settings.CurrentDirectory = Path.GetDirectoryName(targetProjectUnconfigured.FullPath);
                 var compiler = _configuredProject.Capabilities.Contains(ProjectCapabilities.VB) ? "vbc.exe" : "csc.exe";
-                settings.Executable = Path.Combine(_compilerRoot, compiler);
+                var compilerRoot = await _compilerRoot.GetValueAsync().ConfigureAwait(false);
+                settings.Executable = Path.Combine(compilerRoot, compiler);
 
                 // try and get the configured version of the target project
                 var targetProject = await targetProjectUnconfigured.GetSuggestedConfiguredProjectAsync().ConfigureAwait(false);
@@ -75,8 +77,10 @@ namespace Roslyn.ComponentDebugger
             return new IDebugLaunchSettings[] { settings };
         }
 
-        private static string GetCompilerRoot(SVsServiceProvider? serviceProvider)
+        private static async Task<string> GetCompilerRootAsync(SVsServiceProvider? serviceProvider)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             // https://github.com/dotnet/roslyn-sdk/issues/729
             object rootDir = string.Empty;
             var shell = (IVsShell?)serviceProvider?.GetService(typeof(SVsShell));
