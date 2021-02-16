@@ -487,7 +487,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 IArrayCreationOperation? arrayCreationOperation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
                 if (arrayCreationOperation?.Type is IArrayTypeSymbol arrayTypeSymbol
-                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol)
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol, operation)
                     && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
                     TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(arrayTypeSymbol, arrayCreationOperation.Syntax, this.OwningSymbol);
