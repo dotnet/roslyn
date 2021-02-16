@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -252,8 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode.ERR_BadVisOpReturn :
                 ErrorCode.ERR_BadVisReturnType;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
                 diagnostics.Add(code, Locations[0], this, returnType.Type);
@@ -265,14 +265,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
                     diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            diagnostics.Add(Locations[0], useSiteInfo);
         }
 
         protected void MakeFlags(
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// In particular, it should not (generally) be necessary to use CompareExchange to
         /// protect assignments to fields.
         /// </remarks>
-        protected abstract void MethodChecks(DiagnosticBag diagnostics);
+        protected abstract void MethodChecks(BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// We can usually lock on the syntax reference of this method, but it turns
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // By setting StartMethodChecks, we've committed to doing the checks and setting
                         // FinishMethodChecks.  So there is no cancellation supported between one and the other.
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         try
                         {
                             MethodChecks(diagnostics);
@@ -820,7 +820,7 @@ done:
             state.NotePartComplete(part);
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -951,7 +951,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(Location location, BindingDiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {
@@ -965,7 +965,7 @@ done:
             // in that case ("member cannot be both extern and abstract").
         }
 
-        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, DiagnosticBag diagnostics)
+        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, BindingDiagnosticBag diagnostics)
         {
             if (_containingType.IsInterface)
             {

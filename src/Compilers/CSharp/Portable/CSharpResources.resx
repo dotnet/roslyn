@@ -4299,9 +4299,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoCanonicalView" xml:space="preserve">
     <value>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</value>
   </data>
-  <data name="ERR_ByRefReturnUnsupported" xml:space="preserve">
-    <value>By-reference return type 'ref {0}' is not supported.</value>
-  </data>
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>

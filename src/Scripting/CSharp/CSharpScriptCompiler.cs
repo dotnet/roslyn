@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                 assemblyName,
                 tree,
                 references,
-                new CSharpCompilationOptions(
+                WithTopLevelBinderFlags(new CSharpCompilationOptions(
                     outputKind: OutputKind.DynamicallyLinkedLibrary,
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     sourceReferenceResolver: script.Options.SourceResolver,
                     metadataReferenceResolver: script.Options.MetadataResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
-                ).WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes),
+                )),
                 previousSubmission,
                 script.ReturnType,
                 script.GlobalsType
@@ -75,5 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
 
             return compilation;
         }
+
+        internal static CSharpCompilationOptions WithTopLevelBinderFlags(CSharpCompilationOptions options)
+            => options.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes);
     }
 }

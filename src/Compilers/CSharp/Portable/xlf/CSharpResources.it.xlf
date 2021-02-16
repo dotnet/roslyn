@@ -9234,11 +9234,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Il tipo di interoperabilità corrispondente al tipo di interoperabilità incorporato '{0}' non è stato trovato. Probabilmente manca un riferimento all'assembly.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Il tipo restituito per riferimento 'ref {0}' non è supportato.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Il nome modulo '{0}' memorizzato in '{1}' deve corrispondere al relativo nome di file.</target>

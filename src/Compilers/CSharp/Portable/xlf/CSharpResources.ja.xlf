@@ -9234,11 +9234,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">埋め込み相互運用型 '{0}' と一致する相互運用型が見つかりません。アセンブリ参照が指定されていることを確認してください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">参照渡しの戻り値の型 'ref {0}' はサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">'{1}' に格納されているモジュール名 '{0}' はファイル名と一致する必要があります。</target>

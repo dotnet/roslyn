@@ -9234,11 +9234,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Não é possível encontrar o tipo de interoperabilidade que corresponda ao tipo de interoperabilidade inserido "{0}". Está faltando uma referência de assembly?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Tipo de retorno por referência "ref {0}" não tem suporte.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Nome do módulo "{0}" armazenado em "{1}" deve coincidir com seu filename.</target>

@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
 
+        IAssemblySymbolInternal IAssemblySymbolInternal.CorLibrary => CorLibrary;
+
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
         /// or null if the version string specified in the <see cref="AssemblyVersionAttribute"/> doesn't contain a wildcard.

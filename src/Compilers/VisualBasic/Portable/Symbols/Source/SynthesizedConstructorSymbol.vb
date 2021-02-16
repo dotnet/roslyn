@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             isShared As Boolean,
             isDebuggable As Boolean,
             binder As Binder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
             Me._debuggable = isDebuggable

@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
             ParameterSymbol backingParameter,
-            bool isOverride)
+            bool isOverride,
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax: syntax,
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
-                backingParameter.Locations[0])
+                backingParameter.Locations[0],
+                diagnostics)
         {
             BackingParameter = (SourceParameterSymbol)backingParameter;
         }
@@ -46,13 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
             => BackingParameter.AttributeDeclarationList;
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             bool isGet,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 isGet,
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
         {
             return (BackingParameter.TypeWithAnnotations,
                     ImmutableArray<ParameterSymbol>.Empty);

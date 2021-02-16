@@ -175,11 +175,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _members
             End Function
 
-            Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                 Return Me.Manager.System_Object
             End Function
 
-            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                 Return _interfaces
             End Function
 

@@ -9234,11 +9234,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Der Interoptyp, der mit dem eingebetteten Interoptyp "{0}" übereinstimmt, wurde nicht gefunden. Möglicherweise fehlt ein Assemblyverweis.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Der Rückgabetyp "ref {0}" des Referenzparameters wird nicht unterstützt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Der in "{1}" gespeicherte Modulname "{0}" muss mit seinem Dateinamen übereinstimmen.</target>
