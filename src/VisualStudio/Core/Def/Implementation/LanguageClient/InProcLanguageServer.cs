@@ -157,6 +157,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
             var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
 
+            // Workaround: Loghub gives us a trace source with the default listener which logs to the debug output window.
+            // This causes a huge amount of spam to the debug output window, so we remove it here.
+            traceSource.Listeners.Remove("Default");
+
             traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
 
             // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
