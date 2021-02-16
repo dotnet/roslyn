@@ -3492,8 +3492,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Пространство имен не может напрямую включать в себя такие члены, как поля или методы.</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Пространство имен не может напрямую включать в себя такие члены, как поля или методы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

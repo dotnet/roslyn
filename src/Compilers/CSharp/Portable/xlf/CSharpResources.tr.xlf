@@ -3492,8 +3492,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Ad uzayı, alanlar veya yöntemler gibi üyeleri doğrudan içeremez</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Ad uzayı, alanlar veya yöntemler gibi üyeleri doğrudan içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

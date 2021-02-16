@@ -3492,8 +3492,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Member, wie z. B. Felder oder Methoden, können nicht direkt in einem Namespace enthalten sein.</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Member, wie z. B. Felder oder Methoden, können nicht direkt in einem Namespace enthalten sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
