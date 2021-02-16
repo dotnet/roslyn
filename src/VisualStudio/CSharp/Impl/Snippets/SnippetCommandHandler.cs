@@ -31,8 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
-        ICommandHandler<SurroundWithCommandArgs>,
-        IChainedCommandHandler<AutomaticLineEnderCommandArgs>
+        ICommandHandler<SurroundWithCommandArgs>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -115,27 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
                 !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);
-        }
-
-        public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
-
-        public void ExecuteCommand(
-            AutomaticLineEnderCommandArgs args,
-            Action nextCommandHandler,
-            CommandExecutionContext executionContext)
-        {
-            AssertIsForeground();
-            if (!AreSnippetsEnabled(args))
-            {
-                nextCommandHandler();
-                return;
-            }
-
-            if (!TryHandleTypedSnippet(args.TextView, args.SubjectBuffer))
-            {
-                nextCommandHandler();
-            }
         }
     }
 }
