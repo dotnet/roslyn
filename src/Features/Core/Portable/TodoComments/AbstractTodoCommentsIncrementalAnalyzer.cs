@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// Set of documents that we have reported an empty set of todo comments for.  Don't both re-reporting these
         /// documents as long as we keep getting no todo comments produced for them.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithNoTodoComments = new();
+        private readonly HashSet<DocumentId> _documentsReportedWithEmptyTodoComments = new();
 
         protected AbstractTodoCommentsIncrementalAnalyzer()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             {
                 // If the doc was already in the set, then we know the client believes there are zero comments for it.
                 // So we don't have to redundantly tell it that again.
-                if (_documentsWithNoTodoComments.Remove(documentId))
+                if (_documentsReportedWithEmptyTodoComments.Remove(documentId))
                     return Task.CompletedTask;
             }
 
@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var data = converted.ToImmutable();
             lock (_gate)
             {
-                if (data.IsDefaultOrEmpty)
+                if (data.IsEmpty)
                 {
                     // If we already reported this doc has no todo comments, don't bother doing it again. Otherwise,
                     // notify the client.
-                    if (!_documentsWithNoTodoComments.Add(document.Id))
+                    if (!_documentsReportedWithEmptyTodoComments.Add(document.Id))
                     {
                         return;
                     }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 else
                 {
                     // Doc has some todo comments, remove the 'do not report' list and notify the client.
-                    _documentsWithNoTodoComments.Remove(document.Id);
+                    _documentsReportedWithEmptyTodoComments.Remove(document.Id);
                 }
             }
 
