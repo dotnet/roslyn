@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 {
                     // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
                     // had todo comments in it, then fall through and notify the host so it can clear them out.
+                    // Otherwise, bail out as there's no need to inform the host of this.
                     if (!_documentsWithTodoComments.Remove(document.Id))
                     {
                         return;
