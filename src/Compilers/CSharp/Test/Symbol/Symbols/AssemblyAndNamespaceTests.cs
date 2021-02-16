@@ -752,5 +752,39 @@ class X { }";
 
             CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void SingleLineNamespaceWithPrecedingStatement()
+        {
+            var test =
+@"
+System.Console.WriteLine();
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                // (3,11): error CS8914: Single-line namespace must precede all other members in a file.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "B").WithLocation(3, 11));
+        }
+
+        [Fact]
+        public void SingleLineNamespaceWithFollowingStatement()
+        {
+            var test =
+@"
+namespace B;
+System.Console.WriteLine();";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
+                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 16),
+                    // (3,26): error CS8124: Tuple must contain at least two elements.
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),
+                    // (3,27): error CS1022: Type or namespace definition, or end-of-file expected
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27));
+        }
     }
 }
