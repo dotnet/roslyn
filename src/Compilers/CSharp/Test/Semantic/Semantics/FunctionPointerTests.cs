@@ -1684,14 +1684,20 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
     {
         ret
     }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        nop
+        ret
+    }
 }
 ";
 
             var source = @"
-unsafe
-{
-    C<D1, D2, D3, D4, D5, D6>.M1(null);
-}
+class Derived : C<D1, D2, D3, D4, D5, D6> {}
 
 class D1 {}
 class D2 {}
@@ -1701,17 +1707,14 @@ class D5 {}
 class D6 {}
 ";
 
-            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-
-            var symbol = model.GetSymbolInfo(invocation);
+            var derived = comp.GetTypeByMetadataName("Derived");
+            var m1 = derived!.BaseTypeNoUseSiteDiagnostics.GetMethod("M1");
 
             AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
-                           symbol.Symbol.ToTestDisplayString());
+                           m1.ToTestDisplayString());
         }
 
         [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
