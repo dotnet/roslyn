@@ -24,7 +24,6 @@ namespace IdeCoreBenchmarks
             private Project _hundredProject;
             private Project _thousandsProject;
 
-
             public IterateDocuments()
             {
                 // These fields are initialized in GlobalSetup
