@@ -4299,9 +4299,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoCanonicalView" xml:space="preserve">
     <value>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</value>
   </data>
-  <data name="ERR_ByRefReturnUnsupported" xml:space="preserve">
-    <value>By-reference return type 'ref {0}' is not supported.</value>
-  </data>
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
@@ -5292,9 +5289,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
-  </data>
-  <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
-    <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
   </data>
   <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
     <value>A declaration is not allowed in this context.</value>
@@ -6298,6 +6292,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
   </data>
+  <data name="IDS_FeatureConstantInterpolatedStrings" xml:space="preserve">
+    <value>constant interpolated strings</value>
+  </data>
   <data name="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods" xml:space="preserve">
     <value>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</value>
   </data>
@@ -6563,6 +6560,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureDiscards" xml:space="preserve">
     <value>discards</value>
   </data>
+  <data name="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction" xml:space="preserve">
+    <value>Mixed declarations and expressions in deconstruction</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6575,6 +6575,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
+    <value>The type '{0}' may not be used for a field of a record.</value>
   </data>
   <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
     <value>A function pointer cannot be called with named arguments.</value>
@@ -6590,5 +6593,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SingleLineNamespaceNotBeforeAllMembers" xml:space="preserve">
     <value>Single-line namespace must precede all other members in a file.</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter" xml:space="preserve">
+    <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
+    <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="ERR_RecordAmbigCtor" xml:space="preserve">
+    <value>The primary constructor conflicts with the synthesized copy constructor.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
+    <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
+    <value>Do not compare function pointer values</value>
+  </data>
+  <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
+    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
 </root>

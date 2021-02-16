@@ -67,7 +67,7 @@ class {|Definition:C1|}
             Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim context = presenter.StartSearch("test", supportsReferences:=True)
+                Dim context = presenter.StartSearch("test", supportsReferences:=True, CancellationToken.None)
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -262,6 +262,8 @@ class { }
                 Implements ISpanMappingService
 
                 Public Shared ReadOnly Instance As SpanMapper = New SpanMapper()
+
+                Public ReadOnly Property SupportsMappingImportDirectives As Boolean = False Implements ISpanMappingService.SupportsMappingImportDirectives
 
                 Public Async Function MapSpansAsync(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of MappedSpanResult)) Implements ISpanMappingService.MapSpansAsync
                     Dim testWorkspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)

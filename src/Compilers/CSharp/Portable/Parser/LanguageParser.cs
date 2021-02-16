@@ -6207,7 +6207,8 @@ tryAgain:
             NonGenericTypeOrExpression,
 
             /// <summary>
-            /// A type name with alias prefix (Alias::Name)
+            /// A type name with alias prefix (Alias::Name).  Note that Alias::Name.X would not fall under this.  This
+            /// only is returned for exactly Alias::Name.
             /// </summary>
             AliasQualifiedName,
 
@@ -6284,31 +6285,57 @@ tryAgain:
                 }
             }
 
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            // Handle :: as well for error case of an alias used without a preceding identifier.
+            if (this.CurrentToken.Kind is SyntaxKind.IdentifierToken or SyntaxKind.ColonColonToken)
             {
-                result = this.ScanNamedTypePart(out lastTokenOfType);
-                if (result == ScanTypeFlags.NotType)
+                bool isAlias;
+                if (this.CurrentToken.Kind is SyntaxKind.ColonColonToken)
                 {
-                    return ScanTypeFlags.NotType;
+                    result = ScanTypeFlags.NonGenericTypeOrExpression;
+
+                    // Definitely seems like an alias if we're starting with a ::
+                    isAlias = true;
+
+                    // We set this to null to appease the flow checker.  It will always be the case that this will be
+                    // set to an appropriate value inside the `for` loop below.  We'll consume the :: there and then
+                    // call ScanNamedTypePart which will always set this to a valid value.
+                    lastTokenOfType = null;
                 }
-
-                bool isAlias = this.CurrentToken.Kind == SyntaxKind.ColonColonToken;
-
-                // Scan a name
-                for (bool firstLoop = true; IsDotOrColonColon(); firstLoop = false)
+                else
                 {
-                    if (!firstLoop && isAlias)
-                    {
-                        isAlias = false;
-                    }
+                    Debug.Assert(this.CurrentToken.Kind is SyntaxKind.IdentifierToken);
 
-                    lastTokenOfType = this.EatToken();
+                    // We're an alias if we start with an: id::
+                    isAlias = this.PeekToken(1).Kind == SyntaxKind.ColonColonToken;
 
                     result = this.ScanNamedTypePart(out lastTokenOfType);
                     if (result == ScanTypeFlags.NotType)
                     {
                         return ScanTypeFlags.NotType;
                     }
+
+                    Debug.Assert(result is ScanTypeFlags.GenericTypeOrExpression or ScanTypeFlags.GenericTypeOrMethod or ScanTypeFlags.NonGenericTypeOrExpression);
+                }
+
+                // Scan a name
+                for (bool firstLoop = true; IsDotOrColonColon(); firstLoop = false)
+                {
+                    // If we consume any more dots or colons, don't consider us an alias anymore.  For dots, we now have
+                    // x::y.z (which is now back to a normal expr/type, not an alias), and for colons that means we have
+                    // x::y::z or x.y::z both of which are effectively gibberish.
+                    if (!firstLoop)
+                    {
+                        isAlias = false;
+                    }
+
+                    this.EatToken();
+                    result = this.ScanNamedTypePart(out lastTokenOfType);
+                    if (result == ScanTypeFlags.NotType)
+                    {
+                        return ScanTypeFlags.NotType;
+                    }
+
+                    Debug.Assert(result is ScanTypeFlags.GenericTypeOrExpression or ScanTypeFlags.GenericTypeOrMethod or ScanTypeFlags.NonGenericTypeOrExpression);
                 }
 
                 if (isAlias)
@@ -6691,7 +6718,7 @@ done:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
                                 return true;
                             if (mode == ParseTypeMode.DefinitePattern)
-                                return false;
+                                return true; // Permit nullable type parsing and report while binding for a better error message
                             if (mode == ParseTypeMode.NewExpression && type.Kind == SyntaxKind.TupleType &&
                                 this.PeekToken(1).Kind != SyntaxKind.OpenParenToken && this.PeekToken(1).Kind != SyntaxKind.OpenBraceToken)
                                 return false; // Permit `new (int, int)?(t)` (creation) and `new (int, int) ? x : y` (conditional)
@@ -6966,7 +6993,8 @@ done:;
                 return _syntaxFactory.PredefinedType(token);
             }
 
-            if (IsTrueIdentifier())
+            // The :: case is for error recovery.
+            if (IsTrueIdentifier() || this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
             {
                 return this.ParseQualifiedName(options);
             }
@@ -9826,7 +9854,6 @@ tryAgain:
                 case SyntaxKind.IsPatternExpression:
                     return Precedence.Relational;
                 case SyntaxKind.SwitchExpression:
-                // https://github.com/dotnet/roslyn/issues/44675 Is this the right precedence?
                 case SyntaxKind.WithExpression:
                     return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
@@ -10323,8 +10350,9 @@ tryAgain:
                     return this.ParseRefValueExpression();
                 case SyntaxKind.ColonColonToken:
                     // misplaced ::
-                    // TODO: this should not be a compound name.. (disallow dots)
-                    return this.ParseQualifiedName(NameOptions.InExpression);
+                    // Calling ParseAliasQualifiedName will cause us to create a missing identifier node that then
+                    // properly consumes the :: and the reset of the alias name afterwards.
+                    return this.ParseAliasQualifiedName(NameOptions.InExpression);
                 case SyntaxKind.EqualsGreaterThanToken:
                     return this.ParseLambdaExpression();
                 case SyntaxKind.StaticKeyword:

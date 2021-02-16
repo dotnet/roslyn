@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInCloudEnvironmentClientContext())
+            if (textView.TextBuffer.IsInLspEditorContext())
             {
                 return null;
             }

@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
@@ -687,7 +689,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"D<T>\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"D<T>\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -723,7 +725,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"D<T>\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"D<T>\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -847,6 +849,44 @@ class C
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task DeclaringGenericTypeWithDocCommentList()
+        {
+            var markup = @"
+/// <summary>
+/// List:
+/// <list>
+/// <item>
+/// <description>
+/// Item 1.
+/// </description>
+/// </item>
+/// </list>
+/// </summary>
+class G<S, T> { };
+
+class C
+{
+    void Goo()
+    {
+        [|G<int, $$|]>
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", "List:\r\n\r\nItem 1.",
+                classificationTypeNames: ImmutableArray.Create(
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace)));
+
             await TestAsync(markup, expectedOrderedItems);
         }
     }

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(other.Type != null);
 
             return this.SlotInfo.Equals(other.SlotInfo) &&
-                   this.Type.Equals(other.Type);
+                   Cci.SymbolEquivalentEqualityComparer.Instance.Equals(this.Type, other.Type);
         }
 
         public override bool Equals(object obj)
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Type, this.SlotInfo.GetHashCode());
+            return Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(this.Type), this.SlotInfo.GetHashCode());
         }
 
         private string GetDebuggerDisplay()

@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             // Document tabs opened by NavigateTo are carefully created as preview or regular
             // tabs by them; trying to specifically open them in a particular kind of tab here
             // has no effect.
-            navigationService.TryNavigateToSpan(workspace, document.Id, _searchResult.NavigableItem.SourceSpan);
+            // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
+            navigationService.TryNavigateToSpan(workspace, document.Id, _searchResult.NavigableItem.SourceSpan, CancellationToken.None);
         }
 
         public int GetProvisionalViewingStatus()

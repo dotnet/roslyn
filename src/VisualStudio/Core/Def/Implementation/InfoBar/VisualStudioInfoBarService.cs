@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     CreateInfoBar(infoBarHost, message, items);
                 }
-            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)));
+            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)), ThreadingContext.DisposalToken);
         }
 
         private bool TryGetInfoBarData(out IVsInfoBarHost infoBarHost)

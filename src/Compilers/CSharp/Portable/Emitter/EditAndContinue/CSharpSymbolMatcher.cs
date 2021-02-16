@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
         {
-            if (definition is Symbol symbol)
+            if (definition?.GetInternalSymbol() is Symbol symbol)
             {
-                return (Cci.IDefinition)_symbols.Visit(symbol);
+                return (Cci.IDefinition)_symbols.Visit(symbol)?.GetCciAdapter();
             }
 
             return _defs.VisitDef(definition);
@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.INamespace MapNamespace(Cci.INamespace @namespace)
         {
-            return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)@namespace);
+            return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)@namespace?.GetInternalSymbol())?.GetCciAdapter();
         }
 
         public override Cci.ITypeReference MapReference(Cci.ITypeReference reference)
         {
-            if (reference is Symbol symbol)
+            if (reference?.GetInternalSymbol() is Symbol symbol)
             {
-                return (Cci.ITypeReference)_symbols.Visit(symbol);
+                return (Cci.ITypeReference)_symbols.Visit(symbol)?.GetCciAdapter();
             }
 
             return null;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
                     else
                     {
-                        builder.Add((Cci.INamespaceTypeDefinition)member);
+                        builder.Add((Cci.INamespaceTypeDefinition)member.GetCciAdapter());
                     }
                 }
             }
@@ -473,8 +473,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var originalDef = sourceType.OriginalDefinition;
                 if ((object)originalDef != (object)sourceType)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    var typeArguments = sourceType.GetAllTypeArguments(ref discardedUseSiteInfo);
 
                     var otherDef = (NamedTypeSymbol)Visit(originalDef);
                     if (otherDef is null)
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
                             TryFindAnonymousType(template, out var value);
-                            return (NamedTypeSymbol)value.Type;
+                            return (NamedTypeSymbol)value.Type?.GetInternalSymbol();
                         }
 
                         if (sourceType.IsAnonymousType)
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return method;
                 }
 
-                return method.Construct(IndexedTypeParameterSymbol.Take(n).Cast<TypeParameterSymbol, TypeSymbol>());
+                return method.Construct(IndexedTypeParameterSymbol.Take(n));
             }
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
@@ -978,8 +978,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref discardedUseSiteInfo).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 

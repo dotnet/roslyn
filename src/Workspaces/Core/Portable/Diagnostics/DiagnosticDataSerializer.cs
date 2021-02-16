@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 WriteDiagnosticData(writer, items, cancellationToken);
             }
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            using var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
 
             stream.Position = 0;
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            using var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
 
             var readTask = (textDocument != null) ?
                 textDocument is Document document ?
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             var documentId = document != null
                 ? document.Id
-                : project.Documents.FirstOrDefault(d => d.FilePath == originalFile)?.Id;
+                : project.Solution.GetDocumentIdsWithFilePath(originalFile).FirstOrDefault(documentId => documentId.ProjectId == project.Id);
 
             return new DiagnosticDataLocation(documentId, sourceSpan,
                 originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,

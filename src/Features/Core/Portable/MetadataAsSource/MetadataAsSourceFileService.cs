@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            MetadataAsSourceGeneratedFileInfo fileInfo;
+            MetadataAsSourceGeneratedFileInfo? fileInfo;
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -418,6 +418,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             return false;
         }
+
+        public Workspace? TryGetWorkspace() => _workspace;
 
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {

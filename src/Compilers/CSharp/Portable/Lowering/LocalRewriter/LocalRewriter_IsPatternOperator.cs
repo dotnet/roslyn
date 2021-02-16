@@ -14,35 +14,41 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
+            bool negated = node.IsNegated;
+            BoundExpression result;
+
             if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
             {
                 // If we can build a linear test sequence `(e1 && e2 && e3)` for the dag, do so.
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                BoundExpression result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel);
                 isPatternRewriter.Free();
-                return result;
             }
             else if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel))
             {
                 // If we can build a linear test sequence with the whenTrue and whenFalse labels swapped, then negate the
                 // result.  This would typically arise when the source contains `e is not pattern`.
+                negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
-                BoundExpression result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
-                result = this._factory.Not(result);
+                result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
                 isPatternRewriter.Free();
-                return result;
             }
             else
             {
                 // We need to lower a generalized dag, so we produce a label for the true and false branches and assign to a temporary containing the result.
                 var isPatternRewriter = new IsPatternExpressionGeneralLocalRewriter(node.Syntax, this);
-                BoundExpression result = isPatternRewriter.LowerGeneralIsPattern(node);
+                result = isPatternRewriter.LowerGeneralIsPattern(node);
                 isPatternRewriter.Free();
-                return result;
             }
 
+            if (negated)
+            {
+                result = this._factory.Not(result);
+            }
+            return result;
+
             // Can the given decision dag node, and its successors, be generated as a sequence of
-            // linear tests with a single "golden" path to the try label and all other paths leading
+            // linear tests with a single "golden" path to the true label and all other paths leading
             // to the false label?  This occurs with an is-pattern expression that uses no "or" or "not"
             // pattern forms.
             static bool canProduceLinearSequence(

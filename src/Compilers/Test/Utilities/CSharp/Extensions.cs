@@ -838,4 +838,76 @@ internal static class Extensions
     {
         return method.TypeArguments.Select(t => t.NullableAnnotation);
     }
+
+    public static DiagnosticInfo GetUseSiteDiagnostic(this Symbol @this)
+    {
+        return @this.GetUseSiteInfo().DiagnosticInfo;
+    }
+
+    public static Conversion ClassifyConversionFromType(this ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        Conversion result = conversions.ClassifyConversionFromType(source, destination, ref useSiteInfo, forCast);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+        return result;
+    }
+
+    private static void AddDiagnosticInfos(ref HashSet<DiagnosticInfo> useSiteDiagnostics, CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+    {
+        if (useSiteInfo.Diagnostics is object)
+        {
+            if (useSiteDiagnostics is null)
+            {
+                useSiteDiagnostics = (HashSet<DiagnosticInfo>)useSiteInfo.Diagnostics;
+            }
+            else
+            {
+                useSiteDiagnostics.AddAll(useSiteInfo.Diagnostics);
+            }
+        }
+    }
+
+    public static Conversion ClassifyConversionFromExpression(this ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        Conversion result = conversions.ClassifyConversionFromExpression(sourceExpression, destination, ref useSiteInfo, forCast);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+        return result;
+    }
+
+    public static void LookupSymbolsSimpleName(
+        this Microsoft.CodeAnalysis.CSharp.Binder binder,
+        LookupResult result,
+        NamespaceOrTypeSymbol qualifierOpt,
+        string plainName,
+        int arity,
+        ConsList<TypeSymbol> basesBeingResolved,
+        LookupOptions options,
+        bool diagnose,
+        ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+    {
+        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+        binder.LookupSymbolsSimpleName(result, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
+    }
+
+    public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)
+    {
+        return binder.BindCref(syntax, out ambiguityWinner, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+    }
+
+    public static BoundBlock BindEmbeddedBlock(this Microsoft.CodeAnalysis.CSharp.Binder binder, BlockSyntax node, DiagnosticBag diagnostics)
+    {
+        return binder.BindEmbeddedBlock(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+    }
+
+    public static BoundExpression BindExpression(this Microsoft.CodeAnalysis.CSharp.Binder binder, ExpressionSyntax node, DiagnosticBag diagnostics)
+    {
+        return binder.BindExpression(node, new Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag(diagnostics));
+    }
+
+    public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
+    {
+        actual.Diagnostics.Verify(expected);
+    }
 }

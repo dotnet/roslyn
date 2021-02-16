@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal interface ISerializerService : IWorkspaceService
     {
-        void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken);
+        void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
         void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
@@ -33,5 +33,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 
         Checksum CreateChecksum(object value, CancellationToken cancellationToken);
+        Checksum CreateParseOptionsChecksum(ParseOptions value);
     }
 }

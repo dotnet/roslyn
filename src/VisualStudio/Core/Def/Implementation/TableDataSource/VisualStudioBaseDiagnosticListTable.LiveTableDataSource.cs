@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -159,8 +160,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                var diagnostics = diagnosticService.GetDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, forPullDiagnostics: false, cancellationToken: CancellationToken.None);
+                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
+                    workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -182,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetDiagnostics(_workspace, forPullDiagnostics: false);
+                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -288,7 +289,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
                     var provider = _source._diagnosticService;
-                    var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, forPullDiagnostics: false, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                        .AsTask()
+                        .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
                                         .Select(data => DiagnosticTableItem.Create(_workspace, data));
 
@@ -456,8 +459,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate)
-                    => TryNavigateToItem(index, previewTab, activate);
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 
@@ -579,7 +582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetDiagnostics(workspace, forPullDiagnostics: false);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

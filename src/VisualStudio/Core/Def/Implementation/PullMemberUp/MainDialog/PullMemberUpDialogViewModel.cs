@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,16 +9,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.PullMemberUp;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
 {
     internal class PullMemberUpDialogViewModel : AbstractNotifyPropertyChanged
     {
-        public ImmutableArray<BaseTypeTreeNodeViewModel> Destinations { get; set; }
         public bool OkButtonEnabled { get => _okButtonEnabled; set => SetProperty(ref _okButtonEnabled, value, nameof(OkButtonEnabled)); }
         public bool? SelectAllCheckBoxState { get => _selectAllCheckBoxState; set => SetProperty(ref _selectAllCheckBoxState, value, nameof(SelectAllCheckBoxState)); }
         public bool SelectAllCheckBoxThreeStateEnable { get => _selectAllCheckBoxThreeStateEnable; set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value, nameof(SelectAllCheckBoxThreeStateEnable)); }
@@ -32,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private bool _selectAllCheckBoxThreeStateEnable;
         private bool? _selectAllCheckBoxState;
         private readonly IWaitIndicator _waitIndicator;
-        private BaseTypeTreeNodeViewModel _selectedDestination;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
         private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
         private bool _okButtonEnabled;
@@ -40,18 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public PullMemberUpDialogViewModel(
             IWaitIndicator waitIndicator,
             ImmutableArray<PullMemberUpSymbolViewModel> members,
-            ImmutableArray<BaseTypeTreeNodeViewModel> destinations,
+            BaseTypeTreeNodeViewModel destinationTreeViewModel,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> dependentsMap)
         {
             _waitIndicator = waitIndicator;
-            Destinations = destinations;
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
-            if (destinations != default && !destinations.IsEmpty)
-            {
-                // Select a destination by default
-                destinations[0].IsChecked = true;
-            }
 
             MemberSelectionViewModel = new MemberSelectionViewModel(
                 _waitIndicator,
@@ -66,17 +53,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                         EnableOrDisableOkButton();
                     }
                 };
+
+            DestinationTreeNodeViewModel = destinationTreeViewModel;
+            _selectedDestination = destinationTreeViewModel;
+            EnableOrDisableOkButton();
         }
 
+        public BaseTypeTreeNodeViewModel DestinationTreeNodeViewModel { get; }
+
         public MemberSelectionViewModel MemberSelectionViewModel { get; }
+
+        private BaseTypeTreeNodeViewModel _selectedDestination;
         public BaseTypeTreeNodeViewModel SelectedDestination
         {
             get => _selectedDestination;
             set
             {
-                if (SetProperty(ref _selectedDestination, value, nameof(SelectedDestination)))
+                if (SetProperty(ref _selectedDestination, value))
                 {
                     MemberSelectionViewModel.UpdateMembersBasedOnDestinationKind(_selectedDestination.Symbol.TypeKind);
+                    EnableOrDisableOkButton();
                 }
             }
         }
@@ -89,11 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                 selectedOptionFromDialog);
             return options;
         }
-
         private void EnableOrDisableOkButton()
         {
             var selectedMembers = MemberSelectionViewModel.CheckedMembers;
-            OkButtonEnabled = SelectedDestination != null && selectedMembers.Count() != 0;
+            OkButtonEnabled = SelectedDestination != null && selectedMembers.Any();
         }
     }
 }

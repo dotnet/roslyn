@@ -242,6 +242,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
 
+        Public ReadOnly Property Option_Add_missing_imports_on_paste As String =
+            BasicVSResources.Add_missing_imports_on_paste
+
         Public ReadOnly Property Option_Regular_Expressions As String =
             ServicesVSResources.Regular_Expressions
 
@@ -277,5 +280,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
             SchemeName.VisualStudio2017
+
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
     End Module
 End Namespace

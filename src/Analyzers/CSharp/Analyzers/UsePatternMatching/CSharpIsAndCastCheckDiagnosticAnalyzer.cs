@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
+                   EnforceOnBuildValues.InlineIsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

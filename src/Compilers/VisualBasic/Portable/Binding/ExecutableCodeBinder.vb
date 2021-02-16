@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             If (options And LookupOptions.LabelsOnly) = LookupOptions.LabelsOnly AndAlso LabelsMap IsNot Nothing Then

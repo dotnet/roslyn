@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
             // pull model not supported
-            return ImmutableArray<DiagnosticData>.Empty;
+            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _service = service;
                 _workspace = workspace;
-                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache, workspace);
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)

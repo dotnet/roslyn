@@ -25,8 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return map.ToImmutableDictionary
         End Function
 
-        Public Shared ReadOnly EmptyErrorInfo As DiagnosticInfo = ErrorInfo(0)
-
         Public Shared ReadOnly VoidDiagnosticInfo As DiagnosticInfo = ErrorInfo(ERRID.Void)
 
         Public Shared ReadOnly GetErrorInfo_ERR_WithEventsRequiresClass As Func(Of DiagnosticInfo) =

@@ -65,14 +65,13 @@ namespace Roslyn.Test.Utilities
             }
 
             object reference = _tokenDeferral.GetReferenceFromToken(token);
-            ISymbol symbol = (reference as ISymbolInternal)?.GetISymbol();
+            ISymbol symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
             return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
         }
 
         public override string VisualizeLocalType(object type)
         {
-            Debug.Assert(!(type is ISymbol) || type is ISymbolInternal);
-            return (type is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
         }
 
         /// <summary>

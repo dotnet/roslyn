@@ -50,7 +50,7 @@ stages:
     # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
     pool:      
       ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-        name: VSEng-MicroBuildVS2017
+        name: VSEngSS-MicroBuild2017
         demands: 
         - msbuild
         - visualstudio
@@ -97,6 +97,20 @@ stages:
         filePath: 'eng\setup-pr-validation.ps1'
         arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
+
+    - task: tagBuildOrRelease@0
+      displayName: Tag master validation build
+      inputs:
+        type: 'Build'
+        tags: |
+          MasterValidationBuild
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+
+    - task: PowerShell@2
+      displayName: Merge master-vs-deps into source branch
+      inputs:
+        filePath: 'scripts\merge-vs-deps.ps1'
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -315,7 +329,8 @@ stages:
         - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:
-        enable: true
+        # Disable SDL because of https://github.com/dotnet/core-eng/issues/11902
+        enable: false
         params: >-
           -SourceToolsList @("policheck","credscan")
           -TsaInstanceURL $(_TsaInstanceURL)

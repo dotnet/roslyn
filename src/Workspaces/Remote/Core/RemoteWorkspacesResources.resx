@@ -189,4 +189,13 @@
   <data name="FeatureName_AssetSynchronization" xml:space="preserve">
     <value>Asset synchronization</value>
   </data>
+  <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
+    <value>Asset provider</value>
+  </data>
+  <data name="FeatureName_EditAndContinue" xml:space="preserve">
+    <value>Edit and Continue</value>
+  </data>
+  <data name="FeatureName_NavigationBarItem" xml:space="preserve">
+    <value>Navigation bar</value>
+  </data>
 </root>

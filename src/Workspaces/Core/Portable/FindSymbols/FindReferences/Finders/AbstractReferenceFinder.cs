@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -26,13 +27,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
         public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return name.TryGetWithoutAttributeSuffix(syntaxFacts.IsCaseSensitive, out result);
         }
 
-        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
+        protected static async Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document>? scope, Func<Document, CancellationToken, Task<bool>> predicateAsync, CancellationToken cancellationToken)
         {
             // special case for HR
             if (scope != null && scope.Count == 1)
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             var documents = ArrayBuilder<Document>.GetInstance();
-            foreach (var document in project.Documents)
+            foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (scope != null && !scope.Contains(document))
                 {
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             bool findInGlobalSuppressions,
             CancellationToken cancellationToken,
             params string[] values)
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             PredefinedType predefinedType,
             CancellationToken cancellationToken)
         {
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static Task<ImmutableArray<Document>> FindDocumentsAsync(
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             PredefinedOperator op,
             CancellationToken cancellationToken)
         {
@@ -332,14 +333,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsRightSideOfQualifiedName(node))
-            {
-                node = node.Parent!;
-            }
+                node = node.GetRequiredParent();
 
             if (syntaxFacts.IsUsingDirectiveName(node))
             {
-                var directive = node.Parent!;
-                if (semanticModel.GetDeclaredSymbol(directive, cancellationToken) is IAliasSymbol aliasSymbol)
+                var directive = node.GetRequiredParent();
+
+                // In the case of a same-named alias.  i.e. `using Console = System.Console;` we don't actually want
+                // search for the alias.  We'll already be checking any references called 'Console' and will find them
+                // as matches.
+                if (semanticModel.GetDeclaredSymbol(directive, cancellationToken) is IAliasSymbol aliasSymbol &&
+                    !syntaxFacts.StringComparer.Equals(aliasSymbol.Name, aliasSymbol.Target.Name))
                 {
                     return aliasSymbol;
                 }
@@ -369,12 +373,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetAliasSymbols(document, semanticModel, nonAliasReferences, cancellationToken);
-            if (aliasSymbols == null)
-            {
-                return ImmutableArray<FinderLocation>.Empty;
-            }
-
-            return await FindReferencesThroughAliasSymbolsAsync(symbol, document, semanticModel, aliasSymbols, findParentNode, cancellationToken).ConfigureAwait(false);
+            return aliasSymbols.IsDefaultOrEmpty
+                ? ImmutableArray<FinderLocation>.Empty
+                : await FindReferencesThroughAliasSymbolsAsync(symbol, document, semanticModel, aliasSymbols, findParentNode, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async Task<ImmutableArray<FinderLocation>> FindAliasReferencesAsync(
@@ -385,12 +386,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var aliasSymbols = GetAliasSymbols(document, semanticModel, nonAliasReferences, cancellationToken);
-            if (aliasSymbols == null)
-            {
-                return ImmutableArray<FinderLocation>.Empty;
-            }
-
-            return await FindReferencesThroughAliasSymbolsAsync(document, semanticModel, aliasSymbols, symbolsMatchAsync, cancellationToken).ConfigureAwait(false);
+            return aliasSymbols.IsDefaultOrEmpty
+                ? ImmutableArray<FinderLocation>.Empty
+                : await FindReferencesThroughAliasSymbolsAsync(document, semanticModel, aliasSymbols, symbolsMatchAsync, cancellationToken).ConfigureAwait(false);
         }
 
         private static ImmutableArray<IAliasSymbol> GetAliasSymbols(
@@ -399,17 +397,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ImmutableArray<FinderLocation> nonAliasReferences,
             CancellationToken cancellationToken)
         {
-            var aliasSymbols = ArrayBuilder<IAliasSymbol>.GetInstance();
-            foreach (var r in nonAliasReferences)
+            using var aliasSymbols = TemporaryArray<IAliasSymbol>.Empty;
+            foreach (var reference in nonAliasReferences)
             {
-                var symbol = GetAliasSymbol(document, semanticModel, r.Node, cancellationToken);
+                var symbol = GetAliasSymbol(document, semanticModel, reference.Node, cancellationToken);
                 if (symbol != null)
-                {
                     aliasSymbols.Add(symbol);
-                }
             }
 
-            return aliasSymbols.ToImmutableAndFree();
+            return aliasSymbols.ToImmutableAndClear();
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindReferencesThroughAliasSymbolsAsync(
@@ -471,7 +467,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return allAliasReferences.ToImmutableAndFree();
         }
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document> documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithPredicateAsync(Project project, IImmutableSet<Document>? documents, Func<SyntaxTreeIndex, bool> predicate, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
@@ -480,16 +476,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithForEachStatementsAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsForEachStatement, cancellationToken);
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithDeconstructionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsDeconstruction, cancellationToken);
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithAwaitExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsAwait, cancellationToken);
 
-        protected static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected static Task<ImmutableArray<Document>> FindDocumentsWithImplicitObjectCreationExpressionAsync(Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
             => FindDocumentsWithPredicateAsync(project, documents, predicate: sti => sti.ContainsImplicitObjectCreation, cancellationToken);
 
         /// <summary>
@@ -869,7 +865,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return additionalProperties.ToImmutable();
         }
 
-        protected static bool TryGetAdditionalProperty(SyntaxNode node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
+        protected static bool TryGetAdditionalProperty(SyntaxNode? node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
         {
             if (node != null)
             {
@@ -904,14 +900,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected abstract bool CanFind(TSymbol symbol);
 
         protected abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            TSymbol symbol, Project project, IImmutableSet<Document> documents,
+            TSymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        public override Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
                 ? DetermineProjectsToSearchAsync(typedSymbol, solution, projects, cancellationToken)
@@ -919,7 +915,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
@@ -937,7 +933,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.Cascade &&
@@ -953,14 +949,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected virtual Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
-            TSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            TSymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken)
         {
             return DependentProjectsFinder.GetDependentProjectsAsync(
                 solution, symbol, projects, cancellationToken);
         }
 
         protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            TSymbol symbol, Solution solution, IImmutableSet<Project> projects,
+            TSymbol symbol, Solution solution, IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();

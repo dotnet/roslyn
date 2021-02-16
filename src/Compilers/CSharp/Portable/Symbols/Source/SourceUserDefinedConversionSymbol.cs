@@ -4,12 +4,9 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -19,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics)
         {
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : WellKnownMemberNames.ExplicitConversionName;
 
             return new SourceUserDefinedConversionSymbol(
-                containingType, name, location, syntax, diagnostics);
+                containingType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
@@ -40,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
                 name,
@@ -51,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
         {
             CheckForBlockAndExpressionBody(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             ConversionOperatorDeclarationSyntax declarationSyntax = GetSyntax();
             return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.Type, diagnostics);

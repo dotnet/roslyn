@@ -666,6 +666,32 @@ namespace NS
                 expectedIndentation: 8);
         }
 
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [InlineData("do")]
+        [InlineData("for (;;)")]
+        [InlineData("if (true)")]
+        [InlineData("void localFunction()")]
+        [InlineData("static void localFunction()")]
+        public void EmbeddedStatement2(string statement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{statement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 4);
+        }
+
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]

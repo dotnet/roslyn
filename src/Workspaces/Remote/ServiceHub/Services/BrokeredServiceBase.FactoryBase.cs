@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                ServiceActivationOptions serviceActivationOptions,
                IServiceBroker serviceBroker)
             {
-                var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(typeof(TService));
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 

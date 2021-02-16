@@ -1406,7 +1406,8 @@ End Interface";
             compilation2.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact]
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/39934")]
+        [WorkItem(39934, "https://github.com/dotnet/roslyn/issues/39934")]
         public void OverloadResolutionWithSimpleProperty()
         {
             var source1 =
@@ -1490,6 +1491,7 @@ End Class";
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2);
         }
 
         [ClrOnlyFact]

@@ -12,12 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
     internal interface IProjectSystemReferenceCleanupService
     {
         /// <summary>
-        /// Return the set of direct Project and Package References for the given project. This 
+        /// Return the set of direct Project and Package References for the given project. This
         /// is used to get the initial state of the TreatAsUsed attribute for each reference.
         /// </summary>
         Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(
             string projectPath,
-            string targetFrameworkMoniker,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -27,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.A
         /// <returns>True, if the reference was updated.</returns>
         Task<bool> TryUpdateReferenceAsync(
             string projectPath,
-            string targetFrameworkMoniker,
             ProjectSystemReferenceUpdate referenceUpdate,
             CancellationToken cancellationToken);
     }

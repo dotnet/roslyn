@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1095,7 +1094,7 @@ public class B : A<nint>
                 comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/49845
         public void Retargeting_06()
         {
             var source1 =
@@ -5496,11 +5495,29 @@ $@"public class A
     }
 }";
 
+            var expectedDiagnostics = (type == "nuint") ?
+                new DiagnosticDescription[]
+                {
+                    // (5,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(5, 14),
+                    // (8,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(8, 14),
+                    // (11,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint?").WithLocation(11, 14),
+                    // (14,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint?").WithLocation(14, 14)
+                } :
+                new DiagnosticDescription[0];
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
@@ -5882,6 +5899,12 @@ class Program
                 // (22,17): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
                 //             i = (nuint)uint.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(nuint)uint.MaxValue").WithArguments("nuint", "nint").WithLocation(22, 17),
+                // (30,17): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = sbyte.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(30, 17),
+                // (33,17): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = short.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(33, 17),
                 // (37,17): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
                 //             u = long.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "long.MaxValue").WithArguments("long", "nuint").WithLocation(37, 17),
@@ -6386,9 +6409,7 @@ $@"class Program
         F(7);
         F(8);
         F(9);
-        F(sbyte.MaxValue);
         F(byte.MaxValue);
-        F(short.MaxValue);
         F(char.MaxValue);
         F(ushort.MaxValue);
         F(int.MaxValue);
@@ -6413,9 +6434,7 @@ $@"class Program
 7
 8
 9
-127
 255
-32767
 65535
 65535
 2147483647
@@ -6424,7 +6443,7 @@ $@"class Program
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             string expectedIL =
 @"{
-  // Code size      160 (0xa0)
+  // Code size      141 (0x8d)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
@@ -6459,33 +6478,96 @@ $@"class Program
   IL_0046:  ldc.i4.s   9
   IL_0048:  conv.i
   IL_0049:  call       ""void Program.F(nuint)""
-  IL_004e:  ldc.i4.s   127
-  IL_0050:  conv.i
-  IL_0051:  call       ""void Program.F(nuint)""
-  IL_0056:  ldc.i4     0xff
-  IL_005b:  conv.i
-  IL_005c:  call       ""void Program.F(nuint)""
-  IL_0061:  ldc.i4     0x7fff
-  IL_0066:  conv.i
-  IL_0067:  call       ""void Program.F(nuint)""
-  IL_006c:  ldc.i4     0xffff
-  IL_0071:  conv.i
-  IL_0072:  call       ""void Program.F(nuint)""
-  IL_0077:  ldc.i4     0xffff
-  IL_007c:  conv.i
-  IL_007d:  call       ""void Program.F(nuint)""
-  IL_0082:  ldc.i4     0x7fffffff
-  IL_0087:  conv.i
-  IL_0088:  call       ""void Program.F(nuint)""
-  IL_008d:  ldc.i4     0x80000000
-  IL_0092:  conv.u
-  IL_0093:  call       ""void Program.F(nuint)""
-  IL_0098:  ldc.i4.m1
-  IL_0099:  conv.u
-  IL_009a:  call       ""void Program.F(nuint)""
-  IL_009f:  ret
+  IL_004e:  ldc.i4     0xff
+  IL_0053:  conv.i
+  IL_0054:  call       ""void Program.F(nuint)""
+  IL_0059:  ldc.i4     0xffff
+  IL_005e:  conv.i
+  IL_005f:  call       ""void Program.F(nuint)""
+  IL_0064:  ldc.i4     0xffff
+  IL_0069:  conv.i
+  IL_006a:  call       ""void Program.F(nuint)""
+  IL_006f:  ldc.i4     0x7fffffff
+  IL_0074:  conv.i
+  IL_0075:  call       ""void Program.F(nuint)""
+  IL_007a:  ldc.i4     0x80000000
+  IL_007f:  conv.u
+  IL_0080:  call       ""void Program.F(nuint)""
+  IL_0085:  ldc.i4.m1
+  IL_0086:  conv.u
+  IL_0087:  call       ""void Program.F(nuint)""
+  IL_008c:  ret
 }";
             verifier.VerifyIL("Program.Main", expectedIL);
+        }
+
+        [Fact]
+        public void Constants_ConvertToUnsigned()
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        F<ushort>(sbyte.MaxValue);
+        F<ushort>(short.MaxValue);
+        F<ushort>(int.MaxValue);
+        F<ushort>(long.MaxValue);
+        F<uint>(sbyte.MaxValue);
+        F<uint>(short.MaxValue);
+        F<uint>(int.MaxValue);
+        F<uint>(long.MaxValue);
+        F<nuint>(sbyte.MaxValue);
+        F<nuint>(short.MaxValue);
+        F<nuint>(int.MaxValue);
+        F<nuint>(long.MaxValue);
+        F<ulong>(sbyte.MaxValue);
+        F<ulong>(short.MaxValue);
+        F<ulong>(int.MaxValue);
+        F<ulong>(long.MaxValue);
+    }
+    static void F<T>(T n)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ushort'
+                //         F<ushort>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ushort").WithLocation(5, 19),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'short' to 'ushort'
+                //         F<ushort>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ushort").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'int' to 'ushort'
+                //         F<ushort>(int.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "int.MaxValue").WithArguments("1", "int", "ushort").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from 'long' to 'ushort'
+                //         F<ushort>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "ushort").WithLocation(8, 19),
+                // (9,17): error CS1503: Argument 1: cannot convert from 'sbyte' to 'uint'
+                //         F<uint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "uint").WithLocation(9, 17),
+                // (10,17): error CS1503: Argument 1: cannot convert from 'short' to 'uint'
+                //         F<uint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "uint").WithLocation(10, 17),
+                // (12,17): error CS1503: Argument 1: cannot convert from 'long' to 'uint'
+                //         F<uint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "uint").WithLocation(12, 17),
+                // (13,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'nuint'
+                //         F<nuint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "nuint").WithLocation(13, 18),
+                // (14,18): error CS1503: Argument 1: cannot convert from 'short' to 'nuint'
+                //         F<nuint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "nuint").WithLocation(14, 18),
+                // (16,18): error CS1503: Argument 1: cannot convert from 'long' to 'nuint'
+                //         F<nuint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "nuint").WithLocation(16, 18),
+                // (17,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ulong'
+                //         F<ulong>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ulong").WithLocation(17, 18),
+                // (18,18): error CS1503: Argument 1: cannot convert from 'short' to 'ulong'
+                //         F<ulong>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ulong").WithLocation(18, 18));
         }
 
         [Fact]
@@ -7903,9 +7985,9 @@ $@"{{
             conversions(sourceType: "E", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
@@ -8012,9 +8094,9 @@ $@"{{
             conversions(sourceType: "E", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
             conversions(sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
@@ -8076,9 +8158,9 @@ $@"{{
             conversions(sourceType: "E?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "E", "nuint"));
             conversions(sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
-            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
+            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
             conversions(sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
-            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
+            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
             conversions(sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
             conversions(sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
             conversions(sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
@@ -10077,9 +10159,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10094,9 +10176,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10114,9 +10196,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10131,9 +10213,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10377,9 +10459,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10394,9 +10476,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10414,9 +10496,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10431,9 +10513,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10677,9 +10759,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10694,9 +10776,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10714,9 +10796,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10731,9 +10813,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11277,9 +11359,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -11294,9 +11376,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -11314,9 +11396,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -11331,9 +11413,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -11577,9 +11659,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte");
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short");
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int");
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11594,9 +11676,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?");
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?");
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?");
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11614,9 +11696,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte");
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short");
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int");
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11631,9 +11713,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?");
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?");
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?");
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -13990,6 +14072,113 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
 
             static TypeSymbol getInterface(CSharpCompilation comp, string typeName) =>
                 comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
+        }
+
+        [WorkItem(49596, "https://github.com/dotnet/roslyn/issues/49596")]
+        [Fact]
+        public void SignedToUnsignedConversions_Implicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Implicit1(sbyte x) => x;
+    static nuint Implicit2(short x) => x;
+    static nuint Implicit3(int x) => x;
+    static nuint Implicit4(long x) => x;
+    static nuint Implicit5(nint x) => x;
+    static nuint Checked1(sbyte x) => checked(x);
+    static nuint Checked2(short x) => checked(x);
+    static nuint Checked3(int x) => checked(x);
+    static nuint Checked4(long x) => checked(x);
+    static nuint Checked5(nint x) => checked(x);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit1(sbyte x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(3, 40),
+                // (4,40): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit2(short x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(4, 40),
+                // (5,38): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit3(int x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(5, 38),
+                // (6,39): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit4(long x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(6, 39),
+                // (7,39): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit5(nint x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(7, 39),
+                // (8,47): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked1(sbyte x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(8, 47),
+                // (9,47): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked2(short x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(9, 47),
+                // (10,45): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked3(int x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(10, 45),
+                // (11,46): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked4(long x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(11, 46),
+                // (12,46): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked5(nint x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(12, 46));
+        }
+
+        [Fact]
+        public void SignedToUnsignedConversions_Explicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Explicit1(sbyte x) => (nuint)x;
+    static nuint Explicit2(short x) => (nuint)x;
+    static nuint Explicit3(int x) => (nuint)x;
+    static nuint Explicit4(long x) => (nuint)x;
+    static nuint Explicit5(nint x) => (nuint)x;
+    static nuint Checked1(sbyte x) => checked((nuint)x);
+    static nuint Checked2(short x) => checked((nuint)x);
+    static nuint Checked3(int x) => checked((nuint)x);
+    static nuint Checked4(long x) => checked((nuint)x);
+    static nuint Checked5(nint x) => checked((nuint)x);
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source);
+            string expectedExplicitILA =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  ret
+}";
+            string expectedExplicitILB =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}";
+            string expectedCheckedIL =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}";
+            verifier.VerifyIL("NativeInts.Explicit1", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit2", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit3", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit4", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Checked1", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked2", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
         }
     }
 }

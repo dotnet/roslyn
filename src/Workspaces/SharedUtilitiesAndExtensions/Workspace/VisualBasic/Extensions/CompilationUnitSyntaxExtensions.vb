@@ -15,7 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
     Friend Module CompilationUnitSyntaxExtensions
         <Extension>
-        Public Function CanAddImportsStatements(contextNode As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+        Public Function CanAddImportsStatements(contextNode As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Boolean
+            Return CanAddImportsStatements(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function CanAddImportsStatements(contextNode As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
+            If contextNode.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
+                Return False
+            End If
+
+            If allowInHiddenRegions Then
+                Return True
+            End If
+
             Dim root = contextNode.GetAncestorOrThis(Of CompilationUnitSyntax)()
             If root.Imports.Count > 0 Then
                 Dim start = root.Imports.First.SpanStart

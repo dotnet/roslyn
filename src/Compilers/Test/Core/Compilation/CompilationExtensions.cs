@@ -15,12 +15,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class CompilationExtensions
     {
         internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+        internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
 
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
@@ -97,6 +98,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static MetadataReference EmitToImageReference(
+            this Compilation comp,
+            EmitOptions options = null,
+            bool embedInteropTypes = false,
+            ImmutableArray<string> aliases = default,
+            DiagnosticDescription[] expectedWarnings = null) => EmitToPortableExecutableReference(comp, options, embedInteropTypes, aliases, expectedWarnings);
+
+        public static PortableExecutableReference EmitToPortableExecutableReference(
             this Compilation comp,
             EmitOptions options = null,
             bool embedInteropTypes = false,
@@ -255,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             var compilation = createCompilation();
-            var roots = ArrayBuilder<IOperation>.GetInstance();
+            var roots = ArrayBuilder<(IOperation operation, ISymbol associatedSymbol)>.GetInstance();
             var stopWatch = new Stopwatch();
             if (!System.Diagnostics.Debugger.IsAttached)
             {
@@ -293,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         if (operation.Parent == null)
                         {
-                            roots.Add(operation);
+                            roots.Add((operation, semanticModel.GetDeclaredSymbol(operation.Syntax)));
                         }
                     }
                 }
@@ -302,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
             var visitor = TestOperationVisitor.Singleton;
 
-            foreach (var root in roots)
+            foreach (var (root, associatedSymbol) in roots)
             {
                 foreach (var operation in root.DescendantsAndSelf())
                 {
@@ -324,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 stopWatch.Stop();
-                checkControlFlowGraph(root);
+                checkControlFlowGraph(root, associatedSymbol);
                 stopWatch.Start();
             }
 
@@ -332,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             stopWatch.Stop();
             return;
 
-            void checkControlFlowGraph(IOperation root)
+            void checkControlFlowGraph(IOperation root, ISymbol associatedSymbol)
             {
                 switch (root)
                 {
@@ -340,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         // https://github.com/dotnet/roslyn/issues/27593 tracks adding ControlFlowGraph support in script code.
                         if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation), associatedSymbol);
                         }
 
                         break;
@@ -349,18 +357,77 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case IConstructorBodyOperation constructorBody:
                     case IFieldInitializerOperation fieldInitializerOperation:
                     case IPropertyInitializerOperation propertyInitializerOperation:
-                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
                         // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
                         if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// The reference assembly System.Runtime.InteropServices.WindowsRuntime was removed in net5.0. This builds
+        /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
+        /// reference by the compiler.
+        /// </summary>
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        {
+            var source = @"
+namespace System.Runtime.InteropServices.WindowsRuntime
+{
+    public struct EventRegistrationToken { }
+
+    public sealed class EventRegistrationTokenTable<T> where T : class
+    {
+        public T InvocationList { get; set; }
+
+        public static EventRegistrationTokenTable<T> GetOrCreateEventRegistrationTokenTable(ref EventRegistrationTokenTable<T> refEventTable)
+        {
+            throw null;
+        }
+
+        public void RemoveEventHandler(EventRegistrationToken token)
+        {
+        }
+
+        public void RemoveEventHandler(T handler)
+        {
+        }
+    }
+
+    public static class WindowsRuntimeMarshal
+    {
+        public static void AddEventHandler<T>(Func<T, EventRegistrationToken> addMethod, Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+
+        public static void RemoveAllEventHandlers(Action<EventRegistrationToken> removeMethod)
+        {
+        }
+
+        public static void RemoveEventHandler<T>(Action<EventRegistrationToken> removeMethod, T handler)
+        {
+        }
+    }
+}
+";
+
+            // The actual System.Runtime.InteropServices.WindowsRuntime DLL has a public key of
+            // b03f5f7f11d50a3a and version 4.0.4.0. The compiler just looks at these via 
+            // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
+            var compilation = CSharpCompilation.Create(
+                "System.Runtime.InteropServices.WindowsRuntime",
+                new[] { CSharpSyntaxTree.ParseText(source) },
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            compilation.VerifyEmitDiagnostics();
+            return compilation.EmitToPortableExecutableReference();
         }
     }
 }

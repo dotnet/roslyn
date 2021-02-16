@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         private readonly CommonMessageProvider _messageProvider;
         internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
-        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]";
+        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|2|2.1}]";
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
@@ -1195,5 +1195,13 @@ namespace Microsoft.CodeAnalysis
             CompilerOptionParseUtilities.ParseFeatures(builder, features);
             return builder.ToImmutable();
         }
+
+        /// <summary>
+        /// Sort so that more specific keys precede less specific.
+        /// When mapping a path we find the first key in the array that is a prefix of the path.
+        /// If multiple keys are prefixes of the path we want to use the longest (more specific) one for the mapping.
+        /// </summary>
+        internal static ImmutableArray<KeyValuePair<string, string>> SortPathMap(ImmutableArray<KeyValuePair<string, string>> pathMap)
+            => pathMap.Sort((x, y) => -x.Key.Length.CompareTo(y.Key.Length));
     }
 }

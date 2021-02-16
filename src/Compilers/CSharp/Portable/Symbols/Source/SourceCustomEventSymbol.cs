@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
 
-        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, DiagnosticBag diagnostics) :
+        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
             base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
                  interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
                  nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-                _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
             }
 
             _explicitInterfaceImplementations =
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _explicitInterfaceImplementations; }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -230,15 +230,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull(parameterName: "syntaxOpt")]
-        private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(AccessorDeclarationSyntax? syntaxOpt,
-            EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, DiagnosticBag diagnostics)
+        private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
+            EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, BindingDiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
             {
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }

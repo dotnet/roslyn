@@ -12,6 +12,16 @@
         <target state="translated">Přidat složené závorky do příkazu {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="new">Blank line not allowed after constructor initializer colon</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="new">Consecutive braces must not have blank line between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Převést příkaz switch na výraz</target>
@@ -25,6 +35,16 @@
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
         <target state="translated">Volání delegáta se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">Proměnná typu discard se dá odebrat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="new">Embedded statements must be on their own line</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -80,6 +100,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">Odebrat nepotřebný operátor potlačení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">Odebrat nepotřebnou proměnnou typu discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -204,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
-        <target state="new">Use 'new(...)'</target>
+        <target state="translated">Použít new(...)</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -269,7 +294,7 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="new">'new' expression can be simplified</target>
+        <target state="translated">Výraz new se dá zjednodušit.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">

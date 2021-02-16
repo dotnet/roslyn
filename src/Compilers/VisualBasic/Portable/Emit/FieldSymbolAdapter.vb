@@ -9,8 +9,12 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-
+#If DEBUG Then
+    Partial Friend Class FieldSymbolAdapter
+        Inherits SymbolAdapter
+#Else
     Partial Friend Class FieldSymbol
+#End If
         Implements IFieldReference
         Implements IFieldDefinition
         Implements ITypeMemberReference
@@ -19,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IFieldReferenceGetType(context As EmitContext) As ITypeReference Implements IFieldReference.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Dim customModifiers = Me.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(Me.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim customModifiers = AdaptedFieldSymbol.CustomModifiers
+            Dim type = moduleBeingBuilt.Translate(AdaptedFieldSymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             If customModifiers.Length = 0 Then
                 Return type
             Else
@@ -35,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ResolvedFieldImpl(moduleBeingBuilt As PEModuleBuilder) As IFieldDefinition
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            If Me.IsDefinition AndAlso Me.ContainingModule = moduleBeingBuilt.SourceModule Then
+            If AdaptedFieldSymbol.IsDefinition AndAlso AdaptedFieldSymbol.ContainingModule = moduleBeingBuilt.SourceModule Then
                 Return Me
             End If
 
@@ -46,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Debug.Assert(Me.IsDefinitionOrDistinct())
 
-                If Not Me.IsDefinition Then
+                If Not AdaptedFieldSymbol.IsDefinition Then
                     Return Me
                 End If
 
@@ -58,16 +62,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            Return moduleBeingBuilt.Translate(Me.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=Me.IsDefinition)
+            Return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics, needDeclaration:=AdaptedFieldSymbol.IsDefinition)
         End Function
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
-            If Not Me.IsDefinition Then
+            If Not AdaptedFieldSymbol.IsDefinition Then
                 visitor.Visit(DirectCast(Me, ISpecializedFieldReference))
             Else
-                If Me.ContainingModule = (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule Then
+                If AdaptedFieldSymbol.ContainingModule = (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule Then
                     visitor.Visit(DirectCast(Me, IFieldDefinition))
                 Else
                     visitor.Visit(DirectCast(Me, IFieldReference))
@@ -82,13 +86,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property INamedEntityName As String Implements INamedEntity.Name
             Get
-                Return Me.MetadataName
+                Return AdaptedFieldSymbol.MetadataName
             End Get
         End Property
 
-        Friend Overridable ReadOnly Property IFieldReferenceIsContextualNamedEntity As Boolean Implements IFieldReference.IsContextualNamedEntity
+        Private ReadOnly Property IFieldReference_IsContextualNamedEntity As Boolean Implements IFieldReference.IsContextualNamedEntity
             Get
-                Return False
+                Return AdaptedFieldSymbol.IsContextualNamedEntity
             End Get
         End Property
 
@@ -101,8 +105,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetMetadataConstantValue(context As EmitContext) As MetadataConstant
             ' do not return a compile time value for const fields of types DateTime or Decimal because they
             ' are only const from a VB point of view
-            If Me.IsMetadataConstant Then
-                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(Me.Type, Me.ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            If AdaptedFieldSymbol.IsMetadataConstant Then
+                Return DirectCast(context.Module, PEModuleBuilder).CreateConstant(AdaptedFieldSymbol.Type, AdaptedFieldSymbol.ConstantValue, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             End If
 
             Return Nothing
@@ -120,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' const fields of types DateTime or Decimal are not compile time constant, because they are only const 
                 ' from a VB point of view
-                If Me.IsMetadataConstant Then
+                If AdaptedFieldSymbol.IsMetadataConstant Then
                     Return True
                 End If
 
@@ -131,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IFieldDefinitionIsNotSerialized As Boolean Implements IFieldDefinition.IsNotSerialized
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsNotSerialized
+                Return AdaptedFieldSymbol.IsNotSerialized
             End Get
         End Property
 
@@ -140,36 +144,112 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 CheckDefinitionInvariant()
 
                 ' a const field of type DateTime or Decimal is ReadOnly in IL.
-                Return Me.IsReadOnly OrElse
-                        Me.IsConstButNotMetadataConstant
+                Return AdaptedFieldSymbol.IsReadOnly OrElse
+                        AdaptedFieldSymbol.IsConstButNotMetadataConstant
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsRuntimeSpecial As Boolean Implements IFieldDefinition.IsRuntimeSpecial
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasRuntimeSpecialName
+                Return AdaptedFieldSymbol.HasRuntimeSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsSpecialName As Boolean Implements IFieldDefinition.IsSpecialName
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasSpecialName
+                Return AdaptedFieldSymbol.HasSpecialName
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsStatic As Boolean Implements IFieldDefinition.IsStatic
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsShared
+                Return AdaptedFieldSymbol.IsShared
             End Get
         End Property
 
         Private ReadOnly Property IFieldDefinitionIsMarshalledExplicitly As Boolean Implements IFieldDefinition.IsMarshalledExplicitly
             Get
                 CheckDefinitionInvariant()
-                Return Me.IsMarshalledExplicitly
+                Return AdaptedFieldSymbol.IsMarshalledExplicitly
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldDefinitionMarshallingInformation As IMarshallingInformation Implements IFieldDefinition.MarshallingInformation
+            Get
+                CheckDefinitionInvariant()
+                Return AdaptedFieldSymbol.MarshallingInformation
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldDefinitionMarshallingDescriptor As ImmutableArray(Of Byte) Implements IFieldDefinition.MarshallingDescriptor
+            Get
+                CheckDefinitionInvariant()
+                Return AdaptedFieldSymbol.MarshallingDescriptor
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldDefinitionOffset As Integer Implements IFieldDefinition.Offset
+            Get
+                CheckDefinitionInvariant()
+                Return If(AdaptedFieldSymbol.TypeLayoutOffset, 0)
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
+            Get
+                CheckDefinitionInvariant()
+                Return AdaptedFieldSymbol.ContainingType.GetCciAdapter()
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
+            Get
+                CheckDefinitionInvariant()
+                Return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol)
+            End Get
+        End Property
+
+        Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As IFieldReference Implements ISpecializedFieldReference.UnspecializedVersion
+            Get
+                Debug.Assert(Not AdaptedFieldSymbol.IsDefinition)
+                Return AdaptedFieldSymbol.OriginalDefinition.GetCciAdapter()
+            End Get
+        End Property
+    End Class
+
+    Partial Friend Class FieldSymbol
+#If DEBUG Then
+        Private _lazyAdapter As FieldSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As FieldSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, FieldSymbolAdapter.Create(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As FieldSymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable ReadOnly Property IsContextualNamedEntity As Boolean
+            Get
+                Return False
             End Get
         End Property
 
@@ -180,53 +260,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IFieldDefinitionMarshallingInformation As IMarshallingInformation Implements IFieldDefinition.MarshallingInformation
-            Get
-                CheckDefinitionInvariant()
-                Return Me.MarshallingInformation
-            End Get
-        End Property
-
-        Private ReadOnly Property IFieldDefinitionMarshallingDescriptor As ImmutableArray(Of Byte) Implements IFieldDefinition.MarshallingDescriptor
-            Get
-                CheckDefinitionInvariant()
-                Return Me.MarshallingDescriptor
-            End Get
-        End Property
-
         Friend Overridable ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
             Get
                 CheckDefinitionInvariant()
                 Return Nothing
             End Get
         End Property
+    End Class
 
-        Private ReadOnly Property IFieldDefinitionOffset As Integer Implements IFieldDefinition.Offset
-            Get
-                CheckDefinitionInvariant()
-                Return If(TypeLayoutOffset, 0)
-            End Get
-        End Property
+#If DEBUG Then
+    Partial Friend Class FieldSymbolAdapter
+        Friend ReadOnly Property AdaptedFieldSymbol As FieldSymbol
 
-        Private ReadOnly Property ITypeDefinitionMemberContainingTypeDefinition As ITypeDefinition Implements ITypeDefinitionMember.ContainingTypeDefinition
-            Get
-                CheckDefinitionInvariant()
-                Return Me.ContainingType
-            End Get
-        End Property
+        Protected Sub New(underlyingFieldSymbol As FieldSymbol)
+            AdaptedFieldSymbol = underlyingFieldSymbol
+        End Sub
 
-        Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
-            Get
-                CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(Me)
-            End Get
-        End Property
+        Friend Shared Function Create(underlyingFieldSymbol As FieldSymbol) As FieldSymbolAdapter
+            Dim synthesizedStaticLocalBackingField = TryCast(underlyingFieldSymbol, SynthesizedStaticLocalBackingField)
 
-        Private ReadOnly Property ISpecializedFieldReferenceUnspecializedVersion As IFieldReference Implements ISpecializedFieldReference.UnspecializedVersion
+            If synthesizedStaticLocalBackingField IsNot Nothing Then
+                Return New SynthesizedStaticLocalBackingFieldAdapter(synthesizedStaticLocalBackingField)
+            End If
+
+            Return New FieldSymbolAdapter(underlyingFieldSymbol)
+        End Function
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
             Get
-                Debug.Assert(Not Me.IsDefinition)
-                Return Me.OriginalDefinition
+                Return AdaptedFieldSymbol
             End Get
         End Property
     End Class
+#End If
 End Namespace

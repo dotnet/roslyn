@@ -169,6 +169,83 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string GetExpectedV1ErrorLogWithSuppressionResultsAndRulesText(Compilation compilation)
+            {
+                var tree = compilation.SyntaxTrees.First();
+                var root = tree.GetRoot();
+                var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = GetUriForPath(tree.FilePath);
+
+                return @"
+      ""results"": [
+        {
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": """ + Descriptor1.MessageFormat + @""",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
+          ""locations"": [
+            {
+              ""resultFile"": {
+                ""uri"": """ + filePath + @""",
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                }
+              }
+            }
+          ],
+          ""properties"": {
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": """ + Descriptor2.MessageFormat + @""",
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
+          }
+        }
+      ],
+      ""rules"": {
+        """ + Descriptor1.Id + @""": {
+          ""id"": """ + Descriptor1.Id + @""",
+          ""shortDescription"": """ + Descriptor1.Title + @""",
+          ""fullDescription"": """ + Descriptor1.Description + @""",
+          ""defaultLevel"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
+          ""properties"": {
+            ""category"": """ + Descriptor1.Category + @""",
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
+        },
+        """ + Descriptor2.Id + @""": {
+          ""id"": """ + Descriptor2.Id + @""",
+          ""shortDescription"": """ + Descriptor2.Title + @""",
+          ""fullDescription"": """ + Descriptor2.Description + @""",
+          ""defaultLevel"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
+          ""properties"": {
+            ""category"": """ + Descriptor2.Category + @""",
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}";
+            }
+
             public static string GetExpectedV2ErrorLogResultsText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
@@ -185,6 +262,61 @@ namespace Microsoft.CodeAnalysis
           ""message"": {
             ""text"": """ + Descriptor1.MessageFormat + @"""
           },
+          ""locations"": [
+            {
+              ""physicalLocation"": {
+                ""artifactLocation"": {
+                  ""uri"": """ + filePath + @"""
+                },
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
+                }
+              }
+            }
+          ],
+          ""properties"": {
+            ""warningLevel"": 1," + GetExpectedPropertiesMapText() + @"
+          }
+        },
+        {
+          ""ruleId"": """ + Descriptor2.Id + @""",
+          ""ruleIndex"": 1,
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor2.MessageFormat + @"""
+          },
+          ""properties"": {" +
+             GetExpectedPropertiesMapText() + @"
+          }
+        }
+      ]";
+            }
+
+            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification)
+            {
+                var tree = compilation.SyntaxTrees.First();
+                var root = tree.GetRoot();
+                var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = GetUriForPath(tree.FilePath);
+
+                return
+@"      ""results"": [
+        {
+          ""ruleId"": """ + Descriptor1.Id + @""",
+          ""ruleIndex"": 0,
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": {
+            ""text"": """ + Descriptor1.MessageFormat + @"""
+          },
+          ""suppressions"": [
+            {
+              ""kind"": ""inSource""" + (justification == null ? "" : @",
+              ""justification"": """ + (justification) + @"""") + @"
+            }
+          ],
           ""locations"": [
             {
               ""physicalLocation"": {
@@ -985,7 +1117,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ActionKind _actionKind;
             private readonly bool _verifyGetControlFlowGraph;
-            private readonly ConcurrentDictionary<IOperation, ControlFlowGraph> _controlFlowGraphMapOpt;
+            private readonly ConcurrentDictionary<IOperation, (ControlFlowGraph Graph, ISymbol AssociatedSymbol)> _controlFlowGraphMapOpt;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -1007,13 +1139,13 @@ namespace Microsoft.CodeAnalysis
             {
                 _actionKind = actionKind;
                 _verifyGetControlFlowGraph = verifyGetControlFlowGraph;
-                _controlFlowGraphMapOpt = verifyGetControlFlowGraph ? new ConcurrentDictionary<IOperation, ControlFlowGraph>() : null;
+                _controlFlowGraphMapOpt = verifyGetControlFlowGraph ? new ConcurrentDictionary<IOperation, (ControlFlowGraph, ISymbol)>() : null;
             }
 
-            public ImmutableArray<ControlFlowGraph> GetControlFlowGraphs()
+            public ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> GetControlFlowGraphs()
             {
                 Assert.True(_verifyGetControlFlowGraph);
-                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraph => flowGraph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
+                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraphAndSymbol => flowGraphAndSymbol.Graph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
@@ -1022,20 +1154,20 @@ namespace Microsoft.CodeAnalysis
                 addDiagnostic(diagnostic);
             }
 
-            private void CacheAndVerifyControlFlowGraph(ImmutableArray<IOperation> operationBlocks, Func<IOperation, ControlFlowGraph> getControlFlowGraph)
+            private void CacheAndVerifyControlFlowGraph(ImmutableArray<IOperation> operationBlocks, Func<IOperation, (ControlFlowGraph Graph, ISymbol AssociatedSymbol)> getControlFlowGraph)
             {
                 if (_verifyGetControlFlowGraph)
                 {
                     foreach (var operationBlock in operationBlocks)
                     {
-                        var controlFlowGraph = getControlFlowGraph(operationBlock);
-                        Assert.NotNull(controlFlowGraph);
-                        Assert.Same(operationBlock.GetRootOperation(), controlFlowGraph.OriginalOperation);
+                        var controlFlowGraphAndSymbol = getControlFlowGraph(operationBlock);
+                        Assert.NotNull(controlFlowGraphAndSymbol);
+                        Assert.Same(operationBlock.GetRootOperation(), controlFlowGraphAndSymbol.Graph.OriginalOperation);
 
-                        _controlFlowGraphMapOpt.Add(controlFlowGraph.OriginalOperation, controlFlowGraph);
+                        _controlFlowGraphMapOpt.Add(controlFlowGraphAndSymbol.Graph.OriginalOperation, controlFlowGraphAndSymbol);
 
                         // Verify analyzer driver caches the flow graph.
-                        Assert.Same(controlFlowGraph, getControlFlowGraph(operationBlock));
+                        Assert.Same(controlFlowGraphAndSymbol.Graph, getControlFlowGraph(operationBlock).Graph);
 
                         // Verify exceptions for invalid inputs.
                         try
@@ -1073,11 +1205,11 @@ namespace Microsoft.CodeAnalysis
                     if (inBlockAnalysisContext)
                     {
                         // Verify same flow graph returned from containing block analysis context.
-                        Assert.Same(controlFlowGraph, _controlFlowGraphMapOpt[rootOperation]);
+                        Assert.Same(controlFlowGraph, _controlFlowGraphMapOpt[rootOperation].Graph);
                     }
                     else
                     {
-                        _controlFlowGraphMapOpt[rootOperation] = controlFlowGraph;
+                        _controlFlowGraphMapOpt[rootOperation] = (controlFlowGraph, operationContext.ContainingSymbol);
                     }
                 }
             }
@@ -1091,7 +1223,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockStartAction(blockStartContext =>
                         {
                             blockStartContext.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
-                            CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, blockStartContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, op => (blockStartContext.GetControlFlowGraph(op), blockStartContext.OwningSymbol));
                         });
 
                         break;
@@ -1100,7 +1232,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockAction(blockContext =>
                         {
                             ReportDiagnostic(blockContext.ReportDiagnostic, blockContext.OwningSymbol.Locations[0]);
-                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, op => (blockContext.GetControlFlowGraph(op), blockContext.OwningSymbol));
                         });
 
                         break;
@@ -1117,7 +1249,7 @@ namespace Microsoft.CodeAnalysis
                     case ActionKind.OperationInOperationBlockStart:
                         context.RegisterOperationBlockStartAction(blockContext =>
                         {
-                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, op => (blockContext.GetControlFlowGraph(op), blockContext.OwningSymbol));
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());
