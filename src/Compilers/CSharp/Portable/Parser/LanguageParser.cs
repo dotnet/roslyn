@@ -2582,8 +2582,7 @@ parse_member_name:;
                 {
                     result = incompleteMember;
                 }
-                else if (parentKind == SyntaxKind.NamespaceDeclaration ||
-                         parentKind == SyntaxKind.SingleLineNamespaceDeclaration ||
+                else if (parentKind is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration ||
                          parentKind == SyntaxKind.CompilationUnit && !IsScript)
                 {
                     result = this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);

@@ -4281,9 +4281,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         Debug.Assert(
                             SyntaxFacts.IsTypeDeclaration(m.Kind()) ||
-                            m.Kind() == SyntaxKind.NamespaceDeclaration ||
-                            m.Kind() == SyntaxKind.SingleLineNamespaceDeclaration ||
-                            m.Kind() == SyntaxKind.IncompleteMember);
+                            m.Kind() is SyntaxKind.NamespaceDeclaration or
+                                        SyntaxKind.SingleLineNamespaceDeclaration or
+                                        SyntaxKind.IncompleteMember);
                         break;
                 }
             }

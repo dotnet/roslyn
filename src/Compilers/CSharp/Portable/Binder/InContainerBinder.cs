@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
                     _usingsSyntax = compilationUnit.Usings;
                 }
-                else if (declarationSyntax.Kind() == SyntaxKind.NamespaceDeclaration ||
-                         declarationSyntax.Kind() == SyntaxKind.SingleLineNamespaceDeclaration)
+                else if (declarationSyntax.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration)
                 {
                     var namespaceDecl = (BaseNamespaceDeclarationSyntax)declarationSyntax;
                     _usingsSyntax = namespaceDecl.Usings;

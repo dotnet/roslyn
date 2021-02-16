@@ -2300,8 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a namespace or a type in an explicitly declared namespace:
-            if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration ||
-                memberDeclaration.Kind() == SyntaxKind.SingleLineNamespaceDeclaration ||
+            if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration ||
                 SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
             {
                 return container;

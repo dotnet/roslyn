@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(
-                node.Kind() == SyntaxKind.NamespaceDeclaration ||
-                node.Kind() == SyntaxKind.SingleLineNamespaceDeclaration ||
+                node.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration ||
                 (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
