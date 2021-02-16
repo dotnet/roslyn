@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
 
         /// <summary>
-        /// Set of documents that we have reported an empty set of todo comments for.  Don't both re-reporting these
-        /// documents as long as we keep getting no todo comments produced for them.  Note: no locking is needed for
-        /// this structure as the incremental analyzer is guaranteed to make all calls sequentially to us..
+        /// Set of documents that we have reported an non-empty set of todo comments for.  Used so that we don't bother
+        /// notifying the host about documents with empty-todo lists (the common case). Note: no locking is needed for
+        /// this structure as the incremental analyzer is guaranteed to make all calls sequentially to us.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
