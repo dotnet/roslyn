@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         /// Set of documents that we have reported an empty set of todo comments for.  Don't both re-reporting these
         /// documents as long as we keep getting no todo comments produced for them.
         /// </summary>
-        private readonly HashSet<DocumentId> _documentsReportedWithEmptyTodoComments = new();
+        private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
         protected AbstractTodoCommentsIncrementalAnalyzer()
         {
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.TodoComments
             // Remove the doc id from what we're tracking to prevent unbounded growth in the set.
             lock (_gate)
             {
-                // If the doc was already in the set, then we know the client believes there are zero comments for it.
-                // So we don't have to redundantly tell it that again.
-                if (_documentsReportedWithEmptyTodoComments.Remove(documentId))
+                // If the doc that is being removed is not in the set of docs we've told the host has todo comments,
+                // then no need to notify the host at all about it.
+                if (!_documentsWithTodoComments.Remove(documentId))
                     return Task.CompletedTask;
             }
 
@@ -88,17 +88,17 @@ namespace Microsoft.CodeAnalysis.TodoComments
             {
                 if (data.IsEmpty)
                 {
-                    // If we already reported this doc has no todo comments, don't bother doing it again. Otherwise,
-                    // notify the client.
-                    if (!_documentsReportedWithEmptyTodoComments.Add(document.Id))
+                    // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
+                    // had todo comments in it, then fall through and notify the host so it can clear them out.
+                    if (!_documentsWithTodoComments.Remove(document.Id)
                     {
                         return;
                     }
                 }
                 else
                 {
-                    // Doc has some todo comments, remove the 'do not report' list and notify the client.
-                    _documentsReportedWithEmptyTodoComments.Remove(document.Id);
+                    // Doc has some todo comments, record that, and let the host know.
+                    _documentsWithTodoComments.Add(document.Id);
                 }
             }
 
