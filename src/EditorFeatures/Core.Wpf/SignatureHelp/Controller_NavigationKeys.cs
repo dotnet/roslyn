@@ -55,12 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 computationAction();
                 return true;
             }
-            else
-            {
-                // Dismiss ourselves and actually allow the editor to navigate.
-                DismissSessionIfActive();
-                return false;
-            }
+
+            // Allow the editor to navigate. If the navigation results in the caret being outside
+            // of the text span our existing caret position changed handling will dismiss the session
+            // just like when the user navigates with the left and right arrows.
+            return false;
         }
     }
 }
