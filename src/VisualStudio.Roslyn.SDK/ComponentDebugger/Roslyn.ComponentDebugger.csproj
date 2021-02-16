@@ -6,6 +6,7 @@
     <RootNamespace>Roslyn.ComponentDebugger</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <Nullable>enable</Nullable>
+    <NoWarn>NU1603</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -21,15 +22,8 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="16.9.30921.310" PrivateAssets="all" />
-    <PackageReference Include="EnvDTE80" Version="16.9.30921.310" PrivateAssets="all" />
-    <PackageReference Include="EnvDTE90" Version="16.9.30921.310" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Embeddable" Version="16.9.30921.310" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="2.7.339" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="16.8.1-beta1-928-02" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="16.8.1-beta1-928-02" PrivateAssets="all" />
-    <PackageReference Include="NuGet.VisualStudio" Version="5.8.0-preview.2.6776" PrivateAssets="all" />
-    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version=" 5.8.0-preview.2.6776" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="16.8.1-beta1-1008-05" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="16.8.1-beta1-1008-05" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="DebuggerOptions.xaml">

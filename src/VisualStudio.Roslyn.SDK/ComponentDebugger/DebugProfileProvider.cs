@@ -40,7 +40,7 @@ namespace Roslyn.ComponentDebugger
 
         public Task OnBeforeLaunchAsync(DebugLaunchOptions launchOptions, ILaunchProfile profile) => Task.CompletedTask;
 
-        public bool SupportsProfile(ILaunchProfile? profile) => Constants.CommandName.Equals(profile?.CommandName, StringComparison.OrdinalIgnoreCase);
+        public bool SupportsProfile(ILaunchProfile? profile) => Constants.CommandName.Equals(profile?.CommandName, StringComparison.Ordinal);
 
         public async Task<IReadOnlyList<IDebugLaunchSettings>> QueryDebugTargetsAsync(DebugLaunchOptions launchOptions, ILaunchProfile? profile)
         {

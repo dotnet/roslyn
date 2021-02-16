@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.ProjectSystem;
 namespace Roslyn.ComponentDebugger
 {
     [Export(ExportContractNames.Scopes.ConfiguredProject, typeof(IProjectCapabilitiesProvider))]
-    [AppliesTo(ProjectCapabilities.CSharp)]
+    [AppliesTo(ProjectCapabilities.CSharp + " | " + ProjectCapabilities.VB)]
     public class CapabilityProvider : ConfiguredProjectCapabilitiesProviderBase
     {
         [ImportingConstructor]
