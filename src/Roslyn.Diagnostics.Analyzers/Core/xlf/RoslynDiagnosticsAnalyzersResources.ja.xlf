@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="new">Add 'Shared' attribute</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
         <target state="new">Apply trait to containing type</target>
@@ -25,21 +30,6 @@
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
         <target state="translated">'Opt' サフィックスを使用しない</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">複数の空白行は使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">複数の空白行は使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">中かっこの間に空白行を含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -307,16 +297,6 @@
         <target state="translated">非同期テスト メソッドには 'Async' サフィックスは不要です</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">中かっこの間の空白行を削除する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">余分な空白行を削除する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません。</target>
@@ -470,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}' は MEFv2 でエクスポートされるため、'SharedAttribute' と設定する必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">ステートメントは独自の行に配置する必要があります</target>
         <note />
       </trans-unit>
     </body>

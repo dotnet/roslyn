@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="new">Add 'Shared' attribute</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
         <target state="new">Apply trait to containing type</target>
@@ -25,21 +30,6 @@
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
         <target state="translated">'Opt' sonekinden kaçının</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Birden çok boş satırdan kaçının</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Birden çok boş satırdan kaçının</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Ayraçlar arasında boş satırlar olmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -307,16 +297,6 @@
         <target state="translated">Asenkron test metotları için 'Async' soneki gerekmez</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Küme ayraçları arasındaki boş satırları kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Fazladan boş satırları kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır.</target>
@@ -470,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}', MEFv2 ile dışarı aktarıldığından 'SharedAttribute' ile işaretlenmelidir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Deyimler kendi satırına yerleştirilmelidir</target>
         <note />
       </trans-unit>
     </body>

@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="new">Add 'Shared' attribute</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
         <target state="new">Apply trait to containing type</target>
@@ -25,21 +30,6 @@
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
         <target state="translated">Nepoužívejte příponu Opt</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Nepoužívejte několik prázdných řádků.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Nepoužívejte několik prázdných řádků.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Závorky nesmí mít mezi sebou prázdné řádky.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -307,16 +297,6 @@
         <target state="translated">Asynchronní testovací metody nevyžadují příponu Async.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Odebrat prázdné řádky mezi závorkami</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Odebrat nadbytečné prázdné řádky</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using.</target>
@@ -470,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">Část {0} je exportovaná pomocí rozhraní MEFv2, musí být proto označená atributem SharedAttribute.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Každý příkaz musí mít svůj vlastní řádek.</target>
         <note />
       </trans-unit>
     </body>

@@ -81,7 +81,7 @@ Part exported with MEFv2 must be marked with the 'SharedAttribute'.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|False|
+|CodeFix|True|
 ---
 
 ## RS0032: Test exports should not be discoverable
@@ -190,40 +190,4 @@ Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable.
 |Enabled|True|
 |Severity|Warning|
 |CodeFix|False|
----
-
-## RS0100: Statements must be placed on their own line
-
-Statements must be placed on their own line
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsMaintainability|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|True|
----
-
-## RS0101: Avoid multiple blank lines
-
-Avoid multiple blank lines
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsMaintainability|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|True|
----
-
-## RS0102: Braces must not have blank lines between them
-
-Braces must not have blank lines between them
-
-|Item|Value|
-|-|-|
-|Category|RoslynDiagnosticsMaintainability|
-|Enabled|True|
-|Severity|Warning|
-|CodeFix|True|
 ---

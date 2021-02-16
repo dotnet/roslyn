@@ -339,21 +339,6 @@
   <data name="AvoidOptSuffixForNullableEnableCodeTitle" xml:space="preserve">
     <value>Avoid the 'Opt' suffix</value>
   </data>
-  <data name="BracePlacementMessage" xml:space="preserve">
-    <value>Braces must not have blank lines between them</value>
-  </data>
-  <data name="Remove_blank_lines_between_braces" xml:space="preserve">
-    <value>Remove blank lines between braces</value>
-  </data>
-  <data name="BlankLinesMessage" xml:space="preserve">
-    <value>Avoid multiple blank lines</value>
-  </data>
-  <data name="Remove_extra_blank_lines" xml:space="preserve">
-    <value>Remove extra blank lines</value>
-  </data>
-  <data name="WrapStatementsMessage" xml:space="preserve">
-    <value>Statements must be placed on their own line</value>
-  </data>
   <data name="Place_statement_on_following_line" xml:space="preserve">
     <value>Place statement on following line</value>
   </data>
@@ -362,9 +347,6 @@
   </data>
   <data name="NamedTypeFullNameNotNullSuppressorJustification" xml:space="preserve">
     <value>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</value>
-  </data>
-  <data name="BlankLinesTitle" xml:space="preserve">
-    <value>Avoid multiple blank lines</value>
   </data>
   <data name="TemporaryArrayAsRefDescription" xml:space="preserve">
     <value>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</value>
@@ -392,6 +374,10 @@
   </data>
   <data name="ApplyTraitToContainingType" xml:space="preserve">
     <value>Apply trait to containing type</value>
+  </data>
+  <data name="AddSharedAttribute" xml:space="preserve">
+    <value>Add 'Shared' attribute</value>
+    <comment>{Locked="Shared"}</comment>
   </data>
   <data name="DoNotCopyValueNoFieldOfCopyableTypeDescription" xml:space="preserve">
     <value>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</value>
