@@ -37,8 +37,17 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            // Just report this back as there being no more comments for this document.
-            return ReportTodoCommentDataIfChangedAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
+            // Remove the doc id from what we're tracking to prevent unbounded growth in the set.
+            lock (_gate)
+            {
+                // If the doc was already in the set, then we know the client believes there are zero comments for it.
+                // So we don't have to redundantly tell it that again.
+                if (_documentsWithNoTodoComments.Remove(documentId))
+                    return Task.CompletedTask;
+            }
+
+            // Otherwise, report that there should now be no todo comments for this doc.
+            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
@@ -74,31 +83,27 @@ namespace Microsoft.CodeAnalysis.TodoComments
             await TodoComment.ConvertAsync(
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
-            // Now inform VS about this new information
-            await ReportTodoCommentDataIfChangedAsync(document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
-        }
-
-        private ValueTask ReportTodoCommentDataIfChangedAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-        {
+            var data = converted.ToImmutable();
             lock (_gate)
             {
                 if (data.IsDefaultOrEmpty)
                 {
                     // If we already reported this doc has no todo comments, don't bother doing it again. Otherwise,
                     // notify the client.
-                    if (!_documentsWithNoTodoComments.Add(documentId))
+                    if (!_documentsWithNoTodoComments.Add(document.Id))
                     {
-                        return default;
+                        return;
                     }
                 }
                 else
                 {
                     // Doc has some todo comments, remove the 'do not report' list and notify the client.
-                    _documentsWithNoTodoComments.Remove(documentId);
+                    _documentsWithNoTodoComments.Remove(document.Id);
                 }
             }
 
-            return ReportTodoCommentDataAsync(documentId, data, cancellationToken);
+            // Now inform VS about this new information
+            await ReportTodoCommentDataAsync(document.Id, data, cancellationToken).ConfigureAwait(false);
         }
     }
 }
