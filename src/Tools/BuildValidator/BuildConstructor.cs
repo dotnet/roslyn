@@ -41,17 +41,17 @@ namespace BuildValidator
         public Compilation CreateCompilation(CompilationOptionsReader compilationOptionsReader, string name)
         {
             var pdbCompilationOptions = compilationOptionsReader.GetMetadataCompilationOptions();
-
             if (pdbCompilationOptions.Length == 0)
             {
                 throw new InvalidDataException("Did not find compilation options in pdb");
             }
-            
-            var metadataReferenceInfos = GetMetadataReferenceInfos(compilationOptionsReader);
-            var encoding = compilationOptionsReader.GetEncoding();
-            var sourceFileInfos = GetSourceFileInfos(compilationOptionsReader, encoding);
 
-            var metadataReferences = ResolveMetadataReferences(metadataReferenceInfos);
+            var metadataReferenceInfos = compilationOptionsReader.GetMetadataReferences();
+            var encoding = compilationOptionsReader.GetEncoding();
+            var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos(encoding);
+
+            _logger.LogInformation("Locating metadata references");
+            var metadataReferences = _referenceResolver.ResolveReferences(metadataReferenceInfos);
             logResolvedMetadataReferences();
 
             var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
@@ -91,22 +91,6 @@ namespace BuildValidator
                     _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
                 }
             }
-        }
-
-        private ImmutableArray<MetadataReferenceInfo> GetMetadataReferenceInfos(CompilationOptionsReader compilationOptionsReader)
-        {
-            return compilationOptionsReader.GetMetadataReferences();
-        }
-
-        private ImmutableArray<SourceFileInfo> GetSourceFileInfos(CompilationOptionsReader compilationOptionsReader, Encoding encoding)
-        {
-            return compilationOptionsReader.GetSourceFileInfos(encoding);
-        }
-
-        private ImmutableArray<MetadataReference> ResolveMetadataReferences(ImmutableArray<MetadataReferenceInfo> referenceInfos)
-        {
-            _logger.LogInformation("Locating metadata references");
-            return _referenceResolver.ResolveReferences(referenceInfos);
         }
 
         private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)

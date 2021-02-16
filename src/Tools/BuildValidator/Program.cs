@@ -163,7 +163,7 @@ namespace BuildValidator
                     success = false;
                 }
             }
-            
+
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
                 foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))

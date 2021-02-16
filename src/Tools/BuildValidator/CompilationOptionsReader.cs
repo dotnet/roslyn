@@ -43,12 +43,20 @@ namespace BuildValidator
 
     internal class CompilationOptionsReader
     {
-        // Originally defined in src/Compilers/Core/Portable/Debugging/SourceHashAlgorithms.cs
+        // GUIDs specified in https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md#document-table-0x30
         public static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
         public static readonly Guid HashAlgorithmSha256 = unchecked(new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16));
+
+        // https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md#compilation-metadata-references-c-and-vb-compilers
         public static readonly Guid MetadataReferenceInfoGuid = new Guid("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
+
+        // https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md#compilation-options-c-and-vb-compilers
         public static readonly Guid CompilationOptionsGuid = new Guid("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
+
+        // https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md#embedded-source-c-and-vb-compilers
         public static readonly Guid EmbeddedSourceGuid = new Guid("0E8A571B-6926-466E-B4AD-8AB04611F5FE");
+
+        // https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md#source-link-c-and-vb-compilers
         public static readonly Guid SourceLinkGuid = new Guid("CC110556-A091-4D38-9FEC-25AB9A351A6A");
 
         public MetadataReader PdbReader { get; }
@@ -69,7 +77,9 @@ namespace BuildValidator
         public BlobReader GetMetadataCompilationOptionsBlobReader()
         {
             if (!TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out var optionsBlob))
-                throw new Exception();
+            {
+                throw new InvalidOperationException();
+            }
 
             return optionsBlob;
         }
@@ -136,7 +146,9 @@ namespace BuildValidator
             if (_metadataReferenceInfo.IsDefault)
             {
                 if (!TryGetCustomDebugInformationBlobReader(MetadataReferenceInfoGuid, out var referencesBlob))
-                    throw new Exception();
+                {
+                    throw new InvalidOperationException();
+                }
 
                 _metadataReferenceInfo = ParseMetadataReferenceInfo(referencesBlob).ToImmutableArray();
             }
