@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     // notify the client.
                     if (!_documentsWithNoTodoComments.Add(documentId))
                     {
-                        return default;
+                        return ValueTaskFactory.CompletedTask;
                     }
                 }
                 else
