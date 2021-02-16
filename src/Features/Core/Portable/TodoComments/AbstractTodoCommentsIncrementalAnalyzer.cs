@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.TodoComments
 
         /// <summary>
         /// Set of documents that we have reported an empty set of todo comments for.  Don't both re-reporting these
-        /// documents as long as we keep getting no todo comments produced for them.
+        /// documents as long as we keep getting no todo comments produced for them.  Note: no locking is needed for
+        /// this structure as the incremental analyzer is guaranteed to make all calls sequentially to us..
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTodoComments = new();
 
@@ -38,13 +39,11 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             // Remove the doc id from what we're tracking to prevent unbounded growth in the set.
-            lock (_gate)
-            {
-                // If the doc that is being removed is not in the set of docs we've told the host has todo comments,
-                // then no need to notify the host at all about it.
-                if (!_documentsWithTodoComments.Remove(documentId))
-                    return Task.CompletedTask;
-            }
+
+            // If the doc that is being removed is not in the set of docs we've told the host has todo comments,
+            // then no need to notify the host at all about it.
+            if (!_documentsWithTodoComments.Remove(documentId))
+                return Task.CompletedTask;
 
             // Otherwise, report that there should now be no todo comments for this doc.
             return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
@@ -84,23 +83,20 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             var data = converted.ToImmutable();
-            lock (_gate)
+            if (data.IsEmpty)
             {
-                if (data.IsEmpty)
+                // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
+                // had todo comments in it, then fall through and notify the host so it can clear them out.
+                // Otherwise, bail out as there's no need to inform the host of this.
+                if (!_documentsWithTodoComments.Remove(document.Id))
                 {
-                    // Remove this doc from the set of docs with todo comments in it. If this was a doc that previously
-                    // had todo comments in it, then fall through and notify the host so it can clear them out.
-                    // Otherwise, bail out as there's no need to inform the host of this.
-                    if (!_documentsWithTodoComments.Remove(document.Id))
-                    {
-                        return;
-                    }
+                    return;
                 }
-                else
-                {
-                    // Doc has some todo comments, record that, and let the host know.
-                    _documentsWithTodoComments.Add(document.Id);
-                }
+            }
+            else
+            {
+                // Doc has some todo comments, record that, and let the host know.
+                _documentsWithTodoComments.Add(document.Id);
             }
 
             // Now inform VS about this new information
