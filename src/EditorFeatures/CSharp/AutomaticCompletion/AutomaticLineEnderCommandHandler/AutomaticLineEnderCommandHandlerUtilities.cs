@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && baseMethodDeclarationNode.SemicolonToken.IsMissing
                && !WithinAttributeLists(baseMethodDeclarationNode, caretPosition)
                && !WithinMethodBody(baseMethodDeclarationNode, caretPosition)
-                // Make sure we don't insert braces for method in Interface.
+               // Make sure we don't insert braces for method in Interface.
                && !baseMethodDeclarationNode.IsParentKind(SyntaxKind.InterfaceDeclaration);
 
         // For local Function, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
@@ -48,18 +47,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && !WithinAttributeLists(localFunctionStatementNode, caretPosition)
                && !WithinMethodBody(localFunctionStatementNode, caretPosition);
 
-        public static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode, int caretPosition)
+        public static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
             => objectCreationExpressionNode.Initializer == null;
 
         /// <summary>
-        /// Add braces for field and event field if they only have one variable, semicolon is missing & don't have readonly keyword
+        /// Add braces for field and event field if they only have one variable, semicolon is missing and don't have readonly keyword
         /// Example:
         /// public int Bar$$ =>
         /// public int Bar
         /// {
         ///      $$
         /// }
-        /// This would change field to property, and change event field to event declaration
+        /// This would change field to property, and change event field to event declaration.
         /// </summary>
         public static bool ShouldAddBraceForBaseFieldDeclaration(BaseFieldDeclarationSyntax baseFieldDeclarationNode)
             => baseFieldDeclarationNode.Declaration.Variables.Count == 1
@@ -67,11 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && !baseFieldDeclarationNode.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
                && baseFieldDeclarationNode.SemicolonToken.IsMissing;
 
-        public static bool ShouldAddBraceForAccessorDeclaration(AccessorDeclarationSyntax accessorDeclarationNode, int caretPosition)
+        public static bool ShouldAddBraceForAccessorDeclaration(AccessorDeclarationSyntax accessorDeclarationNode)
             => accessorDeclarationNode.Body == null
                && accessorDeclarationNode.ExpressionBody == null
                && accessorDeclarationNode.SemicolonToken.IsMissing;
-
 
         // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
         // use its parent's close brace as its own.
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && indexerDeclarationNode.AccessorList.OpenBraceToken.IsMissing;
         }
 
-        public static bool ShouldAddBraceForSwitchStatement(SwitchStatementSyntax switchStatementNode, int caretPosition)
+        public static bool ShouldAddBraceForSwitchStatement(SwitchStatementSyntax switchStatementNode)
             => !switchStatementNode.OpenParenToken.IsMissing
                && !switchStatementNode.CloseParenToken.IsMissing
                && switchStatementNode.OpenBraceToken.IsMissing;

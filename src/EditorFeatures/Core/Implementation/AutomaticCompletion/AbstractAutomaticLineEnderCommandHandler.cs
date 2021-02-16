@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 return;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Automatically_completing))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
@@ -143,7 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 // Neither of the two operations could be performed
+                using var editTransaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
                 NextAction(operations, nextHandler);
+                editTransaction.Complete();
             }
         }
 
