@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         {
             lock (_gate)
             {
-                if (data.IsDefaultOrEmpty)
+                if (data.IsEmpty)
                 {
                     // If we already reported this doc has no todo comments, don't bother doing it again. Otherwise,
                     // notify the client.
