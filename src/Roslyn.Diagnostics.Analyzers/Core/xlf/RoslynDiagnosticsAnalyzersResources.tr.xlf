@@ -169,17 +169,17 @@
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
         <source>Expose member for testing.</source>
-        <target state="translated">Üyeyi test amacıyla kullanıma sunun.</target>
+        <target state="translated">Test için üyeyi kullanıma sunun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
         <source>Expose member for testing</source>
-        <target state="translated">Test için üyeyi kullanıma sun</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="translated">Test için üyeyi kullanıma sun</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">

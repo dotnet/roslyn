@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
         <source>Recommend adding language support to diagnostic analyzer</source>
-        <target state="translated">Consigliare l'aggiunta del supporto per la lingua all'analizzatore diagnostico</target>
+        <target state="translated">Consigliata l'aggiunta del supporto per la lingua all'analizzatore diagnostico</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">

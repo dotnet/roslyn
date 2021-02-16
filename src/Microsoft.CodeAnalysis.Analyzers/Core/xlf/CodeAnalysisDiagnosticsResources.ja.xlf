@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
         <source>Enable analyzer release tracking for the analyzer project containing rule '{0}'</source>
-        <target state="translated">規則 '{0}' を含むアナライザー プロジェクトのアナライザー リリース追跡を有効にします</target>
+        <target state="translated">規則 '{0}' を含むアナライザー プロジェクトのアナライザー リリース追跡を有効にしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除します。</target>
+        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除します。</target>
+        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">

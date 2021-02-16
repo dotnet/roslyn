@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="translated">コピー不可の値の型をボックス化解除しません。</target>
+        <target state="translated">コピー不可の値の型をボックス化解除しないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用します。</target>
+        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
@@ -354,7 +354,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -364,7 +364,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">

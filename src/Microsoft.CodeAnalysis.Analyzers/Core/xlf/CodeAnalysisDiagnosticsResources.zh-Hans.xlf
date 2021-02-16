@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
         <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
-        <target state="translated">注册符号分析器操作时不支持 SymbolKind 参数</target>
+        <target state="translated">注册符号分析器操作时使用了不受支持的 SymbolKind 实参</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
         <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
-        <target state="translated">对方法“{2}”的类型形参“{1}”而言，类型实参“{0}”不是 SyntaxKind 枚举</target>
+        <target state="translated">方法“{2}”的类型形参“{1}”的类型实参“{0}”不是 SyntaxKind 枚举</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
@@ -492,7 +492,7 @@
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
         <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="translated">创建代码操作应具备 FixAll 事件支持的唯一 EquivalenceKey</target>
+        <target state="translated">创建代码操作应具备唯一 EquivalenceKey，以支持 FixAll 事件</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">

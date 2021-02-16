@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
         <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
-        <target state="translated">Der Diagnosetitel darf keinen Satzendepunkt, kein Zeilenvorschubzeichen, keine führenden und keine nachfolgenden Leerzeichen enthalten.</target>
+        <target state="translated">Der Diagnosetitel darf weder einen Punkt, noch ein Zeilenumbruchzeichen, noch führende und nachfolgende Leerzeichen enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">

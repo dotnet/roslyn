@@ -349,7 +349,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
         <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
-        <target state="translated">註冊符號分析器動作時，不支援 SymbolKind 引數不受支援</target>
+        <target state="translated">註冊符號分析器動作時不支援 SymbolKind 引數</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
@@ -408,7 +408,7 @@
 2. If required, define and initialize state in the start action.
 3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
 4. If required, register an end action to report diagnostics based on the final state.</source>
-        <target state="translated">分析器起始動作會對指定的程式碼單位 (例如程式碼區塊、編譯等) 執行具狀態的分析。請仔細設計，以達到在沒有流失記憶體的情況下，有效率地執行分析器。使用下列方針撰寫這類分析器:
+        <target state="translated">分析器起始動作會對指定的程式碼單位 (例如程式碼區塊、編譯等) 執行具狀態的分析。請仔細設計，以便有效執行分析器而不流失記憶體。使用下列方針撰寫這類分析器:
 1.為註冊的起始動作定義新範圍，可能會有私用巢狀類別以分析每個程式碼單位。
 2.如有必要，請定義並初始化起始動作中的狀態。
 3.至少註冊一個非結束動作，其參考起始動作中的這個狀態。如果不需要這類動作，請考慮以非起始動作取代起始動作。例如，CodeBlockStartAction 沒有任何註冊動作或只有一個註冊的 CodeBlockEndAction 時，應以 CodeBlockAction 取代。

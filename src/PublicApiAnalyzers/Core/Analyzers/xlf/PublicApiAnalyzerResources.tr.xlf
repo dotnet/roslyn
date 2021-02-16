@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Enable tracking of nullability of reference types in the declared API</source>
-        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştir</target>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştirin</target>
         <note />
       </trans-unit>
     </body>

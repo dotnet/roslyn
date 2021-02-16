@@ -477,7 +477,7 @@
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyTitle">
         <source>Only internal implementations of this interface are allowed</source>
-        <target state="translated">Bu arabirimin yalnızca iç uygulamalarına izin verilir</target>
+        <target state="translated">Bu arabirimin yalnızca içeride yapılan uygulamalarına izin verilir</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">

@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
         <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
-        <target state="translated">Fournissez une valeur 'customTags' non null au constructeur de descripteur de diagnostic</target>
+        <target state="translated">Fournissez une valeur 'customTags' non-null au constructeur de descripteur de diagnostic</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
@@ -487,12 +487,12 @@
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
         <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
-        <target state="translated">Fournissez un argument explicite pour le paramètre optionnel '{0}', qui soit non-Null et unique pour chaque genre d'action de code créée par ce correcteur</target>
+        <target state="translated">Fournissez un argument explicite pour le paramètre optionnel '{0}', qui soit non-null et unique pour chaque genre d'action de code créée par ce correcteur</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
         <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
-        <target state="translated">Les actions de code créées doivent avoir un EquivalenceKey unique pour la prise en charge des occurrences de FixAll</target>
+        <target state="translated">Les actions de création de code doivent avoir un EquivalenceKey unique pour la prise en charge des occurrences de FixAll</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
