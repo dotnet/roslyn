@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private string? _lastOptionText = null;
         private ImmutableArray<TodoCommentDescriptor> _lastDescriptors = default;
 
+        /// <summary>
+        /// Set of documents that we have reported an empty set of todo comments for.  Don't both re-reporting these
+        /// documents as long as we keep getting no todo comments produced for them.
+        /// </summary>
+        private readonly HashSet<DocumentId> _documentsWithNoTodoComments = new();
+
         protected AbstractTodoCommentsIncrementalAnalyzer()
         {
         }
@@ -31,7 +38,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             // Just report this back as there being no more comments for this document.
-            return ReportTodoCommentDataAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
+            return ReportTodoCommentDataIfChangedAsync(documentId, ImmutableArray<TodoCommentData>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TodoCommentDescriptor> GetTodoCommentDescriptors(Document document)
@@ -68,7 +75,30 @@ namespace Microsoft.CodeAnalysis.TodoComments
                 document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
             // Now inform VS about this new information
-            await ReportTodoCommentDataAsync(document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            await ReportTodoCommentDataIfChangedAsync(document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
+        }
+
+        private ValueTask ReportTodoCommentDataIfChangedAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                if (data.IsDefaultOrEmpty)
+                {
+                    // If we already reported this doc has no todo comments, don't bother doing it again. Otherwise,
+                    // notify the client.
+                    if (!_documentsWithNoTodoComments.Add(documentId))
+                    {
+                        return default;
+                    }
+                }
+                else
+                {
+                    // Doc has some todo comments, remove the 'do not report' list and notify the client.
+                    _documentsWithNoTodoComments.Remove(documentId);
+                }
+            }
+
+            return ReportTodoCommentDataAsync(documentId, data, cancellationToken);
         }
     }
 }
