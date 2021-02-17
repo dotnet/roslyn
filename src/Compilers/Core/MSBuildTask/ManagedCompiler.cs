@@ -629,16 +629,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
                     LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
-
-                    if (LogStandardErrorAsError)
-                    {
-                        LogErrorMultiline(completedResponse.ErrorOutput);
-                    }
-                    else
-                    {
-                        LogMessages(completedResponse.ErrorOutput, StandardErrorImportanceToUse);
-                    }
-
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:

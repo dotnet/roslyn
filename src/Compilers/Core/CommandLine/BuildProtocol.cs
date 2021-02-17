@@ -370,7 +370,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Length             UInteger        4
     ///  ReturnCode         Integer         4
     ///  Output             String          Variable
-    ///  ErrorOutput        String          Variable
     /// 
     /// Strings are encoded via a character count prefix as a 
     /// 32-bit integer, followed by an array of characters.
@@ -381,7 +380,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
         public readonly string Output;
-        public readonly string ErrorOutput;
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
@@ -390,11 +388,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             ReturnCode = returnCode;
             Utf8Output = utf8output;
             Output = output ?? string.Empty;
-
-            // This field existed to support writing to Console.Error.  The compiler doesn't ever write to 
-            // this field or Console.Error.  This field is only kept around in order to maintain the existing
-            // protocol semantics.
-            ErrorOutput = string.Empty;
         }
 
         public override ResponseType Type => ResponseType.Completed;
@@ -404,12 +397,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var returnCode = reader.ReadInt32();
             var utf8Output = reader.ReadBoolean();
             var output = ReadLengthPrefixedString(reader);
-            var errorOutput = ReadLengthPrefixedString(reader);
-            if (!string.IsNullOrEmpty(errorOutput))
-            {
-                throw new InvalidOperationException();
-            }
-
             return new CompletedBuildResponse(returnCode, utf8Output, output);
         }
 
@@ -418,7 +405,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             writer.Write(ReturnCode);
             writer.Write(Utf8Output);
             WriteLengthPrefixedString(writer, Output);
-            WriteLengthPrefixedString(writer, ErrorOutput);
         }
     }
 
