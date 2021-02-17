@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        private static ProjectChanges GetProjectChanges(Compilation newCompilation, ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses, CancellationToken cancellationToken)
+        private static ProjectChanges GetProjectChanges(ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses)
         {
             try
             {
@@ -599,7 +599,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
 
         public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
         {
@@ -712,7 +711,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(currentCompilation);
 
-                    var projectChanges = GetProjectChanges(currentCompilation, changedDocumentAnalyses, cancellationToken);
+                    var projectChanges = GetProjectChanges(changedDocumentAnalyses);
                     var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                     // Exception regions of active statements in changed documents are calculated (non-default),
