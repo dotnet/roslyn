@@ -128,4 +128,7 @@
       <Ngen>false</Ngen>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="5.0.0" />
+  </ItemGroup>
 </Project>

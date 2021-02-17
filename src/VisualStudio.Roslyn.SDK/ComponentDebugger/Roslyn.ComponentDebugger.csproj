@@ -24,6 +24,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="16.8.1-beta1-1008-05" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="16.8.1-beta1-1008-05" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="16.7.30329.63" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.9.6-alpha" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="16.8.30705.32" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="16.8.30705.32" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.6.DesignTime" Version="16.8.30705.32" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="2.7.339" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="DebuggerOptions.xaml">
