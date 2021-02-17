@@ -19,26 +19,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
     /// or every time an edit is made by the user.
     /// </summary>
-    [LspMethod(LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName, mutatesSolutionState: false)]
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensEditsParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>>
     {
         private readonly SemanticTokensCache _tokensCache;
+
+        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensEditsName;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public SemanticTokensEditsHandler(SemanticTokensCache tokensCache)
         {
             _tokensCache = tokensCache;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensEditsParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensEditsParams request)
+        {
+            Contract.ThrowIfNull(request.TextDocument);
+            return request.TextDocument;
+        }
 
         public async Task<SumType<LSP.SemanticTokens, LSP.SemanticTokensEdits>> HandleRequestAsync(
             LSP.SemanticTokensEditsParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Document, "Document is null.");
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(request.PreviousResultId, "previousResultId is null.");
+            Contract.ThrowIfNull(context.Document, "Document is null.");
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.

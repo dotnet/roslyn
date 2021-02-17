@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,10 +16,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
     {
+        public abstract string Method { get; }
+
+        public abstract bool MutatesSolutionState { get; }
+        public abstract bool RequiresLSPSolution { get; }
+
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             return ImmutableArray.Create<IRequestHandler>(this);
         }

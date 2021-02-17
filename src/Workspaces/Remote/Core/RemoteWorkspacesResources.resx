@@ -198,4 +198,7 @@
   <data name="FeatureName_DiagnosticCache" xml:space="preserve">
     <value>Diagnostic cache</value>
   </data>
+  <data name="FeatureName_NavigationBarItem" xml:space="preserve">
+    <value>Navigation bar</value>
+  </data>
 </root>

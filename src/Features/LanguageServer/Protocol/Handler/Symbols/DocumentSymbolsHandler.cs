@@ -11,9 +11,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -25,9 +25,14 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
     {
+        public override string Method => Methods.TextDocumentDocumentSymbolName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentSymbolsHandler()
@@ -46,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var symbols = ArrayBuilder<object>.GetInstance();
 
-            var navBarService = document.Project.LanguageServices.GetRequiredService<INavigationBarItemService>();
+            var navBarService = document.Project.LanguageServices.GetRequiredService<Editor.INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             if (navBarItems.Count == 0)
             {
@@ -190,10 +195,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private static Location GetLocation(NavigationBarItem item, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            if (!(item is NavigationBarSymbolItem symbolItem))
-            {
+            if (item is not WrappedNavigationBarItem { UnderlyingItem: RoslynNavigationBarItem.SymbolItem symbolItem })
                 return null;
-            }
 
             var symbols = symbolItem.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
             var symbol = symbols.Symbol;
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (symbolItem.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
                 {
-                    symbol = symbols.CandidateSymbols[symbolItem.NavigationSymbolIndex.Value];
+                    symbol = symbols.CandidateSymbols[symbolItem.NavigationSymbolIndex];
                 }
                 else
                 {

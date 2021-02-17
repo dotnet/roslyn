@@ -498,6 +498,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         FeatureNotAvailable = 441,
 
         LSPCompletion_MissingLSPCompletionTriggerKind = 450,
+        LSPCompletion_MissingLSPCompletionInvokeKind = 451,
 
         Workspace_Project_CompilationThrownAway = 460,
 

@@ -34,5 +34,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string OOPServerGC = "Roslyn.OOPServerGC";
         public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
         public const string DiagnosticCache = "Roslyn.DiagnosticCache";
+        public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
     }
 }

@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    [LspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false)]
     internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -43,6 +42,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
         }
+
+        public string Method => MSLSPMethods.TextDocumentCodeActionResolveName;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;

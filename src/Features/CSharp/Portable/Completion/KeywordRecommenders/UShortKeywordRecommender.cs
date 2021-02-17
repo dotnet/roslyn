@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,7 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override int DefaultPriority => MatchPriority.Default - 1;
+        /// <summary>
+        /// We set the <see cref="MatchPriority"/> of this item less than the default value so that
+        /// completion selects the <see langword="using"/> keyword over it as the user starts typing.
+        /// </summary>
+        protected override int DefaultMatchPriority => MatchPriority.Default - 1;
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsObjectCreationTypeContext ||
-                (context.IsGenericTypeArgumentContext && !context.TargetToken.Parent.HasAncestor<XmlCrefAttributeSyntax>()) ||
+                (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
                 context.IsFunctionPointerTypeArgumentContext ||
                 context.IsEnumBaseListContext ||
                 context.IsIsOrAsTypeContext ||

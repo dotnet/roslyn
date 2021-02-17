@@ -18,9 +18,14 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentOnTypeFormattingName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
+        public override string Method => Methods.TextDocumentOnTypeFormattingName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatDocumentOnTypeHandler()

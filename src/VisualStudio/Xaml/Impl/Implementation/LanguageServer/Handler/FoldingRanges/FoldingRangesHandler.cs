@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
     internal class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public FoldingRangesHandler()
         {
         }
+
+        public override string Method => Methods.TextDocumentFoldingRangeName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 

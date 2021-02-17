@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentDidOpenName, mutatesSolutionState: true)]
+    [ProvidesMethod(LSP.Methods.TextDocumentDidOpenName)]
     internal class DidOpenHandler : AbstractStatelessRequestHandler<LSP.DidOpenTextDocumentParams, object?>
     {
         [ImportingConstructor]
@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => null;
+        public override string Method => LSP.Methods.TextDocumentDidOpenName;
+
+        public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => false;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => new() { Uri = request.TextDocument.Uri };
 
         public override Task<object?> HandleRequestAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
