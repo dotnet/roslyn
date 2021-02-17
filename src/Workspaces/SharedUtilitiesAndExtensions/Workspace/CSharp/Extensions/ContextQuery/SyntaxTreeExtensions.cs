@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
                 var container = token.Parent?.Parent?.Parent;
-                if (container is CompilationUnitSyntax or TypeDeclarationSyntax)
+                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
             }
 
