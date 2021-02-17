@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         protected ITextBuffer CreateElisionBufferForTagTooltip(StructureTag tag)
         {
             // Remove any starting whitespace.
-            var span = TrimStartingNewlines(new SnapshotSpan(tag.Snapshot, tag.CollapsedHintFormSpan));
+            var span = TrimLeadingWhitespace(new SnapshotSpan(tag.Snapshot, tag.CollapsedHintFormSpan));
 
             // Trim the length if it's too long.
             var shortSpan = span;
@@ -267,14 +267,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             return new SnapshotSpan(span.Snapshot, Span.FromBounds(span.Start, line.EndIncludingLineBreak));
         }
 
-        private static SnapshotSpan TrimStartingNewlines(SnapshotSpan span)
+        internal static SnapshotSpan TrimLeadingWhitespace(SnapshotSpan span)
         {
-            while (span.Length > 1 && char.IsWhiteSpace(span.Snapshot[span.Start]))
-            {
-                span = new SnapshotSpan(span.Snapshot, span.Start + 1, span.Length - 1);
-            }
+            int start = span.Start;
 
-            return span;
+            while (start < span.End && char.IsWhiteSpace(span.Snapshot[start]))
+                start++;
+
+            return new SnapshotSpan(span.Snapshot, Span.FromBounds(start, span.End));
         }
 
         private ITextBuffer CreateElisionBufferWithoutIndentation(

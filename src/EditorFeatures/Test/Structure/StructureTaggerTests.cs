@@ -59,9 +59,7 @@ namespace MyNamespace
                 {
                     Assert.Equal(collapseRegionsWhenCollapsingToDefinitions, regionTag.IsImplementation);
                     Assert.Equal(9, GetCollapsedHintLineCount(regionTag));
-
-                    // The region tags don't produce a header span that we show when hovering over the guidelines
-                    Assert.False(regionTag.HeaderSpan.HasValue);
+                    Assert.Equal("#region MyRegion", GetHeaderText(regionTag));
                 },
                 classTag =>
                 {
@@ -99,24 +97,25 @@ End Namespace";
                 {
                     Assert.False(namespaceTag.IsImplementation);
                     Assert.Equal(9, GetCollapsedHintLineCount(namespaceTag));
+                    Assert.Equal("Namespace MyNamespace", GetHeaderText(namespaceTag));
                 },
                 regionTag =>
                 {
                     Assert.False(regionTag.IsImplementation);
                     Assert.Equal(7, GetCollapsedHintLineCount(regionTag));
-
-                    // The region tags don't produce a header span that we show when hovering over the guidelines
-                    Assert.False(regionTag.HeaderSpan.HasValue);
+                    Assert.Equal(@"#Region ""MyRegion""", GetHeaderText(regionTag));
                 },
                 moduleTag =>
                 {
                     Assert.False(moduleTag.IsImplementation);
                     Assert.Equal(5, GetCollapsedHintLineCount(moduleTag));
+                    Assert.Equal("Module M", GetHeaderText(moduleTag));
                 },
                 methodTag =>
                 {
                     Assert.True(methodTag.IsImplementation);
                     Assert.Equal(3, GetCollapsedHintLineCount(methodTag));
+                    Assert.Equal("Sub Main(args As String())", GetHeaderText(methodTag));
                 });
 
         }

@@ -23,15 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IsDefaultCollapsed = blockSpan.IsDefaultCollapsed;
             IsImplementation = blockSpan.AutoCollapse;
 
-            // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
-            // you mouse over a guideline. We will use the text from the hint start to the collapsing
-            // start; in the case this spans mutiple lines the editor will clip it for us and suffix an
-            // ellipsis at the end.
-            var headerSpan = Span.FromBounds(blockSpan.HintSpan.Start, blockSpan.TextSpan.Start);
-
-            if (headerSpan.Length > 0)
+            if (blockSpan.HintSpan.Start < blockSpan.TextSpan.Start)
             {
-                HeaderSpan = headerSpan;
+                // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
+                // you mouse over a guideline. We will use the text from the hint start to the collapsing
+                // start; in the case this spans mutiple lines the editor will clip it for us and suffix an
+                // ellipsis at the end.
+                HeaderSpan = Span.FromBounds(blockSpan.HintSpan.Start, blockSpan.TextSpan.Start);
+            }
+            else
+            {
+                var hintLine = snapshot.GetLineFromPosition(blockSpan.HintSpan.Start);
+                HeaderSpan = AbstractStructureTaggerProvider.TrimLeadingWhitespace(hintLine.Extent);
             }
 
             CollapsedText = blockSpan.BannerText;
