@@ -2474,11 +2474,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool HaveIndexers;
             public RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public SynthesizedRecordConstructor? RecordPrimaryConstructor;
-
-            /// <summary>
-            /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
-            /// to patch when adding the initializers for record positional members.
-            /// </summary>
             public bool IsNullableEnabledForInstanceConstructorsAndFields;
             public bool IsNullableEnabledForStaticConstructorsAndFields;
 
