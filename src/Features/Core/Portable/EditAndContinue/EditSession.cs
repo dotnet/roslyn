@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // rude edit detection wasn't completed due to errors in compilation:
-                if (result.HasChangesAndCompilationErrors)
+                if (result.HasChangesAndSyntaxErrors)
                 {
                     return ProjectAnalysisSummary.CompilationErrors;
                 }

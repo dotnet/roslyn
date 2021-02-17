@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -16,25 +17,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static readonly TraceLog Log = new(256, "EnC");
 
         /// <summary>
-        /// Spans of active statements in the document, or null if the document has compilation errors or rude edits.
+        /// The id of the document the results are calculated for.
+        /// </summary>
+        public DocumentId DocumentId { get; }
+
+        /// <summary>
+        /// Spans of active statements in the document, or null if the document has syntax errors.
+        /// Calculated even in presence of rude edits so that the active statements can be rendered in the editor.
         /// </summary>
         public ImmutableArray<ActiveStatement> ActiveStatements { get; }
 
         /// <summary>
-        /// Diagnostics for rude edits in the document, or empty if the document is unchanged or has compilation errors.
+        /// Diagnostics for rude edits in the document, or empty if the document is unchanged or has syntax errors.
         /// If the compilation has semantic errors only syntactic rude edits are calculated.
         /// </summary>
         public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
 
         /// <summary>
-        /// Edits made in the document, or null if the document is unchanged, has compilation errors or rude edits.
+        /// Edits made in the document, or null if the document is unchanged, has syntax errors or rude edits.
         /// </summary>
         public ImmutableArray<SemanticEdit> SemanticEdits { get; }
 
         /// <summary>
         /// Exception regions -- spans of catch and finally handlers that surround the active statements.
         /// 
-        /// Null if the document has compilation errors or rude edits.
+        /// Null if the document has syntax errors or rude edits.
         /// </summary>
         /// <remarks>
         /// Null if there are any rude edit diagnostics.
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions { get; }
 
         /// <summary>
-        /// Line edits in the document, or null if the document has compilation errors or rude edits.
+        /// Line edits in the document, or null if the document has syntax errors or rude edits.
         /// </summary>
         /// <remarks>
         /// Sorted by <see cref="SourceLineUpdate.OldLine"/>
@@ -63,9 +70,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<SourceLineUpdate> LineEdits { get; }
 
         /// <summary>
-        /// Document contains erros that block EnC analysis.
+        /// Document contains errors that block EnC analysis.
         /// </summary>
-        public readonly bool HasCompilationErrors;
+        public readonly bool HasSyntaxErrors;
 
         /// <summary>
         /// Document contains changes.
@@ -73,17 +80,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly bool HasChanges;
 
         public DocumentAnalysisResults(
+            DocumentId documentId,
             ImmutableArray<ActiveStatement> activeStatementsOpt,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
             ImmutableArray<SourceLineUpdate> lineEditsOpt,
             bool hasChanges,
-            bool hasCompilationErrors)
+            bool hasSyntaxErrors)
         {
             Debug.Assert(!rudeEdits.IsDefault);
 
-            if (hasCompilationErrors)
+            if (hasSyntaxErrors)
             {
                 Debug.Assert(activeStatementsOpt.IsDefault);
                 Debug.Assert(semanticEditsOpt.IsDefault);
@@ -94,7 +102,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (rudeEdits.Length > 0)
                 {
-                    Debug.Assert(activeStatementsOpt.IsDefault);
                     Debug.Assert(semanticEditsOpt.IsDefault);
                     Debug.Assert(exceptionRegionsOpt.IsDefault);
                     Debug.Assert(lineEditsOpt.IsDefault);
@@ -119,52 +126,56 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(exceptionRegionsOpt.Length == activeStatementsOpt.Length);
             }
 
+            DocumentId = documentId;
             RudeEditErrors = rudeEdits;
             SemanticEdits = semanticEditsOpt;
             ActiveStatements = activeStatementsOpt;
             ExceptionRegions = exceptionRegionsOpt;
             LineEdits = lineEditsOpt;
-            HasCompilationErrors = hasCompilationErrors;
+            HasSyntaxErrors = hasSyntaxErrors;
             HasChanges = hasChanges;
         }
 
         public bool HasChangesAndErrors
-            => HasChanges && (HasCompilationErrors || !RudeEditErrors.IsEmpty);
+            => HasChanges && (HasSyntaxErrors || !RudeEditErrors.IsEmpty);
 
-        public bool HasChangesAndCompilationErrors
-            => HasChanges && HasCompilationErrors;
+        public bool HasChangesAndSyntaxErrors
+            => HasChanges && HasSyntaxErrors;
 
         public bool HasSignificantValidChanges
             => HasChanges && (!SemanticEdits.IsDefaultOrEmpty || !LineEdits.IsDefaultOrEmpty);
 
-        public static DocumentAnalysisResults CompilationErrors(bool hasChanges)
+        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, bool hasChanges)
             => new(
+                documentId,
                 activeStatementsOpt: default,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
                 semanticEditsOpt: default,
                 exceptionRegionsOpt: default,
                 lineEditsOpt: default,
                 hasChanges,
-                hasCompilationErrors: true);
+                hasSyntaxErrors: true);
 
-        public static DocumentAnalysisResults Errors(ImmutableArray<RudeEditDiagnostic> rudeEdits)
+        public static DocumentAnalysisResults Errors(DocumentId documentId, ImmutableArray<ActiveStatement> activeStatementsOpt, ImmutableArray<RudeEditDiagnostic> rudeEdits)
             => new(
-                activeStatementsOpt: default,
+                documentId,
+                activeStatementsOpt,
                 rudeEdits,
                 semanticEditsOpt: default,
                 exceptionRegionsOpt: default,
                 lineEditsOpt: default,
                 hasChanges: true,
-                hasCompilationErrors: false);
+                hasSyntaxErrors: false);
 
-        public static DocumentAnalysisResults Unchanged(ImmutableArray<ActiveStatement> activeStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegions)
+        public static DocumentAnalysisResults Unchanged(DocumentId documentId, ImmutableArray<ActiveStatement> activeStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegions)
             => new(
+                documentId,
                 activeStatements,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
                 semanticEditsOpt: ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegions,
                 lineEditsOpt: ImmutableArray<SourceLineUpdate>.Empty,
                 hasChanges: false,
-                hasCompilationErrors: false);
+                hasSyntaxErrors: false);
     }
 }

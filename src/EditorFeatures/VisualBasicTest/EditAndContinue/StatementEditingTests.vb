@@ -4574,7 +4574,7 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", "lambda"))
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
         End Sub
 
 #End Region

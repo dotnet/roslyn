@@ -504,7 +504,7 @@ End Class
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndCompilationErrors)
+                Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
 
@@ -538,7 +538,7 @@ End Class
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndCompilationErrors)
+                Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
 
@@ -562,7 +562,7 @@ End Class
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndCompilationErrors)
+                Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
 
@@ -598,7 +598,7 @@ End Class
 
                 ' no declaration errors (error in method body is only reported when emitting)
                 Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndCompilationErrors)
+                Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
 
@@ -634,7 +634,7 @@ End Class
                 ' No errors reported: EnC analyzer is resilient against semantic errors.
                 ' They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
                 Assert.False(result.HasChangesAndErrors)
-                Assert.False(result.HasChangesAndCompilationErrors)
+                Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
 

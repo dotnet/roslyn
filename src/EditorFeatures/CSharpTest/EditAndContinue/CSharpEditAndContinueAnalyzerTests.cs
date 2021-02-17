@@ -339,7 +339,7 @@ class C
 
             Assert.True(result.HasChanges);
             Assert.True(result.HasChangesAndErrors);
-            Assert.True(result.HasChangesAndCompilationErrors);
+            Assert.True(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact]
@@ -365,7 +365,7 @@ class C
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact]
@@ -406,7 +406,7 @@ class C
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact]
@@ -439,7 +439,7 @@ class C
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
             Assert.True(result.RudeEditErrors.IsEmpty);
         }
 
@@ -490,7 +490,7 @@ class C
 
                 Assert.True(result.HasChanges);
                 Assert.True(result.HasChangesAndErrors);
-                Assert.False(result.HasChangesAndCompilationErrors);
+                Assert.False(result.HasChangesAndSyntaxErrors);
                 Assert.Equal(RudeEditKind.ExperimentalFeaturesEnabled, result.RudeEditErrors.Single().Kind);
             }
         }
@@ -523,7 +523,7 @@ class C
 
             Assert.False(result.HasChanges);
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
@@ -568,7 +568,7 @@ class C
 
             // no declaration errors (error in method body is only reported when emitting):
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
@@ -612,7 +612,7 @@ class C
             // No errors reported: EnC analyzer is resilient against semantic errors.
             // They will be reported by 1) compiler diagnostic analyzer 2) when emitting delta - if still present.
             Assert.False(result.HasChangesAndErrors);
-            Assert.False(result.HasChangesAndCompilationErrors);
+            Assert.False(result.HasChangesAndSyntaxErrors);
         }
 
         [Fact]

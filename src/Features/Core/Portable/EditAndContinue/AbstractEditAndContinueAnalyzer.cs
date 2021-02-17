@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                     DocumentAnalysisResults.Log.Write("{0}: syntax errors", document.Name);
-                    return DocumentAnalysisResults.CompilationErrors(hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(document.Id, hasChanges);
                 }
 
                 var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(baseActiveStatements.Length);
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         newExceptionRegions);
 
                     DocumentAnalysisResults.Log.Write("{0}: unchanged", document.Name);
-                    return DocumentAnalysisResults.Unchanged(newActiveStatements.MoveToImmutable(), newExceptionRegions.MoveToImmutable());
+                    return DocumentAnalysisResults.Unchanged(document.Id, newActiveStatements.MoveToImmutable(), newExceptionRegions.MoveToImmutable());
                 }
 
                 // Disallow modification of a file with experimental features enabled.
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", document.Name);
 
-                    return DocumentAnalysisResults.Errors(ImmutableArray.Create(
+                    return DocumentAnalysisResults.Errors(document.Id, activeStatementsOpt: default, ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)));
                 }
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
-                    return DocumentAnalysisResults.Errors(diagnostics.ToImmutable());
+                    return DocumentAnalysisResults.Errors(document.Id, newActiveStatements.MoveToImmutable(), diagnostics.ToImmutable());
                 }
 
                 // Disallow addition of a new file.
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (oldDocument == null)
                 {
                     DocumentAnalysisResults.Log.Write("A new file added: {0}", document.Name);
-                    return DocumentAnalysisResults.Errors(ImmutableArray.Create(
+                    return DocumentAnalysisResults.Errors(document.Id, newActiveStatements.MoveToImmutable(), ImmutableArray.Create(
                         new RudeEditDiagnostic(RudeEditKind.InsertFile, default)));
                 }
 
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span.Start);
-                    return DocumentAnalysisResults.Errors(diagnostics.ToImmutable());
+                    return DocumentAnalysisResults.Errors(document.Id, newActiveStatements.MoveToImmutable(), diagnostics.ToImmutable());
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -565,20 +565,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (diagnostics.Count > 0)
                     {
                         DocumentAnalysisResults.Log.Write("{0}@{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
-                        return DocumentAnalysisResults.Errors(diagnostics.ToImmutable());
+                        return DocumentAnalysisResults.Errors(document.Id, newActiveStatements.MoveToImmutable(), diagnostics.ToImmutable());
                     }
 
                     semanticEdits = semanticEditsBuilder.ToImmutable();
                 }
 
                 return new DocumentAnalysisResults(
+                    document.Id,
                     newActiveStatements.MoveToImmutable(),
                     diagnostics.ToImmutable(),
                     semanticEdits,
                     newExceptionRegions.MoveToImmutable(),
                     lineEdits.ToImmutable(),
                     hasChanges: true,
-                    hasCompilationErrors: false);
+                    hasSyntaxErrors: false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -590,7 +591,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: new[] { document.FilePath }) :
                     new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { document.FilePath, e.ToString() });
 
-                return DocumentAnalysisResults.Errors(ImmutableArray.Create(diagnostic));
+                return DocumentAnalysisResults.Errors(document.Id, activeStatementsOpt: default, ImmutableArray.Create(diagnostic));
             }
         }
 
