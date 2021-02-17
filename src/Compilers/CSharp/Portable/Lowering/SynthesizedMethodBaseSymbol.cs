@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         public sealed override DllImportData? GetDllImportData() => InheritsBaseMethodAttributes ? BaseMethod.GetDllImportData() : null;
 
-        internal sealed override MethodImplAttributes ImplementationAttributes => InheritsBaseMethodAttributes ? BaseMethod.ImplementationAttributes : default;
+        internal sealed override MethodImplAttributes MethodImplementationFlags => InheritsBaseMethodAttributes ? BaseMethod.MethodImplementationFlags : default;
 
         internal sealed override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => InheritsBaseMethodAttributes ? BaseMethod.ReturnValueMarshallingInformation : null;
 

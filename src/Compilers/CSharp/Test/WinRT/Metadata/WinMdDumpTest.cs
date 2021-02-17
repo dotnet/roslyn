@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             }
 
             result.Append(") ");
-            MetadataSignatureHelper.AppendMethodImplAttributes(result, method.ImplementationAttributes);
+            MetadataSignatureHelper.AppendMethodImplAttributes(result, method.MethodImplementationFlags);
 
             if (indent != null)
             {

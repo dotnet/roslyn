@@ -82,9 +82,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+        Friend NotOverridable Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
             Get
-                Return OriginalDefinition.ImplementationAttributes
+                Return OriginalDefinition.MethodImplementationFlags
             End Get
         End Property
 

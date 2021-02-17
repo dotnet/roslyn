@@ -1986,10 +1986,10 @@ End Class
                                                                  Dim e = c.GetMember(Of EventSymbol)("e")
 
                                                                  Dim addMethod = e.AddMethod
-                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((addMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
 
                                                                  Dim removeMethod = e.RemoveMethod
-                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((removeMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
                                                              End Sub).VerifyDiagnostics()
 
             verifier.VerifyIL("C.add_e",
@@ -2083,10 +2083,10 @@ End Structure
                                                                  Dim e = c.GetMember(Of EventSymbol)("e")
 
                                                                  Dim addMethod = e.AddMethod
-                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((addMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
 
                                                                  Dim removeMethod = e.RemoveMethod
-                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((removeMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
                                                              End Sub).VerifyDiagnostics()
 
             verifier.VerifyIL("C.add_e",
@@ -2182,10 +2182,10 @@ End Class
                                                                  Dim e = c.GetMember(Of EventSymbol)("e")
 
                                                                  Dim addMethod = e.AddMethod
-                                                                 Assert.False((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.False((addMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
 
                                                                  Dim removeMethod = e.RemoveMethod
-                                                                 Assert.False((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.False((removeMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
                                                              End Sub).VerifyDiagnostics()
 
             verifier.VerifyIL("C.add_e",
@@ -2251,10 +2251,10 @@ End Structure
                                                                  Dim e = c.GetMember(Of EventSymbol)("e")
 
                                                                  Dim addMethod = e.AddMethod
-                                                                 Assert.True((addMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((addMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
 
                                                                  Dim removeMethod = e.RemoveMethod
-                                                                 Assert.True((removeMethod.ImplementationAttributes And System.Reflection.MethodImplAttributes.Synchronized) = 0)
+                                                                 Assert.True((removeMethod.MethodImplementationFlags And System.Reflection.MethodImplAttributes.Synchronized) = 0)
                                                              End Sub).VerifyDiagnostics()
 
             verifier.VerifyIL("C.add_e",

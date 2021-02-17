@@ -344,9 +344,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
             Get
-                Return _underlyingMethod.ImplementationAttributes
+                Return _underlyingMethod.MethodImplementationFlags
             End Get
         End Property
 

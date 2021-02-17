@@ -515,9 +515,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As MethodImplAttributes
             Get
-                Dim result = MyBase.ImplementationAttributes
+                Dim result = MyBase.MethodImplementationFlags
 
                 If Not IsMustOverride AndAlso Not SourceEvent.IsWindowsRuntimeEvent AndAlso Not ContainingType.IsStructureType() AndAlso
                    DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) Is Nothing Then

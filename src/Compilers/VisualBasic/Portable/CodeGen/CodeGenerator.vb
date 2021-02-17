@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _block = boundBody
             End Try
 
-            _checkCallsForUnsafeJITOptimization = (_method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
+            _checkCallsForUnsafeJITOptimization = (_method.MethodImplementationFlags And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
             Debug.Assert(Not _module.JITOptimizationIsDisabled(_method))
         End Sub
 

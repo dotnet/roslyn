@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
             Get
                 Return CType(_implFlags, Reflection.MethodImplAttributes)
             End Get

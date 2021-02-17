@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override MethodImplAttributes ImplementationAttributes
+        internal override MethodImplAttributes MethodImplementationFlags
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

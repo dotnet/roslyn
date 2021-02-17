@@ -11632,16 +11632,16 @@ End Class
                                                                  Assert.True(typeA.IsComImport())
                                                                  Assert.Equal(1, typeA.GetAttributes().Length)
                                                                  Dim ctorA = typeA.InstanceConstructors.First()
-                                                                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes)
+                                                                 Assert.Equal(expectedMethodImplAttributes, ctorA.MethodImplementationFlags)
                                                                  Dim methodGoo = DirectCast(typeA.GetMembers("Goo").First(), MethodSymbol)
-                                                                 Assert.Equal(expectedMethodImplAttributes, methodGoo.ImplementationAttributes)
+                                                                 Assert.Equal(expectedMethodImplAttributes, methodGoo.MethodImplementationFlags)
 
                                                                  Dim typeB = globalNamespace.GetMember(Of NamedTypeSymbol)("B")
                                                                  Assert.True(typeB.IsComImport())
                                                                  Assert.Equal(1, typeB.GetAttributes().Length)
                                                                  Dim ctorB = typeB.InstanceConstructors.First()
                                                                  Assert.True(DirectCast(ctorB.GetCciAdapter(), Cci.IMethodDefinition).IsExternal)
-                                                                 Assert.Equal(expectedMethodImplAttributes, ctorB.ImplementationAttributes)
+                                                                 Assert.Equal(expectedMethodImplAttributes, ctorB.MethodImplementationFlags)
                                                              End Sub
 
             Dim metadataValidator As Action(Of ModuleSymbol) = Sub([module])

@@ -1905,7 +1905,7 @@ lReportErrorOnTwoTokens:
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
             Get
                 ' Methods of ComImport types are marked as Runtime implemented and InternalCall
                 If ContainingType.IsComImport AndAlso Not ContainingType.IsInterface Then

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(MethodKind.FunctionPointerSignature, symbol.MethodKind);
                 Assert.Equal(string.Empty, symbol.Name);
                 Assert.Equal(0, symbol.Arity);
-                Assert.Equal(default, symbol.ImplementationAttributes);
+                Assert.Equal(default, symbol.MethodImplementationFlags);
                 Assert.Equal(Accessibility.NotApplicable, symbol.DeclaredAccessibility);
                 Assert.Equal(FlowAnalysisAnnotations.None, symbol.ReturnTypeFlowAnalysisAnnotations);
                 Assert.Equal(FlowAnalysisAnnotations.None, symbol.FlowAnalysisAnnotations);

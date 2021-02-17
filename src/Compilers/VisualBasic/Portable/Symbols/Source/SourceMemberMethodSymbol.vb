@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     container = container.ContainingType
                 Loop While container IsNot Nothing
 
-                If methodImpl.IsAsync AndAlso (methodImpl.ImplementationAttributes And Reflection.MethodImplAttributes.Synchronized) <> 0 Then
+                If methodImpl.IsAsync AndAlso (methodImpl.MethodImplementationFlags And Reflection.MethodImplAttributes.Synchronized) <> 0 Then
                     Dim location As Location = methodImpl.NonMergedLocation
 
                     If location IsNot Nothing Then

@@ -159,9 +159,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As MethodImplAttributes
             Get
-                Return Me.UnderlyingMethod.ImplementationAttributes
+                Return Me.UnderlyingMethod.MethodImplementationFlags
             End Get
         End Property
 

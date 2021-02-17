@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         System.Reflection.MethodImplAttributes Cci.IMethodDefinition.GetImplementationAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return AdaptedMethodSymbol.ImplementationAttributes;
+            return AdaptedMethodSymbol.MethodImplementationFlags;
         }
 
         bool Cci.IMethodDefinition.IsRuntimeSpecial

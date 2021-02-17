@@ -1805,9 +1805,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+            Friend Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
                 Get
-                    Return _originalDefinition.ImplementationAttributes
+                    Return _originalDefinition.MethodImplementationFlags
                 End Get
             End Property
 

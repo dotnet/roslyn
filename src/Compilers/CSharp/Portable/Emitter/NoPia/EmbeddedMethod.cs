@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context)
         {
-            return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes;
+            return UnderlyingMethod.AdaptedMethodSymbol.MethodImplementationFlags;
         }
 
         protected override bool ReturnValueIsMarshalledExplicitly

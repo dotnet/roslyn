@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
+                if ((this.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) != 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
                 }
@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
         {
             get
             {

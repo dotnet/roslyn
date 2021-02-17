@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.HasSpecialName; }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
         {
-            get { return _reducedFrom.ImplementationAttributes; }
+            get { return _reducedFrom.MethodImplementationFlags; }
         }
 
         internal override bool RequiresSecurityObject

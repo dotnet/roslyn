@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
         {
             get
             {

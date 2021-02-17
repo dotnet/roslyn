@@ -1363,7 +1363,7 @@ class UsePia4
                     //     Argument #2:  I
 
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.ReuseSlot | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName, ctor.Flags);
-                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)ctor.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)ctor.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, ctor.CallingConvention);
                     Assert.Equal("Test11..ctor(System.Object @object, System.IntPtr method)", ctor.ToTestDisplayString());
 
@@ -1379,7 +1379,7 @@ class UsePia4
                     //     Argument #1:  Class System.AsyncCallback
                     //     Argument #2:  Object
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, begin.Flags);
-                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)begin.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)begin.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, begin.CallingConvention);
                     Assert.Equal("System.IAsyncResult Test11.BeginInvoke(System.AsyncCallback callback, System.Object @object)", begin.ToTestDisplayString());
 
@@ -1395,7 +1395,7 @@ class UsePia4
                     //     Argument #1:  Class System.IAsyncResult
 
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, end.Flags);
-                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)end.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)end.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, end.CallingConvention);
                     Assert.Equal("void Test11.EndInvoke(System.IAsyncResult result)", end.ToTestDisplayString());
 
@@ -1410,7 +1410,7 @@ class UsePia4
                     // No arguments.
 
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, invoke.Flags);
-                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)invoke.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.Runtime, (MethodImplAttributes)invoke.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, invoke.CallingConvention);
                     Assert.Equal("void Test11.Invoke()", invoke.ToTestDisplayString());
 
@@ -1431,7 +1431,7 @@ class UsePia4
                     //     (1) ParamToken : (08000001) Name : x flags: [none] (00000000)
 
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract, m13.Flags);
-                    Assert.Equal(MethodImplAttributes.IL, (MethodImplAttributes)m13.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.IL, (MethodImplAttributes)m13.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.ExtraArguments | CallingConvention.HasThis, m13.CallingConvention);
                     Assert.Equal("void ITest13.M13(System.Int32 x, __arglist)", m13.ToTestDisplayString());
 
@@ -1493,7 +1493,7 @@ class UsePia4
                     // ReturnType: Void
                     // No arguments.
                     Assert.Equal(MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract, m17.Flags);
-                    Assert.Equal(MethodImplAttributes.IL, (MethodImplAttributes)m17.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.IL, (MethodImplAttributes)m17.MethodImplementationFlags);
                     Assert.Equal(CallingConvention.Default | CallingConvention.HasThis, m17.CallingConvention);
                     Assert.Equal("void ITest17.M17()", m17.ToTestDisplayString());
 
@@ -3471,7 +3471,7 @@ class UsePia5
 
                     var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
 
-                    Assert.Equal(MethodImplAttributes.IL | MethodImplAttributes.PreserveSig, (MethodImplAttributes)m1.ImplementationAttributes);
+                    Assert.Equal(MethodImplAttributes.IL | MethodImplAttributes.PreserveSig, (MethodImplAttributes)m1.MethodImplementationFlags);
                 };
 
             CompileAndVerify(compilation1, symbolValidator: metadataValidator);

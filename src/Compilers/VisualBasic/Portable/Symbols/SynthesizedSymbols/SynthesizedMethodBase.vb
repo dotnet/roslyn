@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
+        Friend Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
             Get
                 ' Methods of ComImport types are marked as Runtime implemented and InternalCall
                 Return If(m_containingType.IsComImport AndAlso Not m_containingType.IsInterface,

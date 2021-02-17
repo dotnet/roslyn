@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
         {
             get { return default(System.Reflection.MethodImplAttributes); }
         }

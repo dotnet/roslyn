@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// These attributes are not always emitted as attributes.
         /// </remarks>
-        MethodImplAttributes ImplementationAttributes { get; }
+        MethodImplAttributes MethodImplementationFlags { get; }
 
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.

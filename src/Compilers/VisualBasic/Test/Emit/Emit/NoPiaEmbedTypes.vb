@@ -1189,7 +1189,7 @@ End Class
                                                            '     Argument #2:  I
 
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.ReuseSlot Or MethodAttributes.SpecialName Or MethodAttributes.RTSpecialName, ctor.MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.Runtime, ctor.ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.Runtime, ctor.MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.Default Or Microsoft.Cci.CallingConvention.HasThis, ctor.CallingConvention)
                                                            Assert.Equal("Sub Test11..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", ctor.ToTestDisplayString())
 
@@ -1205,7 +1205,7 @@ End Class
                                                            '     Argument #1:  Class System.AsyncCallback
                                                            '     Argument #2:  Object
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride Or MethodAttributes.NewSlot, begin.MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.Runtime, begin.ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.Runtime, begin.MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.Default Or Microsoft.Cci.CallingConvention.HasThis, begin.CallingConvention)
                                                            Assert.Equal("Function Test11.BeginInvoke(DelegateCallback As System.AsyncCallback, DelegateAsyncState As System.Object) As System.IAsyncResult", begin.ToTestDisplayString())
 
@@ -1221,7 +1221,7 @@ End Class
                                                            '     Argument #1:  Class System.IAsyncResult
 
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride Or MethodAttributes.NewSlot, [end].MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.Runtime, [end].ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.Runtime, [end].MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.Default Or Microsoft.Cci.CallingConvention.HasThis, [end].CallingConvention)
                                                            Assert.Equal("Sub Test11.EndInvoke(DelegateAsyncResult As System.IAsyncResult)", [end].ToTestDisplayString())
 
@@ -1236,7 +1236,7 @@ End Class
                                                            ' No arguments.
 
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride Or MethodAttributes.NewSlot, invoke.MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.Runtime, invoke.ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.Runtime, invoke.MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.Default Or Microsoft.Cci.CallingConvention.HasThis, invoke.CallingConvention)
                                                            Assert.Equal("Sub Test11.Invoke()", invoke.ToTestDisplayString())
 
@@ -1257,7 +1257,7 @@ End Class
                                                            '     (1) ParamToken : (08000001) Name : x flags: [none] (00000000)
 
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride Or MethodAttributes.NewSlot Or MethodAttributes.Abstract, m13.MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.IL, m13.ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.IL, m13.MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.HasThis, m13.CallingConvention)
                                                            Assert.Equal("Sub ITest13.M13(x As System.Int32)", m13.ToTestDisplayString())
 
@@ -1320,7 +1320,7 @@ End Class
                                                            ' ReturnType: Void
                                                            ' No arguments.
                                                            Assert.Equal(MethodAttributes.Public Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride Or MethodAttributes.NewSlot Or MethodAttributes.Abstract, m17.MethodFlags)
-                                                           Assert.Equal(MethodImplAttributes.IL, m17.ImplementationAttributes)
+                                                           Assert.Equal(MethodImplAttributes.IL, m17.MethodImplementationFlags)
                                                            Assert.Equal(Microsoft.Cci.CallingConvention.Default Or Microsoft.Cci.CallingConvention.HasThis, m17.CallingConvention)
                                                            Assert.Equal("Sub ITest17.M17()", m17.ToTestDisplayString())
 
@@ -2950,7 +2950,7 @@ End Structure
                                                            Assert.Equal(1, references.Length)
                                                            Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
                                                            Dim method = type.GetMember(Of PEMethodSymbol)("M")
-                                                           Assert.Equal(MethodImplAttributes.IL Or MethodImplAttributes.PreserveSig, CType(method.ImplementationAttributes, MethodImplAttributes))
+                                                           Assert.Equal(MethodImplAttributes.IL Or MethodImplAttributes.PreserveSig, CType(method.MethodImplementationFlags, MethodImplAttributes))
                                                        End Sub
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,

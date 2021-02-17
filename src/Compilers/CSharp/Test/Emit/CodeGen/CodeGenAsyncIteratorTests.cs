@@ -3122,7 +3122,7 @@ class C
         [ConditionalTheory(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [InlineData("[EnumeratorCancellation] ", "")]
         [InlineData("", "[EnumeratorCancellation] ")]
-        public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_ExtendedPartialMethod(string definitionAttributes, string implementationAttributes)
+        public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_ExtendedPartialMethod(string definitionAttributes, string MethodImplementationFlags)
         {
             string source = @"
 using System.Runtime.CompilerServices;
@@ -3130,7 +3130,7 @@ using System.Threading;
 partial class C
 {
     public static partial System.Collections.Generic.IAsyncEnumerable<int> M(" + definitionAttributes + @"CancellationToken token);
-    public static async partial System.Collections.Generic.IAsyncEnumerable<int> M(" + implementationAttributes + @"CancellationToken token)
+    public static async partial System.Collections.Generic.IAsyncEnumerable<int> M(" + MethodImplementationFlags + @"CancellationToken token)
     {
         _ = token;
         await System.Threading.Tasks.Task.CompletedTask;
