@@ -1476,8 +1476,8 @@ tryAgain:
 
             // Parse class body
             bool parseMembers = true;
-            SyntaxListBuilder<MemberDeclarationSyntax> members = default(SyntaxListBuilder<MemberDeclarationSyntax>);
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            SyntaxListBuilder<MemberDeclarationSyntax> members = default;
+            SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints = default;
             try
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -1562,104 +1562,7 @@ tryAgain:
                     closeBrace = null;
                 }
 
-                var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
-                var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
-                var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
-                switch (keyword.Kind)
-                {
-                    case SyntaxKind.ClassKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.ClassDeclaration(
-                            attributes,
-                            modifiersList,
-                            keyword,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraintsList,
-                            openBrace,
-                            membersList,
-                            closeBrace,
-                            semicolon);
-
-                    case SyntaxKind.StructKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.StructDeclaration(
-                            attributes,
-                            modifiersList,
-                            keyword,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraintsList,
-                            openBrace,
-                            membersList,
-                            closeBrace,
-                            semicolon);
-
-                    case SyntaxKind.InterfaceKeyword:
-                        RoslynDebug.Assert(paramList is null);
-                        RoslynDebug.Assert(openBrace != null);
-                        RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.InterfaceDeclaration(
-                            attributes,
-                            modifiersList,
-                            keyword,
-                            name,
-                            typeParameters,
-                            baseList,
-                            constraintsList,
-                            openBrace,
-                            membersList,
-                            closeBrace,
-                            semicolon);
-
-                    case SyntaxKind.RecordKeyword:
-                        if (recordModifier?.Kind == SyntaxKind.StructKeyword)
-                        {
-                            // record struct ...
-                            return _syntaxFactory.RecordStructDeclaration(
-                                attributes,
-                                modifiers.ToList(),
-                                keyword,
-                                structKeyword: recordModifier,
-                                name,
-                                typeParameters,
-                                paramList,
-                                baseList,
-                                constraints,
-                                openBrace,
-                                members,
-                                closeBrace,
-                                semicolon);
-                        }
-                        else
-                        {
-                            // record ...
-                            // record class ...
-                            return _syntaxFactory.RecordDeclaration(
-                                attributes,
-                                modifiers.ToList(),
-                                keyword,
-                                classKeyword: recordModifier,
-                                name,
-                                typeParameters,
-                                paramList,
-                                baseList,
-                                constraints,
-                                openBrace,
-                                members,
-                                closeBrace,
-                                semicolon);
-                        }
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
-                }
+                return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, keyword, recordModifier, name, typeParameters, paramList, baseList, constraints, openBrace, members, closeBrace, semicolon);
             }
             finally
             {
@@ -1685,6 +1588,110 @@ tryAgain:
                 }
 
                 return null;
+            }
+
+            static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
+            {
+                var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
+                var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
+                var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
+                switch (keyword.Kind)
+                {
+                    case SyntaxKind.ClassKeyword:
+                        RoslynDebug.Assert(paramList is null);
+                        RoslynDebug.Assert(openBrace != null);
+                        RoslynDebug.Assert(closeBrace != null);
+                        return syntaxFactory.ClassDeclaration(
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.StructKeyword:
+                        RoslynDebug.Assert(paramList is null);
+                        RoslynDebug.Assert(openBrace != null);
+                        RoslynDebug.Assert(closeBrace != null);
+                        return syntaxFactory.StructDeclaration(
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.InterfaceKeyword:
+                        RoslynDebug.Assert(paramList is null);
+                        RoslynDebug.Assert(openBrace != null);
+                        RoslynDebug.Assert(closeBrace != null);
+                        return syntaxFactory.InterfaceDeclaration(
+                            attributes,
+                            modifiersList,
+                            keyword,
+                            name,
+                            typeParameters,
+                            baseList,
+                            constraintsList,
+                            openBrace,
+                            membersList,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.RecordKeyword:
+                        if (recordModifier?.Kind == SyntaxKind.StructKeyword)
+                        {
+                            // record struct ...
+                            return syntaxFactory.RecordStructDeclaration(
+                                attributes,
+                                modifiers.ToList(),
+                                keyword,
+                                structKeyword: recordModifier,
+                                name,
+                                typeParameters,
+                                paramList,
+                                baseList,
+                                constraints,
+                                openBrace,
+                                members,
+                                closeBrace,
+                                semicolon);
+                        }
+                        else
+                        {
+                            // record ...
+                            // record class ...
+                            return syntaxFactory.RecordDeclaration(
+                                attributes,
+                                modifiers.ToList(),
+                                keyword,
+                                classKeyword: recordModifier,
+                                name,
+                                typeParameters,
+                                paramList,
+                                baseList,
+                                constraints,
+                                openBrace,
+                                members,
+                                closeBrace,
+                                semicolon);
+                        }
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
+                }
             }
         }
 
