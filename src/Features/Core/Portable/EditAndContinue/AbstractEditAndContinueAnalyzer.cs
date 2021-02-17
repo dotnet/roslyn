@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Document Analysis 
 
         public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-            Document? oldDocument,
+            Project baseProject,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
             ImmutableArray<TextSpan> newActiveStatementSpans,
@@ -381,8 +381,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", document.Name);
 
             Debug.Assert(!newActiveStatementSpans.IsDefault);
-            Debug.Assert(oldDocument == null || oldDocument.SupportsSyntaxTree);
-            Debug.Assert(oldDocument == null || oldDocument.SupportsSemanticModel);
             Debug.Assert(document.SupportsSyntaxTree);
             Debug.Assert(document.SupportsSemanticModel);
 
@@ -394,6 +392,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SyntaxNode oldRoot;
                 SourceText oldText;
 
+                var oldDocument = baseProject.GetDocument(document.Id);
                 if (oldDocument != null)
                 {
                     oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
