@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -13,7 +15,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    internal static class Extensions
+    internal static class EditAndContinueValidation
     {
         internal static void VerifyUnchangedDocument(
             string source,
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemantics(
-                editScript,
+                new[] { editScript },
                 expectedDiagnostics: expectedDiagnostics);
         }
 
@@ -72,19 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemantics(
-                editScript,
+                new[] { editScript },
                 targetFrameworks: targetFrameworks,
-                expectedDiagnostics: expectedDiagnostics);
-        }
-
-        internal static void VerifySemanticDiagnostics(
-            this EditScript<SyntaxNode> editScript,
-            DiagnosticDescription expectedDeclarationError,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
-        {
-            VerifySemantics(
-                editScript,
-                expectedDeclarationError: expectedDeclarationError,
                 expectedDiagnostics: expectedDiagnostics);
         }
 
@@ -94,31 +85,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             SemanticEditDescription[] expectedSemanticEdits)
         {
             VerifySemantics(
-                editScript,
+                new[] { editScript },
                 activeStatements,
                 expectedSemanticEdits: expectedSemanticEdits,
                 expectedDiagnostics: null);
         }
 
         internal static void VerifySemantics(
-            this EditScript<SyntaxNode> editScript,
+            this EditScript<SyntaxNode>[] editScripts,
             ActiveStatementsDescription? activeStatements = null,
             TargetFramework[]? targetFrameworks = null,
-            IEnumerable<string>? additionalOldSources = null,
-            IEnumerable<string>? additionalNewSources = null,
             SemanticEditDescription[]? expectedSemanticEdits = null,
-            DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp })
             {
                 new CSharpEditAndContinueTestHelpers(targetFramework).VerifySemantics(
-                    editScript,
+                    editScripts,
                     activeStatements,
-                    additionalOldSources,
-                    additionalNewSources,
                     expectedSemanticEdits,
-                    expectedDeclarationError,
                     expectedDiagnostics);
             }
         }
