@@ -71,18 +71,15 @@ namespace Roslyn.ComponentDebugger
                     var targetProject = await targetProjectUnconfigured.LoadConfiguredProjectAsync(configuredProject.ProjectConfiguration).ConfigureAwait(false);
                     if (targetProject is object)
                     {
-                        // https://github.com/dotnet/roslyn-sdk/issues/731: the below is deadlocking on certain projects. for now just list them all
-                        targetProjects.Add(targetProject);
-
                         // check if the args contain the project as an analyzer ref
-                        //foreach (var arg in await targetProject.GetCompilationArgumentsAsync().ConfigureAwait(false))
-                        //{
-                        //    if (arg.StartsWith("/analyzer", StringComparison.OrdinalIgnoreCase)
-                        //        && arg.EndsWith(target, StringComparison.OrdinalIgnoreCase))
-                        //    {
-                        //        targetProjects.Add(targetProject);
-                        //    }
-                        //}
+                        foreach (var arg in await targetProject.GetCompilationArgumentsAsync().ConfigureAwait(false))
+                        {
+                            if (arg.StartsWith("/analyzer", StringComparison.OrdinalIgnoreCase)
+                                && arg.EndsWith(target, StringComparison.OrdinalIgnoreCase))
+                            {
+                                targetProjects.Add(targetProject);
+                            }
+                        }
                     }
                 }
             }
