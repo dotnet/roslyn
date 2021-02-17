@@ -2386,5 +2386,165 @@ class C
             var method = compilation.GetMember<MethodSymbol>("C.M");
             Assert.True(method.IsConditional);
         }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnNonPartial()
+        {
+            var source = @"
+class C
+{
+    void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.False(m.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialDefinitionOnly()
+        {
+            var source = @"
+partial class C
+{
+    partial void M();
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.Null(m.PartialImplementationPart);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionWithPartialImplementation()
+        {
+            var source = @"
+partial class C
+{
+    partial void M();
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialImplementation_NonPartialClass()
+        {
+            var source = @"
+class C
+{
+    partial void M();
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0751: A partial method must be declared within a partial type
+                //     partial void M();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(4, 18),
+                // (5,18): error CS0751: A partial method must be declared within a partial type
+                //     partial void M() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(5, 18)
+            );
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.True(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinitionOnPartialImplementationOnly()
+        {
+            var source = @"
+partial class C
+{
+    partial void M() {}
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M()'
+                //     partial void M() {}
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M()").WithLocation(4, 18)
+            );
+            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+            Assert.False(m.IsPartialDefinition);
+            Assert.Null(m.PartialDefinitionPart);
+            Assert.Null(m.PartialImplementationPart);
+        }
+
+        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+        public void IsPartialDefinition_ReturnsFalseFromMetadata()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M();
+    public partial void M() {}
+}
+";
+
+            CompileAndVerify(source,
+                sourceSymbolValidator: module =>
+                {
+                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                    Assert.True(m.IsPartialDefinition);
+                    Assert.Null(m.PartialDefinitionPart);
+                    Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+                },
+                symbolValidator: module =>
+                {
+                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                    Assert.False(m.IsPartialDefinition);
+                    Assert.Null(m.PartialDefinitionPart);
+                    Assert.Null(m.PartialImplementationPart);
+                });
+        }
+
+        [Fact]
+        public void IsPartialDefinition_OnPartialExtern()
+        {
+            var source = @"
+public partial class C
+{
+    private partial void M();
+    private extern partial void M();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            Assert.True(partialDef.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            Assert.False(partialImpl.IsPartialDefinition);
+
+            Assert.Same(partialDef.PartialImplementationPart, partialImpl);
+            Assert.Same(partialImpl.PartialDefinitionPart, partialDef);
+
+            Assert.Null(partialDef.PartialDefinitionPart);
+            Assert.Null(partialImpl.PartialImplementationPart);
+        }
     }
 }
