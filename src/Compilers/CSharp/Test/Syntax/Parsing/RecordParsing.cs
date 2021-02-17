@@ -2621,81 +2621,52 @@ class C(int X, int Y)
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
                 );
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.RecordStructDeclaration);
-                {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.StructKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            verify();
 
             UsingTree(text, options: TestOptions.RegularPreview,
                 // (1,14): error CS1001: Identifier expected
                 // record struct(int X, int Y);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 14)
                 );
+            verify();
 
-            N(SyntaxKind.CompilationUnit);
+            void verify()
             {
-                N(SyntaxKind.RecordStructDeclaration);
+                N(SyntaxKind.CompilationUnit);
                 {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.StructKeyword);
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
+                    N(SyntaxKind.RecordStructDeclaration);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
                             }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
                             }
-                            N(SyntaxKind.IdentifierToken, "Y");
+                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.EndOfFileToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
+                EOF();
             }
-            EOF();
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
@@ -2704,81 +2675,15 @@ class C(int X, int Y)
             var text = "record struct C(int X, int Y);";
             UsingTree(text, options: TestOptions.RegularPreview);
 
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.RecordStructDeclaration);
-                {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.StructKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular9,
-                // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8)
-                );
+                 // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                 // record struct C(int X, int Y);
+                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8)
+                 );
 
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.RecordStructDeclaration);
-                {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.StructKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -2797,6 +2702,7 @@ class C(int X, int Y)
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16)
                 );
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.IncompleteMember);
@@ -2857,6 +2763,44 @@ class C(int X, int Y)
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordStructDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
@@ -2908,40 +2852,7 @@ class C(int X, int Y)
             var text = "record class C(int X, int Y);";
             UsingTree(text, options: TestOptions.RegularPreview);
 
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.RecordDeclaration);
-                {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular9,
                 // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -2949,40 +2860,7 @@ class C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "class").WithArguments("record structs").WithLocation(1, 8)
                 );
 
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.RecordDeclaration);
-                {
-                    N(SyntaxKind.RecordKeyword);
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "X");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "Y");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
+            verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
@@ -3001,6 +2879,7 @@ class C(int X, int Y)
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15)
                 );
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.IncompleteMember);
@@ -3061,6 +2940,44 @@ class C(int X, int Y)
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
