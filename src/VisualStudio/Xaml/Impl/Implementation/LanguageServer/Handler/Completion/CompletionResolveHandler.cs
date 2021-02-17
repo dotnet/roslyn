@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
@@ -24,20 +25,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionResolveHandler()
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             CompletionResolveData data;
             if (completionItem.Data is JToken token)
             {

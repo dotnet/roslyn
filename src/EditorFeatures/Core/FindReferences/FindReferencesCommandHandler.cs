@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -113,27 +114,29 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into. This operation is not externally cancellable.  Instead, the find refs
+                // window will cancel it if another request is made to use it.
                 var context = presenter.StartSearchWithCustomColumns(
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
-                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp,
+                    CancellationToken.None);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     context.CancellationToken))
                 {
-                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
-
-                    // Note: we don't need to put this in a finally.  The only time we might not hit
-                    // this is if cancellation or another error gets thrown.  In the former case,
-                    // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case something wrong has happened
-                    // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync().ConfigureAwait(false);
+                    }
                 }
             }
             catch (OperationCanceledException)

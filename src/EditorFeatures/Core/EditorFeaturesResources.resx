@@ -945,4 +945,10 @@ Do you want to proceed?</value>
   <data name="Get_help_for_0_from_Bing" xml:space="preserve">
     <value>Get help for '{0}' from Bing</value>
   </data>
+  <data name="Gathering_Suggestions_0" xml:space="preserve">
+    <value>Gathering Suggestions - '{0}'</value>
+  </data>
+  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
+    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
+  </data>
 </root>

@@ -9231,11 +9231,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">포함된 interop 형식 '{0}'과(와) 일치하는 interop 형식을 찾을 수 없습니다. 어셈블리 참조가 있는지 확인하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">by-reference 반환 형식 'ref {0}'은(는) 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">'{1}'에 저장된 '{0}' 모듈 이름은 파일 이름과 일치해야 합니다.</target>

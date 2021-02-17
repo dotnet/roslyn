@@ -1157,6 +1157,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
             End Select
         End Function
+
+        Protected Overrides Sub ReportLocalFunctionsDeclarationRudeEdits(bodyMatch As Match(Of SyntaxNode), diagnostics As List(Of RudeEditDiagnostic))
+            ' VB has no local functions so we don't have anything to report
+        End Sub
 #End Region
 
 #Region "Diagnostic Info"
