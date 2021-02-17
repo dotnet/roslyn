@@ -1,5 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.3/src/libraries/System.Private.CoreLib/src/System/HashCode.cs
@@ -46,17 +45,22 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/5c174cfa4e45a42f94082dc0d4539b
 
 */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Numerics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
-namespace System
+namespace Analyzer.Utilities
 {
     // xxHash32 is used for the hash code.
     // https://github.com/Cyan4973/xxHash
 
-    public struct HashCode
+    [SuppressMessage("Design", "CA1066:Implement IEquatable when overriding Object.Equals", Justification = "This type is not equatable.")]
+    [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "This type is not equatable.")]
+    [SuppressMessage("Usage", "CA2231:Overload operator equals on overriding value type Equals", Justification = "This type is not equatable.")]
+    public struct RoslynHashCode
     {
         private static readonly uint s_seed = GenerateGlobalSeed();
 
@@ -70,11 +74,12 @@ namespace System
         private uint _queue1, _queue2, _queue3;
         private uint _length;
 
-        private static unsafe uint GenerateGlobalSeed()
+        private static uint GenerateGlobalSeed()
         {
-            uint result;
-            Interop.GetRandomBytes((byte*)&result, sizeof(uint));
-            return result;
+            using var randomNumberGenerator = RandomNumberGenerator.Create();
+            var array = new byte[sizeof(uint)];
+            randomNumberGenerator.GetBytes(array);
+            return BitConverter.ToUInt32(array, 0);
         }
 
         public static int Combine<T1>(T1 value1)
@@ -86,9 +91,9 @@ namespace System
             // over a larger space, so diffusing the bits may help the
             // collection work more efficiently.
 
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
 
-            uint hash = MixEmptyState();
+            var hash = MixEmptyState();
             hash += 4;
 
             hash = QueueRound(hash, hc1);
@@ -99,10 +104,10 @@ namespace System
 
         public static int Combine<T1, T2>(T1 value1, T2 value2)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
 
-            uint hash = MixEmptyState();
+            var hash = MixEmptyState();
             hash += 8;
 
             hash = QueueRound(hash, hc1);
@@ -114,11 +119,11 @@ namespace System
 
         public static int Combine<T1, T2, T3>(T1 value1, T2 value2, T3 value3)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
 
-            uint hash = MixEmptyState();
+            var hash = MixEmptyState();
             hash += 12;
 
             hash = QueueRound(hash, hc1);
@@ -131,19 +136,19 @@ namespace System
 
         public static int Combine<T1, T2, T3, T4>(T1 value1, T2 value2, T3 value3, T4 value4)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
-            uint hc4 = (uint)(value4?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc4 = (uint)(value4?.GetHashCode() ?? 0);
 
-            Initialize(out uint v1, out uint v2, out uint v3, out uint v4);
+            Initialize(out var v1, out var v2, out var v3, out var v4);
 
             v1 = Round(v1, hc1);
             v2 = Round(v2, hc2);
             v3 = Round(v3, hc3);
             v4 = Round(v4, hc4);
 
-            uint hash = MixState(v1, v2, v3, v4);
+            var hash = MixState(v1, v2, v3, v4);
             hash += 16;
 
             hash = MixFinal(hash);
@@ -152,20 +157,20 @@ namespace System
 
         public static int Combine<T1, T2, T3, T4, T5>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
-            uint hc4 = (uint)(value4?.GetHashCode() ?? 0);
-            uint hc5 = (uint)(value5?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc4 = (uint)(value4?.GetHashCode() ?? 0);
+            var hc5 = (uint)(value5?.GetHashCode() ?? 0);
 
-            Initialize(out uint v1, out uint v2, out uint v3, out uint v4);
+            Initialize(out var v1, out var v2, out var v3, out var v4);
 
             v1 = Round(v1, hc1);
             v2 = Round(v2, hc2);
             v3 = Round(v3, hc3);
             v4 = Round(v4, hc4);
 
-            uint hash = MixState(v1, v2, v3, v4);
+            var hash = MixState(v1, v2, v3, v4);
             hash += 20;
 
             hash = QueueRound(hash, hc5);
@@ -176,21 +181,21 @@ namespace System
 
         public static int Combine<T1, T2, T3, T4, T5, T6>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
-            uint hc4 = (uint)(value4?.GetHashCode() ?? 0);
-            uint hc5 = (uint)(value5?.GetHashCode() ?? 0);
-            uint hc6 = (uint)(value6?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc4 = (uint)(value4?.GetHashCode() ?? 0);
+            var hc5 = (uint)(value5?.GetHashCode() ?? 0);
+            var hc6 = (uint)(value6?.GetHashCode() ?? 0);
 
-            Initialize(out uint v1, out uint v2, out uint v3, out uint v4);
+            Initialize(out var v1, out var v2, out var v3, out var v4);
 
             v1 = Round(v1, hc1);
             v2 = Round(v2, hc2);
             v3 = Round(v3, hc3);
             v4 = Round(v4, hc4);
 
-            uint hash = MixState(v1, v2, v3, v4);
+            var hash = MixState(v1, v2, v3, v4);
             hash += 24;
 
             hash = QueueRound(hash, hc5);
@@ -202,22 +207,22 @@ namespace System
 
         public static int Combine<T1, T2, T3, T4, T5, T6, T7>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
-            uint hc4 = (uint)(value4?.GetHashCode() ?? 0);
-            uint hc5 = (uint)(value5?.GetHashCode() ?? 0);
-            uint hc6 = (uint)(value6?.GetHashCode() ?? 0);
-            uint hc7 = (uint)(value7?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc4 = (uint)(value4?.GetHashCode() ?? 0);
+            var hc5 = (uint)(value5?.GetHashCode() ?? 0);
+            var hc6 = (uint)(value6?.GetHashCode() ?? 0);
+            var hc7 = (uint)(value7?.GetHashCode() ?? 0);
 
-            Initialize(out uint v1, out uint v2, out uint v3, out uint v4);
+            Initialize(out var v1, out var v2, out var v3, out var v4);
 
             v1 = Round(v1, hc1);
             v2 = Round(v2, hc2);
             v3 = Round(v3, hc3);
             v4 = Round(v4, hc4);
 
-            uint hash = MixState(v1, v2, v3, v4);
+            var hash = MixState(v1, v2, v3, v4);
             hash += 28;
 
             hash = QueueRound(hash, hc5);
@@ -230,16 +235,16 @@ namespace System
 
         public static int Combine<T1, T2, T3, T4, T5, T6, T7, T8>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7, T8 value8)
         {
-            uint hc1 = (uint)(value1?.GetHashCode() ?? 0);
-            uint hc2 = (uint)(value2?.GetHashCode() ?? 0);
-            uint hc3 = (uint)(value3?.GetHashCode() ?? 0);
-            uint hc4 = (uint)(value4?.GetHashCode() ?? 0);
-            uint hc5 = (uint)(value5?.GetHashCode() ?? 0);
-            uint hc6 = (uint)(value6?.GetHashCode() ?? 0);
-            uint hc7 = (uint)(value7?.GetHashCode() ?? 0);
-            uint hc8 = (uint)(value8?.GetHashCode() ?? 0);
+            var hc1 = (uint)(value1?.GetHashCode() ?? 0);
+            var hc2 = (uint)(value2?.GetHashCode() ?? 0);
+            var hc3 = (uint)(value3?.GetHashCode() ?? 0);
+            var hc4 = (uint)(value4?.GetHashCode() ?? 0);
+            var hc5 = (uint)(value5?.GetHashCode() ?? 0);
+            var hc6 = (uint)(value6?.GetHashCode() ?? 0);
+            var hc7 = (uint)(value7?.GetHashCode() ?? 0);
+            var hc8 = (uint)(value8?.GetHashCode() ?? 0);
 
-            Initialize(out uint v1, out uint v2, out uint v3, out uint v4);
+            Initialize(out var v1, out var v2, out var v3, out var v4);
 
             v1 = Round(v1, hc1);
             v2 = Round(v2, hc2);
@@ -251,7 +256,7 @@ namespace System
             v3 = Round(v3, hc7);
             v4 = Round(v4, hc8);
 
-            uint hash = MixState(v1, v2, v3, v4);
+            var hash = MixState(v1, v2, v3, v4);
             hash += 32;
 
             hash = MixFinal(hash);
@@ -270,13 +275,13 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint Round(uint hash, uint input)
         {
-            return BitOperations.RotateLeft(hash + input * Prime2, 13) * Prime1;
+            return BitOperations.RotateLeft(hash + (input * Prime2), 13) * Prime1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint QueueRound(uint hash, uint queuedValue)
         {
-            return BitOperations.RotateLeft(hash + queuedValue * Prime3, 17) * Prime4;
+            return BitOperations.RotateLeft(hash + (queuedValue * Prime3), 17) * Prime4;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -334,21 +339,27 @@ namespace System
             // To see what's really going on here, have a look at the Combine
             // methods.
 
-            uint val = (uint)value;
+            var val = (uint)value;
 
             // Storing the value of _length locally shaves of quite a few bytes
             // in the resulting machine code.
-            uint previousLength = _length++;
-            uint position = previousLength % 4;
+            var previousLength = _length++;
+            var position = previousLength % 4;
 
             // Switch can't be inlined.
 
             if (position == 0)
+            {
                 _queue1 = val;
+            }
             else if (position == 1)
+            {
                 _queue2 = val;
+            }
             else if (position == 2)
+            {
                 _queue3 = val;
+            }
             else // position == 3
             {
                 if (previousLength == 3)
@@ -365,17 +376,17 @@ namespace System
         {
             // Storing the value of _length locally shaves of quite a few bytes
             // in the resulting machine code.
-            uint length = _length;
+            var length = _length;
 
             // position refers to the *next* queue position in this method, so
             // position == 1 means that _queue1 is populated; _queue2 would have
             // been populated on the next call to Add.
-            uint position = length % 4;
+            var position = length % 4;
 
             // If the length is less than 4, _v1 to _v4 don't contain anything
             // yet. xxHash32 treats this differently.
 
-            uint hash = length < 4 ? MixEmptyState() : MixState(_v1, _v2, _v3, _v4);
+            var hash = length < 4 ? MixEmptyState() : MixState(_v1, _v2, _v3, _v4);
 
             // _length is incremented once per Add(Int32) and is therefore 4
             // times too small (xxHash length is in bytes, not ints).
@@ -402,7 +413,8 @@ namespace System
             return (int)hash;
         }
 
-#pragma warning disable 0809
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
         // Obsolete member 'memberA' overrides non-obsolete member 'memberB'.
         // Disallowing GetHashCode and Equals is by design
 
@@ -423,6 +435,24 @@ namespace System
         [Obsolete("HashCode is a mutable struct and should not be compared with other HashCodes.", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj) => throw new NotSupportedException(SR.HashCode_EqualityNotSupported);
-#pragma warning restore 0809
+#pragma warning restore CA1065 // Do not raise exceptions in unexpected locations
+#pragma warning restore CS0809 // Obsolete member overrides non-obsolete member
+
+        private static class SR
+        {
+            public static string HashCode_HashCodeNotSupported = "HashCode is a mutable struct and should not be compared with other HashCodes. Use ToHashCode to retrieve the computed hash code.";
+            public static string HashCode_EqualityNotSupported = "HashCode is a mutable struct and should not be compared with other HashCodes.";
+        }
+
+        private static class BitOperations
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static uint RotateLeft(uint value, int offset)
+                => (value << offset) | (value >> (32 - offset));
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static ulong RotateLeft(ulong value, int offset)
+                => (value << offset) | (value >> (64 - offset));
+        }
     }
 }
