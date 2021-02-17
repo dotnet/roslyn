@@ -2515,5 +2515,36 @@ public partial class C
                     Assert.Null(m.PartialImplementationPart);
                 });
         }
+
+        [Fact]
+        public void IsPartialDefinition_OnPartialExtern()
+        {
+            var source = @"
+public partial class C
+{
+    private partial void M();
+    private extern partial void M();
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            Assert.True(partialDef.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            Assert.False(partialImpl.IsPartialDefinition);
+
+            Assert.Same(partialDef.PartialImplementationPart, partialImpl);
+            Assert.Same(partialImpl.PartialDefinitionPart, partialDef);
+
+            Assert.Null(partialDef.PartialDefinitionPart);
+            Assert.Null(partialImpl.PartialImplementationPart);
+        }
     }
 }
