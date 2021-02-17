@@ -446,6 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   [Goo]
             //   |
 
+            // (all the class cases apply to structs, interfaces and records).
+
             var originalToken = tokenOnLeftOfPosition;
             var token = originalToken;
 
@@ -466,8 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 // a type decl can't come before usings/externs
                 if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
-                    (compilationUnit.Externs.Count > 0 ||
-                    compilationUnit.Usings.Count > 0))
+                    (compilationUnit.Externs.Count > 0 || compilationUnit.Usings.Count > 0))
                 {
                     return false;
                 }
@@ -475,17 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.OpenBraceToken))
-            {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
-                {
-                    return true;
-                }
-                else if (token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
-                {
-                    return true;
-                }
-            }
+            if (token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent is NamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                return true;
 
             // extern alias a;
             // |
@@ -549,9 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // assembly attributes belong to the containing compilation unit
                 if (token.Parent.IsParentKind(SyntaxKind.CompilationUnit))
-                {
                     return true;
-                }
 
                 // other attributes belong to a member which itself is in a
                 // container.
@@ -560,13 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
                 var container = token.Parent?.Parent?.Parent;
-                if (container.IsKind(SyntaxKind.CompilationUnit) ||
-                    container.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                    container.IsKind(SyntaxKind.ClassDeclaration) ||
-                    container.IsKind(SyntaxKind.StructDeclaration))
-                {
+                if (container is CompilationUnitSyntax or TypeDeclarationSyntax)
                     return true;
-                }
             }
 
             return false;
@@ -651,22 +636,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // the parent is the member
                 // the grandparent is the container of the member
-                var container = token.Parent?.Parent;
+                var container = token.GetRequiredParent().GetRequiredParent();
 
                 // ref $$
                 // readonly ref $$
                 if (container.IsKind(SyntaxKind.IncompleteMember, out IncompleteMemberSyntax? incompleteMember))
-                {
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
-                }
 
-                if (container.IsKind(SyntaxKind.CompilationUnit) ||
-                    container.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                    container.IsKind(SyntaxKind.ClassDeclaration) ||
-                    container.IsKind(SyntaxKind.StructDeclaration))
-                {
+                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
-                }
             }
 
             return false;
