@@ -3357,7 +3357,7 @@
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
       <ContextualKind Name="RecordKeyword"/>
     </Field>
-    <Field Name="RecordModifier" Type="SyntaxToken" Optional="true">
+    <Field Name="ClassKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="ClassKeyword"/>
     </Field>
     <Field Name="Identifier" Type="SyntaxToken" Override="true">
@@ -3385,7 +3385,7 @@
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
       <ContextualKind Name="RecordKeyword"/>
     </Field>
-    <Field Name="RecordModifier" Type="SyntaxToken">
+    <Field Name="StructKeyword" Type="SyntaxToken">
       <Kind Name="StructKeyword"/>
     </Field>
     <Field Name="Identifier" Type="SyntaxToken" Override="true">

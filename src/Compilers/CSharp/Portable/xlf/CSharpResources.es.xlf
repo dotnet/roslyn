@@ -970,7 +970,7 @@
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
         <target state="new">record structs</target>
-        <note />
+        <note>'record structs' is not localizable.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>

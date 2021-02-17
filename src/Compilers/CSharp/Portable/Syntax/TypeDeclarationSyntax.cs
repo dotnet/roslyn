@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     return SyntaxFactory.InterfaceDeclaration(attributes, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 case SyntaxKind.RecordDeclaration:
-                    return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, recordModifier: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                    return SyntaxFactory.RecordDeclaration(attributes, modifiers, keyword, classKeyword: default, identifier, typeParameterList, parameterList: null, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                // PROTOTYPE(record-structs): we likely need to handle RecordStructDeclaration
                 default:
                     throw new ArgumentException("kind");
             }
