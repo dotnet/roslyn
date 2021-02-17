@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     case ResponseType.IncorrectHash:
                         return new IncorrectHashBuildResponse();
                     case ResponseType.AnalyzerInconsistency:
-                        return new AnalyzerInconsistencyBuildResponse();
+                        return AnalyzerInconsistencyBuildResponse.Create(reader);
                     case ResponseType.Shutdown:
                         return ShutdownBuildResponse.Create(reader);
                     case ResponseType.Rejected:
@@ -455,11 +455,37 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public override ResponseType Type => ResponseType.AnalyzerInconsistency;
 
+        public ReadOnlyCollection<string> ErrorMessages { get; }
+
+        public AnalyzerInconsistencyBuildResponse(ReadOnlyCollection<string> errorMessages)
+        {
+            ErrorMessages = errorMessages;
+        }
+
         /// <summary>
         /// AnalyzerInconsistency has no body.
         /// </summary>
         /// <param name="writer"></param>
-        protected override void AddResponseBody(BinaryWriter writer) { }
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            writer.Write(ErrorMessages.Count);
+            foreach (var message in ErrorMessages)
+            {
+                WriteLengthPrefixedString(writer, message);
+            }
+        }
+
+        public static AnalyzerInconsistencyBuildResponse Create(BinaryReader reader)
+        {
+            var count = reader.ReadInt32();
+            var list = new List<string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(ReadLengthPrefixedString(reader) ?? "");
+            }
+
+            return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(list));
+        }
     }
 
     internal sealed class RejectedBuildResponse : BuildResponse
