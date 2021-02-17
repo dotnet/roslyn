@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(containingBinder, commentedSymbol)
         End Sub
 
-        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindXmlNameAttributeValue(identifier As IdentifierNameSyntax, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             If Me.CommentedSymbol Is Nothing Then
                 Return ImmutableArray(Of Symbol).Empty
             End If
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             If (options And (LookupOptions.LabelsOnly Or LookupOptions.MustBeInstance Or LookupOptions.AttributeTypeOnly)) <> 0 Then
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not TypeParameters.IsEmpty Then
                 For Each typeParameter In TypeParameters
                     If IdentifierComparison.Equals(typeParameter.Name, name) Then
-                        lookupResult.SetFrom(CheckViability(typeParameter, arity, options, Nothing, useSiteDiagnostics))
+                        lookupResult.SetFrom(CheckViability(typeParameter, arity, options, Nothing, useSiteInfo))
                     End If
                 Next
             End If

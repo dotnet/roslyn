@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_InsufficientStack, GetTooLongOrComplexExpressionErrorLocation(Node));
             }
 
+            public void AddAnError(BindingDiagnosticBag diagnostics)
+            {
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, GetTooLongOrComplexExpressionErrorLocation(Node));
+            }
+
             public static Location GetTooLongOrComplexExpressionErrorLocation(BoundNode node)
             {
                 SyntaxNode syntax = node.Syntax;

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private TypeWithAnnotations.Boxed _lazyType;
 
@@ -231,16 +231,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

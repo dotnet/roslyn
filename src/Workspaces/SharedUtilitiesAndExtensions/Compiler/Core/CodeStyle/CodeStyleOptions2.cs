@@ -348,6 +348,24 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation2[]{
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
+        public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceAndFolderMatchStructure),
+            defaultValue: TrueWithSuggestionEnforcement,
+            editorconfigKeyName: "dotnet_style_namespace_match_folder",
+            roamingProfileStorageKeyName: $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamespaceAndFolderMatchStructure)}");
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowMultipleBlankLines = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowMultipleBlankLines),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_multiple_blank_lines_experimental",
+            "TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines");
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowStatementImmediatelyAfterBlock = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowStatementImmediatelyAfterBlock),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_statement_immediately_after_block_experimental",
+            "TextEditor.%LANGUAGE%.Specific.AllowStatementImmediatelyAfterBlock");
+
         static CodeStyleOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -405,5 +423,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly OptionGroup Field = new(CompilerExtensionsResources.Field_preferences, priority: 7);
         public static readonly OptionGroup Parameter = new(CompilerExtensionsResources.Parameter_preferences, priority: 8);
         public static readonly OptionGroup Suppressions = new(CompilerExtensionsResources.Suppression_preferences, priority: 9);
+        public static readonly OptionGroup NewLinePreferences = new(CompilerExtensionsResources.New_line_preferences, priority: 10);
     }
 }

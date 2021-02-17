@@ -49,6 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IAssemblySymbolInternal_CorLibrary As IAssemblySymbolInternal Implements IAssemblySymbolInternal.CorLibrary
+            Get
+                Return CorLibrary
+            End Get
+        End Property
+
         ''' <summary>
         ''' A helper method for ReferenceManager to set the system assembly, which provides primitive 
         ''' types like Object, String, etc., e.g. mscorlib.dll. 
