@@ -62,6 +62,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
+  [switch]$testUsedAssemblies,
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
@@ -96,6 +97,7 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+  Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -346,6 +348,10 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
+  if ($testUsedAssemblies) {
+    $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
+  }
+
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -427,14 +433,35 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
 
+    if ($testUsedAssemblies) {
+      Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
+    }
+
     if ($testVsi) {
-      Write-Host "Copying ServiceHub logs to $LogDir"
-      Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
+      $serviceHubLogs = Join-Path $TempDir "servicehub\logs"
+      if (Test-Path $serviceHubLogs) {
+        Write-Host "Copying ServiceHub logs to $LogDir"
+        Copy-Item -Path $serviceHubLogs -Destination (Join-Path $LogDir "servicehub") -Recurse
+      } else {
+        Write-Host "No ServiceHub logs found to copy"
+      }
 
       if ($lspEditor) {
-        Write-Host "Copying LSP and telemetry logs to $LogDir"
-        Copy-Item -Path (Join-Path $TempDir "VisualStudio\LSP") -Destination (Join-Path $LogDir "LSP") -Recurse
-        Copy-Item -Path (Join-Path $TempDir "VSTelemetryLog") -Destination (Join-Path $LogDir "Telemetry") -Recurse
+        $lspLogs = Join-Path $TempDir "VisualStudio\LSP"
+        $telemetryLog = Join-Path $TempDir "VSTelemetryLog"
+        if (Test-Path $lspLogs) {
+          Write-Host "Copying LSP logs to $LogDir"
+          Copy-Item -Path $lspLogs -Destination (Join-Path $LogDir "LSP") -Recurse
+        } else {
+          Write-Host "No LSP logs found to copy"
+        }
+
+        if (Test-Path $telemetryLog) {
+          Write-Host "Copying telemetry logs to $LogDir"
+          Copy-Item -Path $telemetryLog -Destination (Join-Path $LogDir "Telemetry") -Recurse
+        } else {
+          Write-Host "No telemetry logs found to copy"
+        }
       }
     }
   }

@@ -603,6 +603,214 @@ class C
         }
 
         [Fact]
+        public void Syntax_Receiver_Is_Not_Created_If_Exception_During_PostInitialize()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            TestSyntaxReceiver? receiver = null;
+            var exception = new Exception("test exception");
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) =>
+                {
+                    i.RegisterForSyntaxNotifications(() => receiver = new TestSyntaxReceiver());
+                    i.RegisterForPostInitialization((pic) => throw exception);
+                },
+                onExecute: (e) => { Assert.True(false); }
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.Null(receiver);
+
+            outputDiagnostics.Verify(
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringInitialization).WithArguments("CallbackGenerator", "Exception", "test exception").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Visits_Syntax_Added_In_PostInit()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+
+            var source2 = @"
+class D
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) =>
+                {
+                    i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver());
+                    i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", source2));
+                },
+                onExecute: (e) => receiver = e.SyntaxReceiver
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(receiver);
+            Assert.IsType<TestSyntaxReceiver>(receiver);
+
+            TestSyntaxReceiver testReceiver = (TestSyntaxReceiver)receiver!;
+
+            var classDeclarations = testReceiver.VisitedNodes.OfType<ClassDeclarationSyntax>().Select(c => c.Identifier.Text);
+            Assert.Equal(new[] { "C", "D" }, classDeclarations);
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Visits_Syntax_Added_In_PostInit_From_Other_Generator()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+
+            var source2 = @"
+class D
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            ISyntaxReceiver? receiver = null;
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver()),
+                onExecute: (e) => receiver = e.SyntaxReceiver
+                );
+
+            var testGenerator2 = new CallbackGenerator2(
+                onInit: (i) => i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", source2)),
+                onExecute: (e) => { }
+            );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(receiver);
+            Assert.IsType<TestSyntaxReceiver>(receiver);
+
+            TestSyntaxReceiver testReceiver = (TestSyntaxReceiver)receiver!;
+            var classDeclarations = testReceiver.VisitedNodes.OfType<ClassDeclarationSyntax>().Select(c => c.Identifier.Text);
+            Assert.Equal(new[] { "C", "D" }, classDeclarations);
+        }
+
+        [Fact]
+        public void Syntax_Receiver_Can_Access_Types_Added_In_PostInit()
+        {
+            var source = @"
+class C : D
+{
+}
+";
+
+            var postInitSource = @"
+class D 
+{
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Assert.Single(compilation.SyntaxTrees);
+
+            compilation.VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                // class C : D
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(2, 11)
+                );
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) =>
+                {
+                    i.RegisterForSyntaxNotifications(() => new TestSyntaxContextReceiver(callback: (ctx) =>
+                    {
+                        if (ctx.Node is ClassDeclarationSyntax cds
+                            && cds.Identifier.Value?.ToString() == "C")
+                        {
+                            // ensure we can query the semantic model for D
+                            var dType = ctx.SemanticModel.Compilation.GetTypeByMetadataName("D");
+                            Assert.NotNull(dType);
+                            Assert.False(dType.IsErrorType());
+
+                            // and the code referencing it now works
+                            var typeInfo = ctx.SemanticModel.GetTypeInfo(cds.BaseList!.Types[0].Type);
+                            Assert.Same(dType, typeInfo.Type);
+                        }
+                    }));
+                    i.RegisterForPostInitialization((pic) => pic.AddSource("postInit", postInitSource));
+                },
+                onExecute: (e) => { }
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+        }
+
+        [Fact]
         public void SyntaxContext_Receiver_Return_Null_During_Creation()
         {
             var source = @"

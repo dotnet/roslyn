@@ -489,7 +489,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
@@ -536,7 +536,7 @@ namespace NOuter
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Invalid()
         {
             const string libSource = @"

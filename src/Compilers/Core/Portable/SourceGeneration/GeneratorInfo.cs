@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorInfo
@@ -10,12 +12,15 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; }
 
+        internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; }
+
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxContextReceiverCreator? receiverCreator)
+        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback)
         {
             EditCallback = editCallback;
             SyntaxContextReceiverCreator = receiverCreator;
+            PostInitCallback = postInitCallback;
             Initialized = true;
         }
 
@@ -25,7 +30,9 @@ namespace Microsoft.CodeAnalysis
 
             internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxContextReceiverCreator);
+            internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; set; }
+
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxContextReceiverCreator, PostInitCallback);
         }
     }
 }

@@ -503,11 +503,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function CanContainUserDefinedOperators(this As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function CanContainUserDefinedOperators(this As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
 
             If this.Kind = SymbolKind.TypeParameter Then
-                For Each constraint In DirectCast(this, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                    If CanContainUserDefinedOperators(constraint, useSiteDiagnostics) Then
+                For Each constraint In DirectCast(this, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(useSiteInfo)
+                    If CanContainUserDefinedOperators(constraint, useSiteInfo) Then
                         Return True
                     End If
                 Next
@@ -562,12 +562,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, comparer As EqualityComparer(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, comparer As EqualityComparer(Of TypeSymbol), <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If comparer Is Nothing Then
                 comparer = EqualityComparer(Of TypeSymbol).Default
             End If
 
-            For Each [interface] In subType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+            For Each [interface] In subType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
                 If [interface].IsInterface AndAlso
                    comparer.Equals([interface], superInterface) Then
@@ -580,56 +580,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Sub AddUseSiteDiagnostics(
+        Public Sub AddUseSiteInfo(
             type As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
-            Dim errorInfo As DiagnosticInfo = type.GetUseSiteErrorInfo()
-
-            If errorInfo IsNot Nothing Then
-                If useSiteDiagnostics Is Nothing Then
-                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                End If
-
-                useSiteDiagnostics.Add(errorInfo)
+            If useSiteInfo.AccumulatesDiagnostics Then
+                useSiteInfo.Add(type.GetUseSiteInfo())
+            Else
+                Debug.Assert(Not useSiteInfo.AccumulatesDependencies)
             End If
         End Sub
 
         <Extension()>
         Public Sub AddUseSiteDiagnosticsForBaseDefinitions(
             source As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Dim current As TypeSymbol = source
 
             Do
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
             Loop While current IsNot Nothing
         End Sub
 
         <Extension()>
-        Public Sub AddConstraintsUseSiteDiagnostics(
+        Public Sub AddConstraintsUseSiteInfo(
             type As TypeParameterSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
-            Dim errorInfo As DiagnosticInfo = type.GetConstraintsUseSiteErrorInfo()
-
-            If errorInfo IsNot Nothing Then
-                If useSiteDiagnostics Is Nothing Then
-                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                End If
-
-                useSiteDiagnostics.Add(errorInfo)
-            End If
+            useSiteInfo.Add(type.GetConstraintsUseSiteInfo())
         End Sub
 
         <Extension()>
-        Public Function IsBaseTypeOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsBaseTypeOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim current As TypeSymbol = subType
 
             While current IsNot Nothing
                 If current IsNot subType Then
-                    current.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                    current.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
                 End If
 
                 If current.IsSameTypeIgnoringAll(superType) Then
@@ -643,33 +631,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsOrDerivedFrom(derivedType As NamedTypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsOrDerivedFrom(derivedType As NamedTypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim current = derivedType
             While current IsNot Nothing
                 If current.IsSameTypeIgnoringAll(baseType) Then
                     Return True
                 End If
 
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
             End While
 
             Return False
         End Function
 
         <Extension()>
-        Public Function IsOrDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsOrDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(Not baseType.IsInterfaceType()) ' Not checking interfaces below.
 
             While (derivedType IsNot Nothing)
                 Select Case derivedType.TypeKind
                     Case TypeKind.Array
-                        derivedType = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                        derivedType = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     Case TypeKind.TypeParameter
                         ' Use GetNonInterfaceConstraint rather than GetClassConstraint
                         ' in case the well-known type is a specific structure or enum.
-                        derivedType = DirectCast(derivedType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics)
+                        derivedType = DirectCast(derivedType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo)
                     Case Else
-                        Return DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFrom(baseType, useSiteDiagnostics)
+                        Return DirectCast(derivedType, NamedTypeSymbol).IsOrDerivedFrom(baseType, useSiteInfo)
                 End Select
             End While
 
@@ -677,8 +665,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsOrDerivedFromWellKnownClass(derivedType As TypeSymbol, wellKnownBaseType As WellKnownType, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
-            Return derivedType.IsOrDerivedFrom(compilation.GetWellKnownType(wellKnownBaseType), useSiteDiagnostics)
+        Public Function IsOrDerivedFromWellKnownClass(derivedType As TypeSymbol, wellKnownBaseType As WellKnownType, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+            Return derivedType.IsOrDerivedFrom(compilation.GetWellKnownType(wellKnownBaseType), useSiteInfo)
         End Function
 
         ''' <summary>
@@ -689,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns><c>True</c> if type can be assigned to a IEnumerable(Of <para>typeArgument</para>); otherwise <c>False</c>.</returns>
         ''' <remarks>This is not a general purpose helper.</remarks>
         <Extension()>
-        Public Function IsCompatibleWithGenericIEnumerableOfType(type As TypeSymbol, typeArgument As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsCompatibleWithGenericIEnumerableOfType(type As TypeSymbol, typeArgument As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If typeArgument.IsErrorType Then
                 Return False
             End If
@@ -713,19 +701,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
 
             ' first find all implementations of IEnumerable(Of T)
-            If Binder.IsOrInheritsFromOrImplementsInterface(type, genericIEnumerable, useSiteDiagnostics, matchingInterfaces) Then
+            If Binder.IsOrInheritsFromOrImplementsInterface(type, genericIEnumerable, useSiteInfo, matchingInterfaces) Then
                 If matchingInterfaces.Count > 0 Then
 
                     ' now check if the type argument is compatible with the given type
                     For Each matchingInterface In matchingInterfaces
                         Call Global.System.Diagnostics.Debug.Assert(matchingInterface.Arity = 1)
-                        Dim matchingTypeArgument = matchingInterface.TypeArgumentWithDefinitionUseSiteDiagnostics(0, useSiteDiagnostics)
+                        Dim matchingTypeArgument = matchingInterface.TypeArgumentWithDefinitionUseSiteDiagnostics(0, useSiteInfo)
 
                         If matchingTypeArgument.IsErrorType Then
                             Return False
                         End If
 
-                        Dim conversion = Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.ClassifyDirectCastConversion(matchingTypeArgument, typeArgument, useSiteDiagnostics)
+                        Dim conversion = Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.ClassifyDirectCastConversion(matchingTypeArgument, typeArgument, useSiteInfo)
                         If Global.Microsoft.CodeAnalysis.VisualBasic.Conversions.IsWideningConversion(conversion) Then
                             Return True
                         End If
@@ -737,17 +725,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function IsOrImplementsIEnumerableOfXElement(type As TypeSymbol, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsOrImplementsIEnumerableOfXElement(type As TypeSymbol, compilation As VisualBasicCompilation, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim xmlType = compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement)
-            Return type.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics)
+            Return type.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteInfo)
         End Function
 
         <Extension()>
-        Public Function IsBaseTypeOrInterfaceOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function IsBaseTypeOrInterfaceOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If superType.IsInterfaceType() Then
-                Return subType.ImplementsInterface(superType, EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics)
+                Return subType.ImplementsInterface(superType, EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteInfo)
             Else
-                Return superType.IsBaseTypeOf(subType, useSiteDiagnostics)
+                Return superType.IsBaseTypeOf(subType, useSiteInfo)
             End If
         End Function
 

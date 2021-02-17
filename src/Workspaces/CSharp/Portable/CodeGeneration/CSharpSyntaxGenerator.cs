@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
 
-        internal override SyntaxTrivia EndOfLine(string text)
-            => SyntaxFactory.EndOfLine(text);
-
         internal override SyntaxTrivia Whitespace(string text)
             => SyntaxFactory.Whitespace(text);
 
@@ -1967,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (this.GetDeclarationKind(existingNode))
             {
                 case DeclarationKind.Class:
-                case DeclarationKind.Record:
+                case DeclarationKind.RecordClass:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
                 case DeclarationKind.Enum:

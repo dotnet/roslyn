@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
-                typeof(EditorFeaturesWpfResources).Assembly,
-                typeof(CSharp.CSharpEditorWpfResources).Assembly);
+                typeof(EditorFeaturesWpfResources).Assembly);
 
         public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf
             .AddAssemblies(

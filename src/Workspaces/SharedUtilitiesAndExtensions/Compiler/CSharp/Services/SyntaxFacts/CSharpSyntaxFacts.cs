@@ -940,6 +940,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node?.Kind() == SyntaxKind.NamespaceDeclaration;
 
+        public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
+            => node is NamespaceDeclarationSyntax namespaceDeclaration
+            ? namespaceDeclaration.Name
+            : null;
+
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
@@ -1898,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                     return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.Record;
+                    return DeclarationKind.RecordClass;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:

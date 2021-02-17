@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// This can be read and updated from different threads.  To keep things safe, we use thsi object itself
         /// as the lock that is taken to serialize access.
         /// </summary>
-        private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData
-            = new LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)>();
+        private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
         private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
         {
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persistenceService == null)
                 return;
 
-            using var storage = persistenceService.GetStorage(solution);
+            using var storage = await persistenceService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
             if (storage == null)
                 return;
 
@@ -103,9 +102,14 @@ namespace Microsoft.CodeAnalysis.Remote
             if (classificationService == null)
                 return;
 
+            // Very intentionally do our lookup with a special document key.  This doc key stores info independent of
+            // project config.  So we can still lookup data regardless of things like if the project is in DEBUG or
+            // RELEASE mode.
+            var documentKey = SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document);
+
             // Don't need to do anything if the information we've persisted matches the checksum of this doc.
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-            var matches = await storage.ChecksumMatchesAsync(document, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
+            var matches = await storage.ChecksumMatchesAsync(documentKey, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (matches)
                 return;
 
@@ -123,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 stream.Position = 0;
-                await storage.WriteStreamAsync(document, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
+                await storage.WriteStreamAsync(documentKey, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -260,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persistenceService == null)
                 return default;
 
-            using var storage = persistenceService.GetStorage(workspace, documentKey.Project.Solution, checkBranchId: false);
+            using var storage = await persistenceService.GetStorageAsync(workspace, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
             if (storage == null)
                 return default;
 

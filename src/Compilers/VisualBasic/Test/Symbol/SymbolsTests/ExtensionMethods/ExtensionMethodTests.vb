@@ -1428,7 +1428,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)
@@ -1472,7 +1472,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)
@@ -2435,7 +2435,8 @@ End Module
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40680: The test hook is blocked by this issue.
+        <WorkItem(40680, "https://github.com/dotnet/roslyn/issues/40680")>
         Public Sub ScriptExtensionMethods()
             Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices

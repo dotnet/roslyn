@@ -16,9 +16,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCompletionHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
-            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), completionListCache: null)
+            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), new CompletionListCache())
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }
@@ -76,7 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService) : base(completionListCache: null)
+        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+            : base(completionListCache: new CompletionListCache())
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }
@@ -195,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            return LSP.RequestContext.Create(textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null);
+            return LSP.RequestContext.Create(requiresLSPSolution: true, textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null, out _);
         }
     }
 }

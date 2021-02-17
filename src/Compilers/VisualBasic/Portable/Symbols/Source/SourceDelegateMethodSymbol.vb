@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                               <Out> ByRef beginInvoke As MethodSymbol,
                                               <Out> ByRef endInvoke As MethodSymbol,
                                               <Out> ByRef invoke As MethodSymbol,
-                                              diagnostics As DiagnosticBag)
+                                              diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(TypeOf syntax Is DelegateStatementSyntax OrElse
                          TypeOf syntax Is EventStatementSyntax)
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Shared Function BindReturnType(syntax As VisualBasicSyntaxNode, binder As Binder, diagnostics As DiagnosticBag) As TypeSymbol
+        Private Shared Function BindReturnType(syntax As VisualBasicSyntaxNode, binder As Binder, diagnostics As BindingDiagnosticBag) As TypeSymbol
             If syntax.Kind = SyntaxKind.DelegateFunctionStatement Then
                 Dim delegateSyntax = DirectCast(syntax, DelegateStatementSyntax)
 
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     syntax As VisualBasicSyntaxNode,
                     binder As Binder,
                     parameterListOpt As ParameterListSyntax,
-                    diagnostics As DiagnosticBag)
+                    diagnostics As BindingDiagnosticBag)
 
                 MyBase.New(delegateType,
                            syntax,
