@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.9.6-alpha" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="16.8.30705.32" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="16.8.30705.32" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.1.DesignTime" Version="16.8.30705.32" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.6.DesignTime" Version="16.8.30705.32" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="2.7.100" PrivateAssets="all" />
   </ItemGroup>
