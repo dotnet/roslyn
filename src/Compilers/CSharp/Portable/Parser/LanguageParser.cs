@@ -1677,7 +1677,7 @@ tryAgain:
             SyntaxToken? eatRecordModifierIfAvailable()
             {
                 Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
-                if (CurrentToken is { Kind: SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword })
+                if (CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
                 {
                     var result = EatToken();
                     result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
