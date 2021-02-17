@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                // Now, remove any unnecesarry imports taht were in the document we generated.  We do this last, after
+                // Now, remove any unnecesarry imports that were in the document we generated.  We do this last, after
                 // we remove the type from the original file, so that this isn't blocked by the introduction of errors
                 // caused by the type being declared in two files at the same time.
                 documentWithMovedType = solutionWithBothDocumentsUpdated.GetDocument(documentWithMovedType.Id);
