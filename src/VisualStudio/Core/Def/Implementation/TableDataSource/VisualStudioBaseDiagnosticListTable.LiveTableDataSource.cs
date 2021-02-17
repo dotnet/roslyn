@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     ImmutableArray<DiagnosticData> diagnostics;
                     if (_id is ILoadedFromCache)
                     {
-                        _source._diagnosticCacheService!.TryGetLoadedCachedDiagnostics(_documentId!, out diagnostics);
+                        _source._diagnosticCacheService!.TryGetLoadedCachedDiagnostics(_documentId!, out _, out diagnostics);
                         diagnostics = diagnostics.NullToEmpty();
                     }
                     else
@@ -307,6 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             .AsTask()
                             .WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
                     }
+
                     var provider = _source._diagnosticService;
                     var items = diagnostics.Where(ShouldInclude)
                         .Select(data => DiagnosticTableItem.Create(_workspace, data));

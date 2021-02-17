@@ -62,8 +62,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                 return;
             }
 
+            if (TryGetLoadedCachedDiagnostics(document.Id, out _, out _))
+            {
+                // cached diagnostics already loaded and pushed for this document.
+                return;
+            }
+
             var cachedDiagnostics = await GetCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
-            if (!cachedDiagnostics.IsDefaultOrEmpty)
+            if (cachedDiagnostics.IsDefault)
+            {
+                Log("LoadCachedDiagnostics", "Failed");
+            }
+            else if (!cachedDiagnostics.IsEmpty)
             {
                 TryUpdateDiagnosticsLoadedFromCache(document, cachedDiagnostics);
             }
@@ -81,13 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            if (TryGetLoadedCachedDiagnostics(document.Id, out var locallyCachedDiagnostics))
-            {
-                return locallyCachedDiagnostics;
-            }
-
             var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

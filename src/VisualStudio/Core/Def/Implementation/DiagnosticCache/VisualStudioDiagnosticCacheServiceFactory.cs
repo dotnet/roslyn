@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -70,8 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             public Task LoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public bool TryGetLoadedCachedDiagnostics(DocumentId documentId, out ImmutableArray<DiagnosticData> cachedDiagnostics)
+            public bool TryGetLoadedCachedDiagnostics(DocumentId documentId, [NotNullWhen(true)] out object? id, out ImmutableArray<DiagnosticData> cachedDiagnostics)
             {
+                id = null;
                 cachedDiagnostics = default;
                 return false;
             }

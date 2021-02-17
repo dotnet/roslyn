@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         Task LoadCachedDiagnosticsAsync(Document document, CancellationToken cancellationToken);
 
-        bool TryGetLoadedCachedDiagnostics(DocumentId documentId, out ImmutableArray<DiagnosticData> cachedDiagnostics);
+        bool TryGetLoadedCachedDiagnostics(DocumentId documentId, [NotNullWhen(true)] out object? id, out ImmutableArray<DiagnosticData> cachedDiagnostics);
     }
 
     internal interface ILoadedFromCache : ISupportLiveUpdate

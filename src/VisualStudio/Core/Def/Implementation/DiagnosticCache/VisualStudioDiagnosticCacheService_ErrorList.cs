@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -57,7 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                         if (_diagnosticService is DiagnosticService s)
                         {
 #pragma warning disable RS0043 // Do not call 'GetTestAccessor()'
+
+                            // TODO: How to ensure error list is up and running before the cache service start pushing updates to it?
                             s.GetTestAccessor().EventListenerTracker.EnsureEventListener(_workspace, s);
+
 #pragma warning restore RS0043 // Do not call 'GetTestAccessor()'
                         }
                         CachedDiagnosticsUpdated?.Invoke(this, eventArg);
@@ -68,19 +72,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             }
         }
 
-        public bool TryGetLoadedCachedDiagnostics(DocumentId documentId, out ImmutableArray<DiagnosticData> cachedDiagnostics)
+        public bool TryGetLoadedCachedDiagnostics(DocumentId documentId, [NotNullWhen(true)] out object? id, out ImmutableArray<DiagnosticData> cachedDiagnostics)
         {
             lock (_gate)
             {
                 if (_requestedDocuments.TryGetValue(documentId, out var createdArgs))
                 {
+                    id = createdArgs.Id;
                     cachedDiagnostics = createdArgs.GetPushDiagnostics(createdArgs.Workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     return true;
                 }
-
-                cachedDiagnostics = default;
-                return false;
             }
+
+            id = null;
+            cachedDiagnostics = default;
+            return false;
         }
 
         private bool OnLiveAnalysisStarted(Document document)

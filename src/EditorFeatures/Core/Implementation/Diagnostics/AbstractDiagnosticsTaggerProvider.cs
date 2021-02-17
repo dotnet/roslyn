@@ -147,15 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var cancellationToken = context.CancellationToken;
             var workspace = document.Project.Solution.Workspace;
 
-            var diagnosticCacheService = workspace.Services.GetService<IDiagnosticCacheService>();
-            if (diagnosticCacheService != null)
-            {
-                // During solution load. if there's any cached diagnostics available,
-                // this service will push updates via CachedDiagnosticsUpdated event.
-                // Fire and forget.
-                _ = diagnosticCacheService.LoadCachedDiagnosticsAsync(document, cancellationToken);
-            }
-
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature
             // is generating code that it doesn't want errors shown for.
@@ -163,24 +154,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
+            var diagnosticCacheService = workspace.Services.GetService<IDiagnosticCacheService>();
+            if (diagnosticCacheService != null)
+            {
+                // During solution load. if there's any cached diagnostics available,
+                // this service will push updates via CachedDiagnosticsUpdated event.
+                await diagnosticCacheService.LoadCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+
+                if (diagnosticCacheService.TryGetLoadedCachedDiagnostics(document.Id, out var cachedId, out var cachedDiagnostics))
+                {
+                    ProduceTags(cachedId, cachedDiagnostics, context, spanToTag, workspace, suppressedDiagnosticsSpans);
+                }
+            }
+
             var buckets = _diagnosticService.GetPushDiagnosticBuckets(
                 workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken);
 
             foreach (var bucket in buckets)
-            {
-                await ProduceTagsAsync(
-                    context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task ProduceTagsAsync(
-            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
-            Workspace workspace, Document document,
-            NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
-            DiagnosticBucket bucket, CancellationToken cancellationToken)
-        {
-            try
             {
                 var id = bucket.Id;
                 var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
@@ -189,6 +179,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
                     cancellationToken).ConfigureAwait(false);
 
+                ProduceTags(id, diagnostics, context, spanToTag, workspace, suppressedDiagnosticsSpans);
+            }
+        }
+
+        private void ProduceTags(
+            object id, ImmutableArray<DiagnosticData> diagnostics,
+            TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
+            Workspace workspace, NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans)
+        {
+            try
+            {
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
                 var requestedSpan = spanToTag.SnapshotSpan;
