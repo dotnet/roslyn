@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
             }
         }
-#nullable restore
+#nullable disable
 
         internal SyntaxReference SyntaxRef
         {
@@ -449,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
         }
-#nullable restore
+#nullable disable
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
@@ -960,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
             }
         }
-#nullable restore
+#nullable disable
 
         internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {

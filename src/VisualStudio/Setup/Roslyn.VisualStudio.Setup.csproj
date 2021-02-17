@@ -196,12 +196,6 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj">
-      <Name>SolutionExplorerShim</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj">
       <Name>CSharpVisualStudio</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>

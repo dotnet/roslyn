@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -111,9 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         InEEMethodBinder = 1 << 30,
 
         /// <summary>
-        /// Assume '#nullable disable' context.
+        /// Skip binding type arguments (we use <see cref="Symbols.PlaceholderTypeArgumentSymbol"/> instead).
+        /// For example, currently used when type constraints are bound in some scenarios.
         /// </summary>
-        IgnoreNullableContext = 1u << 31,
+        SuppressTypeArgumentBinding = 1u << 31,
 
         // Groups
 

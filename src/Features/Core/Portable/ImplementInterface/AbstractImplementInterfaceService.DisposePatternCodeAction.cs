@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             ImmutableArray.Create("disposed", "value");
 
         // C#: `Dispose(bool disposed)`.  VB: `Dispose(disposed As Boolean)`
-        private static readonly SymbolDisplayFormat s_format = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_format = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
             parameterOptions: SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);

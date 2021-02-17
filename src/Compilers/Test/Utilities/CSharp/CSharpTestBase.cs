@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +19,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1088,9 +1091,13 @@ namespace System.Runtime.CompilerServices
             bool skipUsesIsNullable,
             MessageID? experimentalFeature)
         {
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
+
             if (options == null)
             {
-                options = TestOptions.ReleaseDll;
+                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
+
+                options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
             }
 
             // Using single-threaded build if debugger attached, to simplify debugging.
@@ -1106,7 +1113,7 @@ namespace System.Runtime.CompilerServices
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
-                source.GetSyntaxTrees(parseOptions, sourceFileName),
+                syntaxTrees,
                 references,
                 options);
             CompilationExtensions.ValidateIOperations(createCompilationLambda);
@@ -1694,18 +1701,29 @@ namespace System.Runtime.CompilerServices
 
             public override string VisualizeSymbol(uint token, OperandType operandType)
             {
-                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
+                Symbol reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
                 return string.Format("\"{0}\"", (reference is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
             }
 
             public override string VisualizeLocalType(object type)
             {
+                Symbol symbol;
+
                 if (type is int)
                 {
-                    type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
+                    symbol = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
+                }
+                else
+                {
+                    symbol = type as Symbol;
+
+                    if (symbol is null)
+                    {
+                        symbol = (type as Cci.IReference)?.GetInternalSymbol() as Symbol;
+                    }
                 }
 
-                return (type is Symbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+                return symbol?.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) ?? type.ToString();
             }
         }
 

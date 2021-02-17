@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

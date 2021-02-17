@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -259,6 +261,8 @@ class X
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
+                        case ErrorCode.WRN_DoNotCompareFunctionPointers:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -413,6 +417,8 @@ class X
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                     ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
+                    ErrorCode.WRN_DoNotCompareFunctionPointers,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

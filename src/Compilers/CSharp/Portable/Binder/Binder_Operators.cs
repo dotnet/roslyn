@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -562,6 +564,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LessThanOrEqualExpression:
                 case SyntaxKind.GreaterThanExpression:
                 case SyntaxKind.GreaterThanOrEqualExpression:
+                    // Function pointer comparisons are defined on `void*` with implicit conversions to `void*` on both sides. So if this is a
+                    // pointer comparison operation, and the underlying types of the left and right are both function pointers, then we need to
+                    // warn about them because of JIT recompilation. If either side is explicitly cast to void*, that side's type will be void*,
+                    // not delegate*, and we won't warn.
+                    if ((resultOperatorKind & BinaryOperatorKind.Pointer) == BinaryOperatorKind.Pointer &&
+                        leftType?.TypeKind == TypeKind.FunctionPointer && rightType?.TypeKind == TypeKind.FunctionPointer)
+                    {
+                        // Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
+                        Error(diagnostics, ErrorCode.WRN_DoNotCompareFunctionPointers, node.OperatorToken);
+                    }
+
                     break;
                 default:
                     if (leftType.IsVoidPointer() || rightType.IsVoidPointer())
@@ -1204,8 +1217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
             // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
 
-            if (left.IsTypelessNew() ||
-                right.IsTypelessNew())
+            if (left.IsImplicitObjectCreation() ||
+                right.IsImplicitObjectCreation())
             {
                 return false;
             }
@@ -2021,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-#nullable restore
+#nullable disable
 
         private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
@@ -2431,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsTypelessNew();
+            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2765,7 +2778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindValueKind.RValue;
             }
         }
-#nullable restore
+#nullable disable
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {
@@ -3904,23 +3917,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return isRef ? BindRefConditionalOperator(node, whenTrue, whenFalse, diagnostics) : BindValueConditionalOperator(node, whenTrue, whenFalse, diagnostics);
         }
 
+#nullable enable
         private BoundExpression BindValueConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)
         {
-            ErrorCode noCommonTypeError = 0;
-
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
             BoundExpression trueExpr = BindValue(whenTrue, diagnostics, BindValueKind.RValue);
             BoundExpression falseExpr = BindValue(whenFalse, diagnostics, BindValueKind.RValue);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol type = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            ConstantValue? constantValue = null;
+            TypeSymbol? bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
-            if (type is null)
-                noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
 
-            var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
-            bool hasErrors = type?.IsErrorType() == true || constantValue?.IsBad == true;
-            return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, type, hasErrors);
+            if (bestType is null)
+            {
+                ErrorCode noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
+                constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+                return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, type: null, hasErrors: constantValue?.IsBad == true);
+            }
+
+            TypeSymbol type;
+            bool hasErrors;
+            if (bestType.IsErrorType())
+            {
+                trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
+                falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
+                type = bestType;
+                hasErrors = true;
+            }
+            else
+            {
+                trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+                hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
+                // If one of the conversions went wrong (e.g. return type of method group being converted
+                // didn't match), then we don't want to use bestType because it's not accurate.
+                type = hasErrors ? CreateErrorType() : bestType;
+            }
+
+            if (!hasErrors)
+            {
+                constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
+                hasErrors = constantValue != null && constantValue.IsBad;
+            }
+
+            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: type, wasTargetTyped: false, type, hasErrors);
         }
+#nullable disable
 
         private BoundExpression BindRefConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)
         {

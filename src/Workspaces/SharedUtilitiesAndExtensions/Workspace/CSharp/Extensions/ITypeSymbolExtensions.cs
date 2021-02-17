@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ExpressionSyntax GenerateExpressionSyntax(
             this ITypeSymbol typeSymbol)
         {
-            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
+            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance)!.WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public static NameSyntax GenerateNameSyntax(
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
+            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
                                .WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

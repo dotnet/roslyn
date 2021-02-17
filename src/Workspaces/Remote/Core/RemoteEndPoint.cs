@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,9 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _logger = logger;
 
             var jsonFormatter = new JsonMessageFormatter();
-
-            // disable interpreting of strings as DateTime during deserialization:
-            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
 
             if (jsonConverters != null)
             {
@@ -194,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), cancellationToken);
 
                 // if invoke throws an exception, make sure we raise cancellation.
-                RaiseCancellationIfInvokeFailed(task, readerCancellationSource);
+                readerCancellationSource.CancelOnAbnormalCompletion(task);
 
                 var task2 = Task.Run(async () =>
                 {
@@ -313,26 +308,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource linkedCancellationSource)
-        {
-            // if invoke throws an exception, make sure we raise cancellation
-            _ = task.ContinueWith(p =>
-            {
-                try
-                {
-                    // now, we allow user to kill OOP process, when that happen, 
-                    // just raise cancellation. 
-                    // otherwise, stream.WaitForDirectConnectionAsync can stuck there forever since
-                    // cancellation from user won't be raised
-                    linkedCancellationSource.Cancel();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // merged cancellation is already disposed
-                }
-            }, CancellationToken.None, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-        }
-
         private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
         {
             // check whether we are in cancellation mode
@@ -373,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private static void ReportNonFatalWatson(Exception exception)
         {
-            FatalError.ReportWithoutCrash(exception);
+            FatalError.ReportAndCatch(exception);
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)

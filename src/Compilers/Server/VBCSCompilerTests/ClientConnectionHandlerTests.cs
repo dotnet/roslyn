@@ -17,9 +17,6 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class ClientConnectionHandlerTests

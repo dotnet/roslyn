@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -34,18 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array,
-            //       re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
+            //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             var rewrittenArguments = VisitList(node.Arguments);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
+            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
             ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             rewrittenArguments = MakeArguments(
                 node.Syntax,
                 rewrittenArguments,
-                node.Constructor,
                 node.Constructor,
                 node.Expanded,
                 node.ArgsToParamsOpt,
@@ -175,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (dynamicSiteCount > 0)
             {
-                sideEffects.AddRange(dynamicSiteInitializers);
+                sideEffects.AddRange(dynamicSiteInitializers!);
                 dynamicSiteInitializers!.Free();
             }
 
@@ -248,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: typeParameter);
 
             return createInstanceCall;

@@ -102,6 +102,11 @@
         <target state="translated">Nie można użyć kolekcji typu dynamicznego w asynchronicznej instrukcji foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">Typ „{0}” nie może być używany dla pola rekordu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="translated">Wskaźnik funkcji „{0}” nie przyjmuje argumentów {1}</target>
@@ -287,6 +292,11 @@
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">Element „{0}” znajduje się już na liście interfejsów typu „{2}” jako „{1}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Zduplikowany operator pomijania wartości null („!”)</target>
@@ -306,6 +316,11 @@
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Punkty wejścia aplikacji nie mogą mieć atrybutu „UnmanagedCallersOnly”.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">Właściwość kontraktu równości rekordu „{0}” musi mieć metodę dostępu get.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
@@ -412,6 +427,11 @@
         <target state="translated">Niezgodność odwołań między metodą „{0}” a wskaźnikiem funkcji „{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">Nie można wywołać wskaźnika funkcji przy użyciu argumentów nazwanych.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Instrukcja goto nie może przechodzić do lokalizacji występującej przed deklaracją using w tym samym bloku.</target>
@@ -430,6 +450,21 @@
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
         <target state="translated">W wywołaniu niejawnego indeksatora indeksu nie może być nazwy argumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">Typu „{0}” nie można używać jako typu docelowego wyrażenia new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">Brak typu docelowego dla elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">Użycie wyrażenia new() jest nieprawidłowe w tym kontekście</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -742,6 +777,11 @@
         <target state="translated">„{0}”: modyfikatora „readonly” można użyć dla metod dostępu tylko wtedy, gdy właściwość lub indeksator mają metody dostępu get i set</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">Konstruktor podstawowy powoduje konflikt z konstruktorem syntetyzowanej kopii.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Nie można przypisać odwołania elementu „{1}” do elementu „{0}”, ponieważ element „{1}” ma węższy zakres wyjścia niż element „{0}”.</target>
@@ -907,19 +947,39 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">zwroty kowariantne</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">odrzucenia</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">tworzenie obiektu z typem docelowym</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">Zestaw „{0}” zawierający typ „{1}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">Załadowany zestaw odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">Porównanie wskaźników funkcji może zwrócić nieoczekiwany wynik, ponieważ wskaźniki do tej samej funkcji mogą być różne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">Nie porównuj wartości wskaźników funkcji</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -980,21 +1040,6 @@
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="translated">Typ „{0}” nie został zdefiniowany.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">Typu „{0}” nie można używać jako typu docelowego wyrażenia new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">Brak typu docelowego dla elementu „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">Użycie wyrażenia new() jest nieprawidłowe w tym kontekście</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -1144,7 +1189,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1422,9 +1467,9 @@
         <target state="translated">przypisanie łączące</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="translated">zwroty kowariantne</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">interpolowane ciągi stałych</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -1635,11 +1680,6 @@
       <trans-unit id="IDS_FeatureTargetTypedConditional">
         <source>target-typed conditional expression</source>
         <target state="translated">wyrażenie warunkowe o typie docelowym</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">tworzenie obiektu z typem docelowym</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -2869,6 +2909,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="translated">Pole niedopuszczające wartości null musi zawierać wartość inną niż null podczas kończenia działania konstruktora. Rozważ zadeklarowanie pola jako dopuszczającego wartość null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Parametr „{0}” nie został odczytany. Czy zapomniano użyć go do zainicjowania właściwości o tej nazwie?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Parametr nie został odczytany. Czy zapomniano użyć go do zainicjowania właściwości o tej nazwie?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4117,8 +4167,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Modyfikator „partial” może się pojawić tylko bezpośrednio przed typem „class”, „record” „struct”, „interface” lub „void”</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">Modyfikator „partial” może pojawić się tylko bezpośrednio przed słowem kluczowym „class”, „record” „struct”, „interface” lub zwracanym typem metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

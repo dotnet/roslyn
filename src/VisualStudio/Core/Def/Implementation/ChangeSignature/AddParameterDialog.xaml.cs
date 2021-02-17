@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
@@ -71,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

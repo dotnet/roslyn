@@ -3,7 +3,7 @@ Default Interface Implementation
 
 The *Default Interface Implementation* feature enables a default implementation of an interface member to be provided as part of the interface declaration. 
 
-Here is a link to the proposal https://github.com/dotnet/csharplang/blob/master/proposals/default-interface-methods.md. 
+Here is a link to the proposal https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/default-interface-methods.md. 
 
 **What is supported:**
 - Supplying an implementation along with declaration of a regular interface method and recognizing that implementation as default implementation for the method when a type implements the interface. 
@@ -134,7 +134,7 @@ II.10.4 Method implementat ion requirements
 II.12 Semantics of interfaces
 Interfaces can have static fields and methods, but they shall not have instance fields or 
 methods. Interfaces can define virtual methods, but only if those methods are abstract 
-(see Partition I and §II.15.4.2.4).
+(see Partition I and Â§II.15.4.2.4).
 II.12.2 Implement ing virtual methods on interfaces
 If the class defines any public virtual methods whose name and signature
 match a virtual method on the interface, then add these to the list for that
@@ -149,7 +149,7 @@ It follows that instance methods shall only be defined in classes or value types
 but not in interfaces or outside of a type (i.e., globally).
 II.22.27 MethodImpl : 0x19
 The method indexed by MethodBody shall be a member of Class or some base class
-of Class (MethodImpls do not allow compilers to ‘hook’ arbitrary method bodies)
+of Class (MethodImpls do not allow compilers to â€˜hookâ€™ arbitrary method bodies)
 II.22.37 TypeDef : 0x02
 All of the methods owned by an Interface (Flags.Interface = 1) shall be abstract
 (Flags.Abstract = 1)

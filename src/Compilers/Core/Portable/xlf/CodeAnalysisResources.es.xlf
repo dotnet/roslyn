@@ -17,6 +17,11 @@
         <target state="translated">El ensamblado que contiene el tipo "{0}" hace referencia a .NET Framework, lo cual no se admite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">Los cambios deben estar dentro de los límites de SourceText.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">No se permite cambiar la versión de una referencia de ensamblado durante la depuración: "{0}" cambió la versión a "{1}".</target>

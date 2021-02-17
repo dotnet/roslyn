@@ -144,22 +144,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Indicates if the property can be written into, which means this 
         ''' property has a setter or it is a getter only autoproperty accessed 
-        ''' in a corresponding constructor or initializer
+        ''' in a corresponding constructor or initializer.
+        ''' If the setter is init-only, we also check that it is accessed in a constructor
+        ''' on Me/MyBase/MyClass or is a target of a member initializer in an object member
+        ''' initializer.
         ''' </summary>
-        Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
-            If Me.HasSet Then
-                Return True
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInintializer As Boolean) As Boolean
+            Debug.Assert(containingBinder IsNot Nothing)
+
+            Dim mostDerivedSet As MethodSymbol = Me.GetMostDerivedSetMethod()
+
+            If mostDerivedSet IsNot Nothing Then
+                If Not mostDerivedSet.IsInitOnly Then
+                    Return True
+                End If
+
+                If receiverOpt Is Nothing Then
+                    Return False
+                End If
+
+                ' ok: New C() With { .InitOnlyProperty = ... }
+                If isKnownTargetOfObjectMemberInintializer Then
+                    Debug.Assert(receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder)
+                    Return True
+                End If
+
+                ' ok: setting on `Me`/`MyBase`/`MyClass` from an instance constructor
+                Dim containingMember As Symbol = containingBinder.ContainingMember
+                If If(TryCast(containingMember, MethodSymbol)?.MethodKind <> MethodKind.Constructor, True) Then
+                    Return False
+                End If
+
+                If receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse receiverOpt.Kind = BoundKind.WithRValueExpressionPlaceholder Then
+                    ' This can be a reference used as a target for a `With` statement
+                    Dim currentBinder As Binder = containingBinder
+
+                    While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
+                        Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
+                        If withBlockBinder IsNot Nothing Then
+                            If withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt Then
+                                receiverOpt = withBlockBinder.Info.OriginalExpression
+                            End If
+
+                            Exit While
+                        End If
+
+                        currentBinder = currentBinder.ContainingBinder
+                    End While
+                End If
+
+                Do
+                    Select Case receiverOpt.Kind
+                        Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
+                            Return True
+                        Case BoundKind.Parenthesized
+                            receiverOpt = DirectCast(receiverOpt, BoundParenthesized).Expression
+                        Case Else
+                            Return False
+                    End Select
+                Loop
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)
             Dim propertyIsStatic As Boolean = Me.IsShared
             Dim fromMember = containingBinder.ContainingMember
 
-            Return sourceProperty IsNot Nothing AndAlso
+            Return sourceProperty IsNot Nothing AndAlso fromMember IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
                 TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
-                (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
+                (propertyIsStatic OrElse (receiverOpt IsNot Nothing AndAlso receiverOpt.Kind = BoundKind.MeReference)) AndAlso
                 ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
                         TypeOf containingBinder Is DeclarationInitializerBinder)
 

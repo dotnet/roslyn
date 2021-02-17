@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         // Guard the snippets and snippetShortcut fields so that returned result sets are always
         // complete.
-        protected object cacheGuard = new object();
+        protected object cacheGuard = new();
 
         private readonly IAsynchronousOperationListener _waiter;
         private readonly IThreadingContext _threadingContext;

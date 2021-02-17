@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -18,18 +16,21 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ExportLspMethod(MSLSPMethods.ProjectContextsName, mutatesSolutionState: false)]
+    internal class GetTextDocumentWithContextHandler : IRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GetTextDocumentWithContextHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public GetTextDocumentWithContextHandler()
         {
         }
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+
+        public Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var documents = SolutionProvider.GetDocuments(request.TextDocument.Uri, context.ClientName);
+            // We specifically don't use context.Document here because we want multiple
+            var documents = context.Solution.GetDocuments(request.TextDocument.Uri, context.ClientName);
 
             if (!documents.Any())
             {

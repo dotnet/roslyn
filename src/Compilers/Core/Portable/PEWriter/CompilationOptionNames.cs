@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.Cci
 {
     /// <summary>
@@ -13,6 +15,7 @@ namespace Microsoft.Cci
     /// </remarks>
     internal static class CompilationOptionNames
     {
+        public const string CompilationOptionsVersion = "version";
         public const string CompilerVersion = "compiler-version";
         public const string FallbackEncoding = "fallback-encoding";
         public const string DefaultEncoding = "default-encoding";
@@ -26,5 +29,6 @@ namespace Microsoft.Cci
         public const string Nullable = "nullable";
         public const string Define = "define";
         public const string Strict = "strict";
+        public const string SourceFileCount = "source-file-count";
     }
 }

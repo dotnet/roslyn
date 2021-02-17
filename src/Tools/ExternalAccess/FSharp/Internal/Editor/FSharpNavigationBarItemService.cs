@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Composition;
@@ -46,9 +48,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetService<IFSharpDocumentNavigationService>();
 
-                if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start))
+                if (navigationService.CanNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, cancellationToken))
                 {
-                    navigationService.TryNavigateToPosition(workspace, document.Id, span.Start);
+                    navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken);
                 }
                 else
                 {

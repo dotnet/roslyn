@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
 
-        private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new ReferenceCountedDisposableCache<string, RuleSetFile>();
+        private readonly ReferenceCountedDisposableCache<string, RuleSetFile> _ruleSetFileMap = new();
 
         public VisualStudioRuleSetManager(
             FileChangeWatcher fileChangeWatcher, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath)
         {
-            var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, _ => new RuleSetFile(ruleSetFileFullPath, this));
+            var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, static (ruleSetFileFullPath, self) => new RuleSetFile(ruleSetFileFullPath, self), this);
 
             // Call InitializeFileTracking outside the lock inside ReferenceCountedDisposableCache, so we don't have requests
             // for other files blocking behind the initialization of this one. RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
+                   EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

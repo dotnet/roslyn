@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -751,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // CONSIDER: we might want to reuse this method symbol (as long as the MethodKind and Vararg-ness match).
                             signatureMember = new SignatureOnlyMethodSymbol(
                                 methodKind: candidateMethodKind,
-                                typeParameters: IndexedTypeParameterSymbol.Take(signatureMemberArity),
+                                typeParameters: IndexedTypeParameterSymbol.TakeSymbols(signatureMemberArity),
                                 parameters: parameterSymbols,
                                 // This specific comparer only looks for varargs.
                                 callingConvention: candidateMethodIsVararg ? Microsoft.Cci.CallingConvention.ExtraArguments : Microsoft.Cci.CallingConvention.HasThis,

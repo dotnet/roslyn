@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3652,6 +3653,9 @@ public class Vec
                 // (8,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is 3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is 3").WithLocation(8, 13),
+                // (8,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is 3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(8, 25),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
@@ -3664,6 +3668,9 @@ public class Vec
                 // (12,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (delegate {} is var x3) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate {} is var x3").WithLocation(12, 13),
+                // (12,25): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         if (delegate {} is var x3) {}
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(12, 25),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
@@ -6401,7 +6408,7 @@ class Program
         }
 
         [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
-        public void TestNullInInPattern()
+        public void TestNullInIsPattern()
         {
             var source =
 @"using System;

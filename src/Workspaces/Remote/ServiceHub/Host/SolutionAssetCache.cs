@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
@@ -154,15 +152,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var current = DateTime.UtcNow;
             using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
             {
-                foreach (var kvp in _assets.ToArray())
+                foreach (var (checksum, entry) in _assets.ToArray())
                 {
-                    if (current - kvp.Value.LastAccessed <= _purgeAfterTimeSpan)
-                    {
+                    if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
                         continue;
-                    }
 
                     // If it fails, we'll just leave it in the asset pool.
-                    _assets.TryRemove(kvp.Key, out var _);
+                    _assets.TryRemove(checksum, out var _);
                 }
             }
         }

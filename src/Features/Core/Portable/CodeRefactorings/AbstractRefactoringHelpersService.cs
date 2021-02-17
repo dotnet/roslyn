@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -348,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // `var a = b;` | `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
-                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent!;
 
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
@@ -503,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return;
                     }
                 }
+
                 ancestor = ancestor.Parent;
             }
         }

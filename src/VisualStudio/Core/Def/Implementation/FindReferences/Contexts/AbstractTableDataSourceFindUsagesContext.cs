@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             private ITableDataSink _tableDataSink;
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
-            protected readonly object Gate = new object();
+            protected readonly object Gate = new();
 
             #region Fields that should be locked by _gate
 
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// and then always return that for all future references found.
             /// </summary>
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
+                new();
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
 
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // VS actually responds to each SetProgess call by queuing a UI task to do the
@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (guid, projectName, sourceText);
             }
 
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
@@ -340,8 +340,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                    this,
+                    definitionBucket,
+                    spanKind,
+                    projectName,
+                    guid,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
             private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
@@ -449,7 +457,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

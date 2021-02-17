@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol methodSymbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static bool IsGetAwaiterMethod(IMethodSymbol methodSymbol)
             => methodSymbol.Name == WellKnownMemberNames.GetAwaiter;
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,

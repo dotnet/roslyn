@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     internal sealed class CompilationOutputFilesWithImplicitPdbPath : CompilationOutputs
     {
-        public string AssemblyFilePath { get; }
+        public string? AssemblyFilePath { get; }
 
-        public CompilationOutputFilesWithImplicitPdbPath(string assemblyFilePath = null)
+        public CompilationOutputFilesWithImplicitPdbPath(string? assemblyFilePath = null)
         {
             if (assemblyFilePath != null)
             {
@@ -29,19 +29,19 @@ namespace Microsoft.CodeAnalysis.Emit
             AssemblyFilePath = assemblyFilePath;
         }
 
-        public override string AssemblyDisplayPath => AssemblyFilePath;
+        public override string? AssemblyDisplayPath => AssemblyFilePath;
 
         // heuristic for error messages (determining the actual path requires opening the assembly):
         public override string PdbDisplayPath => Path.GetFileNameWithoutExtension(AssemblyFilePath) + ".pdb";
 
-        protected override Stream OpenAssemblyStream()
+        protected override Stream? OpenAssemblyStream()
             => TryOpenFileStream(AssemblyFilePath);
 
         // Not gonna be called since we override OpenPdb.
         protected override Stream OpenPdbStream()
             => throw ExceptionUtilities.Unreachable;
 
-        public override DebugInformationReaderProvider OpenPdb()
+        public override DebugInformationReaderProvider? OpenPdb()
         {
             var assemblyStream = OpenAssemblyStream();
             if (assemblyStream == null)
@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Emit
             // First try to use the full path as specified in the PDB, then look next to the assembly.
             var pdbStream =
                 TryOpenFileStream(pdbPath) ??
-                TryOpenFileStream(Path.Combine(Path.GetDirectoryName(AssemblyFilePath), PathUtilities.GetFileName(pdbPath)));
+                TryOpenFileStream(Path.Combine(Path.GetDirectoryName(AssemblyFilePath)!, PathUtilities.GetFileName(pdbPath)));
 
             return (pdbStream != null) ? DebugInformationReaderProvider.CreateFromStream(pdbStream) : null;
         }
 
-        private static Stream TryOpenFileStream(string path)
+        private static Stream? TryOpenFileStream(string? path)
         {
             if (path == null)
             {
@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             }
-            catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+            catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
             {
                 return null;
             }
-            catch (Exception e) when (!(e is IOException))
+            catch (Exception e) when (e is not IOException)
             {
                 throw new IOException(e.Message, e);
             }

@@ -245,6 +245,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">LINQ (呼び出し形式) へ変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">レコードへの変換</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">構造体に変換</target>
@@ -273,31 +278,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">残りをプロパティとして作成して割り当てる</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">System.IDisposable を実装する型は、IDisposable も実装する型のフィールドを宣言します。フィールドの Dispose メソッドは、宣言する型の Dispose メソッドによって呼び出されません。フィールドが保持する管理されていないリソースの割り当てと解放を自分が担当している場合、このルールの違反を修正するには、IDisposable を実装する型のフィールドに Dispose を呼び出します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">破棄可能なフィールド '{0}' が破棄されることはありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">破棄可能なフィールドは破棄しなければなりません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">'{0}' が作成した破棄可能なオブジェクトが破棄されることはありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">スコープを失う前にオブジェクトを破棄</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -333,6 +313,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="translated">CodeFixProvider のインスタンスの作成でエラーが発生しました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="translated">CodeFixProvider '{0}' のインスタンスの作成でエラーが発生しました</target>
         <note />
       </trans-unit>
       <trans-unit id="Example">
@@ -613,7 +603,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
         <target state="translated">'{0}' の本体を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}</target>
-        <note />
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
@@ -643,12 +633,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
         <target state="translated">ソース ファイル '{0}' を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}</target>
-        <note />
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">入れ子になった量指定子 {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
+      </trans-unit>
+      <trans-unit id="No_valid_location_to_insert_method_call">
+        <source>No valid location to insert method call.</source>
+        <target state="translated">メソッド呼び出しを挿入する有効な場所がありません。</target>
+        <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
@@ -1825,6 +1820,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="translated">ドキュメントの削除はサポートされていません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
         <target state="translated">'async' 修飾子を削除してください</target>
@@ -1882,7 +1882,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1985,11 +1985,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">アクティブ ステートメントの前後の '{0}' を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">推奨される破棄パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成を折り返します。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">ラムダ式にブロック本体を使用する</target>
@@ -2004,16 +1999,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Use interpolated verbatim string</source>
         <target state="translated">挿入された逐語的文字列を使用します</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">推奨される破棄パターンを使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">推奨された破棄パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2086,13 +2071,18 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">'{0}' を null または空にすることはできません</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="translated">'{0}' を NULL または空にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">'{0}' を null または空白にすることはできません</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="translated">'{0}' を null または空白にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2465,6 +2455,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">ジェネリック オーバーロード</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="translated">{0} 内 ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">

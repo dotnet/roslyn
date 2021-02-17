@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("21");
 
         public readonly Checksum Checksum;
 
-        private static async Task<SyntaxTreeIndex> LoadAsync(
+        private static async Task<SyntaxTreeIndex?> LoadAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             try
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             try
             {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             // check whether we already have info for this document
             try
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo.WriteTo(writer);
         }
 
-        private static SyntaxTreeIndex ReadFrom(
+        private static SyntaxTreeIndex? ReadFrom(
             StringTable stringTable, ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);

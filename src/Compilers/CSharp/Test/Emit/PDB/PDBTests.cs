@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -4639,6 +4641,7 @@ public class Derived : Base
         #region Field and Property Initializers
 
         [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializers()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -4681,10 +4684,27 @@ public partial class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.Pdb);
+
+            compilation.VerifyPdb("C..ctor", @"
+<symbols>
+  <files>
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""B4-EA-18-73-D2-0E-7F-15-51-4C-68-86-40-DF-E3-C3-97-9D-F6-B7"" />
+    <file id=""2"" name=""b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""BB-7A-A6-D2-B2-32-59-43-8C-98-7F-E1-98-8D-F0-94-68-E9-EB-80"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""15"" document=""1"" />
+        <entry offset=""0x7"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""15"" document=""2"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
             var text1 = WithWindowsLineBreaks(@"
@@ -4742,31 +4762,25 @@ public partial class C
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
             var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
-
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
-<files>
-  <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""E2-3B-47-02-DC-E4-8D-B4-FF-00-67-90-31-68-74-C0-06-D7-39-0E"" />
-  <file id=""2"" name=""foo.cs"" language=""C#"" />
-  <file id=""3"" name=""bar.cs"" language=""C#"" />
-  <file id=""4"" name=""b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""DB-CE-E5-E9-CB-53-E5-EF-C1-7F-2C-53-EC-02-FE-5C-34-2C-EF-94"" />
-  <file id=""5"" name=""foo2.cs"" language=""C#"" />
-  <file id=""6"" name=""mah.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
-</files>
+  <files>
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""E2-3B-47-02-DC-E4-8D-B4-FF-00-67-90-31-68-74-C0-06-D7-39-0E"" />
+    <file id=""2"" name=""b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""DB-CE-E5-E9-CB-53-E5-EF-C1-7F-2C-53-EC-02-FE-5C-34-2C-EF-94"" />
+    <file id=""3"" name=""foo.cs"" language=""C#"" />
+    <file id=""4"" name=""bar.cs"" language=""C#"" />
+    <file id=""5"" name=""foo2.cs"" language=""C#"" />
+    <file id=""6"" name=""mah.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-      </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""15"" document=""1"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""26"" document=""2"" />
-        <entry offset=""0x14"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""25"" document=""2"" />
-        <entry offset=""0x20"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""30"" document=""3"" />
-        <entry offset=""0x34"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""15"" document=""4"" />
-        <entry offset=""0x3b"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""16"" document=""4"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""26"" document=""3"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""25"" document=""3"" />
+        <entry offset=""0x20"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""30"" document=""4"" />
+        <entry offset=""0x34"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""15"" document=""2"" />
+        <entry offset=""0x3b"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""16"" document=""2"" />
         <entry offset=""0x42"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""27"" document=""5"" />
         <entry offset=""0x4f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""26"" document=""5"" />
         <entry offset=""0x5b"" startLine=""112"" startColumn=""5"" endLine=""112"" endColumn=""16"" document=""6"" />
@@ -4779,12 +4793,9 @@ public partial class C
         <entry offset=""0x9e"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""33"" document=""1"" />
         <entry offset=""0xa9"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xaa"">
-        <namespace name=""System"" />
-      </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
@@ -8370,7 +8381,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
@@ -8755,7 +8766,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             // note no sequence points emitted within the switch expression
@@ -9118,7 +9129,7 @@ class Program
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             verifier.VerifyIL("Program.M", sequencePoints: "Program.M", expectedIL: @"
@@ -11626,7 +11637,36 @@ public class C
     </method>
   </methods>
 </symbols>
-");
+", format: DebugInformationFormat.Pdb);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""HIDDEN.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8A-92-EE-2F-D6-6F-C0-69-F4-A8-54-CB-11-BE-A3-06-76-2C-9C-98"" />
+    <file id=""2"" name=""C:\Async.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""DB-EB-2A-06-7B-2F-0E-0D-67-8A-00-2C-58-7A-28-06-05-6C-3D-CE"" />
+  </files>
+  <methods>
+    <method containingType=""C+&lt;M1&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""2"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""2"" />
+        <entry offset=""0xa"" hidden=""true"" document=""2"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""2"" />
+        <entry offset=""0x2a"" hidden=""true"" document=""2"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0xa"" />
+        <kickoffMethod declaringType=""C"" methodName=""M1"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
@@ -11676,7 +11716,25 @@ partial class C
     </method>
   </methods>
 </symbols>
-");
+", format: DebugInformationFormat.Pdb);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""initializer.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""84-32-24-D7-FE-32-63-BA-41-D5-17-A2-D5-90-23-B8-12-3C-AF-D5"" />
+    <file id=""2"" name=""constructor.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""EA-D6-0A-16-6C-6A-BC-C1-5D-98-0F-B7-4B-78-13-93-FB-C7-C2-5A"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name="".ctor"">
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""2"" />
+        <entry offset=""0x8"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""8"" document=""2"" />
+        <entry offset=""0xf"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""2"" />
+        <entry offset=""0x10"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""2"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]

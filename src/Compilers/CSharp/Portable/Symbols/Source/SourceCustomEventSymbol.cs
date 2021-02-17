@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -162,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-                _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
             }
 
             _explicitInterfaceImplementations =
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         [return: NotNullIfNotNull(parameterName: "syntaxOpt")]
-        private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(AccessorDeclarationSyntax? syntaxOpt,
+        private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
             EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, DiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
@@ -240,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }

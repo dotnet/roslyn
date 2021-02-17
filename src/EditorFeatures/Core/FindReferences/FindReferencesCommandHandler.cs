@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             catch (OperationCanceledException)
             {
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

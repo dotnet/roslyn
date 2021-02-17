@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows;
 using System.Windows.Controls;
 
@@ -16,6 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public string SelectPublic => ServicesVSResources.Select_Public;
         public string MembersHeader => ServicesVSResources.Members;
         public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
+        public string SelectAll => ServicesVSResources.Select_All;
+        public string DeselectAll => ServicesVSResources.Deselect_All;
 
         public MemberSelectionViewModel ViewModel { get; }
 
@@ -33,16 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         private void SelectPublic_Click(object sender, RoutedEventArgs e)
             => ViewModel.SelectPublic();
 
-        private void SelectAllCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void SelectAllButton_Click(object sender, RoutedEventArgs e)
             => ViewModel.SelectAll();
 
-        private void SelectAllCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        private void DeselectAllButton_Click(object sender, RoutedEventArgs e)
             => ViewModel.DeselectAll();
-
-        private void MemberSelectionCheckBox_Checked(object sender, RoutedEventArgs e)
-            => ViewModel.UpdateSelectAllCheckBoxState();
-
-        private void MemberSelectionCheckBox_Unchecked(object sender, RoutedEventArgs e)
-            => ViewModel.UpdateSelectAllCheckBoxState();
     }
 }

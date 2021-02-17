@@ -9,9 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class StatementSyntaxComparer : SyntaxComparer

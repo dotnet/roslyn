@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -834,7 +836,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -843,7 +845,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
 
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -871,7 +873,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -893,7 +895,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -1757,7 +1759,7 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
@@ -8926,7 +8928,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
@@ -9057,7 +9059,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (14,39): error CS1002: ; expected
                 //         T P { get { return default(T) } set { } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(14, 39)
@@ -9545,7 +9547,7 @@ public class Clx
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (11,20): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
@@ -12978,12 +12980,12 @@ static class C
             };
 
             // in /warn:5 we diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5));
+            var strictComp = CreateCompilation(text);
             strictComp.VerifyDiagnostics(strictDiagnostics);
 
             // these rest of the diagnostics correspond to those produced by the native compiler.
             var regularDiagnostics = strictDiagnostics.Where(d => !d.Code.Equals((int)ErrorCode.WRN_StaticInAsOrIs)).ToArray();
-            var regularComp = CreateCompilation(text);
+            var regularComp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             regularComp.VerifyDiagnostics(regularDiagnostics);
         }
 
@@ -13183,7 +13185,7 @@ static class S
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                // new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 12, Column = 14 },
+                new ErrorDescription { Code = (int)ErrorCode.WRN_ParameterIsStaticClass, Line = 12, Column = 14, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
 
@@ -13239,6 +13241,8 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (12,14): warning CS8898: 'NS.D<T>': static types cannot be used as return types
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M").WithArguments("NS.D<T>").WithLocation(12, 14),
                 // (16,25): error CS0722: 'NS.C': static types cannot be used as return types
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("NS.C").WithLocation(16, 25),
                 // (23,29): error CS0722: 'NS.D<sbyte>': static types cannot be used as return types
@@ -13347,7 +13351,7 @@ interface I
     C this[C c] { get; set; } // 5, 6, 7
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8897: 'C': static types cannot be used as parameters
@@ -13373,7 +13377,7 @@ interface I
                 Diagnostic(ErrorCode.WRN_ParameterIsStaticClass, "set").WithArguments("C").WithLocation(8, 24)
             );
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(4));
             comp.VerifyDiagnostics();
         }
 
@@ -13683,13 +13687,13 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial object P { get { return null; } }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial int this[int index]
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
                 // (4,17): warning CS0169: The field 'C.f' is never used
@@ -20424,7 +20428,7 @@ namespace Testspace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"
@@ -20489,7 +20493,7 @@ namespace UserSpace
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { module1Reference, module2Reference },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: TestOptions.DebugDll,
                 assemblyName: "Forwarder");
 
             var csSource = @"

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
@@ -16,5 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         public const string MaxSupportedLangVersion = nameof(MaxSupportedLangVersion);
         public const string RunAnalyzers = nameof(RunAnalyzers);
         public const string RunAnalyzersDuringLiveAnalysis = nameof(RunAnalyzersDuringLiveAnalysis);
+        public const string TemporaryDependencyNodeTargetIdentifier = nameof(TemporaryDependencyNodeTargetIdentifier);
     }
 }

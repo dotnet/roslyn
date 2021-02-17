@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -49,6 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
-            => _encService.IsActiveStatementInExceptionRegionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken);
+            => _encService.IsActiveStatementInExceptionRegionAsync(_workspace.CurrentSolution, new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken);
     }
 }

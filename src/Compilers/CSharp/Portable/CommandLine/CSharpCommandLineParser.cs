@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -617,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "generatedfilesout":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
@@ -1483,6 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
+
+            pathMap = SortPathMap(pathMap);
 
             return new CSharpCommandLineArguments
             {

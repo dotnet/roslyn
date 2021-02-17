@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Loop
 
                 Return typesAndDeclarations.Select(Function(kvp) Tuple.Create(kvp.Key, kvp.Value)).OrderBy(Function(t) t.Item1.Name)
-            Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
+            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
@@ -526,8 +526,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.Generate_Member, textView, _textUndoHistoryRegistry, _editorOperationsFactoryService)
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
-                ' WARNING: now that we've edited, nothing can check the cancellation token from here
-                NavigateToVirtualTreePoint(newDocument.Project.Solution, navigationPoint)
+                NavigateToVirtualTreePoint(newDocument.Project.Solution, navigationPoint, cancellationToken)
 
                 transaction.Complete()
             End Using

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -89,6 +91,7 @@ namespace BoundTreeGenerator
             _valueTypes.Add("ImmutableArray");
             _valueTypes.Add("PropertyAccessKind");
             _valueTypes.Add("TypeWithAnnotations");
+            _valueTypes.Add("BitVector");
         }
 
         public static void Write(TextWriter writer, Tree tree, TargetLanguage targetLang)
@@ -2045,7 +2048,7 @@ namespace BoundTreeGenerator
                 case "getxmlnamespace":
                 case "global":
                 case "gosub":
-                case "goTo":
+                case "goto":
                 case "handles":
                 case "if":
                 case "implements":
@@ -2068,6 +2071,7 @@ namespace BoundTreeGenerator
                 case "mustoverride":
                 case "mybase":
                 case "myclass":
+                case "nameof":
                 case "namespace":
                 case "narrowing":
                 case "new":
@@ -2087,7 +2091,7 @@ namespace BoundTreeGenerator
                 case "overloads":
                 case "overridable":
                 case "overrides":
-                case "paramArray":
+                case "paramarray":
                 case "partial":
                 case "private":
                 case "property":

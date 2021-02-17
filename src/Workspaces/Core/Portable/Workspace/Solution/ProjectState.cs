@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -394,12 +392,9 @@ namespace Microsoft.CodeAnalysis
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
             => _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
 
-        public Task<VersionStamp> GetLatestDocumentTopLevelChangeVersionAsync(CancellationToken cancellationToken)
-            => _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
-
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
-            var docVersion = await this.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
+            var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return docVersion.GetNewerVersion(this.Version);
         }
 
@@ -429,6 +424,10 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public string Name => this.ProjectInfo.Name;
+
+        /// <inheritdoc cref="ProjectInfo.NameAndFlavor"/>
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public (string? name, string? flavor) NameAndFlavor => this.ProjectInfo.NameAndFlavor;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public bool IsSubmission => this.ProjectInfo.IsSubmission;

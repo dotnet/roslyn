@@ -6,35 +6,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class SyncLockKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SyncLockInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "SyncLock")
-        End Function
+        Public Sub SyncLockInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "SyncLock")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SyncLockInMultiLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>
+        Public Sub SyncLockInMultiLineLambdaTest()
+            VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
 |
 End Sub
                                          </ClassDeclaration>, "SyncLock")
 
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SyncLockInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub SyncLockInSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "SyncLock")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SyncLockInSingleLineFunctionLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>
+        Public Sub SyncLockInSingleLineFunctionLambdaTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Function() |
                                          </ClassDeclaration>, "SyncLock")
-        End Function
+        End Sub
     End Class
 End Namespace

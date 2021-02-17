@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -3471,16 +3472,58 @@ interface I
         {
             var source =
 @"using nint = System.Int16;
-interface I
+using nuint = System.Object;
+class Program
 {
-    nint Add(nint x, nuint y);
+    static @nint F(nint x, nuint y)
+    {
+        System.Console.WriteLine(x.GetType().FullName);
+        System.Console.WriteLine(y.GetType().FullName);
+        return x;
+    }
+    static void Main()
+    {
+        F(new nint(), new nuint());
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput:
+@"System.Int16
+System.Object");
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, System.Object y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_Object, underlyingType1.SpecialType);
+                Assert.False(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_02()
+        {
+            var source =
+@"using nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //     nint Add(nint x, nuint y);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 22));
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
             verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
@@ -3489,8 +3532,42 @@ interface I
 
             static void verify(CSharpCompilation comp)
             {
-                var method = comp.GetMember<MethodSymbol>("I.Add");
-                Assert.Equal("System.Int16 I.Add(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
+                var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
+                var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
+                Assert.False(underlyingType0.IsNativeIntegerType);
+                Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
+                Assert.True(underlyingType1.IsNativeIntegerType);
+            }
+        }
+
+        [Fact]
+        public void AliasName_03()
+        {
+            var source =
+@"using @nint = System.Int16;
+class Program
+{
+    static @nint F(nint x, nuint y) => x;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     static @nint F(nint x, nuint y) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(4, 28));
+            verify(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var method = comp.GetMember<MethodSymbol>("Program.F");
+                Assert.Equal("System.Int16 Program.F(System.Int16 x, nuint y)", method.ToTestDisplayString());
                 var underlyingType0 = (NamedTypeSymbol)method.Parameters[0].Type;
                 var underlyingType1 = (NamedTypeSymbol)method.Parameters[1].Type;
                 Assert.Equal(SpecialType.System_Int16, underlyingType0.SpecialType);
@@ -3502,23 +3579,231 @@ interface I
 
         [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
         [Fact]
-        public void AliasName_02()
+        public void AliasName_04()
         {
             var source =
-@"using N = nint;
+@"using A1 = nint;
+using A2 = nuint;
 class Program
 {
-    N F() => default;
+    A1 F1() => default;
+    A2 F2() => default;
 }";
+            var expectedDiagnostics = new[]
+            {
+                // (1,12): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A1 = nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 12),
+                // (2,12): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using A2 = nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 12)
+            };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (1,11): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // using N = nint;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 11));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AliasName_05()
+        {
+            var source1 =
+@"using A1 = nint;
+using A2 = nuint;
+class Program
+{
+    A1 F1() => default;
+    A2.B F2() => default;
+}";
+            var source2 =
+@"class nint { }
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_01()
+        {
+            var source =
+@"using nint;
+using nuint;
+class Program
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using nint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nint;").WithLocation(1, 1),
+                // (1,7): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using nuint;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using nuint;").WithLocation(2, 1),
+                // (2,7): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // using nuint;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 7)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void Using_02()
+        {
+            var source1 =
+@"using nint;
+using nuint;
+class Program
+{
+    static void Main()
+    {
+        _ = new A();
+        _ = new B();
+    }
+}";
+            var source2 =
+@"namespace nint
+{
+    class A { }
+}
+namespace nuint
+{
+    class B { }
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_01()
+        {
+            var source =
+@"[nint]
+[A, nuint()]
+class Program
+{
+}
+class AAttribute : System.Attribute
+{
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
+                // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
+                // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_02()
+        {
+            var source1 =
+@"[nint]
+[nuint()]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class nint : Attribute { }
+class nuintAttribute : Attribute { }";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AttributeType_03()
+        {
+            var source1 =
+@"[A(nint: 0)]
+[B(nuint = 2)]
+class Program
+{
+}";
+            var source2 =
+@"using System;
+class AAttribute : Attribute
+{
+    public AAttribute(int nint) { }
+}
+class BAttribute : Attribute
+{
+    public int nuint;
+}";
+
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void GetSpeculativeTypeInfo()
+        {
+            var source =
+@"#pragma warning disable 219
+class Program
+{
+    static void Main()
+    {
+        nint i = 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("nuint");
+            int spanStart = source.IndexOf("nint i = 0;");
+            var type = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            Assert.True(type.IsNativeIntegerType);
         }
 
         [Fact]
@@ -3847,6 +4132,97 @@ unsafe class Program
                 // (6,19): error CS0133: The expression being assigned to 'Program.D' must be constant
                 //     const int D = sizeof(nuint);
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "sizeof(nuint)").WithArguments("Program.D").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void TypeOf()
+        {
+            var source =
+@"using static System.Console;
+class Program
+{
+    static void Main()
+    {
+        var t1 = typeof(nint);
+        var t2 = typeof(nuint);
+        var t3 = typeof(System.IntPtr);
+        var t4 = typeof(System.UIntPtr);
+        WriteLine(t1.FullName);
+        WriteLine(t2.FullName);
+        WriteLine((object)t1 == t2);
+        WriteLine((object)t1 == t3);
+        WriteLine((object)t2 == t4);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput:
+@"System.IntPtr
+System.UIntPtr
+False
+True
+True");
+        }
+
+        /// <summary>
+        /// Dynamic binding uses underlying type.
+        /// </summary>
+        [Fact]
+        public void Dynamic()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        nint x = 2;
+        x = x + x;
+        dynamic d = x;
+        _ = d.ToInt32(); // available on System.IntPtr, not nint
+        try
+        {
+            d = d + x; // available on nint, not System.IntPtr
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.GetType().FullName);
+        }
+        Console.WriteLine(d);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp, expectedOutput:
+@"Microsoft.CSharp.RuntimeBinder.RuntimeBinderException
+4");
+        }
+
+        [Fact]
+        public void Volatile()
+        {
+            var source =
+@"class Program
+{
+    static volatile nint F1 = -1;
+    static volatile nuint F2 = 2;
+    static nint F() => F1 + (nint)F2;
+    static void Main()
+    {
+        System.Console.WriteLine(F());
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"1");
+            verifier.VerifyIL("Program.F",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  volatile.
+  IL_0002:  ldsfld     ""nint Program.F1""
+  IL_0007:  volatile.
+  IL_0009:  ldsfld     ""nuint Program.F2""
+  IL_000e:  conv.i
+  IL_000f:  add
+  IL_0010:  ret
+}");
         }
 
         // PEVerify should succeed. Previously, PEVerify reported duplicate
@@ -5119,11 +5495,29 @@ $@"public class A
     }
 }";
 
+            var expectedDiagnostics = (type == "nuint") ?
+                new DiagnosticDescription[]
+                {
+                    // (5,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(5, 14),
+                    // (8,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                    //         F1 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(8, 14),
+                    // (11,14): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = sbyte.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint?").WithLocation(11, 14),
+                    // (14,14): error CS0266: Cannot implicitly convert type 'short' to 'nuint?'. An explicit conversion exists (are you missing a cast?)
+                    //         F2 = short.MaxValue;
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint?").WithLocation(14, 14)
+                } :
+                new DiagnosticDescription[0];
+
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular8);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Theory]
@@ -5337,6 +5731,99 @@ $@"class B : A
         }
 
         [Theory]
+        [CombinatorialData]
+        public void SemanticModel_UnaryOperators(bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F(nint{typeQualifier} x, nuint{typeQualifier} y)
+    {{
+        _ = +x;
+        _ = -x;
+        _ = ~x;
+        _ = +y;
+        _ = ~y;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                "nint nint.op_UnaryPlus(nint value)",
+                "nint nint.op_UnaryNegation(nint value)",
+                "nint nint.op_OnesComplement(nint value)",
+                "nuint nuint.op_UnaryPlus(nuint value)",
+                "nuint nuint.op_OnesComplement(nuint value)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
+        }
+
+        [Theory]
+        [InlineData("nint", false)]
+        [InlineData("nuint", false)]
+        [InlineData("nint", true)]
+        [InlineData("nuint", true)]
+        public void SemanticModel_BinaryOperators(string type, bool lifted)
+        {
+            string typeQualifier = lifted ? "?" : "";
+            var source =
+$@"class Program
+{{
+    static void F({type}{typeQualifier} x, {type}{typeQualifier} y)
+    {{
+        _ = x + y;
+        _ = x - y;
+        _ = x * y;
+        _ = x / y;
+        _ = x % y;
+        _ = x < y;
+        _ = x <= y;
+        _ = x > y;
+        _ = x >= y;
+        _ = x == y;
+        _ = x != y;
+        _ = x & y;
+        _ = x | y;
+        _ = x ^ y;
+        _ = x << 1;
+        _ = x >> 1;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>();
+            var actualOperators = nodes.Select(n => model.GetSymbolInfo(n).Symbol.ToTestDisplayString()).ToArray();
+            var expectedOperators = new[]
+            {
+                $"{type} {type}.op_Addition({type} left, {type} right)",
+                $"{type} {type}.op_Subtraction({type} left, {type} right)",
+                $"{type} {type}.op_Multiply({type} left, {type} right)",
+                $"{type} {type}.op_Division({type} left, {type} right)",
+                $"{type} {type}.op_Modulus({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_LessThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThan({type} left, {type} right)",
+                $"System.Boolean {type}.op_GreaterThanOrEqual({type} left, {type} right)",
+                $"System.Boolean {type}.op_Equality({type} left, {type} right)",
+                $"System.Boolean {type}.op_Inequality({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseAnd({type} left, {type} right)",
+                $"{type} {type}.op_BitwiseOr({type} left, {type} right)",
+                $"{type} {type}.op_ExclusiveOr({type} left, {type} right)",
+                $"{type} {type}.op_LeftShift({type} left, System.Int32 right)",
+                $"{type} {type}.op_RightShift({type} left, System.Int32 right)",
+            };
+            AssertEx.Equal(expectedOperators, actualOperators);
+        }
+
+        [Theory]
         [InlineData("")]
         [InlineData("unchecked")]
         [InlineData("checked")]
@@ -5412,6 +5899,12 @@ class Program
                 // (22,17): error CS0266: Cannot implicitly convert type 'nuint' to 'nint'. An explicit conversion exists (are you missing a cast?)
                 //             i = (nuint)uint.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(nuint)uint.MaxValue").WithArguments("nuint", "nint").WithLocation(22, 17),
+                // (30,17): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = sbyte.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "sbyte.MaxValue").WithArguments("sbyte", "nuint").WithLocation(30, 17),
+                // (33,17): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //             u = short.MaxValue;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "short.MaxValue").WithArguments("short", "nuint").WithLocation(33, 17),
                 // (37,17): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
                 //             u = long.MaxValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "long.MaxValue").WithArguments("long", "nuint").WithLocation(37, 17),
@@ -5916,9 +6409,7 @@ $@"class Program
         F(7);
         F(8);
         F(9);
-        F(sbyte.MaxValue);
         F(byte.MaxValue);
-        F(short.MaxValue);
         F(char.MaxValue);
         F(ushort.MaxValue);
         F(int.MaxValue);
@@ -5943,9 +6434,7 @@ $@"class Program
 7
 8
 9
-127
 255
-32767
 65535
 65535
 2147483647
@@ -5954,7 +6443,7 @@ $@"class Program
             var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
             string expectedIL =
 @"{
-  // Code size      160 (0xa0)
+  // Code size      141 (0x8d)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  conv.i
@@ -5989,33 +6478,96 @@ $@"class Program
   IL_0046:  ldc.i4.s   9
   IL_0048:  conv.i
   IL_0049:  call       ""void Program.F(nuint)""
-  IL_004e:  ldc.i4.s   127
-  IL_0050:  conv.i
-  IL_0051:  call       ""void Program.F(nuint)""
-  IL_0056:  ldc.i4     0xff
-  IL_005b:  conv.i
-  IL_005c:  call       ""void Program.F(nuint)""
-  IL_0061:  ldc.i4     0x7fff
-  IL_0066:  conv.i
-  IL_0067:  call       ""void Program.F(nuint)""
-  IL_006c:  ldc.i4     0xffff
-  IL_0071:  conv.i
-  IL_0072:  call       ""void Program.F(nuint)""
-  IL_0077:  ldc.i4     0xffff
-  IL_007c:  conv.i
-  IL_007d:  call       ""void Program.F(nuint)""
-  IL_0082:  ldc.i4     0x7fffffff
-  IL_0087:  conv.i
-  IL_0088:  call       ""void Program.F(nuint)""
-  IL_008d:  ldc.i4     0x80000000
-  IL_0092:  conv.u
-  IL_0093:  call       ""void Program.F(nuint)""
-  IL_0098:  ldc.i4.m1
-  IL_0099:  conv.u
-  IL_009a:  call       ""void Program.F(nuint)""
-  IL_009f:  ret
+  IL_004e:  ldc.i4     0xff
+  IL_0053:  conv.i
+  IL_0054:  call       ""void Program.F(nuint)""
+  IL_0059:  ldc.i4     0xffff
+  IL_005e:  conv.i
+  IL_005f:  call       ""void Program.F(nuint)""
+  IL_0064:  ldc.i4     0xffff
+  IL_0069:  conv.i
+  IL_006a:  call       ""void Program.F(nuint)""
+  IL_006f:  ldc.i4     0x7fffffff
+  IL_0074:  conv.i
+  IL_0075:  call       ""void Program.F(nuint)""
+  IL_007a:  ldc.i4     0x80000000
+  IL_007f:  conv.u
+  IL_0080:  call       ""void Program.F(nuint)""
+  IL_0085:  ldc.i4.m1
+  IL_0086:  conv.u
+  IL_0087:  call       ""void Program.F(nuint)""
+  IL_008c:  ret
 }";
             verifier.VerifyIL("Program.Main", expectedIL);
+        }
+
+        [Fact]
+        public void Constants_ConvertToUnsigned()
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        F<ushort>(sbyte.MaxValue);
+        F<ushort>(short.MaxValue);
+        F<ushort>(int.MaxValue);
+        F<ushort>(long.MaxValue);
+        F<uint>(sbyte.MaxValue);
+        F<uint>(short.MaxValue);
+        F<uint>(int.MaxValue);
+        F<uint>(long.MaxValue);
+        F<nuint>(sbyte.MaxValue);
+        F<nuint>(short.MaxValue);
+        F<nuint>(int.MaxValue);
+        F<nuint>(long.MaxValue);
+        F<ulong>(sbyte.MaxValue);
+        F<ulong>(short.MaxValue);
+        F<ulong>(int.MaxValue);
+        F<ulong>(long.MaxValue);
+    }
+    static void F<T>(T n)
+    {
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ushort'
+                //         F<ushort>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ushort").WithLocation(5, 19),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'short' to 'ushort'
+                //         F<ushort>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ushort").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'int' to 'ushort'
+                //         F<ushort>(int.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "int.MaxValue").WithArguments("1", "int", "ushort").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from 'long' to 'ushort'
+                //         F<ushort>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "ushort").WithLocation(8, 19),
+                // (9,17): error CS1503: Argument 1: cannot convert from 'sbyte' to 'uint'
+                //         F<uint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "uint").WithLocation(9, 17),
+                // (10,17): error CS1503: Argument 1: cannot convert from 'short' to 'uint'
+                //         F<uint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "uint").WithLocation(10, 17),
+                // (12,17): error CS1503: Argument 1: cannot convert from 'long' to 'uint'
+                //         F<uint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "uint").WithLocation(12, 17),
+                // (13,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'nuint'
+                //         F<nuint>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "nuint").WithLocation(13, 18),
+                // (14,18): error CS1503: Argument 1: cannot convert from 'short' to 'nuint'
+                //         F<nuint>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "nuint").WithLocation(14, 18),
+                // (16,18): error CS1503: Argument 1: cannot convert from 'long' to 'nuint'
+                //         F<nuint>(long.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "long.MaxValue").WithArguments("1", "long", "nuint").WithLocation(16, 18),
+                // (17,18): error CS1503: Argument 1: cannot convert from 'sbyte' to 'ulong'
+                //         F<ulong>(sbyte.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "sbyte.MaxValue").WithArguments("1", "sbyte", "ulong").WithLocation(17, 18),
+                // (18,18): error CS1503: Argument 1: cannot convert from 'short' to 'ulong'
+                //         F<ulong>(short.MaxValue);
+                Diagnostic(ErrorCode.ERR_BadArgType, "short.MaxValue").WithArguments("1", "short", "ulong").WithLocation(18, 18));
         }
 
         [Fact]
@@ -7241,8 +7793,6 @@ $@"{{
             conversions(sourceType: "nint", destType: "int", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i4"), expectedCheckedIL: conv("conv.ovf.i4"));
             conversions(sourceType: "nint", destType: "uint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4"));
             conversions(sourceType: "nint", destType: "long", expectedImplicitIL: conv("conv.i8"), expectedExplicitIL: conv("conv.i8"));
-            // https://github.com/dotnet/roslyn/issues/42457: Investigate why this conversion (and other conversions from nint to ulong and from nuint to long)
-            // use differently signed opcodes for unchecked and checked conversions. (Why conv.i8 but conv.ovf.u8 here for instance?)
             conversions(sourceType: "nint", destType: "ulong", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i8"), expectedCheckedIL: conv("conv.ovf.u8"));
             conversions(sourceType: "nint", destType: "float", expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
             conversions(sourceType: "nint", destType: "double", expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
@@ -7435,9 +7985,9 @@ $@"{{
             conversions(sourceType: "E", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "bool", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "sbyte", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "byte", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
-            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: conv("conv.i"), expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "short", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "ushort", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "int", destType: "nuint", expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "uint", destType: "nuint", expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
@@ -7544,9 +8094,9 @@ $@"{{
             conversions(sourceType: "E", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "bool", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "sbyte", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "byte", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
-            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.i", "nuint"), expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "short", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "ushort", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
             conversions(sourceType: "int", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "uint", destType: "nuint?", expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
@@ -7608,9 +8158,9 @@ $@"{{
             conversions(sourceType: "E?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "E", "nuint"));
             conversions(sourceType: "bool?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: null);
             conversions(sourceType: "char?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "char", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "char", "nuint"));
-            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
+            conversions(sourceType: "sbyte?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "sbyte", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "sbyte", "nuint"));
             conversions(sourceType: "byte?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "byte", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "byte", "nuint"));
-            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
+            conversions(sourceType: "short?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "short", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "short", "nuint"));
             conversions(sourceType: "ushort?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "ushort", "nuint"));
             conversions(sourceType: "int?", destType: "nuint?", expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "int", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "int", "nuint"));
             conversions(sourceType: "uint?", destType: "nuint?", expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
@@ -9609,9 +10159,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, (symbol == "-") ? $"void* void*.{name}(void* left, ulong right)" : null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeBadBinaryOps: includeBadBinaryOps, includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9626,9 +10176,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9646,9 +10196,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9663,9 +10213,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -9909,9 +10459,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9926,9 +10476,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9946,9 +10496,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -9963,9 +10513,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10209,9 +10759,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", $"void* void*.{name}(ulong left, void* right)", $"void* void*.{name}(void* left, ulong right)", new[] { Diagnostic(ErrorCode.ERR_VoidError, "x + y") });
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10226,9 +10776,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10246,9 +10796,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10263,9 +10813,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -10809,9 +11359,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint"));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint"));
                 binaryOps(symbol, "nuint", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint"));
                 binaryOps(symbol, "nuint", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint"));
                 binaryOps(symbol, "nuint", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10826,9 +11376,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint"));
                 binaryOps(symbol, "nuint", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint"));
                 binaryOps(symbol, "nuint", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint"));
                 binaryOps(symbol, "nuint", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10846,9 +11396,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*"), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?"));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short"), getAmbiguousBinaryOpsDiagnostics(symbol, "short", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int"), getAmbiguousBinaryOpsDiagnostics(symbol, "int", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint", $"bool nuint.{name}(nuint left, nuint right)");
@@ -10863,9 +11413,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"bool System.UIntPtr.{name}(System.UIntPtr value1, System.UIntPtr value2)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "sbyte?"), getAmbiguousBinaryOpsDiagnostics(symbol, "sbyte?", "nuint?"));
                 binaryOps(symbol, "nuint?", "byte?", $"bool nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"bool nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "short?"), getAmbiguousBinaryOpsDiagnostics(symbol, "short?", "nuint?"));
                 binaryOps(symbol, "nuint?", "ushort?", $"bool nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?", null, null, getAmbiguousBinaryOpsDiagnostics(symbol, "nuint?", "int?"), getAmbiguousBinaryOpsDiagnostics(symbol, "int?", "nuint?"));
                 binaryOps(symbol, "nuint?", "uint?", $"bool nuint.{name}(nuint left, nuint right)");
@@ -11109,9 +11659,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint", includeVoidError: true));
                 binaryOps(symbol, "nuint", "bool");
                 binaryOps(symbol, "nuint", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte");
                 binaryOps(symbol, "nuint", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short");
                 binaryOps(symbol, "nuint", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int");
                 binaryOps(symbol, "nuint", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11126,9 +11676,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "bool?");
                 binaryOps(symbol, "nuint", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "sbyte?");
                 binaryOps(symbol, "nuint", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint", "short?");
                 binaryOps(symbol, "nuint", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint", "int?");
                 binaryOps(symbol, "nuint", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11146,9 +11696,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "void*", null, null, getBadBinaryOpsDiagnostics(symbol, "nuint?", "void*", includeVoidError: true), getBadBinaryOpsDiagnostics(symbol, "void*", "nuint?", includeVoidError: true));
                 binaryOps(symbol, "nuint?", "bool");
                 binaryOps(symbol, "nuint?", "char", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte");
                 binaryOps(symbol, "nuint?", "byte", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short");
                 binaryOps(symbol, "nuint?", "ushort", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int");
                 binaryOps(symbol, "nuint?", "uint", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -11163,9 +11713,9 @@ $@"class MyInt
                 binaryOps(symbol, "nuint?", "System.UIntPtr", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "bool?");
                 binaryOps(symbol, "nuint?", "char?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "sbyte?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "sbyte?");
                 binaryOps(symbol, "nuint?", "byte?", $"nuint nuint.{name}(nuint left, nuint right)");
-                binaryOps(symbol, "nuint?", "short?", $"nuint nuint.{name}(nuint left, nuint right)");
+                binaryOps(symbol, "nuint?", "short?");
                 binaryOps(symbol, "nuint?", "ushort?", $"nuint nuint.{name}(nuint left, nuint right)");
                 binaryOps(symbol, "nuint?", "int?");
                 binaryOps(symbol, "nuint?", "uint?", $"nuint nuint.{name}(nuint left, nuint right)");
@@ -12528,6 +13078,78 @@ class B : A
             Assert.Equal("System.IntPtr[] modopt(System.Int32) B.F4()", type.GetMember("F4").ToTestDisplayString());
         }
 
+        [WorkItem(42457, "https://github.com/dotnet/roslyn/issues/42457")]
+        [Fact]
+        public void Int64Conversions()
+        {
+            convert(fromType: "nint", toType: "ulong", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", "conv.u", "2147483647", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+
+            string nintMinValue = IntPtr.Size == 4 ? int.MinValue.ToString() : long.MinValue.ToString();
+            string nintMaxValue = IntPtr.Size == 4 ? int.MaxValue.ToString() : long.MaxValue.ToString();
+            string nuintMaxValue = IntPtr.Size == 4 ? uint.MaxValue.ToString() : ulong.MaxValue.ToString();
+
+            convert(fromType: "nint", toType: "ulong", nintMinValue, IntPtr.Size == 4 ? "18446744071562067968" : "9223372036854775808", "conv.i8", "System.OverflowException", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "ulong", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.i8", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u8");
+            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
+
+            convert(fromType: "nuint", toType: "long", nuintMaxValue, IntPtr.Size == 4 ? "4294967295" : "-1", "conv.u8", IntPtr.Size == 4 ? "4294967295" : "System.OverflowException", "conv.ovf.i8.un");
+            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+
+            void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
+            {
+                string source =
+$@"using System;
+class Program
+{{
+    static {toType} Convert({fromType} value) => ({toType})(value);
+    static {toType} ConvertChecked({fromType} value) => checked(({toType})(value));
+    static object Execute(Func<object> f)
+    {{
+        try
+        {{
+            return f();
+        }}
+        catch (Exception e)
+        {{
+            return e.GetType().FullName;
+        }}
+    }}
+    static void Main()
+    {{
+        {fromType} value = ({fromType})({fromValue});
+        Console.WriteLine(Execute(() => Convert(value)));
+        Console.WriteLine(Execute(() => ConvertChecked(value)));
+    }}
+}}";
+                var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+$@"{toValueUnchecked}
+{toValueChecked}");
+                verifier.VerifyIL("Program.Convert",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvUnchecked}
+  IL_0002:  ret
+}}");
+                verifier.VerifyIL("Program.ConvertChecked",
+    $@"{{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  {toConvChecked}
+  IL_0002:  ret
+}}");
+            }
+        }
+
         [WorkItem(44810, "https://github.com/dotnet/roslyn/issues/44810")]
         [Theory]
         [InlineData("void*")]
@@ -12895,6 +13517,668 @@ $@"{toValueUnchecked}
   IL_0002:  ret
 }}");
             }
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void IdentityConversions(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"#pragma warning disable 219
+class A<T> {{ }}
+class Program
+{{
+    static void F1({nativeIntegerType} x1, {nativeIntegerType}? x2, {nativeIntegerType}[] x3, A<{nativeIntegerType}> x4)
+    {{
+        {underlyingType} y1 = x1;
+        {underlyingType}? y2 = x2;
+        {underlyingType}[] y3 = x3;
+        A<{underlyingType}> y4 = x4;
+        ({underlyingType}, {underlyingType}[]) y = (x1, x3);
+    }}
+    static void F2({underlyingType} y1, {underlyingType}? y2, {underlyingType}[] y3, A<{underlyingType}> y4)
+    {{
+        {nativeIntegerType} x1 = y1;
+        {nativeIntegerType}? x2 = y2;
+        {nativeIntegerType}[] x3 = y3;
+        A<{nativeIntegerType}> x4 = y4;
+        ({nativeIntegerType}, {nativeIntegerType}[]) x = (y1, y3);
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_01(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+class Program
+{{
+    static T F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType} x, {underlyingType} y)
+    {{
+        {nativeIntegerType} z = y;
+        (new[] {{ x, z }})[0].ToPointer();
+        (new[] {{ x, y }})[0].ToPointer();
+        (new[] {{ y, x }})[0].ToPointer();
+        (b ? x : z).ToPointer();
+        (b ? x : y).ToPointer();
+        (b ? y : x).ToPointer();
+        F0(() => {{ if (b) return x; return z; }}).ToPointer();
+        F0(() => {{ if (b) return x; return y; }}).ToPointer();
+        F0(() => {{ if (b) return y; return x; }}).ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (new[] { x, z })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(8, 29),
+                // (9,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { x, y })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(9, 10),
+                // (10,10): error CS0826: No best type found for implicitly-typed array
+                //         (new[] { y, x })[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { y, x }").WithLocation(10, 10),
+                // (11,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         (b ? x : z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 21),
+                // (12,10): error CS0172: Type of conditional expression cannot be determined because 'nint' and 'IntPtr' implicitly convert to one another
+                //         (b ? x : y).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}", $"{underlyingType}").WithLocation(12, 10),
+                // (13,10): error CS0172: Type of conditional expression cannot be determined because 'IntPtr' and 'nint' implicitly convert to one another
+                //         (b ? y : x).ToPointer();
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? y : x").WithArguments($"{underlyingType}", $"{nativeIntegerType}").WithLocation(13, 10),
+                // (14,50): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(() => { if (b) return x; return z; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(14, 50),
+                // (15,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return y; return x; }).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void BestType_02(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"using System;
+interface I<T> {{ }}
+class Program
+{{
+    static void F0<T>(Func<T> f) => f();
+    static void F1(bool b, {nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+    static void F2(bool b, I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        _ = new[] {{ x, y }};
+        _ = b ? x : y;
+        F0(() => {{ if (b) return x; return y; }});
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(8, 13),
+                // (9,13): error CS0172: Type of conditional expression cannot be determined because 'nint[]' and 'IntPtr[]' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"{nativeIntegerType}[]", $"{underlyingType}[]").WithLocation(9, 13),
+                // (10,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(10, 9),
+                // (14,13): error CS0826: No best type found for implicitly-typed array
+                //         _ = new[] { x, y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x, y }").WithLocation(14, 13),
+                // (15,13): error CS0172: Type of conditional expression cannot be determined because 'I<nint>' and 'I<IntPtr>' implicitly convert to one another
+                //         _ = b ? x : y;
+                Diagnostic(ErrorCode.ERR_AmbigQM, "b ? x : y").WithArguments($"I<{nativeIntegerType}>", $"I<{underlyingType}>").WithLocation(15, 13),
+                // (16,9): error CS0411: The type arguments for method 'Program.F0<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(() => { if (b) return x; return y; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(System.Func<T>)").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("nint", "System.IntPtr")]
+        [InlineData("nuint", "System.UIntPtr")]
+        public void MethodTypeInference(string nativeIntegerType, string underlyingType)
+        {
+            var source =
+$@"interface I<T>
+{{
+    T P {{ get; }}
+}}
+unsafe class Program
+{{
+    static T F0<T>(T x, T y) => x;
+    static void F1({nativeIntegerType} x, {underlyingType} y)
+    {{
+        var z = ({nativeIntegerType})y;
+        F0(x, z).ToPointer();
+        F0(x, y).ToPointer();
+        F0(y, x).ToPointer();
+        F0<{nativeIntegerType}>(x, y).
+            ToPointer();
+        F0<{underlyingType}>(x, y).
+            ToPointer();
+    }}
+    static void F2({nativeIntegerType}[] x, {underlyingType}[] y)
+    {{
+        var z = ({nativeIntegerType}[])y;
+        F0(x, z)[0].ToPointer();
+        F0(x, y)[0].ToPointer();
+        F0(y, x)[0].ToPointer();
+        F0<{nativeIntegerType}[]>(x, y)[0].
+            ToPointer();
+        F0<{underlyingType}[]>(x, y)[0].
+            ToPointer();
+    }}
+    static void F3(I<{nativeIntegerType}> x, I<{underlyingType}> y)
+    {{
+        var z = (I<{nativeIntegerType}>)y;
+        F0(x, z).P.ToPointer();
+        F0(x, y).P.ToPointer();
+        F0(y, x).P.ToPointer();
+        F0<I<{nativeIntegerType}>>(x, y).P.
+            ToPointer();
+        F0<I<{underlyingType}>>(x, y).P.
+            ToPointer();
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (11,18): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(11, 18),
+                // (12,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(13, 9),
+                // (15,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(15, 13),
+                // (22,21): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(22, 21),
+                // (23,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(23, 9),
+                // (24,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x)[0].ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(24, 9),
+                // (26,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(26, 13),
+                // (33,20): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //         F0(x, z).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(33, 20),
+                // (34,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(x, y).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(34, 9),
+                // (35,9): error CS0411: The type arguments for method 'Program.F0<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F0(y, x).P.ToPointer();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F0").WithArguments("Program.F0<T>(T, T)").WithLocation(35, 9),
+                // (37,13): error CS1061: 'nint' does not contain a definition for 'ToPointer' and no accessible extension method 'ToPointer' accepting a first argument of type 'nint' could be found (are you missing a using directive or an assembly reference?)
+                //             ToPointer();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToPointer").WithArguments($"{nativeIntegerType}", "ToPointer").WithLocation(37, 13));
+        }
+
+        [Fact]
+        public void DuplicateConstraint()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T, U> where U : I<nint>, I<nint> { }
+class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
+                // class C1<T, U> where U : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nint>").WithArguments("I<nint>", "U").WithLocation(2, 35),
+                // (3,35): error CS0405: Duplicate constraint 'I<IntPtr>' for type parameter 'U'
+                // class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<System.IntPtr>").WithArguments("I<System.IntPtr>", "U").WithLocation(3, 35),
+                // (4,63): error CS0405: Duplicate constraint 'I<nuint>' for type parameter 'U'
+                // class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<nuint>").WithArguments("I<nuint>", "U").WithLocation(4, 63));
+        }
+
+        [Fact]
+        public void DuplicateInterface_01()
+        {
+            var source =
+@"interface I<T> { }
+class C1 : I<nint>, I<nint> { }
+class C2 : I<nint>, I<System.IntPtr> { }
+class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS0528: 'I<nint>' is already listed in interface list
+                // class C1 : I<nint>, I<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<nint>").WithArguments("I<nint>").WithLocation(2, 21),
+                // (3,7): error CS8779: 'I<IntPtr>' is already listed in the interface list on type 'C2' as 'I<nint>'.
+                // class C2 : I<nint>, I<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<System.IntPtr>", "I<nint>", "C2").WithLocation(3, 7),
+                // (4,7): error CS8779: 'I<nuint>' is already listed in the interface list on type 'C3' as 'I<UIntPtr>'.
+                // class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint>", "I<System.UIntPtr>", "C3").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_02()
+        {
+            var source =
+@"interface I<T> { }
+#nullable enable
+class C1 :
+    I<nint[]>,
+    I<System.IntPtr[]?>
+{ }
+class C2 :
+    I<System.IntPtr[]>,
+#nullable disable
+    I<nint[]>
+{ }
+class C3 :
+    I<System.UIntPtr[]>,
+#nullable enable
+    I<nuint[]?>
+{ }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,7): error CS8779: 'I<IntPtr[]?>' is already listed in the interface list on type 'C1' as 'I<nint[]>'.
+                // class C1 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("I<System.IntPtr[]?>", "I<nint[]>", "C1").WithLocation(3, 7),
+                // (7,7): error CS8779: 'I<nint[]>' is already listed in the interface list on type 'C2' as 'I<IntPtr[]>'.
+                // class C2 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<nint[]>", "I<System.IntPtr[]>", "C2").WithLocation(7, 7),
+                // (12,7): error CS8779: 'I<nuint[]?>' is already listed in the interface list on type 'C3' as 'I<UIntPtr[]>'.
+                // class C3 :
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<nuint[]?>", "I<System.UIntPtr[]>", "C3").WithLocation(12, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_03()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0528: 'I<(IntPtr, object)>' is already listed in interface list
+                // class C0 : I<(System.IntPtr, object)>, I<(System.IntPtr, object)> { } // differences: none
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceInBaseList, "I<(System.IntPtr, object)>").WithArguments("I<(System.IntPtr, object)>").WithLocation(3, 40),
+                // (4,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I<(IntPtr X, object Y)>'.
+                // class C1 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, object)> { } // differences: names
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object Y)>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C2' as 'I<(IntPtr, object)>'.
+                // class C2 : I<(System.IntPtr, object)>, I<(nint, object)> { } // differences: nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object)>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C3' as 'I<(IntPtr, object)>'.
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr, object)>", "C3").WithLocation(6, 7),
+                // (6,40): error CS1966: 'C3': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C3 : I<(System.IntPtr, object)>, I<(System.IntPtr, dynamic)> { } // differences: dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C3", "I<(System.IntPtr, dynamic)>").WithLocation(6, 40),
+                // (7,7): warning CS8645: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C4' with different nullability of reference types.
+                // class C4 : I<(System.IntPtr, object?)>, I<(System.IntPtr, object)> { } // differences: nullable
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "C4").WithArguments("I<(System.IntPtr, object)>", "C4").WithLocation(7, 7),
+                // (8,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C5' as 'I<(IntPtr X, object Y)>'.
+                // class C5 : I<(System.IntPtr X, object Y)>, I<(nint, object)> { } // differences: names, nint
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C5").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object Y)>", "C5").WithLocation(8, 7),
+                // (9,7): error CS8779: 'I<(IntPtr, dynamic)>' is already listed in the interface list on type 'C6' as 'I<(IntPtr X, object Y)>'.
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C6").WithArguments("I<(System.IntPtr, dynamic)>", "I<(System.IntPtr X, object Y)>", "C6").WithLocation(9, 7),
+                // (9,44): error CS1966: 'C6': cannot implement a dynamic interface 'I<(IntPtr, dynamic)>'
+                // class C6 : I<(System.IntPtr X, object Y)>, I<(System.IntPtr, dynamic)> { } // differences: names, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(System.IntPtr, dynamic)>").WithArguments("C6", "I<(System.IntPtr, dynamic)>").WithLocation(9, 44),
+                // (10,7): error CS8140: 'I<(IntPtr, object)>' is already listed in the interface list on type 'C7' with different tuple element names, as 'I<(IntPtr X, object? Y)>'.
+                // class C7 : I<(System.IntPtr X, object? Y)>, I<(System.IntPtr, object)> { } // differences: names, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C7").WithArguments("I<(System.IntPtr, object)>", "I<(System.IntPtr X, object? Y)>", "C7").WithLocation(10, 7),
+                // (11,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'C8' as 'I<(IntPtr, object)>'.
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C8").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object)>", "C8").WithLocation(11, 7),
+                // (11,40): error CS1966: 'C8': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class C8 : I<(System.IntPtr, object)>, I<(nint, dynamic)> { } // differences: nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("C8", "I<(nint, dynamic)>").WithLocation(11, 40),
+                // (12,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'C9' as 'I<(IntPtr, object?)>'.
+                // class C9 : I<(System.IntPtr, object?)>, I<(nint, object)> { } // differences: nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C9").WithArguments("I<(nint, object)>", "I<(System.IntPtr, object?)>", "C9").WithLocation(12, 7),
+                // (13,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CA' as 'I<(IntPtr, object?)>'.
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CA").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CA").WithLocation(13, 7),
+                // (13,41): error CS1966: 'CA': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CA : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CA", "I<(nint, dynamic)>").WithLocation(13, 41),
+                // (14,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CB' as 'I<(IntPtr X, object Y)>'.
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CB").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object Y)>", "CB").WithLocation(14, 7),
+                // (14,44): error CS1966: 'CB': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CB : I<(System.IntPtr X, object Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CB", "I<(nint, dynamic)>").WithLocation(14, 44),
+                // (15,7): error CS8779: 'I<(nint, object)>' is already listed in the interface list on type 'CC' as 'I<(IntPtr X, object? Y)>'.
+                // class CC : I<(System.IntPtr X, object? Y)>, I<(nint, object)> { } // differences: names, nint, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CC").WithArguments("I<(nint, object)>", "I<(System.IntPtr X, object? Y)>", "CC").WithLocation(15, 7),
+                // (16,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CD' as 'I<(IntPtr, object?)>'.
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CD").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr, object?)>", "CD").WithLocation(16, 7),
+                // (16,41): error CS1966: 'CD': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CD : I<(System.IntPtr, object?)>, I<(nint, dynamic)> { } // differences: nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CD", "I<(nint, dynamic)>").WithLocation(16, 41),
+                // (17,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CE' as 'I<(IntPtr X, object? Y)>'.
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CE").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CE").WithLocation(17, 7),
+                // (17,45): error CS1966: 'CE': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CE : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CE", "I<(nint, dynamic)>").WithLocation(17, 45),
+                // (18,7): error CS8779: 'I<(nint, dynamic)>' is already listed in the interface list on type 'CF' as 'I<(IntPtr X, object? Y)>'.
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "CF").WithArguments("I<(nint, dynamic)>", "I<(System.IntPtr X, object? Y)>", "CF").WithLocation(18, 7),
+                // (18,45): error CS1966: 'CF': cannot implement a dynamic interface 'I<(nint, dynamic)>'
+                // class CF : I<(System.IntPtr X, object? Y)>, I<(nint, dynamic)> { } // differences: names, nint, dynamic, nullable
+                Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<(nint, dynamic)>").WithArguments("CF", "I<(nint, dynamic)>").WithLocation(18, 45));
+        }
+
+        [Fact]
+        public void DuplicateInterface_04()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+class C1 : IA<System.IntPtr>, IB1 { }
+class C2 : IB2<nint>, IA<System.IntPtr> { }
+class C3 : IB1, IB2<System.IntPtr> { }
+class C4 : IB1, IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // class C1 : IA<System.IntPtr>, IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 7),
+                // (5,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // class C2 : IB2<nint>, IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(5, 7),
+                // (6,7): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // class C3 : IB1, IB2<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void DuplicateInterface_05()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1 : IA<nint> { }
+interface IB2<T> : IA<T> { }
+partial class C1 : IA<System.IntPtr> { }
+partial class C1 : IB1 { }
+partial class C2 : IB2<nint> { }
+partial class C2 : IA<System.IntPtr> { }
+partial class C3 : IB1 { }
+partial class C3 : IB2<System.IntPtr> { }
+partial class C4 : IB1 { }
+partial class C4 : IB2<nint> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS8779: 'IA<nint>' is already listed in the interface list on type 'C1' as 'IA<IntPtr>'.
+                // partial class C1 : IA<System.IntPtr> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C1").WithArguments("IA<nint>", "IA<System.IntPtr>", "C1").WithLocation(4, 15),
+                // (6,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C2' as 'IA<nint>'.
+                // partial class C2 : IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C2").WithArguments("IA<System.IntPtr>", "IA<nint>", "C2").WithLocation(6, 15),
+                // (8,15): error CS8779: 'IA<IntPtr>' is already listed in the interface list on type 'C3' as 'IA<nint>'.
+                // partial class C3 : IB1 { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, "C3").WithArguments("IA<System.IntPtr>", "IA<nint>", "C3").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_01()
+        {
+            var source =
+@"interface I<T> { }
+class C1<T> : I<nint>, I<T> { }
+class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+class C4<T> : I<(T, T)>, I<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0695: 'C1<T>' cannot implement both 'I<nint>' and 'I<T>' because they may unify for some type parameter substitutions
+                // class C1<T> : I<nint>, I<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "I<nint>", "I<T>").WithLocation(2, 7),
+                // (3,7): error CS0695: 'C2<T>' cannot implement both 'I<(nint, T)>' and 'I<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : I<(nint, T)>, I<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "I<(nint, T)>", "I<(T, System.IntPtr)>").WithLocation(3, 7),
+                // (4,7): error CS0695: 'C3<T>' cannot implement both 'I<(T, T)>' and 'I<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : I<(T, T)>, I<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "I<(T, T)>", "I<(System.UIntPtr, nuint)>").WithLocation(4, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_02()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+class C1<T> : IB1<T>, IB2<nint> { }
+class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+class C4<T> : IB1<(T, T)>, IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // class C1<T> : IB1<T>, IB2<nint> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 7),
+                // (5,7): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // class C2<T> : IB1<(nint, T)>, IB2<(T, System.IntPtr)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(5, 7),
+                // (6,7): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // class C3<T> : IB1<(T, T)>, IB2<(System.UIntPtr, nuint)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void TypeUnification_03()
+        {
+            var source =
+@"interface IA<T> { }
+interface IB1<T> : IA<T> { }
+interface IB2<T> : IA<T> { }
+partial class C1<T> : IB1<T> { }
+partial class C1<T> : IB2<nint> { }
+partial class C2<T> : IB1<(nint, T)> { }
+partial class C2<T> : IB2<(T, System.IntPtr)> { }
+partial class C3<T> : IB1<(T, T)> { }
+partial class C3<T> : IB2<(System.UIntPtr, nuint)> { }
+partial class C4<T> : IB1<(T, T)> { }
+partial class C4<T> : IB2<(nint, nuint)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0695: 'C1<T>' cannot implement both 'IA<T>' and 'IA<nint>' because they may unify for some type parameter substitutions
+                // partial class C1<T> : IB1<T> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C1").WithArguments("C1<T>", "IA<T>", "IA<nint>").WithLocation(4, 15),
+                // (6,15): error CS0695: 'C2<T>' cannot implement both 'IA<(nint, T)>' and 'IA<(T, IntPtr)>' because they may unify for some type parameter substitutions
+                // partial class C2<T> : IB1<(nint, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C2").WithArguments("C2<T>", "IA<(nint, T)>", "IA<(T, System.IntPtr)>").WithLocation(6, 15),
+                // (8,15): error CS0695: 'C3<T>' cannot implement both 'IA<(T, T)>' and 'IA<(UIntPtr, nuint)>' because they may unify for some type parameter substitutions
+                // partial class C3<T> : IB1<(T, T)> { }
+                Diagnostic(ErrorCode.ERR_UnifyingInterfaceInstantiations, "C3").WithArguments("C3<T>", "IA<(T, T)>", "IA<(System.UIntPtr, nuint)>").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void TypeUnification_04()
+        {
+            var source =
+@"#nullable enable
+interface I<T> { }
+class C1 : I<nint> { }
+class C2 : I<nuint> { }
+class C3 : I<System.IntPtr> { }
+class C4 : I<(nint, nuint[])> { }
+class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            var type1 = getInterface(comp, "C1");
+            var type2 = getInterface(comp, "C2");
+            var type3 = getInterface(comp, "C3");
+            var type4 = getInterface(comp, "C4");
+            var type5 = getInterface(comp, "C5");
+
+            Assert.False(TypeUnification.CanUnify(type1, type2));
+            Assert.True(TypeUnification.CanUnify(type1, type3));
+            Assert.True(TypeUnification.CanUnify(type4, type5));
+
+            static TypeSymbol getInterface(CSharpCompilation comp, string typeName) =>
+                comp.GetMember<NamedTypeSymbol>(typeName).InterfacesNoUseSiteDiagnostics().Single();
+        }
+
+        [WorkItem(49596, "https://github.com/dotnet/roslyn/issues/49596")]
+        [Fact]
+        public void SignedToUnsignedConversions_Implicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Implicit1(sbyte x) => x;
+    static nuint Implicit2(short x) => x;
+    static nuint Implicit3(int x) => x;
+    static nuint Implicit4(long x) => x;
+    static nuint Implicit5(nint x) => x;
+    static nuint Checked1(sbyte x) => checked(x);
+    static nuint Checked2(short x) => checked(x);
+    static nuint Checked3(int x) => checked(x);
+    static nuint Checked4(long x) => checked(x);
+    static nuint Checked5(nint x) => checked(x);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,40): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit1(sbyte x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(3, 40),
+                // (4,40): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit2(short x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(4, 40),
+                // (5,38): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit3(int x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(5, 38),
+                // (6,39): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit4(long x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(6, 39),
+                // (7,39): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Implicit5(nint x) => x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(7, 39),
+                // (8,47): error CS0266: Cannot implicitly convert type 'sbyte' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked1(sbyte x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("sbyte", "nuint").WithLocation(8, 47),
+                // (9,47): error CS0266: Cannot implicitly convert type 'short' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked2(short x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("short", "nuint").WithLocation(9, 47),
+                // (10,45): error CS0266: Cannot implicitly convert type 'int' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked3(int x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("int", "nuint").WithLocation(10, 45),
+                // (11,46): error CS0266: Cannot implicitly convert type 'long' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked4(long x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("long", "nuint").WithLocation(11, 46),
+                // (12,46): error CS0266: Cannot implicitly convert type 'nint' to 'nuint'. An explicit conversion exists (are you missing a cast?)
+                //     static nuint Checked5(nint x) => checked(x);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("nint", "nuint").WithLocation(12, 46));
+        }
+
+        [Fact]
+        public void SignedToUnsignedConversions_Explicit()
+        {
+            string source =
+@"static class NativeInts
+{
+    static nuint Explicit1(sbyte x) => (nuint)x;
+    static nuint Explicit2(short x) => (nuint)x;
+    static nuint Explicit3(int x) => (nuint)x;
+    static nuint Explicit4(long x) => (nuint)x;
+    static nuint Explicit5(nint x) => (nuint)x;
+    static nuint Checked1(sbyte x) => checked((nuint)x);
+    static nuint Checked2(short x) => checked((nuint)x);
+    static nuint Checked3(int x) => checked((nuint)x);
+    static nuint Checked4(long x) => checked((nuint)x);
+    static nuint Checked5(nint x) => checked((nuint)x);
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source);
+            string expectedExplicitILA =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  ret
+}";
+            string expectedExplicitILB =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}";
+            string expectedCheckedIL =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.ovf.u
+  IL_0002:  ret
+}";
+            verifier.VerifyIL("NativeInts.Explicit1", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit2", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit3", expectedExplicitILA);
+            verifier.VerifyIL("NativeInts.Explicit4", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Checked1", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked2", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
+            verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
         }
     }
 }

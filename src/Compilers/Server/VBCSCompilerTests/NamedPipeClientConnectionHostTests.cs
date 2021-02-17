@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
@@ -12,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -19,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         private readonly NamedPipeClientConnectionHost _host;
 
-        public NamedPipeClientConnectionHostTests()
+        public NamedPipeClientConnectionHostTests(ITestOutputHelper testOutputHelper)
         {
-            _host = new NamedPipeClientConnectionHost(ServerUtil.GetPipeName());
+            _host = new NamedPipeClientConnectionHost(ServerUtil.GetPipeName(), new XunitCompilerServerLogger(testOutputHelper));
         }
 
         public void Dispose()
@@ -37,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private Task<NamedPipeClientStream?> ConnectAsync(CancellationToken cancellationToken = default) => BuildServerConnection.TryConnectToServerAsync(
             _host.PipeName,
             timeoutMs: Timeout.Infinite,
+            logger: _host.Logger,
             cancellationToken);
 
         [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]

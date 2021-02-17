@@ -9,7 +9,6 @@
     <TargetFramework>net472</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
-    <Nullable>enable</Nullable>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
     <IsPackable>true</IsPackable>
@@ -44,7 +43,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
   </ItemGroup>
@@ -67,6 +65,9 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
   </ItemGroup>
 
   <ItemGroup>

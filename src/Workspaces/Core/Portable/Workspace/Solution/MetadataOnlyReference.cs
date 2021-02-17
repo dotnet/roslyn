@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,11 +18,11 @@ namespace Microsoft.CodeAnalysis
     {
         // version based cache
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>> s_cache
-            = new ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>();
+            = new();
 
         // snapshot based cache
         private static readonly ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet> s_snapshotCache
-            = new ConditionalWeakTable<Compilation, MetadataOnlyReferenceSet>();
+            = new();
 
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>>.CreateValueCallback s_createReferenceSetMap =
             _ => new ConditionalWeakTable<ProjectId, MetadataOnlyReferenceSet>();
@@ -147,14 +149,14 @@ namespace Microsoft.CodeAnalysis
         private class MetadataOnlyReferenceSet
         {
             // use WeakReference so we don't keep MetadataReference's alive if they are not being consumed
-            private readonly NonReentrantLock _gate = new NonReentrantLock(useThisInstanceForSynchronization: true);
+            private readonly NonReentrantLock _gate = new(useThisInstanceForSynchronization: true);
 
             // here, there is a very small chance of leaking Tuple and WeakReference, but it is so small chance,
             // I don't believe it will actually happen in real life situation. basically, for leak to happen, 
             // every image creation except the first one has to fail so that we end up re-use old reference set.
             // and the user creates many different metadata references with multiple combination of the key (tuple).
             private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _metadataReferences
-                = new Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>>();
+                = new();
 
             private readonly VersionStamp _version;
             private readonly MetadataOnlyImage _image;

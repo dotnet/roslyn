@@ -2,8 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -60,7 +65,7 @@ public interface I1
 }
 ";
 
-                    var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+                    var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                                                          parseOptions: TestOptions.Regular);
                     Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                     compilation1.VerifyDiagnostics();
@@ -91,7 +96,7 @@ public interface I1
                     {
                         var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular,
-                                                             targetFramework: TargetFramework.NetStandardLatest);
+                                                             targetFramework: TargetFramework.NetCoreApp);
                         Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                         void Validate2(ModuleSymbol m)
@@ -179,7 +184,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -211,7 +216,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -227,7 +232,7 @@ class Test2 : I1
                              verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -265,7 +270,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -297,7 +302,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -313,7 +318,7 @@ class Test2 : I1
                              verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -361,7 +366,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -429,7 +434,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -501,7 +506,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -573,7 +578,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -631,7 +636,7 @@ class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -677,7 +682,7 @@ class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -726,7 +731,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -775,7 +780,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -824,7 +829,7 @@ class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -878,7 +883,7 @@ class Test2 : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -936,7 +941,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -994,7 +999,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -1092,7 +1097,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1137,7 +1142,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -1252,7 +1257,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1280,7 +1285,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation2.GetTypeByMetadataName("Test2");
@@ -1298,7 +1303,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1361,7 +1366,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
 
@@ -1420,7 +1425,7 @@ class Test1 : I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1474,7 +1479,7 @@ class Test2 : I2
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation2.GetTypeByMetadataName("Test2");
@@ -1496,7 +1501,7 @@ class Test2 : I2
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1553,14 +1558,14 @@ class Test1 : I2, I1<string?>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
@@ -1623,14 +1628,14 @@ class Test1 : I1<string?>, I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
@@ -1697,14 +1702,14 @@ class Test1 : I2, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -1770,14 +1775,14 @@ class Test1 : I3, I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -1845,7 +1850,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -1874,7 +1879,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -1891,7 +1896,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -2124,7 +2129,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,13): error CS1014: A get, set or init accessor expected
@@ -2161,7 +2166,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -2189,7 +2194,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,13): error CS1014: A get, set or init accessor expected
@@ -2226,7 +2231,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,9): error CS8053: Instance properties in interfaces cannot have initializers..
@@ -2265,7 +2270,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
@@ -2318,7 +2323,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
@@ -2404,7 +2409,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -2519,7 +2524,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -2610,7 +2615,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -2735,7 +2740,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -2943,7 +2948,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -2995,7 +3000,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -3160,7 +3165,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -3191,7 +3196,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -3207,7 +3212,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
@@ -3248,7 +3253,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -3487,7 +3492,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,22): error CS1014: A get, set or init accessor expected
@@ -3524,7 +3529,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -3552,7 +3557,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,36): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
@@ -3589,7 +3594,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
@@ -3628,7 +3633,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
@@ -3681,7 +3686,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
@@ -3767,7 +3772,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -3884,7 +3889,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -3975,7 +3980,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -4120,7 +4125,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -4337,7 +4342,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -4395,7 +4400,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -4573,7 +4578,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -4604,7 +4609,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -4620,7 +4625,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
@@ -4667,7 +4672,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -4735,7 +4740,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
 
@@ -4749,7 +4754,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -4896,7 +4901,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -4930,7 +4935,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -4951,7 +4956,7 @@ remove E1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -5227,7 +5232,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (10,25): warning CS0067: The event 'Base.E7' is never used
@@ -5303,7 +5308,7 @@ class Test : I1 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (10,25): warning CS0067: The event 'Base.E7' is never used
@@ -5367,7 +5372,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (10,25): warning CS0067: The event 'Base.E7' is never used
@@ -5447,7 +5452,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (10,29): warning CS0067: The event 'Base.E7' is never used
@@ -5587,7 +5592,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -5631,7 +5636,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -5753,7 +5758,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -5775,7 +5780,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -5791,7 +5796,7 @@ class Test2 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7.3. Please use language version '8.0' or greater.
@@ -5824,7 +5829,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -5879,7 +5884,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS0174: A base class is required for a 'base' reference
@@ -6036,7 +6041,7 @@ class Test1 : I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             CompileAndVerify(compilation1,
@@ -6152,7 +6157,7 @@ public interface I2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,16): error CS0525: Interfaces cannot contain fields
@@ -6312,7 +6317,7 @@ class Test1 : I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics();
@@ -6430,7 +6435,7 @@ public interface I2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,16): error CS0525: Interfaces cannot contain fields
@@ -6466,7 +6471,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (12,19): error CS0106: The modifier 'override' is not valid for this item
@@ -6679,7 +6684,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -6937,7 +6942,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -7004,7 +7009,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (10,24): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
@@ -7102,7 +7107,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M4
@@ -7153,7 +7158,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (10,25): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
@@ -7243,7 +7248,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
@@ -7255,7 +7260,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -7263,7 +7268,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
@@ -7275,7 +7280,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
@@ -7294,7 +7299,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
@@ -7306,7 +7311,7 @@ class Test2 : I1
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
@@ -7421,7 +7426,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -7429,7 +7434,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -7437,7 +7442,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
@@ -7445,7 +7450,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
@@ -7815,7 +7820,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
@@ -7827,7 +7832,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -7835,7 +7840,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
@@ -7847,7 +7852,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
@@ -8041,7 +8046,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate(ModuleSymbol m)
@@ -8100,7 +8105,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (15,24): error CS0501: 'I1.M4()' must declare a body because it is not marked abstract, extern, or partial
@@ -8211,7 +8216,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (6,27): error CS0500: 'I1.M3()' cannot declare a body because it is marked abstract
@@ -8279,7 +8284,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
@@ -8364,7 +8369,7 @@ class Test2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (4,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -8482,7 +8487,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS0180: 'I1.M1()' cannot be both extern and abstract
@@ -8584,7 +8589,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,19): error CS0500: 'I1.M1()' cannot declare a body because it is marked abstract
@@ -8729,7 +8734,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", symbolValidator: Validate);
 
@@ -8783,7 +8788,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -8817,7 +8822,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -8829,7 +8834,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -8840,7 +8845,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -8878,7 +8883,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (17,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -8901,7 +8906,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (6,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -8956,7 +8961,7 @@ class Test2 : System.Attribute
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -9062,7 +9067,7 @@ class Test2 : System.Attribute
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -9158,7 +9163,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,18): error CS8703: The modifier 'partial' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -9200,7 +9205,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularWithExtendedPartialMethods,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,24): error CS8794: Partial method 'I1.M1()' must have accessibility modifiers because it has a non-void return type.
@@ -9357,7 +9362,7 @@ interface I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularWithExtendedPartialMethods,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
@@ -9424,7 +9429,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (8,17): error CS0539: 'I1.C.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -9454,7 +9459,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (9,27): error CS0762: Cannot create delegate from method 'I1.M1()' because it is a partial method without an implementing declaration
@@ -9463,7 +9468,7 @@ public partial interface I1
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static void M4();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
                 );
@@ -9481,7 +9486,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
@@ -9508,7 +9513,7 @@ public partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent constraints for type parameter 'T'
@@ -9594,7 +9599,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -9618,7 +9623,7 @@ class Test1
 
             var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M2",
@@ -9626,7 +9631,7 @@ class Test1
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -9660,7 +9665,7 @@ class Test1
                 var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -9670,7 +9675,7 @@ M2",
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation5.VerifyDiagnostics(
                     // (6,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
@@ -9687,7 +9692,7 @@ M2",
                 var compilation6 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation6.VerifyDiagnostics(
                     // (8,12): error CS0122: 'I1.M3()' is inaccessible due to its protection level
@@ -9748,7 +9753,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var expected = new DiagnosticDescription[] {
@@ -9766,7 +9771,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -9784,7 +9789,7 @@ class Test2 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(expected);
 
@@ -9792,7 +9797,7 @@ class Test2 : I1
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation5.VerifyDiagnostics(
                     // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
@@ -9833,7 +9838,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -9846,7 +9851,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -9864,7 +9869,7 @@ class Test2 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
@@ -9879,7 +9884,7 @@ class Test2 : I1
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation5.VerifyDiagnostics(
                     // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
@@ -9920,7 +9925,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -9936,7 +9941,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -9954,7 +9959,7 @@ class Test2 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(
                     // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
@@ -9969,7 +9974,7 @@ class Test2 : I1
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation5.VerifyDiagnostics(
                     // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
@@ -10012,7 +10017,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -10022,7 +10027,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
@@ -10073,7 +10078,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -10083,7 +10088,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
@@ -10134,7 +10139,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -10144,7 +10149,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
@@ -10309,7 +10314,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10320,7 +10325,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -10334,7 +10339,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
                     expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10397,7 +10402,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10408,7 +10413,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -10422,7 +10427,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
                     expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10485,7 +10490,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10496,7 +10501,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -10510,7 +10515,7 @@ class Test1 : I1
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
                     expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
@@ -10589,7 +10594,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -10644,7 +10649,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -10717,7 +10722,7 @@ public class C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -10774,7 +10779,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
@@ -11264,7 +11269,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -11597,7 +11602,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,24): error CS8053: Instance properties in interfaces cannot have initializers.
@@ -11911,7 +11916,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
@@ -12059,7 +12064,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS0112: A static member 'I1.P1' cannot be marked as override, virtual, or abstract
@@ -12300,7 +12305,7 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -12399,7 +12404,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,26): error CS0621: 'I1.P1': virtual or abstract members cannot be private
@@ -12588,7 +12593,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
@@ -12596,7 +12601,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -12613,7 +12618,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
 
@@ -12621,7 +12626,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
 
@@ -12636,7 +12641,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
 
@@ -12644,7 +12649,7 @@ class Test2 : I1
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
 
@@ -12757,7 +12762,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -12765,13 +12770,13 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
@@ -12779,7 +12784,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
@@ -13672,7 +13677,7 @@ class Test7 : I7
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate(ModuleSymbol m)
@@ -13804,7 +13809,7 @@ class Test2 : I1, I2, I3
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(expected);
 
@@ -14076,7 +14081,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -14264,7 +14269,7 @@ class Test2 : I1, I2, I3, I4, I5
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
@@ -14414,7 +14419,7 @@ class Test2 : I1, I2, I3, I4, I5
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected1);
 
@@ -14512,7 +14517,7 @@ class Test2 : I1, I2, I3, I4, I5
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -14756,7 +14761,7 @@ class Test2 : I1, I2, I3, I4, I5
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -14947,7 +14952,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -15001,7 +15006,7 @@ set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -15018,7 +15023,7 @@ set_P1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -15032,7 +15037,7 @@ set_P1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -15079,7 +15084,7 @@ class Test1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (18,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -15111,7 +15116,7 @@ class Test2
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (7,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -15217,7 +15222,7 @@ class Test1 : I1, I2, I3, I4
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -15773,7 +15778,7 @@ class Test66 : Test6 {}
             {
                 var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(metadataImportOptions),
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyDiagnostics();
 
@@ -15806,7 +15811,7 @@ set_P6
 
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(metadataImportOptions),
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation2.VerifyDiagnostics();
 
@@ -15820,7 +15825,7 @@ set_P6
                     var compilation3 = CreateCompilation(source2, new[] { reference },
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(metadataImportOptions),
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                     compilation3.VerifyDiagnostics();
                     Validate1(compilation3.SourceModule);
@@ -15934,7 +15939,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -15950,7 +15955,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -15959,7 +15964,7 @@ class Test1 : I1
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
@@ -15968,7 +15973,7 @@ class Test1 : I1
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
@@ -17140,7 +17145,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -17194,7 +17199,7 @@ set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -17211,7 +17216,7 @@ set_P1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -17225,7 +17230,7 @@ set_P1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -17271,7 +17276,7 @@ class Test1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (18,13): error CS0271: The property or indexer 'I1.P1' cannot be used in this context because the get accessor is inaccessible
@@ -17302,7 +17307,7 @@ class Test2
 ";
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (7,13): error CS0271: The property or indexer 'I1.P1' cannot be used in this context because the get accessor is inaccessible
@@ -17340,7 +17345,7 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0442: 'I1.P1.get': abstract properties cannot have private accessors
@@ -17473,7 +17478,7 @@ public interface I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // https://github.com/dotnet/roslyn/issues/34455: The wording "accessor not found in interface member" is somewhat misleading
@@ -17617,7 +17622,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source0 + source1,
                                                  options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -17656,7 +17661,7 @@ class Test1
 
             var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P2
@@ -17670,7 +17675,7 @@ set_P6
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -17730,7 +17735,7 @@ class Test1
                 var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
@@ -17748,7 +17753,7 @@ set_P6
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation5, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"set_P4
@@ -17760,7 +17765,7 @@ set_P6
                 var compilation6 = CreateCompilation(source5, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation6.VerifyDiagnostics(
                     // (6,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -17795,7 +17800,7 @@ set_P6
                 var compilation7 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation7.VerifyDiagnostics(
                     // (10,16): error CS0122: 'I1.P3' is inaccessible due to its protection level
@@ -18115,7 +18120,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -18155,7 +18160,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -18195,7 +18200,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp,
                 // (9,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     int I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 12)
@@ -18239,7 +18244,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -18279,7 +18284,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -18319,7 +18324,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetCoreApp,
                 // (9,12): error CS0122: 'I1.P1.get' is inaccessible due to its protection level
                 //     int I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(9, 12)
@@ -18754,7 +18759,7 @@ public interface I19{ int this[int x] { get; private protected set;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
@@ -19243,7 +19248,7 @@ public interface I19{ int this[int x] { get; private protected set;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (2,34): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -19572,7 +19577,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (4,45): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
@@ -19827,7 +19832,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,37): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
@@ -20792,7 +20797,7 @@ class Test2 : I1, I2, I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -20858,7 +20863,7 @@ class Test2 : I1, I2, I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (20,29): error CS0050: Inconsistent accessibility: return type 'I1.I2' is less accessible than method 'I3.I4.M4()'
                 //             protected I1.I2 M4();
@@ -20975,7 +20980,7 @@ class Test2 : I1, I2, I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -21041,7 +21046,7 @@ class Test2 : I1, I2, I3
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (20,37): error CS0050: Inconsistent accessibility: return type 'I1<string>.I2' is less accessible than method 'I3.I4.M4()'
                 //             protected I1<string>.I2 M4();
@@ -21611,7 +21616,7 @@ class Test1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (24,13): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
@@ -21643,7 +21648,7 @@ class Test2
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (7,13): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
@@ -23477,7 +23482,7 @@ public class Test1 : I1, I2, I3, I4
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (29,13): error CS0271: The property or indexer 'I1.this[int]' cannot be used in this context because the get accessor is inaccessible
@@ -23514,7 +23519,7 @@ class Test2
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (12,13): error CS0271: The property or indexer 'I1.this[int]' cannot be used in this context because the get accessor is inaccessible
@@ -23553,7 +23558,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (7,40): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
@@ -23689,7 +23694,7 @@ public interface I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
@@ -23745,7 +23750,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
@@ -24079,7 +24084,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
                 // (4,32): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -24735,7 +24740,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
@@ -24809,7 +24814,7 @@ class Test1 : I1
 }
 ";
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,39): warning CS0067: The event 'I1.P1' is never used
@@ -24887,7 +24892,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (8,46): error CS0073: An add or remove accessor must have a body
@@ -25058,7 +25063,7 @@ class Test1 : I1, I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -25136,7 +25141,7 @@ class Test1 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,42): error CS0621: 'I1.P1': virtual or abstract members cannot be private
@@ -25345,7 +25350,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
@@ -25394,7 +25399,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -25408,7 +25413,7 @@ class Test1 : I1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
 
@@ -25416,7 +25421,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
 
@@ -25431,7 +25436,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation5.VerifyDiagnostics(expected2);
 
@@ -25439,7 +25444,7 @@ class Test2 : I1
 
             var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation6.VerifyDiagnostics(expected2);
 
@@ -26333,7 +26338,7 @@ class Test2 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate(ModuleSymbol m)
@@ -26451,7 +26456,7 @@ class Test2 : I1, I2, I3
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -26747,7 +26752,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -26858,7 +26863,7 @@ class Test2 : I1, I2, I3, I4, I5
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
@@ -27020,7 +27025,7 @@ class Test2 : I1, I2, I3, I4, I5
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (4,32): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -27196,7 +27201,7 @@ class Test2 : I1, I2, I3, I4
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -27411,7 +27416,7 @@ class Test2 : I1, I2, I3, I4, I5
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -27613,7 +27618,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -27667,7 +27672,7 @@ set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -27682,7 +27687,7 @@ set_P1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -27696,7 +27701,7 @@ set_P1
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -27742,7 +27747,7 @@ class Test1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (17,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -27773,7 +27778,7 @@ class Test2
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
                                                  options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (6,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -27847,7 +27852,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source0 + source1,
                                                  options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
@@ -27873,7 +27878,7 @@ class Test1
 
             var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P2
@@ -27882,7 +27887,7 @@ set_P2",
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -27921,7 +27926,7 @@ class Test1
                 var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
@@ -27933,7 +27938,7 @@ set_P2",
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation5.VerifyDiagnostics(
                     // (6,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
@@ -27959,7 +27964,7 @@ set_P2",
                 var compilation6 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation6.VerifyDiagnostics(
                     // (10,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
@@ -28222,7 +28227,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -28265,7 +28270,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetCoreApp);
         }
 
         [Fact]
@@ -28308,7 +28313,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetCoreApp,
                 // (9,28): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     event System.Action I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 28)
@@ -28670,7 +28675,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -28725,7 +28730,7 @@ class Test1
 
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             var expected = new DiagnosticDescription[] {
                 // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
@@ -28758,7 +28763,7 @@ class Test1
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -28767,7 +28772,7 @@ class Test1
                 var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation4.VerifyDiagnostics();
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -28781,7 +28786,7 @@ I1+T5",
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation5.VerifyDiagnostics(expected);
             }
@@ -28860,8 +28865,8 @@ class Test1
     }
 }
 ";
-            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
-            ValidateNestedTypes_01(source0 + source2, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source2, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -28893,7 +28898,7 @@ class Test1
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -28902,7 +28907,7 @@ class Test1
                 var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation4.VerifyDiagnostics();
                 CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -28916,7 +28921,7 @@ I1+T5",
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation5.VerifyDiagnostics(
                     // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
@@ -29220,7 +29225,7 @@ class Test1
     }
 }
 ";
-            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetCoreApp, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -29251,7 +29256,7 @@ class Test1
 
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             var expected = new DiagnosticDescription[] {
                 // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
@@ -29284,7 +29289,7 @@ class Test1
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -29293,14 +29298,14 @@ class Test1
                 var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation4.VerifyDiagnostics(expected);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation5.VerifyDiagnostics(expected);
             }
@@ -29430,7 +29435,7 @@ class C11
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (16,23): error CS0122: 'I1.I2' is inaccessible due to its protection level
@@ -29574,7 +29579,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -29590,7 +29595,7 @@ I4.M1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -29606,7 +29611,7 @@ I4.M1
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
 
@@ -29719,7 +29724,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,13): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -29743,7 +29748,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -29863,7 +29868,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (15,13): error CS0501: 'I1.I4.M1()' must declare a body because it is not marked abstract, extern, or partial
@@ -29907,7 +29912,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (18,10): error CS0540: 'I1.I4.M1()': containing type does not implement interface 'I4'
@@ -29956,7 +29961,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,27): error CS0106: The modifier 'static' is not valid for this item
@@ -30013,7 +30018,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,28): error CS0106: The modifier 'sealed' is not valid for this item
@@ -30073,7 +30078,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,31): error CS0106: The modifier 'private protected' is not valid for this item
@@ -30115,7 +30120,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -30154,7 +30159,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (9,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -30205,7 +30210,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
                 // (9,20): error CS0179: 'I1.I2.M1()' cannot be extern and declare a body
@@ -30274,7 +30279,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -30394,7 +30399,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -30410,7 +30415,7 @@ I4.M1
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -30426,7 +30431,7 @@ I4.M1
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
 
@@ -30441,13 +30446,13 @@ I4.M1
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
@@ -30463,7 +30468,7 @@ I4.M1
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation6.SourceModule);
 
@@ -30526,7 +30531,7 @@ public interface I6 : I1, I2, I3, I5
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -30661,7 +30666,7 @@ class Test12 : I8
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
@@ -30687,7 +30692,7 @@ class Test12 : I8
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
@@ -30699,7 +30704,7 @@ class Test12 : I8
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -30738,7 +30743,7 @@ I5.I1.M1
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
@@ -30783,7 +30788,7 @@ I5.I1.M1
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -30877,13 +30882,13 @@ class Test1 : I2, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -30897,7 +30902,7 @@ class Test1 : I2, I3
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -30964,7 +30969,7 @@ class Test2 : I2<long>
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -31061,7 +31066,7 @@ I2.I1.M2
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
@@ -31079,7 +31084,7 @@ I2.I1.M2
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
@@ -31131,12 +31136,12 @@ class Test1 : I2, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31160,7 +31165,7 @@ class Test1 : I2, I3
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31218,12 +31223,12 @@ class Test1 : I2, I3, I1<string>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31251,7 +31256,7 @@ class Test1 : I2, I3, I1<string>
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31315,12 +31320,12 @@ class Test1 : I2, I3, I1<string>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
@@ -31345,7 +31350,7 @@ class Test1 : I2, I3, I1<string>
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
@@ -31407,12 +31412,12 @@ class Test1 : I2, I3, I1<string?>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31436,7 +31441,7 @@ class Test1 : I2, I3, I1<string?>
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31498,7 +31503,7 @@ class Test1 : I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
@@ -31513,7 +31518,7 @@ class Test1 : I3
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -31580,14 +31585,14 @@ class Test1 : I2, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -31660,14 +31665,14 @@ class Test1 : I3, I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -31744,14 +31749,14 @@ class Test1 : I3, I4
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -31828,14 +31833,14 @@ class Test1 : I4, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -31901,7 +31906,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
                 //     void I1<string?>.M1() 
@@ -31912,7 +31917,7 @@ class Test1 : I2
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -31970,14 +31975,14 @@ class Test1 : I2, I1<string?>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 compilation2.VerifyDiagnostics(
                     // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -32035,7 +32040,7 @@ class Test1 : I2, I1<string?>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
                 //     void I1<string>.M1() 
@@ -32046,7 +32051,7 @@ class Test1 : I2, I1<string?>
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 compilation2.VerifyDiagnostics();
 
@@ -32113,14 +32118,14 @@ class Test1 : I2<string>, I3<string>, I4
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                         parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetStandardLatest);
+                                                        targetFramework: TargetFramework.NetCoreApp);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -32219,7 +32224,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -32237,7 +32242,7 @@ I4.M1
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -32254,7 +32259,7 @@ I4.M1
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -32262,7 +32267,7 @@ I4.M1
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
@@ -32342,7 +32347,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -32360,7 +32365,7 @@ I4.M1
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -32377,7 +32382,7 @@ I4.M1
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -32385,7 +32390,7 @@ I4.M1
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
@@ -32465,7 +32470,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -32483,7 +32488,7 @@ I4.M1
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -32500,7 +32505,7 @@ I4.M1
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -32508,7 +32513,7 @@ I4.M1
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
@@ -32553,7 +32558,7 @@ class Test1 : I1, I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (10,25): warning CS0108: 'I2.M1()' hides inherited member 'I1.M1()'. Use the new keyword if hiding was intended.
                 //     public virtual void M1()
@@ -32630,7 +32635,7 @@ class Test1 : I1
             {
                 var compilation1 = CreateCompilation(source1 + source2, options: options,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyDiagnostics();
 
@@ -32646,7 +32651,7 @@ I4.M1
 
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: options,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
@@ -32662,7 +32667,7 @@ I4.M1
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: options,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
 
@@ -32846,7 +32851,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
@@ -32863,7 +32868,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected2);
@@ -33018,7 +33023,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
@@ -33061,7 +33066,7 @@ public interface I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
         }
@@ -33327,7 +33332,7 @@ class Test1 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
@@ -33362,7 +33367,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected2);
 
@@ -33378,7 +33383,7 @@ class Test1 : I1
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected4);
 
@@ -33579,7 +33584,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -33598,7 +33603,7 @@ I4.M1.set
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
@@ -33616,7 +33621,7 @@ I4.M1.set
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -33624,7 +33629,7 @@ I4.M1.set
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidatePropertyImplementationInDerived_01(compilation5.SourceModule);
@@ -33864,7 +33869,7 @@ class Test12 : I8
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -33923,7 +33928,7 @@ class Test5 : I8
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
@@ -33949,7 +33954,7 @@ class Test5 : I8
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
@@ -33961,7 +33966,7 @@ class Test5 : I8
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -34003,7 +34008,7 @@ I5.I1.M1.set
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(ref1 is CompilationReference ? expected1 : expected2 ?? expected1);
@@ -34032,7 +34037,7 @@ I5.I1.M1.set
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -34121,20 +34126,20 @@ class Test1 : I2, I3
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected1);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
@@ -34198,7 +34203,7 @@ class Test2 : I2<long>
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -34267,7 +34272,7 @@ I2.I1.M1.set
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
@@ -34285,7 +34290,7 @@ I2.I1.M1.set
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
@@ -34541,7 +34546,7 @@ class Test1 : I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
@@ -34559,7 +34564,7 @@ class Test1 : I3
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                     parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetStandardLatest);
+                                                    targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -34856,7 +34861,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -34874,7 +34879,7 @@ I4.M1.remove
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -34892,7 +34897,7 @@ I4.M1.remove
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
 
@@ -35049,7 +35054,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (16,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -35079,7 +35084,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -35228,7 +35233,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (16,12): error CS0073: An add or remove accessor must have a body
@@ -35267,7 +35272,7 @@ public interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,25): error CS0540: 'I1.I2.M1': containing type does not implement interface 'I2'
@@ -35315,7 +35320,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,42): error CS0106: The modifier 'static' is not valid for this item
@@ -35374,7 +35379,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,43): error CS0106: The modifier 'sealed' is not valid for this item
@@ -35436,7 +35441,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,53): error CS0106: The modifier 'private protected' is not valid for this item
@@ -35506,7 +35511,7 @@ class Test3 : I5
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (30,28): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -35607,7 +35612,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -35625,7 +35630,7 @@ I4.M1.remove
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -35643,7 +35648,7 @@ I4.M1.remove
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
 
@@ -35660,13 +35665,13 @@ I4.M1.remove
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateEventImplementationInDerived_01(compilation5.SourceModule);
@@ -35679,7 +35684,7 @@ I4.M1.remove
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation6.SourceModule);
 
@@ -35767,7 +35772,7 @@ public interface I6 : I1, I2, I3, I5
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -35945,7 +35950,7 @@ class Test12 : I8
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
@@ -35971,7 +35976,7 @@ class Test12 : I8
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
@@ -35983,7 +35988,7 @@ class Test12 : I8
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -36025,7 +36030,7 @@ I5.I1.M1.remove
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
@@ -36070,7 +36075,7 @@ I5.I1.M1.remove
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetStandardLatest);
+                                                         targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -36147,13 +36152,13 @@ class Test1 : I2, I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -36167,7 +36172,7 @@ class Test1 : I2, I3
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -36234,7 +36239,7 @@ class Test2 : I2<long>
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -36303,7 +36308,7 @@ I2.I1.M1.remove
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
@@ -36321,7 +36326,7 @@ I2.I1.M1.remove
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
@@ -36411,7 +36416,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -36431,7 +36436,7 @@ I4.M1.remove
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -36450,7 +36455,7 @@ I4.M1.remove
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -36458,7 +36463,7 @@ I4.M1.remove
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation5.SourceModule);
@@ -36550,7 +36555,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -36570,7 +36575,7 @@ I4.M1.remove
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -36589,7 +36594,7 @@ I4.M1.remove
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -36597,7 +36602,7 @@ I4.M1.remove
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation5.SourceModule);
@@ -36689,7 +36694,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -36709,7 +36714,7 @@ I4.M1.remove
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -36728,7 +36733,7 @@ I4.M1.remove
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
@@ -36736,7 +36741,7 @@ I4.M1.remove
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 ValidateEventImplementationInDerived_01(compilation5.SourceModule);
@@ -37857,7 +37862,7 @@ public interface I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyEmitDiagnostics(
                 // (4,9): error CS0525: Interfaces cannot contain instance fields
@@ -37925,7 +37930,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -37970,18 +37975,18 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -38055,7 +38060,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38107,17 +38112,17 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,25): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -38190,7 +38195,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38237,17 +38242,17 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,15): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -38329,7 +38334,7 @@ class Test2
 ";
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38359,7 +38364,7 @@ class Test2 : I1
             {
                 var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation2, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1122" : null, verify: VerifyOnMonoOrCoreClr);
             }
@@ -38379,7 +38384,7 @@ class Test1
 
             var compilation3 = CreateCompilation(source0 + source3, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(
                 // (13,12): error CS0122: 'I1.F1' is inaccessible due to its protection level
@@ -38406,7 +38411,7 @@ class Test2 : I1
             {
                 var compilation2 = CreateCompilation(source3 + source4, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 compilation2.VerifyDiagnostics(
                     // (6,12): error CS0122: 'I1.F1' is inaccessible due to its protection level
@@ -38426,7 +38431,7 @@ class Test2 : I1
 
             var compilation4 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,26): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -38480,7 +38485,7 @@ interface I2
 
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,5): error CS0526: Interfaces cannot contain instance constructors
@@ -38527,7 +38532,7 @@ interface I6
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,12): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -38682,7 +38687,7 @@ interface I19
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,12): error CS0132: 'I1.I1(int)': a static constructor must be parameterless
@@ -38724,10 +38729,10 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -38739,10 +38744,10 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -38779,7 +38784,7 @@ interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38826,7 +38831,7 @@ interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38860,7 +38865,7 @@ interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -38884,7 +38889,7 @@ interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,19): warning CS0824: Constructor 'I1.I1()' is marked external
@@ -38976,7 +38981,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39021,7 +39026,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39057,7 +39062,7 @@ class Test : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39102,7 +39107,7 @@ class Test
 ";
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39120,7 +39125,7 @@ class Test
 ";
             var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
@@ -39140,7 +39145,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
                 // (4,21): error CS0501: 'I1.F1.get' must declare a body because it is not marked abstract, extern, or partial
@@ -39193,7 +39198,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39238,18 +39243,18 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -39368,7 +39373,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39415,18 +39420,18 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "124");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -39523,7 +39528,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             void Validate1(ModuleSymbol m)
@@ -39566,18 +39571,18 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1122");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1122");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
@@ -39731,7 +39736,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39776,17 +39781,17 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "112244");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (9,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -39871,7 +39876,7 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -39913,17 +39918,17 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234");
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234");
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(
                 // (9,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -40030,13 +40035,13 @@ public class Test1 : I1
 ";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -40193,7 +40198,7 @@ public class Test1 : I0
 ";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
 
@@ -40305,7 +40310,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -40449,7 +40454,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -40539,7 +40544,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "I1.Main");
         }
 
@@ -40565,7 +40570,7 @@ public interface I2
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMainTypeName("I2"),
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "I2.Main");
         }
 
@@ -40771,7 +40776,7 @@ true
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
@@ -40781,7 +40786,7 @@ true
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
@@ -40794,7 +40799,7 @@ true
             CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
 
             var compilation6 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation6.VerifyDiagnostics(
@@ -40940,7 +40945,7 @@ true
                 );
 
             var compilation7 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular7_3);
 
             var expected7 = new DiagnosticDescription[]
@@ -41012,7 +41017,7 @@ true
             compilation7.VerifyDiagnostics(expected7);
 
             var compilation8 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular7_3);
 
             compilation8.VerifyDiagnostics(expected7);
@@ -41032,7 +41037,7 @@ class Test3 : I1
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular7_3);
 
             var expected9 = new DiagnosticDescription[]
@@ -41116,10 +41121,10 @@ C1.+
 C1.-
 ";
 
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr);
 
-            var compilation2 = CreateCompilation(source1 + source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation2 = CreateCompilation(source1 + source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
@@ -41162,7 +41167,7 @@ class Test2 : I1
 }
 ";
 
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
@@ -41182,7 +41187,7 @@ class Test2 : I1
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics(
                 // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
                 //         x = x == y;
@@ -41294,7 +41299,7 @@ public interface I1
 }
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
                 // (4,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
@@ -41354,7 +41359,7 @@ class Test2 : I2
 -
 ";
 
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest,
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
             compilation1.VerifyDiagnostics();
@@ -41364,13 +41369,13 @@ class Test2 : I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41389,7 +41394,7 @@ class Test2 : I2
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             var expected9 = new DiagnosticDescription[]
             {
@@ -41400,7 +41405,7 @@ class Test2 : I2
             compilation9.VerifyDiagnostics(expected9);
 
             var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                  parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation10.VerifyDiagnostics(expected9);
         }
@@ -41447,7 +41452,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41456,13 +41461,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41523,7 +41528,7 @@ I4.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41532,13 +41537,13 @@ I4.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41596,14 +41601,14 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
         }
@@ -41653,7 +41658,7 @@ Test2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41662,13 +41667,13 @@ Test2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41734,7 +41739,7 @@ I4.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41743,13 +41748,13 @@ I4.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -41809,7 +41814,7 @@ class Test2 : I3
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
 
@@ -41817,12 +41822,12 @@ class Test2 : I3
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
             var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
@@ -41841,7 +41846,7 @@ public interface I2
 { }
 ";
             var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -41849,12 +41854,12 @@ public interface I2
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
             var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation5.VerifyDiagnostics(expected);
 
@@ -41870,7 +41875,7 @@ public interface I3 :  I1, I2
 }
 ";
             var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation6.VerifyDiagnostics();
 
@@ -41878,12 +41883,12 @@ public interface I3 :  I1, I2
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
             var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation8.VerifyDiagnostics(expected);
         }
@@ -41942,7 +41947,7 @@ class Test2 : I3
             };
 
             var compilation0 = CreateCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation0.VerifyDiagnostics();
 
@@ -41950,12 +41955,12 @@ class Test2 : I3
             MetadataReference metadataReference0 = compilation0.EmitToImageReference();
 
             var compilation1 = CreateCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
@@ -41974,7 +41979,7 @@ public interface I2
 { }
 ";
             var compilation3 = CreateCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
 
@@ -41982,12 +41987,12 @@ public interface I2
             MetadataReference metadataReference3 = compilation3.EmitToImageReference();
 
             var compilation4 = CreateCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation4.VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation5.VerifyDiagnostics(expected);
 
@@ -42003,7 +42008,7 @@ public interface I3 :  I1, I2
 }
 ";
             var compilation6 = CreateCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation6.VerifyDiagnostics();
 
@@ -42011,12 +42016,12 @@ public interface I3 :  I1, I2
             MetadataReference metadataReference6 = compilation6.EmitToImageReference();
 
             var compilation7 = CreateCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation7.VerifyDiagnostics(expected);
 
             var compilation8 = CreateCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation8.VerifyDiagnostics(expected);
         }
@@ -42070,7 +42075,7 @@ class Test2: I1, I2
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -42078,12 +42083,12 @@ class Test2: I1, I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -42137,7 +42142,7 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -42145,12 +42150,12 @@ class Test2 : I2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -42212,7 +42217,7 @@ I2.+2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42221,13 +42226,13 @@ I2.+2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42269,7 +42274,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42278,13 +42283,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42336,7 +42341,7 @@ I1.+2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42345,13 +42350,13 @@ I1.+2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42371,7 +42376,7 @@ class Test2 : I2
 ";
 
             var compilation9 = CreateCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             var expected9 = new DiagnosticDescription[]
             {
@@ -42385,7 +42390,7 @@ class Test2 : I2
             compilation9.VerifyDiagnostics(expected9);
 
             var compilation10 = CreateCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                  parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetStandardLatest);
+                                                  parseOptions: TestOptions.Regular7_3, targetFramework: TargetFramework.NetCoreApp);
 
             compilation10.VerifyDiagnostics(expected9);
         }
@@ -42433,7 +42438,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42442,13 +42447,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42503,7 +42508,7 @@ I1.+
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42512,13 +42517,13 @@ I1.+
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42567,7 +42572,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42576,13 +42581,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42646,7 +42651,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42655,13 +42660,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42718,7 +42723,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42727,13 +42732,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -42791,7 +42796,7 @@ class Test2 : I3
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -42799,12 +42804,12 @@ class Test2 : I3
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -42861,7 +42866,7 @@ class Test2 : I3
             };
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
 
@@ -42869,12 +42874,12 @@ class Test2 : I3
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics(expected);
         }
@@ -42931,14 +42936,14 @@ class Test2 : I2
             };
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics(expected);
         }
@@ -43023,7 +43028,7 @@ I3.-2
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43032,13 +43037,13 @@ I3.-2
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43089,7 +43094,7 @@ Test2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43098,13 +43103,13 @@ Test2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43196,7 +43201,7 @@ I3.-1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43205,13 +43210,13 @@ I3.-1
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43250,7 +43255,7 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0562: The parameter of a unary operator must be the containing type
@@ -43351,7 +43356,7 @@ public interface I4
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
@@ -43430,7 +43435,7 @@ I2.-
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43439,13 +43444,13 @@ I2.-
             MetadataReference metadataReference = compilation1.EmitToImageReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetStandardLatest);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput);
@@ -43466,7 +43471,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime },
+                                                 references: new[] { TestMetadata.NetCoreApp.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -43801,7 +43806,7 @@ class A : I2
 }
 ";
 
-            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -43827,7 +43832,7 @@ class A : I3
 }
 ";
 
-            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -43856,7 +43861,7 @@ interface I2 : I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics(
                 // (14,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'T'; the qualifier must be of type 'I2' (or derived from it)
                 //         x.M1();
@@ -43890,7 +43895,7 @@ class A : I1<int>
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -43929,7 +43934,7 @@ class A : I2<int>
 }
 ";
 
-            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -43955,7 +43960,7 @@ class A : I4
 }
 ";
 
-            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -43975,7 +43980,7 @@ interface I2<T> : I3<T>
 }
 ";
 
-            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics(
                 // (17,11): error CS1540: Cannot access protected member 'I1<int>.M1()' via a qualifier of type 'I3<int>'; the qualifier must be of type 'I2<T>' (or derived from it)
                 //         x.M1();
@@ -44010,7 +44015,7 @@ interface I2 : I1
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
                 // interface I1 : I2
@@ -44048,7 +44053,7 @@ interface I2 : I1
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
                 // interface I1 : I2
@@ -44092,7 +44097,7 @@ class A
 }
 ";
 
-            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -44109,7 +44114,7 @@ class I2<T>
 }
 ";
 
-            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics(
                 // (17,15): error CS0122: 'I1<T>.M1()' is inaccessible due to its protection level
                 //         I3<T>.M1();
@@ -44153,7 +44158,7 @@ class A
 }
 ";
 
-            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -44192,7 +44197,7 @@ namespace System.Runtime.InteropServices
         [Fact]
         public void NoPia_01()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44211,7 +44216,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44223,7 +44228,7 @@ class UsePia7 : ITest33
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (2,17): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44236,7 +44241,7 @@ class UsePia7 : ITest33
         [Fact]
         public void NoPia_02()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44255,7 +44260,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44271,7 +44276,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44284,7 +44289,7 @@ class UsePia
         [Fact]
         public void NoPia_03()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44304,7 +44309,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44320,7 +44325,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44333,7 +44338,7 @@ class UsePia
         [Fact]
         public void NoPia_04()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44352,7 +44357,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44368,7 +44373,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44381,7 +44386,7 @@ class UsePia
         [Fact]
         public void NoPia_05()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44400,7 +44405,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44416,7 +44421,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (6,9): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44429,7 +44434,7 @@ class UsePia
         [Fact]
         public void NoPia_06()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44452,7 +44457,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44467,7 +44472,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,37): error CS1754: Type 'ITest33.I1' cannot be embedded because it is a nested type. Consider setting the 'Embed Interop Types' property to false.
@@ -44480,7 +44485,7 @@ class UsePia
         [Fact]
         public void NoPia_07()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44499,7 +44504,7 @@ public interface ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44515,7 +44520,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (6,13): error CS8711: Type 'ITest33' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44528,7 +44533,7 @@ class UsePia
         [Fact]
         public void NoPia_08()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44554,7 +44559,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44570,7 +44575,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8711: Type 'ITest44' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.
@@ -44583,7 +44588,7 @@ class UsePia
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void NoPia_09()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44614,7 +44619,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44678,7 +44683,7 @@ public interface ITest33
         [WorkItem(35911, "https://github.com/dotnet/roslyn/issues/35911")]
         public void NoPia_10()
         {
-            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetStandardLatest);
+            var attributes = CreateCompilation(NoPiaAttributes, options: TestOptions.ReleaseDll, targetFramework: TargetFramework.NetCoreApp);
             var attributesRef = attributes.EmitToImageReference();
 
             string pia = @"
@@ -44704,7 +44709,7 @@ public interface ITest44 : ITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll, references: new[] { attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(piaCompilation, verify: VerifyOnMonoOrCoreClr);
 
@@ -44720,7 +44725,7 @@ class UsePia
 
             foreach (var reference in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
-                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetStandardLatest);
+                var compilation1 = CreateCompilation(consumer, options: TestOptions.ReleaseDll, references: new[] { reference, attributesRef }, targetFramework: TargetFramework.NetCoreApp);
 
                 compilation1.VerifyEmitDiagnostics(
                     // (4,29): error CS8750: Type 'ITest44' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.
@@ -44756,7 +44761,7 @@ class A
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -44809,7 +44814,7 @@ class A : I1
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
@@ -44862,7 +44867,7 @@ class A : I1
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"A", verify: VerifyOnMonoOrCoreClr);
@@ -44907,7 +44912,7 @@ interface I3 : I1
 }
 ";
 
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation0.VerifyDiagnostics(
                 // (6,11): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
                 //         x.MemberwiseClone();
@@ -44953,7 +44958,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -44967,14 +44972,14 @@ class Test1 : I2
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -45077,7 +45082,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -45087,14 +45092,14 @@ class Test1 : I2
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -45186,7 +45191,7 @@ class Test1 : I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -45200,14 +45205,14 @@ class Test1 : I3
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -45296,7 +45301,7 @@ class Test1 : I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -45306,14 +45311,14 @@ class Test1 : I3
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -45408,7 +45413,7 @@ class Test1 : I2, I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -45422,14 +45427,14 @@ class Test1 : I2, I3
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -45536,7 +45541,7 @@ class Test1 : I4
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -45550,14 +45555,14 @@ class Test1 : I4
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -45619,7 +45624,7 @@ class Test1 : I4
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -45629,14 +45634,14 @@ class Test1 : I4
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -45680,7 +45685,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -45731,7 +45736,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -45792,7 +45797,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularWithExtendedPartialMethods,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -45846,7 +45851,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -45907,7 +45912,7 @@ class Test1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -45958,7 +45963,7 @@ public class C2 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
@@ -46032,7 +46037,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -46095,7 +46100,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,22): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract void I1.M1();
@@ -46145,20 +46150,20 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -46301,7 +46306,7 @@ Test1.set_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -46311,14 +46316,14 @@ Test1.set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -46435,20 +46440,20 @@ class Test1 : I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -46562,7 +46567,7 @@ I3.set_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -46572,14 +46577,14 @@ I3.set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -46706,13 +46711,13 @@ class Test1 : I2, I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             var expected = expected1;
@@ -46720,7 +46725,7 @@ class Test1 : I2, I3
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
                 expected = expected2;
@@ -46856,13 +46861,13 @@ class Test1 : I4
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             var expected = expected1;
@@ -46870,7 +46875,7 @@ class Test1 : I4
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
                 expected = expected2;
@@ -46956,7 +46961,7 @@ I4.set_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -46966,14 +46971,14 @@ I4.set_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -47054,7 +47059,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -47173,7 +47178,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -47311,7 +47316,7 @@ public class C2 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -47596,7 +47601,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -47604,7 +47609,7 @@ class Test1 : I2
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
                                                      references: new[] { reference },
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
@@ -47765,7 +47770,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -47834,7 +47839,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -47929,7 +47934,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS8705: Interface member 'I1.F1' does not have a most specific implementation. Neither 'I2.I1.F1', nor 'I3.I1.F1' are most specific.
                 // class Test2 : I2, I3
@@ -47995,7 +48000,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -48058,7 +48063,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -48147,7 +48152,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -48236,7 +48241,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -48319,7 +48324,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -49889,7 +49894,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
@@ -50064,7 +50069,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,25): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.P1 {get; set;}
@@ -50105,7 +50110,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,25): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.P1 {get;}
@@ -50140,7 +50145,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,25): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.P1 {set;}
@@ -50190,20 +50195,20 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -50331,7 +50336,7 @@ Test1.remove_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -50341,14 +50346,14 @@ Test1.remove_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -50458,20 +50463,20 @@ class Test1 : I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -50578,7 +50583,7 @@ I3.remove_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -50588,14 +50593,14 @@ I3.remove_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -50710,20 +50715,20 @@ class Test1 : I2, I3
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -50847,20 +50852,20 @@ class Test1 : I4
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -50940,7 +50945,7 @@ I4.remove_P1
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
@@ -50950,14 +50955,14 @@ I4.remove_P1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
@@ -51029,7 +51034,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -51205,7 +51210,7 @@ public class C2 : I1
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -51705,7 +51710,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -51713,7 +51718,7 @@ class Test1 : I2
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
                                                      references: new[] { reference },
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
@@ -51771,7 +51776,7 @@ class Test1 : I2
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
@@ -51864,7 +51869,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,37): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract event System.Action I1.P1;
@@ -54607,7 +54612,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,34): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.this[int i] {get; set;}
@@ -54648,7 +54653,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,34): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.this[int i] {get;}
@@ -54683,7 +54688,7 @@ public interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (9,34): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     abstract int I1.this[int i] {set;}
@@ -54783,7 +54788,7 @@ class Test
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, expectedOutput: "C0.M");
 
@@ -54876,7 +54881,7 @@ class Test : C0, I1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, expectedOutput: "C0.M");
 
@@ -54921,7 +54926,7 @@ class Test : C0, I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
 
             var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
             var c0 = compilation1.GetTypeByMetadataName("C0");
@@ -54943,31 +54948,44 @@ class Test : C0, I1
             Version version = assemblyIdentity.Version;
             var publicKeyToken = assemblyIdentity.PublicKeyToken;
 
-            return @"
-.assembly extern " + assemblyIdentity.Name + @"
-{
-  .publickeytoken = (" +
-  publicKeyToken[0].ToString("X2") +
-  publicKeyToken[1].ToString("X2") +
-  publicKeyToken[2].ToString("X2") +
-  publicKeyToken[3].ToString("X2") +
-  publicKeyToken[4].ToString("X2") +
-  publicKeyToken[5].ToString("X2") +
-  publicKeyToken[6].ToString("X2") +
-  publicKeyToken[7].ToString("X2") +
-@" )
-  .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
-}
+            if (publicKeyToken.Length > 0)
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
+    {
+      .publickeytoken = (" +
+      publicKeyToken[0].ToString("X2") +
+      publicKeyToken[1].ToString("X2") +
+      publicKeyToken[2].ToString("X2") +
+      publicKeyToken[3].ToString("X2") +
+      publicKeyToken[4].ToString("X2") +
+      publicKeyToken[5].ToString("X2") +
+      publicKeyToken[6].ToString("X2") +
+      publicKeyToken[7].ToString("X2") +
+    @" )
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+    }
 ";
+            }
+            else
+            {
+                return @"
+    .assembly extern " + assemblyIdentity.Name + @"
+    {
+      .ver " + $"{version.Major}:{version.Minor}:{version.Build}:{version.Revision}" + @"
+    }
+";
+            }
         }
 
         [Fact]
         [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
         public void WindowsRuntimeEvent_01()
         {
+            var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntimeInteropServicesWindowsRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
        extends [System.Runtime]System.MulticastDelegate
@@ -55050,7 +55068,7 @@ class C1 : I1, Interface<int>
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
             {
-                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetStandardLatest);
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });
 
                 void Validate(ModuleSymbol m)
                 {
@@ -55123,7 +55141,7 @@ class C1 : I1
 {
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -55176,7 +55194,7 @@ interface I1 : Interface
 class C1 : I1, Interface
 {}
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
             void Validate(ModuleSymbol m)
             {
@@ -55216,7 +55234,7 @@ class C1 : I1, Interface
         public void ExplicitlyImplementedViaAccessors_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55439,7 +55457,7 @@ class Test4 : C1, I1
     public long P3 {set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
                 // class Test2 : I2, I1
@@ -55546,7 +55564,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55658,7 +55676,7 @@ class Test4 : C1, I1
     public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -55707,7 +55725,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55819,7 +55837,7 @@ class Test4 : C1, I1
     public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -55868,7 +55886,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55990,7 +56008,7 @@ class Test4 : C1, I1
     public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -56167,7 +56185,7 @@ class C3 : C2, I1
         public void ExplicitlyImplementedViaAccessors_06()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56329,7 +56347,7 @@ interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
                 // class Test2 : I2, I1
@@ -56411,7 +56429,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_07()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56485,7 +56503,7 @@ interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -56522,7 +56540,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_08()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56596,7 +56614,7 @@ interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -56633,7 +56651,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_09()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56712,7 +56730,7 @@ interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -56748,7 +56766,7 @@ interface I3 : I2
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56804,7 +56822,7 @@ class C2 : C1, I1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -56823,7 +56841,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56883,7 +56901,7 @@ class C2 : C1, I1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -56902,7 +56920,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56953,7 +56971,7 @@ class C2 : C1, I1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -56976,7 +56994,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp31.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57031,7 +57049,7 @@ class C2 : C1, I1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -57063,7 +57081,7 @@ interface A : A.B
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'A.B' causes a cycle in the interface hierarchy of 'A'
@@ -57089,7 +57107,7 @@ interface A : A.B.I
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'A.B.I' causes a cycle in the interface hierarchy of 'A'
@@ -57119,7 +57137,7 @@ interface IB : IA
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'IB.IQ' causes a cycle in the interface hierarchy of 'IA'
@@ -57149,7 +57167,7 @@ interface IA : IB.IQ
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'IA' causes a cycle in the interface hierarchy of 'IB'
@@ -57179,7 +57197,7 @@ interface IA : B.IQ
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -57198,7 +57216,7 @@ interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -57217,7 +57235,7 @@ class C : C.I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -57243,7 +57261,7 @@ public class CB : CB.CCB.IB, CB.ICB.IB
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -57265,7 +57283,7 @@ public class CD : CD.ICD.CB
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,14): error CS0146: Circular base type dependency involving 'CD.ICD.CB' and 'CD'
@@ -57295,7 +57313,7 @@ public interface IE : IE.CIE.IB, IE.IIE.IB
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,18): error CS0529: Inherited interface 'IE.CIE.IB' causes a cycle in the interface hierarchy of 'IE'
@@ -57327,7 +57345,7 @@ class C1 : C1.C2.I3
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -57353,7 +57371,7 @@ interface IB : CA.I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,7): error CS0146: Circular base type dependency involving 'IB.CQ' and 'CA'
@@ -57387,7 +57405,7 @@ class CA : IB.CQ
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'CA.I1' causes a cycle in the interface hierarchy of 'IB'
@@ -57434,7 +57452,7 @@ interface I101 : I100
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1,
                              expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -57478,7 +57496,7 @@ interface I101 : I100
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1,
                              expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -57522,7 +57540,7 @@ interface I101 : I100
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1,
                              expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -57656,7 +57674,7 @@ interface C : B
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'C.E' causes a cycle in the interface hierarchy of 'A'
@@ -57701,18 +57719,12 @@ interface D : A.E
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
                 // interface A : B, C<object>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
-                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
-                // interface D : A.E
-                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(18, 17),
-                // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
-                //     A.E Test();
-                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11)
                 );
         }
 
@@ -58087,7 +58099,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
@@ -58128,7 +58140,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -58163,7 +58175,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (9,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2()'. Use the new keyword if hiding was intended.
@@ -58205,7 +58217,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -58240,7 +58252,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (9,10): warning CS0108: 'I3.I2()' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
@@ -58282,7 +58294,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -58457,7 +58469,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (9,15): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
@@ -58502,7 +58514,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -58538,7 +58550,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (10,16): warning CS0108: 'I3.I2' hides inherited member 'I1.I2'. Use the new keyword if hiding was intended.
@@ -58581,7 +58593,7 @@ class C3 : C1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
@@ -58613,7 +58625,7 @@ interface I1<out T1, in T2, T3>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,23): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.D11.Invoke(T1)'. 'T1' is covariant.
@@ -58661,7 +58673,7 @@ interface I2<in T1, out T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
         }
@@ -58692,7 +58704,7 @@ interface I1<out T1, in T2, T3>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (6,27): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2, T3>.I2.D11.Invoke(T1)'. 'T1' is covariant.
@@ -58734,7 +58746,7 @@ interface I2<in T1, out T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics();
         }
@@ -58805,7 +58817,7 @@ interface I3<T3>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,11): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
@@ -58916,7 +58928,7 @@ interface I3<T3>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (6,15): error CS8427: Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.
@@ -59027,13 +59039,13 @@ class C1 : I1<C1, C1, C1>, I1<C1, object, C1>.I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -59086,7 +59098,7 @@ class C1 : I1<C1, C1>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -59121,7 +59133,7 @@ interface I2<out T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M2");
         }
@@ -59152,7 +59164,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
@@ -59207,13 +59219,13 @@ class C1 : I1<C1, C1>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                      parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetStandardLatest);
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
                 CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
@@ -59236,7 +59248,7 @@ interface I1<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,21): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I1<T1, T2>.M1(T1)'. 'T1' is covariant.
@@ -59273,7 +59285,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular8,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static T1 P1 { get; set; }
@@ -59285,15 +59297,11 @@ interface I2<out T1, in T2>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
@@ -59319,7 +59327,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular8,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static T1 M1(T1 x) => x;
@@ -59331,15 +59339,11 @@ interface I2<out T1, in T2>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
@@ -59387,7 +59391,7 @@ interface I2<out T1, in T2>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular8,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
                 // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
                 //     static event System.Action<System.Func<T1, T1>> E1;
@@ -59399,15 +59403,11 @@ interface I2<out T1, in T2>
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
-#else
-            compilation1.VerifyEmitDiagnostics();
-#endif
         }
 
         [Fact]
@@ -59424,7 +59424,7 @@ interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,9): error CS0540: 'I1.M1()': containing type does not implement interface 'I1'
@@ -59458,7 +59458,7 @@ interface I1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
@@ -59494,7 +59494,7 @@ interface I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,9): error CS0540: 'I1.I2.M1()': containing type does not implement interface 'I2'
@@ -59528,7 +59528,7 @@ interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
@@ -59569,7 +59569,7 @@ interface I1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
@@ -59606,7 +59606,7 @@ interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,9): error CS0540: 'I1.P1': containing type does not implement interface 'I1'
@@ -59642,7 +59642,7 @@ interface I1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
@@ -59678,7 +59678,7 @@ interface I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,9): error CS0540: 'I1.I2.P1': containing type does not implement interface 'I2'
@@ -59715,7 +59715,7 @@ interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
@@ -59756,7 +59756,7 @@ interface I1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
@@ -59794,7 +59794,7 @@ interface I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS0540: 'I1.E1': containing type does not implement interface 'I1'
@@ -59832,7 +59832,7 @@ interface I1 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I1'
@@ -59869,7 +59869,7 @@ interface I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS0540: 'I1.I2.E1': containing type does not implement interface 'I2'
@@ -59908,7 +59908,7 @@ interface I2 : I1
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
@@ -59950,7 +59950,7 @@ interface I1 : I2
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
@@ -59987,7 +59987,7 @@ interface I1<T>
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
                 // (4,9): error CS0540: 'I1<T>.P1': containing type does not implement interface 'I1<int>'
@@ -60005,7 +60005,7 @@ interface I1<T>
     object A.B{";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
+                                                 targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (3,12): error CS0540: 'A.B': containing type does not implement interface 'A'
@@ -60020,6 +60020,123 @@ interface I1<T>
                 // (3,16): error CS1513: } expected
                 //     object A.B{
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_01()
+        {
+            var source1 =
+@"
+interface IA
+{
+    static ref int PA { get;}
+}
+
+interface IB
+{
+    static ref int PB { get; set;}
+}
+
+interface IC
+{
+    static ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithArguments("IA.PA").WithLocation(4, 20),
+                // (9,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithArguments("IB.PB").WithLocation(9, 20),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     static ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_02()
+        {
+            var source1 =
+@"
+interface IA
+{
+    ref int PA { get;}
+}
+
+interface IB
+{
+    ref int PB { get; set;}
+}
+
+interface IC
+{
+    ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (9,23): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 23),
+                // (14,13): error CS8146: Properties which return by reference must have a get accessor
+                //     ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_03()
+        {
+            var source1 =
+@"
+interface IA
+{
+    sealed ref int PA { get;}
+}
+
+interface IB
+{
+    sealed ref int PB { get; set;}
+}
+
+interface IC
+{
+    sealed ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0501: 'IA.PA.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IA.PA.get").WithLocation(4, 25),
+                // (9,25): error CS0501: 'IB.PB.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IB.PB.get").WithLocation(9, 25),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (9,30): error CS0501: 'IB.PB.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20),
+                // (14,25): error CS0501: 'IC.PC.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)
                 );
         }
     }

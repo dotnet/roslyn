@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -77,18 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
-                }
-                else
-                {
-                    // This may be a file from a source generator; if so let's go to it instead
-                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
-                    {
-                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
-                        return true;
-                    }
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken);
                 }
             }
 
@@ -175,10 +162,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return navigationService.TryNavigateToSpan(
-                    workspace: editorWorkspace,
-                    documentId: openedDocument.Id,
-                    textSpan: result.IdentifierLocation.SourceSpan,
-                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                    editorWorkspace,
+                    openedDocument.Id,
+                    result.IdentifierLocation.SourceSpan,
+                    options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
+                    cancellationToken);
             }
 
             return true;

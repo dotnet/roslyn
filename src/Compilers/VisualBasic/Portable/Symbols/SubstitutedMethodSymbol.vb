@@ -255,6 +255,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
+            Get
+                Return OriginalDefinition.IsInitOnly
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return OriginalDefinition.IsVararg
@@ -575,8 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' alpha-renamed type parameters.
                 Debug.Assert(container.TypeSubstitution IsNot Nothing AndAlso
                              container.TypeSubstitution.TargetGenericDefinition Is originalDefinition.ContainingSymbol)
-                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution,
-                                                                         StaticCast(Of TypeParameterSymbol).From(newTypeParameters))
+                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution, newTypeParameters)
                 Debug.Assert(substitution.TargetGenericDefinition Is originalDefinition)
 
                 ' Now create the symbol.

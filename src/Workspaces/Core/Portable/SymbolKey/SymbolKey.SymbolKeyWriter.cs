@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,12 +60,12 @@ namespace Microsoft.CodeAnalysis
             private readonly Action<IParameterSymbol> _writeParameterType;
             private readonly Action<IParameterSymbol> _writeRefKind;
 
-            private readonly Dictionary<ISymbol, int> _symbolToId = new Dictionary<ISymbol, int>();
-            private readonly StringBuilder _stringBuilder = new StringBuilder();
+            private readonly Dictionary<ISymbol, int> _symbolToId = new();
+            private readonly StringBuilder _stringBuilder = new();
 
             public CancellationToken CancellationToken { get; private set; }
 
-            private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
+            private readonly List<IMethodSymbol> _methodSymbolStack = new();
 
             internal int _nestingCount;
             private int _nextId;

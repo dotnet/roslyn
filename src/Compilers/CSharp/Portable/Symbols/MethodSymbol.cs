@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// an attribute argument.
         /// </summary>
         internal abstract UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete);
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Returns true if this method is an extension method.
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Platform invoke information, or null if the method isn't a P/Invoke.
         /// </summary>
         public abstract DllImportData? GetDllImportData();
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Declaration security information associated with this type, or null if there is none.
@@ -931,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers, parameters
             if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations,
-                                                MethodKind == MethodKind.PropertySet ?
+                                                IsInitOnly ?
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
@@ -1040,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol.
@@ -1163,6 +1165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if locals are to be initialized
         /// </summary>
         public abstract bool AreLocalsZeroed { get; }
+
+        internal abstract bool IsNullableAnalysisEnabled();
 
         #region IMethodSymbolInternal
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -113,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         protected sealed class CompilationEndDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                    customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context) =>
                 context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
@@ -1285,6 +1284,52 @@ class Class
 }");
         }
 
+        public sealed class NonLocalDiagnosticsAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
+        {
+            public NonLocalDiagnosticsAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
+            private sealed class NonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
+            {
+                public const string DiagnosticId = "NonLocalDiagnosticId";
+                public static readonly DiagnosticDescriptor Descriptor =
+                    new(DiagnosticId, "NonLocalDiagnosticTitle", "NonLocalDiagnosticMessage", "NonLocalDiagnosticCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+
+                public override void Initialize(AnalysisContext context)
+                {
+                    context.RegisterSymbolAction(context =>
+                    {
+                        if (!context.Symbol.ContainingNamespace.IsGlobalNamespace)
+                        {
+                            var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.ContainingNamespace.Locations[0]);
+                            context.ReportDiagnostic(diagnostic);
+                        }
+                    }, SymbolKind.NamedType);
+                }
+            }
+
+            internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
+                ImmutableArray.Create<DiagnosticAnalyzer>(new NonLocalDiagnosticsAnalyzer());
+
+            [Fact, WorkItem(50203, "https://github.com/dotnet/roslyn/issues/50203")]
+            public async Task TestDoNotRemoveInvalidDiagnosticSuppression()
+            {
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|#pragma warning disable {NonLocalDiagnosticsAnalyzer.DiagnosticId}
+namespace N
+#pragma warning restore {NonLocalDiagnosticsAnalyzer.DiagnosticId}|]
+{{
+    class Class
+    {{
+    }}
+}}");
+            }
+        }
         #endregion
     }
 }

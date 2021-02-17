@@ -103,17 +103,14 @@
     -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
-  <PropertyGroup>
-    <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
-    <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
-  </PropertyGroup>
-
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
           DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
 
   <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
     <PropertyGroup>
+      <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
+      <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
       <_GeneratedEditorConfigHasItems Condition="'@(CompilerVisibleItemMetadata->Count())' != '0'">true</_GeneratedEditorConfigHasItems>
       <_GeneratedEditorConfigShouldRun Condition="'$(GenerateMSBuildEditorConfigFile)' == 'true' and ('$(_GeneratedEditorConfigHasItems)' == 'true' or '@(CompilerVisibleProperty->Count())' != '0')">true</_GeneratedEditorConfigShouldRun>
     </PropertyGroup>

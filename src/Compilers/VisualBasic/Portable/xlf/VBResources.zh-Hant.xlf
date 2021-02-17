@@ -1,7 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../VBResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">只有物件成員初始設定式，或在執行個體建構函式中的 'Me'、'MyClass' 或 'MyBase'，才可指派僅限初始化的屬性 '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令列語法錯誤: '{0}' 對 '{1}' 選項而言不是有效的值。此值的格式必須是 '{2}'。</target>
@@ -22,6 +27,16 @@
         <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' 無法覆寫僅限初始化的 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">無法實作僅限初始化的 '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">因為類型 '{0}' 有重新抽象成員 (來自基底介面)，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
@@ -37,9 +52,19 @@
         <target state="translated">目標執行階段不支援對介面成員的 'Protected'、'Protected Friend' 或 'Private Protected' 存取範圍。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">無法使用其他類型的方法，處理共用 WithEvents 變數的事件。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行接續符號後註解</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">使用僅限初始化的 setter，指派或傳遞 'ByRef' 屬性</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -461,6 +486,50 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">類型引數不可為 Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">包含類型 '{1}' 的組件 '{0}' 參考了 .NET Framework，此情形不受支援。</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">產生器擲回了下列例外狀況:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">產生器無法產生來源。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">產生器擲回了下列例外狀況:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">產生器無法初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">

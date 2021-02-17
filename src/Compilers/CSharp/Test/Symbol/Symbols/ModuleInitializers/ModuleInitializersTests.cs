@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -269,7 +271,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"
 I.M
 Program.Main" : null,
@@ -348,7 +350,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             CompileAndVerify(
                 source,
                 parseOptions: s_parseOptions,
-                targetFramework: TargetFramework.NetStandardLatest,
+                targetFramework: TargetFramework.NetCoreApp,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234",
                 verify: !ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Skipped : Verification.Passes);
         }

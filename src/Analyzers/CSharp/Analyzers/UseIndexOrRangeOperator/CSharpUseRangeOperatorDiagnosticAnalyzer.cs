@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseRangeOperator,
                    CSharpCodeStyleOptions.PreferRangeOperator,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

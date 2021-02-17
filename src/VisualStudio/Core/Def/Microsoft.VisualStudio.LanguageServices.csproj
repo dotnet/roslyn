@@ -77,7 +77,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" WorkItem="https://github.com/dotnet/roslyn/issues/35085" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
@@ -132,6 +131,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="$(MicrosoftVisualStudioShellInterop110Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" Version="$(MicrosoftVisualStudioShellInterop157DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="$(MicrosoftVisualStudioShellImmutable100Version)" />
@@ -148,6 +148,7 @@
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="$(MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LogHub" Version="$(MicrosoftVisualStudioLogHubVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
@@ -206,9 +207,10 @@
   <Target Name="GeneratePkgDefServiceRegistrations"
           BeforeTargets="GeneratePkgDef">
     <ItemGroup>
-      <!-- Add registrations for both 32-bit and 64-bit -->
+      <!-- Add registrations for 32-bit, 64-bit, and 64-bit Server GC -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
+      <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)64S')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />
 
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>

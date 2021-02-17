@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersCodeFixProvider)
@@ -10,9 +11,9 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
     Public Class AddAccessibilityModifiersTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
-        Public Sub TestStandardProperties()
-            VerifyVB.VerifyStandardProperties()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Sub TestStandardProperty([property] As AnalyzerProperty)
+            VerifyVB.VerifyStandardProperty([property])
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
@@ -423,5 +424,60 @@ end namespace"
             Await test.RunAsync()
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <WorkItem(44076, "https://github.com/dotnet/roslyn/issues/44076")>
+        Public Async Function TestModuleConstructor() As Task
+            Dim source = "
+Friend Module Example
+    Sub New()
+    End Sub
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, source)
+        End Function
+
+        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Async Function TestAbstractMethod() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+public mustinherit class TestClass
+    mustoverride sub [|Test|]()
+end class
+",
+"
+public mustinherit class TestClass
+    Protected mustoverride sub Test()
+end class
+")
+        End Function
+
+        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Async Function TestOverriddenMethod() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+public mustinherit class TestClass
+    public mustoverride sub Test()
+end class
+
+public class Derived
+    inherits TestClass
+
+    overrides sub [|Test|]()
+    end sub
+end class
+",
+"
+public mustinherit class TestClass
+    public mustoverride sub Test()
+end class
+
+public class Derived
+    inherits TestClass
+
+    Public overrides sub Test()
+    end sub
+end class
+")
+        End Function
     End Class
 End Namespace

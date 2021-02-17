@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1662,7 +1664,7 @@ partial interface I
     internal partial void M(string s1);
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,27): error CS8793: Partial method 'I.M(string)' must have an implementation part because it has accessibility modifiers.
                 //     internal partial void M(string s1);
@@ -1682,7 +1684,7 @@ partial interface I
     internal partial void M(string s1) { }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
             );
         }
@@ -1709,7 +1711,7 @@ class C : I
 }
 ";
             // note that I.M is not virtual so C.M does not implement it
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString();
@@ -1739,7 +1741,7 @@ class C : I
     void I.M(string s1, string s2) { } // 3, 4
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString(); // 1
@@ -1783,7 +1785,7 @@ partial class C : I
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s1.ToString(); // 1

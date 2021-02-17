@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -35,10 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// <remarks>
         /// This validation method is largely specific to dotnet/roslyn scenarios.
         /// </remarks>
-        /// <param name="verifyHelpLink"><see langword="true"/> to verify <see cref="DiagnosticDescriptor.HelpLinkUri"/>
-        /// property of supported diagnostics; otherwise, <see langword="false"/> to skip this validation.</param>
-        public static void VerifyStandardProperties(bool verifyHelpLink = false)
-            => CodeFixVerifierHelper.VerifyStandardProperties(new TAnalyzer(), verifyHelpLink);
+        public static void VerifyStandardProperty(AnalyzerProperty property)
+            => CodeFixVerifierHelper.VerifyStandardProperty(new TAnalyzer(), property);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)

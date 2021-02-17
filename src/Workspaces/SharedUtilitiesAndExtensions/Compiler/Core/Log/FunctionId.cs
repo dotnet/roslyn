@@ -496,5 +496,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
         FeatureNotAvailable = 441,
+
+        LSPCompletion_MissingLSPCompletionTriggerKind = 450,
+
+        Workspace_Project_CompilationThrownAway = 460,
+
+        CommandHandler_Paste_ImportsOnPaste = 470,
+
+        FindDocumentInWorkspace = 480,
+        RegisterWorkspace = 481,
     }
 }

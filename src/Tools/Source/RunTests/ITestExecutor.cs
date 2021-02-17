@@ -10,25 +10,23 @@ namespace RunTests
 {
     internal readonly struct TestExecutionOptions
     {
-        internal string XunitPath { get; }
+        internal string DotnetFilePath { get; }
         internal ProcDumpInfo? ProcDumpInfo { get; }
-        internal string OutputDirectory { get; }
-        internal string Trait { get; }
-        internal string NoTrait { get; }
-        internal bool UseHtml { get; }
-        internal bool Test64 { get; }
-        internal bool TestVsi { get; }
+        internal string TestResultsDirectory { get; }
+        internal string? Trait { get; }
+        internal string? NoTrait { get; }
+        internal bool IncludeHtml { get; }
+        internal bool Retry { get; }
 
-        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string outputDirectory, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool retry)
         {
-            XunitPath = xunitPath;
+            DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
-            OutputDirectory = outputDirectory;
+            TestResultsDirectory = testResultsDirectory;
             Trait = trait;
             NoTrait = noTrait;
-            UseHtml = useHtml;
-            Test64 = test64;
-            TestVsi = testVsi;
+            IncludeHtml = includeHtml;
+            Retry = retry;
         }
     }
 
@@ -48,14 +46,20 @@ namespace RunTests
         internal string ErrorOutput { get; }
 
         /// <summary>
-        /// Path to the results file.  Can be null in the case xunit error'd and did not create one.
+        /// Path to the XML results file.
         /// </summary>
-        internal string ResultsFilePath { get; }
+        internal string? ResultsFilePath { get; }
 
-        internal TestResultInfo(int exitCode, string resultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
+        /// <summary>
+        /// Path to the HTML results file if HTML output is enabled, otherwise, <see langword="null"/>.
+        /// </summary>
+        internal string? HtmlResultsFilePath { get; }
+
+        internal TestResultInfo(int exitCode, string? resultsFilePath, string? htmlResultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
         {
             ExitCode = exitCode;
             ResultsFilePath = resultsFilePath;
+            HtmlResultsFilePath = htmlResultsFilePath;
             Elapsed = elapsed;
             StandardOutput = standardOutput;
             ErrorOutput = errorOutput;
@@ -67,7 +71,7 @@ namespace RunTests
         internal TestResultInfo TestResultInfo { get; }
         internal AssemblyInfo AssemblyInfo { get; }
         internal string CommandLine { get; }
-        internal string Diagnostics { get; }
+        internal string? Diagnostics { get; }
 
         /// <summary>
         /// Collection of processes the runner explicitly ran to get the result.
@@ -82,9 +86,9 @@ namespace RunTests
         internal TimeSpan Elapsed => TestResultInfo.Elapsed;
         internal string StandardOutput => TestResultInfo.StandardOutput;
         internal string ErrorOutput => TestResultInfo.ErrorOutput;
-        internal string ResultsFilePath => TestResultInfo.ResultsFilePath;
+        internal string? ResultsDisplayFilePath => TestResultInfo.HtmlResultsFilePath ?? TestResultInfo.ResultsFilePath;
 
-        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string diagnostics = null)
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
         {
             AssemblyInfo = assemblyInfo;
             TestResultInfo = testResultInfo;

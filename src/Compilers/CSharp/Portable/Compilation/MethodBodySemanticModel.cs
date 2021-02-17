@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -39,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RemappedSymbols = remappedSymbols;
             }
         }
-#nullable restore
+#nullable disable
 
         private MethodBodySemanticModel(
-            Symbol owner,
+            MethodSymbol owner,
             Binder rootBinder,
             CSharpSyntaxNode syntax,
             SyntaxTreeSemanticModel containingSemanticModelOpt = null,
@@ -302,11 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-#if DEBUG
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
-#endif
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            return Compilation.IsNullableAnalysisEnabledIn((MethodSymbol)MemberSymbol);
+        }
     }
 }

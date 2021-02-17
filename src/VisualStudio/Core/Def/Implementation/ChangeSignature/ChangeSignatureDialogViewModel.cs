@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel? _paramsParameter;
-        private readonly HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+        private readonly HashSet<ParameterViewModel> _disabledParameters = new();
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
@@ -145,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
-            => new AddParameterDialogViewModel(_document, _positionForTypeBinding);
+            => new(_document, _positionForTypeBinding);
 
         private List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
@@ -304,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 selectedIndex: -1);
         }
 
-        private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions:
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
@@ -318,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 SymbolDisplayMemberOptions.IncludeModifiers |
                 SymbolDisplayMemberOptions.IncludeRef);
 
-        private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions:
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |

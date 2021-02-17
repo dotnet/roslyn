@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -40,8 +39,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public bool SupportGetDiagnostics => false;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-            => ImmutableArray<DiagnosticData>.Empty;
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+            => new(ImmutableArray<DiagnosticData>.Empty);
 
         /// <summary>
         /// Clears all diagnostics reported thru this source.
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnosticData.Count > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId))
+                foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId, projectId);
 

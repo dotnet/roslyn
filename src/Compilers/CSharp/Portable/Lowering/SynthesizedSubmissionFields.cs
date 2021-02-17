@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -93,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var field in FieldSymbols)
             {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
             }
 
             FieldSymbol hostObjectField = GetHostObjectField();
             if ((object)hostObjectField != null)
             {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField);
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField.GetCciAdapter());
             }
         }
     }

@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected async ValueTask OnEntryFoundAsync(
                 DefinitionItem definition,
-                Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,
+                Func<RoslynDefinitionBucket, Task<Entry?>> createEntryAsync,
                 bool addToEntriesWhenGroupingByDefinition,
                 bool addToEntriesWhenNotGroupingByDefinition)
             {
@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // "no references found to <symbolname>".
                     await OnEntryFoundAsync(definition,
                         bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, GetMessage(bucket.DefinitionItem)),
+                            bucket, GetMessage(bucket.DefinitionItem))!,
                         addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                         addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
                 }
@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // Create a fake definition/reference called "search found no results"
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(
-                            bucket, ServicesVSResources.Search_found_no_results),
+                            bucket, ServicesVSResources.Search_found_no_results)!,
                         addToEntriesWhenGroupingByDefinition: true,
                         addToEntriesWhenNotGroupingByDefinition: true).ConfigureAwait(false);
                 }

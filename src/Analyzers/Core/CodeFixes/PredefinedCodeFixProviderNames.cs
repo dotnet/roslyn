@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static class PredefinedCodeFixProviderNames
     {
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
-        public const string AddAwait = nameof(AddAwait);
         public const string AddAsync = nameof(AddAsync);
         public const string AddParameter = nameof(AddParameter);
         public const string AddParenthesesAroundConditionalExpressionInInterpolatedString = nameof(AddParenthesesAroundConditionalExpressionInInterpolatedString);

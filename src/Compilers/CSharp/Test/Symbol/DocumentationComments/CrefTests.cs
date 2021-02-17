@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,11 +11,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using SymbolExtensions = Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1562,7 +1563,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, canIgnoreNullableContext: false).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)

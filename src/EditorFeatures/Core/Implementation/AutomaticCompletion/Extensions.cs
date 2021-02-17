@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,15 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
     internal static class Extensions
     {
-        /// <summary>
-        /// format span
-        /// </summary>
-        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<AbstractFormattingRule> rules)
-        {
-            var snapshot = buffer.CurrentSnapshot;
-            snapshot.FormatAndApplyToBuffer(span, rules, CancellationToken.None);
-        }
-
         /// <summary>
         /// create caret preserving edit transaction with automatic code change undo merging policy
         /// </summary>
@@ -105,12 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             return new SnapshotSpan(open, close);
         }
-
-        public static int GetValueInValidRange(this int value, int smallest, int largest)
-            => Math.Max(smallest, Math.Min(value, largest));
-
-        public static bool PositionInSnapshot(this int position, ITextSnapshot snapshot)
-            => position.GetValueInValidRange(0, Math.Max(0, snapshot.Length - 1)) == position;
 
         public static SnapshotPoint? GetCaretPosition(this IBraceCompletionSession session)
             => GetCaretPoint(session, session.SubjectBuffer);

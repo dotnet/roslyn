@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -1415,6 +1417,75 @@ class C
         return ImmutableArray.CreateRange();
     }
 }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Type()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Namespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Collections|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using System.Collections;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingStatic()
+        {
+            await TestInRegularAndScriptAsync(
+@"using static [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
         }
     }
 }

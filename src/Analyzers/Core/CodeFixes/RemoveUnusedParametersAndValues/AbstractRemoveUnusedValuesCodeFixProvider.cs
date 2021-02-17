@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,10 +57,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         where TSwitchCaseBlockSyntax : SyntaxNode
         where TSwitchCaseLabelOrClauseSyntax : SyntaxNode
     {
-        private static readonly SyntaxAnnotation s_memberAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new SyntaxAnnotation();
-        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_memberAnnotation = new();
+        private static readonly SyntaxAnnotation s_newLocalDeclarationStatementAnnotation = new();
+        private static readonly SyntaxAnnotation s_unusedLocalDeclarationAnnotation = new();
+        private static readonly SyntaxAnnotation s_existingLocalDeclarationWithoutInitializerAnnotation = new();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
                                                                                                     IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId);
@@ -626,13 +628,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                     }
                 }
+
                 editor.RemoveNode(node, removeOptions);
             }
 
-            foreach (var kvp in nodeReplacementMap)
-            {
-                editor.ReplaceNode(kvp.Key, kvp.Value.WithAdditionalAnnotations(Formatter.Annotation));
-            }
+            foreach (var (node, replacement) in nodeReplacementMap)
+                editor.ReplaceNode(node, replacement.WithAdditionalAnnotations(Formatter.Annotation));
 
             return;
 
@@ -669,13 +670,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 }
                 else if (insertionNode is TStatementSyntax)
                 {
-                    // If the insertion node is being removed, keep the leading trivia with the new declaration.
+                    // If the insertion node is being removed, keep the leading trivia (following any directives) with
+                    // the new declaration.
                     if (nodesToRemove.Contains(insertionNode) && !processedNodes.Contains(insertionNode))
                     {
-                        declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia());
+                        // Fix 48070 - The Leading Trivia of the insertion node needs to be filtered
+                        // to only include trivia after Directives (if there are any)
+                        var leadingTrivia = insertionNode.GetLeadingTrivia();
+                        var lastDirective = leadingTrivia.LastOrDefault(t => t.IsDirective);
+                        var lastDirectiveIndex = leadingTrivia.IndexOf(lastDirective);
+                        declarationStatement = declarationStatement.WithLeadingTrivia(leadingTrivia.Skip(lastDirectiveIndex + 1));
+
                         // Mark the node as processed so that the trivia only gets added once.
                         processedNodes.Add(insertionNode);
                     }
+
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }

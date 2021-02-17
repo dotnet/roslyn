@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task<Entry> TryCreateEntryAsync(
+            private async Task<Entry?> TryCreateEntryAsync(
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];

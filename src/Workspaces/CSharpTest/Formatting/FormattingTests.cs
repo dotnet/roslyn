@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -3458,6 +3460,22 @@ static void Main(string[] args)
     }
 }
 ");
+        }
+
+        [WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TuplePointer()
+        {
+            var properlyFormattedCode = @"public unsafe static class Program
+{
+    public static void Main(string[] args)
+    {
+        int* intPointer = null;
+        (int, int)* intIntPointer = null;
+    }
+}
+";
+            await AssertFormatAsync(properlyFormattedCode, properlyFormattedCode);
         }
 
         [WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]

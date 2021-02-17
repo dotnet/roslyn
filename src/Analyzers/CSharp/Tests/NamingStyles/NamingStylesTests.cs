@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1331,6 +1333,54 @@ namespace Microsoft.CodeAnalysis.Host
 @"public record Foo(int [|myInt|]);",
 @"public record Foo(int [|MyInt|]);",
                 options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardParameterAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M(int [|{identifier}|])
+    {{
+    }}
+}}", new TestParameters(options: s_options.ParameterNamesAreCamelCase));
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardLocalAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        int [|{identifier}|] = 0;
+    }}
+}}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
+        }
+
+        [Fact]
+        [WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        public async Task TestGlobalDirectiveAsync()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+interface I
+{
+    int X { get; }
+}
+
+class C : I
+{
+    int [|global::I.X|] => 0;
+}", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +19,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -360,10 +363,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             if (options != null)
             {
                 var optionSet = workspace.Options;
-                foreach (var kvp in options)
-                {
-                    optionSet = optionSet.WithChangedOption(kvp.Key, kvp.Value);
-                }
+                foreach (var (key, value) in options)
+                    optionSet = optionSet.WithChangedOption(key, value);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -15515,7 +15517,7 @@ class Program
 	extends [netstandard]System.Object
 {
 	// Nested Types
-	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0`1'<T>
+	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0_0`1'<T>
 		extends [netstandard]System.Object
 	{
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -15523,7 +15525,7 @@ class Program
 		)
 		// Fields
 		.field public static class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
-	} // end of class <>o__0`1
+	} // end of class <>o__0_0`1
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -15557,7 +15559,7 @@ class Program
 		// Method begins at RVA 0x2064
 		// Code size 81 (0x51)
 		.maxstack 3
-		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0`1'<!!T>::'<>p__0'
+		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0_0`1'<!!T>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
 		IL_0007: ldc.i4.0
 		IL_0008: ldtoken !!T
@@ -15566,10 +15568,10 @@ class Program
 		IL_0017: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
 		IL_001c: call class [netstandard]System.Runtime.CompilerServices.CallSiteBinder [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.Binder::Convert(valuetype [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, class [netstandard]System.Type, class [netstandard]System.Type)
 		IL_0021: call class [netstandard]System.Runtime.CompilerServices.CallSite`1<!0> class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>>::Create(class [netstandard]System.Runtime.CompilerServices.CallSiteBinder)
-		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0`1'<!!T>::'<>p__0'
-		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0`1'<!!T>::'<>p__0'
+		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0_0`1'<!!T>::'<>p__0'
+		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0_0`1'<!!T>::'<>p__0'
 		IL_0030: ldfld !0 class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>>::Target
-		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0`1'<!!T>::'<>p__0'
+		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !0>> class Program/'<>o__0_0`1'<!!T>::'<>p__0'
 		IL_003a: ldnull
 		IL_003b: callvirt instance !2 class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>::Invoke(!0, !1)
 		IL_0040: starg.s slot
@@ -15618,7 +15620,7 @@ class Program
 	extends [netstandard]System.Object
 {
 	// Nested Types
-	.class nested private auto ansi abstract sealed beforefieldinit '<>o__1`6'<T1, T2, T3, T4, T5, T6>
+	.class nested private auto ansi abstract sealed beforefieldinit '<>o__1_1`6'<T1, T2, T3, T4, T5, T6>
 		extends [netstandard]System.Object
 	{
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -15626,7 +15628,7 @@ class Program
 		)
 		// Fields
 		.field public static class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !T5>> '<>p__0'
-	} // end of class <>o__1`6
+	} // end of class <>o__1_1`6
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -15687,7 +15689,7 @@ class Program
 		// Method begins at RVA 0x2074
 		// Code size 81 (0x51)
 		.maxstack 3
-		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
+		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1_1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
 		IL_0007: ldc.i4.0
 		IL_0008: ldtoken !!T5
@@ -15696,10 +15698,10 @@ class Program
 		IL_0017: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
 		IL_001c: call class [netstandard]System.Runtime.CompilerServices.CallSiteBinder [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.Binder::Convert(valuetype [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, class [netstandard]System.Type, class [netstandard]System.Type)
 		IL_0021: call class [netstandard]System.Runtime.CompilerServices.CallSite`1<!0> class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T5>>::Create(class [netstandard]System.Runtime.CompilerServices.CallSiteBinder)
-		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
-		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
+		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1_1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
+		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1_1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
 		IL_0030: ldfld !0 class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T5>>::Target
-		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
+		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !4>> class Program/'<>o__1_1`6'<!!T1, !!T2, !!T3, !!T4, !!T5, !!T6>::'<>p__0'
 		IL_003a: ldnull
 		IL_003b: callvirt instance !2 class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T5>::Invoke(!0, !1)
 		IL_0040: starg.s c
@@ -15852,10 +15854,10 @@ class Program
                 "Program",
                 @"
 .class private auto ansi beforefieldinit Program
-    	extends [netstandard]System.Object
+	extends [netstandard]System.Object
 {
 	// Nested Types
-	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0`2'<T, T>
+	.class nested private auto ansi abstract sealed beforefieldinit '<>o__1_0`2'<T, T>
 		extends [netstandard]System.Object
 	{
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -15863,7 +15865,7 @@ class Program
 		)
 		// Fields
 		.field public static class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
-	} // end of class <>o__0`2
+	} // end of class <>o__1_0`2
 	// Methods
 	.method public hidebysig static 
 		void Main () cil managed 
@@ -15912,7 +15914,7 @@ class Program
 		// Method begins at RVA 0x206c
 		// Code size 81 (0x51)
 		.maxstack 3
-		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__0`2'<!!T, !!T>::'<>p__0'
+		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__1_0`2'<!!T, !!T>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
 		IL_0007: ldc.i4.0
 		IL_0008: ldtoken !!T
@@ -15921,10 +15923,10 @@ class Program
 		IL_0017: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
 		IL_001c: call class [netstandard]System.Runtime.CompilerServices.CallSiteBinder [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.Binder::Convert(valuetype [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, class [netstandard]System.Type, class [netstandard]System.Type)
 		IL_0021: call class [netstandard]System.Runtime.CompilerServices.CallSite`1<!0> class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>>::Create(class [netstandard]System.Runtime.CompilerServices.CallSiteBinder)
-		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__0`2'<!!T, !!T>::'<>p__0'
-		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__0`2'<!!T, !!T>::'<>p__0'
+		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__1_0`2'<!!T, !!T>::'<>p__0'
+		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__1_0`2'<!!T, !!T>::'<>p__0'
 		IL_0030: ldfld !0 class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>>::Target
-		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__0`2'<!!T, !!T>::'<>p__0'
+		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Program/'<>o__1_0`2'<!!T, !!T>::'<>p__0'
 		IL_003a: ldnull
 		IL_003b: callvirt instance !2 class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T>::Invoke(!0, !1)
 		IL_0040: starg.s b
@@ -15972,7 +15974,7 @@ class Class<T1>
 	extends [netstandard]System.Object
 {
 	// Nested Types
-	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0`1'<T1, T2>
+	.class nested private auto ansi abstract sealed beforefieldinit '<>o__0_0`1'<T1, T2>
 		extends [netstandard]System.Object
 	{
 		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -15980,7 +15982,7 @@ class Class<T1>
 		)
 		// Fields
 		.field public static class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !T2>> '<>p__0'
-	} // end of class <>o__0`1
+	} // end of class <>o__0_0`1
 	// Methods
 	.method public hidebysig static 
 		void M () cil managed 
@@ -16013,7 +16015,7 @@ class Class<T1>
 		// Method begins at RVA 0x206c
 		// Code size 81 (0x51)
 		.maxstack 3
-		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_0000: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0_0`1'<!T1, !!T2>::'<>p__0'
 		IL_0005: brtrue.s IL_002b
 		IL_0007: ldc.i4.0
 		IL_0008: ldtoken !!T2
@@ -16022,10 +16024,10 @@ class Class<T1>
 		IL_0017: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
 		IL_001c: call class [netstandard]System.Runtime.CompilerServices.CallSiteBinder [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.Binder::Convert(valuetype [Microsoft.CSharp]Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, class [netstandard]System.Type, class [netstandard]System.Type)
 		IL_0021: call class [netstandard]System.Runtime.CompilerServices.CallSite`1<!0> class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>>::Create(class [netstandard]System.Runtime.CompilerServices.CallSiteBinder)
-		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
-		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_0026: stsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0_0`1'<!T1, !!T2>::'<>p__0'
+		IL_002b: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0_0`1'<!T1, !!T2>::'<>p__0'
 		IL_0030: ldfld !0 class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>>::Target
-		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0`1'<!T1, !!T2>::'<>p__0'
+		IL_0035: ldsfld class [netstandard]System.Runtime.CompilerServices.CallSite`1<class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !1>> class Class`1/'<>o__0_0`1'<!T1, !!T2>::'<>p__0'
 		IL_003a: ldnull
 		IL_003b: callvirt instance !2 class [netstandard]System.Func`3<class [netstandard]System.Runtime.CompilerServices.CallSite, object, !!T2>::Invoke(!0, !1)
 		IL_0040: starg.s a

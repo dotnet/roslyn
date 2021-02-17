@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -18,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     internal interface IRemoteSemanticClassificationCacheService
     {
-        Task CacheSemanticClassificationsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, bool isFullyLoaded, CancellationToken cancellationToken);
+        ValueTask CacheSemanticClassificationsAsync(
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Tries to get cached semantic classifications for the specified document and the specified <paramref
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// </summary>
         /// <param name="checksum">Pass in <see cref="DocumentStateChecksums.Text"/>.  This will ensure that the cached
         /// classifications are only returned if they match the content the file currently has.</param>
-        Task<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
+        ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
             SerializableDocumentKey documentKey,
             TextSpan textSpan,
             Checksum checksum,

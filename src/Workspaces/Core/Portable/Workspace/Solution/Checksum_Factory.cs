@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     internal partial class Checksum
     {
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
-            new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+            new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
         public static Checksum Create(IEnumerable<string> values)
         {
@@ -136,11 +138,12 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
+            using var context = SolutionReplicationContext.Create();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
                 objectWriter.WriteInt32((int)kind);
-                serializer.Serialize(value, objectWriter, CancellationToken.None);
+                serializer.Serialize(value, objectWriter, context, CancellationToken.None);
             }
 
             stream.Position = 0;

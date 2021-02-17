@@ -24,6 +24,7 @@
       This project deploys them to RoslynDev hive to enable F5 scenario, 
       but the resulting VSIX not inserted into VS.
     -->
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Bcl.AsyncInterfaces" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
@@ -46,6 +47,7 @@
     <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 -->
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <!-- All packages that we depend on, either as facades or implementations -->
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
@@ -58,6 +60,7 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
   </ItemGroup>
 
   <!--

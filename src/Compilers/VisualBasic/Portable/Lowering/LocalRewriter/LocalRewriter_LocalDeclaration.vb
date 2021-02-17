@@ -138,10 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 If(hasInitializer, New SynthesizedStaticLocalBackingField(localSymbol, isValueField:=False, reportErrorForLongNames:=True), Nothing))
 
             If _emitModule IsNot Nothing Then
-                _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Key)
+                _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Key.GetCciAdapter())
 
                 If result.Value IsNot Nothing Then
-                    _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Value)
+                    _emitModule.AddSynthesizedDefinition(Me._topMethod.ContainingType, result.Value.GetCciAdapter())
                 End If
             End If
 

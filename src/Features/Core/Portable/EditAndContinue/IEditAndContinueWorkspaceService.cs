@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <see langword="default"/> if called outside of an edit session.
         /// The length of the returned array matches the length of <paramref name="documentIds"/> otherwise.
         /// </returns>
-        Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+        Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the adjusted active statements in the specified <paramref name="document"/> snapshot.
@@ -40,14 +38,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void DiscardSolutionUpdate();
 
         bool IsDebuggingSessionInProgress { get; }
-        void OnSourceFileUpdated(DocumentId documentId);
+        void OnSourceFileUpdated(Document document);
 
         void StartDebuggingSession(Solution solution);
         void StartEditSession(ActiveStatementProvider activeStatementProvider);
         void EndEditSession();
         void EndDebuggingSession();
 
-        Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken);
+        Task<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken);
         Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken);
 
         void ReportApplyChangesException(Solution solution, string message);

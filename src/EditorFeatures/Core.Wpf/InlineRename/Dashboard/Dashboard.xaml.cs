@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -337,6 +341,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // handle that case gracefully
                 var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = _model.Session.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
+
+                errorReportingService.ShowGlobalErrorInfo(
+                    string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
             }
         }
 

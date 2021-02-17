@@ -102,6 +102,11 @@
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">'{0}' 형식은 레코드의 필드에 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="translated">함수 포인터 '{0}'은(는) 인수를 {1}개 사용하지 않습니다.</target>
@@ -287,6 +292,11 @@
         <target state="translated">'{0}'은(는) 두 번 이상 명시적으로 구현됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">'{0}'은(는) '{2}' 형식에 대한 인터페이스 목록에 '{1}'(으)로 이미 나열되어 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">중복 null 비표시 오류(Suppression) 연산자('!')</target>
@@ -306,6 +316,11 @@
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">애플리케이션 진입점에는 'UnmanagedCallersOnly' 특성을 지정할 수 없습니다.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">레코드 같음 계약 속성 '{0}'에는 get 접근자가 있어야 합니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
@@ -412,6 +427,11 @@
         <target state="translated">'{0}'과(와) 함수 포인터 '{1}' 사이의 참조 불일치</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">함수 포인터는 명명된 인수를 사용하여 호출할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto는 동일한 블록 내의 using 선언 앞 위치로 이동할 수 없습니다.</target>
@@ -430,6 +450,21 @@
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
         <target state="translated">암시적 인덱스 인덱서 호출로 인수 이름을 지정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">'{0}' 형식은 대상 형식 new()로 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">'{0}'의 대상 형식이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">이 컨텍스트에서는 new()를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -742,6 +777,11 @@
         <target state="translated">'{0}': 속성 또는 인덱서에 get 접근자와 set 접근자가 둘 다 있는 경우에만 접근자에 'readonly'를 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">기본 생성자가 합성된 복사 생성자와 충돌합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">'{1}'을(를) '{0}'에 참조 할당할 수 없습니다. '{1}'이(가) '{0}'보다 이스케이프 범위가 좁기 때문입니다.</target>
@@ -907,19 +947,39 @@
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">공변(covariant) 반환</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">대상으로 형식화된 개체 만들기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">로드된 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">같은 함수에 대한 포인터가 다를 수 있으므로 함수 포인터를 비교하면 예기치 않은 결과가 발생할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">함수 포인터 값을 비교하지 마세요</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -980,21 +1040,6 @@
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="translated">'{0}' 형식이 정의되지 않았습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">'{0}' 형식은 대상 형식 new()로 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">'{0}'의 대상 형식이 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">이 컨텍스트에서는 new()를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -1144,7 +1189,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1421,9 +1466,9 @@
         <target state="translated">병합 할당</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="translated">공변(covariant) 반환</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">보간된 상수 문자열</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -1634,11 +1679,6 @@
       <trans-unit id="IDS_FeatureTargetTypedConditional">
         <source>target-typed conditional expression</source>
         <target state="translated">대상으로 형식화된 조건식</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">대상으로 형식화된 개체 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -2868,6 +2908,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="translated">생성자를 종료할 때 null을 허용하지 않는 필드에 null이 아닌 값을 포함해야 합니다. null 허용으로 선언해 보세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">'{0}' 매개 변수를 읽을 수 없습니다. 이 매개 변수를 사용하여 해당 이름으로 속성을 초기화했는지 확인하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">매개 변수를 읽을 수 없습니다. 이 매개 변수를 사용하여 해당 이름으로 속성을 초기화했는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4116,8 +4166,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
-        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 'void' 바로 앞에만 올 수 있습니다.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 반환 형식 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

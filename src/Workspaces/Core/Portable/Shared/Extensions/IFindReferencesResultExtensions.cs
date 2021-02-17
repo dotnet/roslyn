@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var q = from r in result
-                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
+                    let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol)).ToImmutableArray()
                     where aliasLocations.Any()
                     select new ReferencedSymbol(r.Definition, aliasLocations);
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,14 +60,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, workspace, analyzerService.Listener);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
-
-        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
-            => await DiagnosticAnalyzerInfoCache.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false) == true;
 
         public bool ContainsDiagnostics(ProjectId projectId)
         {

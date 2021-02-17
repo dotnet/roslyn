@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
         private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
-        private const string CommonReferencesNetCoreApp30Name = "CommonReferencesNetCoreApp30";
+        private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
@@ -66,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AllowUnsafeAttributeName = "AllowUnsafe";
         private const string OutputKindName = "OutputKind";
         private const string NullableAttributeName = "Nullable";
+        private const string DocumentFromSourceGeneratorElementName = "DocumentFromSourceGenerator";
 
         /// <summary>
         /// Creates a single buffer in a workspace.
@@ -129,10 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, metadataReferences, extension, commonReferences);
-            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind, documentServiceProvider);
         }
 
         internal static TestWorkspace Create(

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static class DefaultDelegatePool<T>
             where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
 
         private static Releaser GetPooledDelegate<TPooled, TArg, TUnboundDelegate, TBoundDelegate>(TUnboundDelegate unboundDelegate, TArg argument, out TBoundDelegate boundDelegate)
@@ -339,6 +339,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             protected AbstractDelegateWithBoundArgument()
             {
                 BoundDelegate = Bind();
+
+                UnboundDelegate = null!;
+                Argument = default!;
             }
 
             public TBoundDelegate BoundDelegate { get; }
@@ -354,8 +357,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             public sealed override void ClearAndFree()
             {
-                Argument = default;
-                UnboundDelegate = null;
+                Argument = default!;
+                UnboundDelegate = null!;
                 DefaultDelegatePool<TSelf>.Instance.Free((TSelf)this);
             }
 

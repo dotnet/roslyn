@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public string SelectDestinationFile => ServicesVSResources.Select_destination;
         public string SelectCurrentFileAsDestination => ServicesVSResources.Add_to_current_file;
         public string SelectNewFileAsDestination => ServicesVSResources.New_file_name_colon;
-        public string NewTypeName => "New Type Name:";
+        public string NewTypeName => ServicesVSResources.New_Type_Name_colon;
         public NewTypeDestinationSelection(NewTypeDestinationSelectionViewModel viewModel)
         {
             ViewModel = viewModel;

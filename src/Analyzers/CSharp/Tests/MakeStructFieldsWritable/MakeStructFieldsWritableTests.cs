@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
@@ -13,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeStructFieldsWritabl
 {
     public class MakeStructFieldsWritableTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeStructFieldsWritable)]
         public async Task SingleReadonlyField_ThisAssigmentInMethod()

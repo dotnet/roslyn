@@ -1,1 +1,30 @@
-
+Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
+Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string[]
+Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxContextReceiver.get -> Microsoft.CodeAnalysis.ISyntaxContextReceiver
+Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForSyntaxNotifications(Microsoft.CodeAnalysis.SyntaxContextReceiverCreator receiverCreator) -> void
+Microsoft.CodeAnalysis.GeneratorSyntaxContext
+Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
+Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.ISyntaxContextReceiver
+Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
+Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext> callback) -> void
+Microsoft.CodeAnalysis.GeneratorPostInitializationContext
+Microsoft.CodeAnalysis.GeneratorPostInitializationContext.AddSource(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.GeneratorPostInitializationContext.AddSource(string hintName, string source) -> void
+Microsoft.CodeAnalysis.GeneratorPostInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.GeneratorPostInitializationContext.GeneratorPostInitializationContext() -> void
+Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
+Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
+Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
+const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string
+Microsoft.CodeAnalysis.SyntaxContextReceiverCreator
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
+static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
+override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.IOperation operation, TArgument argument) -> object
+override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation operation, TArgument argument) -> object
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>

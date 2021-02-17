@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 var documentTasks = new List<Task>();
-                foreach (var document in project.Documents)
+                foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(_cancellationToken).ConfigureAwait(false))
                 {
                     documentTasks.Add(ProcessDocumentAsync(document));
                 }

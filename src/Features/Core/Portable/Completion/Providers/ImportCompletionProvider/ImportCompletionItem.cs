@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -11,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -31,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph glyph,
             string genericTypeSuffix,
             CompletionItemFlags flags,
-            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
+            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
+            bool includedInTargetTypeCompletion = false)
         {
             ImmutableDictionary<string, string>? properties = null;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
             // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
-            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'. 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
+
+            if (includedInTargetTypeCompletion)
+            {
+                item = item.AddTag(WellKnownTags.TargetTypeMatch);
+            }
 
             item.Flags = flags;
             return item;
@@ -160,13 +165,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return default;
             }
 
-            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all
+            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all 
             // the data to construct its full metadata name
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
 
-            // We choose not to display the number of "type overloads" for simplicity. 
+            // We choose not to display the number of "type overloads" for simplicity.
             // Otherwise, we need additional logic to track internal and public visible
             // types separately, and cache both completion items.
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))

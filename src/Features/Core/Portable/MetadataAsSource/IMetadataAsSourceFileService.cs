@@ -31,5 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         void CleanupGeneratedFiles();
 
         bool IsNavigableMetadataSymbol(ISymbol symbol);
+
+        Workspace? TryGetWorkspace();
     }
 }

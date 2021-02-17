@@ -102,6 +102,11 @@
         <target state="translated">Не удается использовать коллекцию динамического типа в асинхронном операторе foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="translated">Тип "{0}" не может быть использован для поля записи.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="translated">Указатель на функцию "{0}" не принимает следующее число аргументов: {1}.</target>
@@ -287,6 +292,11 @@
         <target state="translated">"{0}" явно реализуется больше одного раза.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="translated">"{0}" уже указан в списке интерфейсов в типе "{2}" в виде "{1}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Оператор подавления повторяющихся значений NULL ("!")</target>
@@ -306,6 +316,11 @@
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Точки входа приложения не могут иметь атрибут "UnmanagedCallersOnly".</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="translated">Свойство контракта на равенство записей "{0}" должно иметь метод доступа get.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
@@ -412,6 +427,11 @@
         <target state="translated">Несоответствие ссылок между "{0}" и указателем на функцию "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="translated">Невозможно вызвать указатель на функцию с именованными аргументами.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Оператор goto не может переходить к расположению раньше объявления using в том же блоке.</target>
@@ -430,6 +450,21 @@
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
         <target state="translated">Вызов неявного индексатора для индекса не может присвоить аргументу имя.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="translated">Тип "{0}" не может использоваться в качестве типа целевого объекта для new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="translated">Отсутствует целевой тип для "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="translated">Использование new() в этом контексте не допускается.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -742,6 +777,11 @@
         <target state="translated">"{0}": readonly можно использовать для методов доступа, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="translated">Первичный конструктор конфликтует с синтезированным конструктором копий.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Не удается присвоить по ссылке "{1}" для "{0}", так как escape-область у "{1}" уже, чем у "{0}".</target>
@@ -907,19 +947,39 @@
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">ковариантные возвращаемые значения</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
-        <target state="translated">отменяет</target>
+        <target state="translated">пустые переменные</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">создание объекта с типом целевого объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="translated">Сравнение указателей на функции может привести к непредвиденному результату, так как указатели на одну и ту же функцию могут быть разными.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="translated">Не сравнивайте значения указателей на функции</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -980,21 +1040,6 @@
       <trans-unit id="ERR_TypeNotFound">
         <source>Type '{0}' is not defined.</source>
         <target state="translated">Тип "{0}" не определен.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="translated">Тип "{0}" не может использоваться в качестве типа целевого объекта для new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="translated">Отсутствует целевой тип для "{0}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="translated">Использование new() в этом контексте не допускается.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
@@ -1144,7 +1189,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1422,9 +1467,9 @@
         <target state="translated">назначение объединения</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="translated">ковариантные возвращаемые значения</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">константные интерполированные строки</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -1637,11 +1682,6 @@
         <target state="translated">условное выражение с целевым типом</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">создание объекта с типом целевого объекта</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">равенство кортежей</target>
@@ -1694,7 +1734,7 @@
       </trans-unit>
       <trans-unit id="IDS_Return">
         <source>return</source>
-        <target state="translated">возврат</target>
+        <target state="translated">возвращаемый</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -2869,6 +2909,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="translated">Поле, не допускающее значения NULL, должно содержать значение, отличное от NULL, при выходе из конструктора. Возможно, стоит объявить поле как допускающее значения NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Параметр "{0}" не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="translated">Параметр не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4117,8 +4167,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед "class", "record", "struct", "interface" и "void".</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
+        <target state="translated">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface" и перед возвращаемым типом метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
