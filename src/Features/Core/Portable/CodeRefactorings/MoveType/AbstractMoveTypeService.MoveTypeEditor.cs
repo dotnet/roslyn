@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var projectToBeUpdated = SemanticDocument.Document.Project;
                 var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, FileName);
 
-                var documentWithMovedType = await AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(newDocumentId).ConfigureAwait(false);
+                var documentWithMovedType = await AddNewDocumentWithSingleTypeDeclarationAsync(newDocumentId).ConfigureAwait(false);
 
                 var solutionWithNewDocument = documentWithMovedType.Project.Solution;
 
@@ -64,7 +64,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                return solutionWithBothDocumentsUpdated;
+                // Now, remove any unnecesarry imports taht were in the document we generated.  We do this last, after
+                // we remove the type from the original file, so that this isn't blocked by the introduction of errors
+                // caused by the type being declared in two files at the same time.
+                documentWithMovedType = solutionWithBothDocumentsUpdated.GetDocument(documentWithMovedType.Id);
+                var service = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+                var documentWithMovedTypeAndRemovedImports = await service.RemoveUnnecessaryImportsAsync(documentWithMovedType, CancellationToken).ConfigureAwait(false);
+
+                var finalSolution = solutionWithBothDocumentsUpdated.WithDocumentSyntaxRoot(
+                    documentWithMovedType.Id, await documentWithMovedTypeAndRemovedImports.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false));
+
+                return finalSolution;
             }
 
             /// <summary>
@@ -72,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// and adds it the solution.
             /// </summary>
             /// <param name="newDocumentId">id for the new document to be added</param>
-            /// <returns>the new solution which contains a new document with the type being moved</returns>
-            private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAndImportsAsync(
+            private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(
                 DocumentId newDocumentId)
             {
                 var document = SemanticDocument.Document;
@@ -93,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // remove things that are not being moved, from the forked document.
                 var membersToRemove = GetMembersToRemove(root);
                 foreach (var member in membersToRemove)
-                {
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
-                }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
@@ -109,10 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // get the updated document, give it the minimal set of imports that the type
                 // inside it needs.
-                var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 var newDocument = solutionWithNewDocument.GetDocument(newDocumentId);
-                newDocument = await service.RemoveUnnecessaryImportsAsync(newDocument, CancellationToken).ConfigureAwait(false);
-
                 return newDocument;
             }
 
