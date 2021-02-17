@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities.Internal;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -103,10 +105,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// capabilities.  The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(JToken initializeParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
-            _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
+
+            // Workaround: Allow LSP server to initialize on pre 16.9 preview 4 VS installations by handling the old tag support
+            // property type.  Once integration test machines update this can be removed.
+            var settings = new JsonSerializerSettings
+            {
+                Error = (sender, args) =>
+                {
+                    if (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting))
+                    {
+                        args.ErrorContext.Handled = true;
+                    }
+                }
+            };
+            var serializer = JsonSerializer.Create(settings);
+            _clientCapabilities = initializeParams["capabilities"].ToObject<VSClientCapabilities>(serializer);
+
             return Task.FromResult(new InitializeResult
             {
                 Capabilities = _languageClient.GetCapabilities(),
