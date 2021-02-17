@@ -131,8 +131,12 @@ namespace BuildValidator
 
             if (uncached.Any())
             {
-                _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
-                // TODO: should probably throw an exception here because we're guaranteed to fail to look up a filename for an assembly reference's MVID later on
+                using var _ = _logger.BeginScope($"Missing metadata references:");
+                foreach (var missingReference in uncached)
+                {
+                    _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
+                }
+                throw new FileNotFoundException();
             }
         }
 

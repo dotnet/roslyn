@@ -53,6 +53,7 @@ namespace BuildValidator
         {
             using var rebuildPeStream = new MemoryStream();
 
+            // By default the Roslyn command line adds a resource that we need to replicate here.
             using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(
                 versionResource: true,
                 noManifest: producedCompilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary,

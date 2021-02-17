@@ -54,7 +54,7 @@ namespace BuildValidator
             var metadataReferences = _referenceResolver.ResolveReferences(metadataReferenceInfos);
             logResolvedMetadataReferences();
 
-            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
             var sources = ResolveSources(sourceFileInfos, sourceLinks, encoding);
             logResolvedSources();
 
@@ -119,9 +119,8 @@ namespace BuildValidator
             _logger.LogInformation("Locating source files");
 
             var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
-            for (int i = 0; i < sourceFileInfos.Length; i++)
+            foreach (var sourceFileInfo in sourceFileInfos)
             {
-                var sourceFileInfo = sourceFileInfos[i];
                 sources.Add(_sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding));
             }
 

@@ -77,6 +77,8 @@ namespace BuildValidator
 
             var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, debug, debugPath);
 
+            // TODO: remove the DemoLoggerProvider, update this dependency,
+            // and move to the built in logger.
             var loggerFactory = new LoggerFactory(
                 new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
                 new LoggerFilterOptions()
