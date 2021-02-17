@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
-        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除する</target>
+        <target state="translated">アナライザー リリース間で診断 ID の重複しているエントリを削除してください</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
