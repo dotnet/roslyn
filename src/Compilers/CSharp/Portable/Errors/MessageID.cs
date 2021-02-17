@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
 
+        // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved eventually.
+        IDS_FeatureListPattern = MessageBase + 12800,
+        IDS_FeatureSlicePattern,
+        IDS_FeatureLengthPattern,
+
         IDS_FeatureNativeInt = MessageBase + 12769,
         IDS_FeatureImplicitObjectCreation = MessageBase + 12770,
         IDS_FeatureTypePattern = MessageBase + 12771,
@@ -489,6 +494,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(feature);
+
+                // PROTOTYPE(list-patterns)
+                case MessageID.IDS_FeatureListPattern:
+                case MessageID.IDS_FeatureSlicePattern:
+                case MessageID.IDS_FeatureLengthPattern:
+                    return LanguageVersion.Preview;
             }
         }
     }

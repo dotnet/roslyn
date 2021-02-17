@@ -5015,6 +5015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         private TypeSyntax? type;
         private PositionalPatternClauseSyntax? positionalPatternClause;
+        private LengthPatternClauseSyntax? lengthPatternClause;
         private PropertyPatternClauseSyntax? propertyPatternClause;
         private VariableDesignationSyntax? designation;
 
@@ -5027,17 +5028,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public PositionalPatternClauseSyntax? PositionalPatternClause => GetRed(ref this.positionalPatternClause, 1);
 
-        public PropertyPatternClauseSyntax? PropertyPatternClause => GetRed(ref this.propertyPatternClause, 2);
+        public LengthPatternClauseSyntax? LengthPatternClause => GetRed(ref this.lengthPatternClause, 2);
 
-        public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 3);
+        public PropertyPatternClauseSyntax? PropertyPatternClause => GetRed(ref this.propertyPatternClause, 3);
+
+        public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 4);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.type),
                 1 => GetRed(ref this.positionalPatternClause, 1),
-                2 => GetRed(ref this.propertyPatternClause, 2),
-                3 => GetRed(ref this.designation, 3),
+                2 => GetRed(ref this.lengthPatternClause, 2),
+                3 => GetRed(ref this.propertyPatternClause, 3),
+                4 => GetRed(ref this.designation, 4),
                 _ => null,
             };
 
@@ -5046,19 +5050,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.type,
                 1 => this.positionalPatternClause,
-                2 => this.propertyPatternClause,
-                3 => this.designation,
+                2 => this.lengthPatternClause,
+                3 => this.propertyPatternClause,
+                4 => this.designation,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecursivePattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRecursivePattern(this);
 
-        public RecursivePatternSyntax Update(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
+        public RecursivePatternSyntax Update(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, LengthPatternClauseSyntax? lengthPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
-            if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
+            if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || lengthPatternClause != this.LengthPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
             {
-                var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
+                var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, lengthPatternClause, propertyPatternClause, designation);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -5066,21 +5071,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public RecursivePatternSyntax WithType(TypeSyntax? type) => Update(type, this.PositionalPatternClause, this.PropertyPatternClause, this.Designation);
-        public RecursivePatternSyntax WithPositionalPatternClause(PositionalPatternClauseSyntax? positionalPatternClause) => Update(this.Type, positionalPatternClause, this.PropertyPatternClause, this.Designation);
-        public RecursivePatternSyntax WithPropertyPatternClause(PropertyPatternClauseSyntax? propertyPatternClause) => Update(this.Type, this.PositionalPatternClause, propertyPatternClause, this.Designation);
-        public RecursivePatternSyntax WithDesignation(VariableDesignationSyntax? designation) => Update(this.Type, this.PositionalPatternClause, this.PropertyPatternClause, designation);
+        public RecursivePatternSyntax WithType(TypeSyntax? type) => Update(type, this.PositionalPatternClause, this.LengthPatternClause, this.PropertyPatternClause, this.Designation);
+        public RecursivePatternSyntax WithPositionalPatternClause(PositionalPatternClauseSyntax? positionalPatternClause) => Update(this.Type, positionalPatternClause, this.LengthPatternClause, this.PropertyPatternClause, this.Designation);
+        public RecursivePatternSyntax WithLengthPatternClause(LengthPatternClauseSyntax? lengthPatternClause) => Update(this.Type, this.PositionalPatternClause, lengthPatternClause, this.PropertyPatternClause, this.Designation);
+        public RecursivePatternSyntax WithPropertyPatternClause(PropertyPatternClauseSyntax? propertyPatternClause) => Update(this.Type, this.PositionalPatternClause, this.LengthPatternClause, propertyPatternClause, this.Designation);
+        public RecursivePatternSyntax WithDesignation(VariableDesignationSyntax? designation) => Update(this.Type, this.PositionalPatternClause, this.LengthPatternClause, this.PropertyPatternClause, designation);
 
         public RecursivePatternSyntax AddPositionalPatternClauseSubpatterns(params SubpatternSyntax[] items)
         {
             var positionalPatternClause = this.PositionalPatternClause ?? SyntaxFactory.PositionalPatternClause();
             return WithPositionalPatternClause(positionalPatternClause.WithSubpatterns(positionalPatternClause.Subpatterns.AddRange(items)));
         }
-        public RecursivePatternSyntax AddPropertyPatternClauseSubpatterns(params SubpatternSyntax[] items)
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LengthPatternClause"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class LengthPatternClauseSyntax : CSharpSyntaxNode
+    {
+        private PatternSyntax? pattern;
+
+        internal LengthPatternClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
         {
-            var propertyPatternClause = this.PropertyPatternClause ?? SyntaxFactory.PropertyPatternClause();
-            return WithPropertyPatternClause(propertyPatternClause.WithSubpatterns(propertyPatternClause.Subpatterns.AddRange(items)));
         }
+
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LengthPatternClauseSyntax)this.Green).openBracketToken, Position, 0);
+
+        public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
+
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LengthPatternClauseSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLengthPatternClause(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLengthPatternClause(this);
+
+        public LengthPatternClauseSyntax Update(SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || pattern != this.Pattern || closeBracketToken != this.CloseBracketToken)
+            {
+                var newNode = SyntaxFactory.LengthPatternClause(openBracketToken, pattern, closeBracketToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public LengthPatternClauseSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Pattern, this.CloseBracketToken);
+        public LengthPatternClauseSyntax WithPattern(PatternSyntax? pattern) => Update(this.OpenBracketToken, pattern, this.CloseBracketToken);
+        public LengthPatternClauseSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Pattern, closeBracketToken);
     }
 
     /// <remarks>
@@ -5141,6 +5187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.PropertyPatternClause"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ListPatternClause"/></description></item>
     /// </list>
     /// </remarks>
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
@@ -5176,7 +5223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
             {
-                var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+                var newNode = SyntaxFactory.PropertyPatternClause(this.Kind(), openBraceToken, subpatterns, closeBraceToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -5513,6 +5560,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public UnaryPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Pattern);
         public UnaryPatternSyntax WithPattern(PatternSyntax pattern) => Update(this.OperatorToken, pattern);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SlicePattern"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class SlicePatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? pattern;
+
+        internal SlicePatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken DotDotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
+
+        public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSlicePattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSlicePattern(this);
+
+        public SlicePatternSyntax Update(SyntaxToken dotDotToken, PatternSyntax? pattern)
+        {
+            if (dotDotToken != this.DotDotToken || pattern != this.Pattern)
+            {
+                var newNode = SyntaxFactory.SlicePattern(dotDotToken, pattern);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public SlicePatternSyntax WithDotDotToken(SyntaxToken dotDotToken) => Update(dotDotToken, this.Pattern);
+        public SlicePatternSyntax WithPattern(PatternSyntax? pattern) => Update(this.DotDotToken, pattern);
     }
 
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode

@@ -1998,14 +1998,48 @@
     </Field>
     <Field Name="Designation" Type="VariableDesignationSyntax"/>
   </Node>
+  <!-- 
+    NOTE TO REVIEWER:
+    
+    If we decide to not allow positioanl and prop pattern clause to be used in conjuction with list patterns,
+    alternatively we could use the following and possibly extract a common base with RecursivePatternand and DeclarationPattern.
+    
+    Using a separate node is not problemantic because we already use a separate kind for PropertyPatternClause below,
+    unless we want it to be a merely semantical diffrence and don't reflect it in the syntax nodes - that depends on the above decision.
+    
+    Whatever we choose to do here would probably affect bound nodes.
+
+    <Node Name="ListPatternSyntax" Base="PatternSyntax">
+      <Kind Name="ListPattern" />
+      <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
+      <Field Name="LengthPatternClause" Type="LengthPatternClauseSyntax" Optional="true"/>
+      
+      For this node, we would only accept a list of patterns, instead of subpatterns.
+      <Field Name="ListPatternClause" Type="ListPatternClauseSyntax" Optional="true"/>
+
+      <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true" Override="true"/>
+    </Node>
+  -->
   <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
     <Kind Name="RecursivePattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
     <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
-    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
+    <Field Name="LengthPatternClause" Type="LengthPatternClauseSyntax" Optional="true" />
+    <!-- The name is now irrelevant.. -->
+    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true"/>
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="LengthPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="LengthPatternClause"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
     </Field>
   </Node>
   <Node Name="PositionalPatternClauseSyntax" Base="CSharpSyntaxNode">
@@ -2020,6 +2054,7 @@
   </Node>
   <Node Name="PropertyPatternClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="PropertyPatternClause"/>
+    <Kind Name="ListPatternClause"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
@@ -2092,6 +2127,13 @@
       <Kind Name="NotKeyword"/>
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />
+  </Node>
+  <Node Name="SlicePatternSyntax" Base="PatternSyntax">
+    <Kind Name="SlicePattern"/>
+    <Field Name="DotDotToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
   </Node>
 
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />

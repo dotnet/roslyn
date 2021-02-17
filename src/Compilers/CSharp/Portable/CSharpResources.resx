@@ -6600,4 +6600,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
+  <data name="IDS_FeatureListPattern" xml:space="preserve">
+    <value>list pattern</value>
+  </data>
+  <data name="IDS_FeatureSlicePattern" xml:space="preserve">
+    <value>slice pattern</value>
+  </data>
+  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
+    <value>length pattern</value>
+  </data>
 </root>
