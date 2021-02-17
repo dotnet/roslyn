@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics)
+        protected override void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch)
         {
             var bodyEditsForLambda = bodyMatch.GetTreeEdits();
             var editMap = BuildEditMap(bodyEditsForLambda);

@@ -161,13 +161,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
             var editMap = BuildEditMap(editScript);
 
-<<<<<<< HEAD
-            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<SourceLineUpdate>();
-=======
             var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new ArrayBuilder<LineChange>();
->>>>>>> b14da14d6d2 (Use ArrayBuilder/ImmutableArray.Builder instead of List/Array)
+            var actualLineEdits = new ArrayBuilder<SourceLineUpdate>();
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
