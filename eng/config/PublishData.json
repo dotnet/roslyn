@@ -214,11 +214,19 @@
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
-    "master-vs-deps": {
+    "release/dev16.10-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
       "channels": [ "dev16.10", "dev16.10p1" ],
+      "vsBranch": "rel/d16.10",
+      "vsMajorVersion": 16
+    },
+    "master-vs-deps": {
+      "nugetKind": ["Shipping", "NonShipping"],
+      "version": "3.10.*",
+      "packageFeeds": "default",
+      "channels": [ "dev16.10", "dev16.10p2" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
