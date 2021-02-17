@@ -2623,7 +2623,7 @@ class C(int X, int Y)
                 );
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -2664,7 +2664,7 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -2706,7 +2706,7 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -2747,7 +2747,7 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -2867,7 +2867,7 @@ class C(int X, int Y)
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.RecordDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);

@@ -1619,20 +1619,43 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.RecordKeyword:
-                        return _syntaxFactory.RecordDeclaration(
-                            attributes,
-                            modifiers.ToList(),
-                            keyword,
-                            recordModifier,
-                            name,
-                            typeParameters,
-                            paramList,
-                            baseList,
-                            constraints,
-                            openBrace,
-                            members,
-                            closeBrace,
-                            semicolon);
+                        if (recordModifier?.Kind == SyntaxKind.StructKeyword)
+                        {
+                            // record struct ...
+                            return _syntaxFactory.RecordStructDeclaration(
+                                attributes,
+                                modifiers.ToList(),
+                                keyword,
+                                recordModifier,
+                                name,
+                                typeParameters,
+                                paramList,
+                                baseList,
+                                constraints,
+                                openBrace,
+                                members,
+                                closeBrace,
+                                semicolon);
+                        }
+                        else
+                        {
+                            // record ...
+                            // record class ...
+                            return _syntaxFactory.RecordDeclaration(
+                                attributes,
+                                modifiers.ToList(),
+                                keyword,
+                                recordModifier,
+                                name,
+                                typeParameters,
+                                paramList,
+                                baseList,
+                                constraints,
+                                openBrace,
+                                members,
+                                closeBrace,
+                                semicolon);
+                        }
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(keyword.Kind);

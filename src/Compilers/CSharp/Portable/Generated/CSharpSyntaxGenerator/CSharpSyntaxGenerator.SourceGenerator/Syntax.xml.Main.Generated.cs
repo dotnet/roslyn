@@ -489,6 +489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a RecordDeclarationSyntax node.</summary>
         public virtual TResult? VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a RecordStructDeclarationSyntax node.</summary>
+        public virtual TResult? VisitRecordStructDeclaration(RecordStructDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
         public virtual TResult? VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -1185,6 +1188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a RecordDeclarationSyntax node.</summary>
         public virtual void VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a RecordStructDeclarationSyntax node.</summary>
+        public virtual void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
         public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -1879,6 +1885,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.RecordModifier), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+
+        public override SyntaxNode? VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.RecordModifier), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -4803,7 +4812,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (recordModifier.Kind())
             {
                 case SyntaxKind.ClassKeyword:
-                case SyntaxKind.StructKeyword:
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(recordModifier));
             }
@@ -4830,8 +4838,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
-        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.RecordDeclaration(attributeLists, modifiers, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.RecordDeclaration(attributeLists, modifiers, keyword, default, identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
         public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, SyntaxToken identifier)
@@ -4840,6 +4848,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
         public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, string identifier)
             => SyntaxFactory.RecordDeclaration(default, default(SyntaxTokenList), keyword, default, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default, default);
+
+        /// <summary>Creates a new RecordStructDeclarationSyntax instance.</summary>
+        public static RecordStructDeclarationSyntax RecordStructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (recordModifier.Kind() != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(recordModifier));
+            if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            switch (openBraceToken.Kind())
+            {
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(openBraceToken));
+            }
+            switch (closeBraceToken.Kind())
+            {
+                case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(closeBraceToken));
+            }
+            switch (semicolonToken.Kind())
+            {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(semicolonToken));
+            }
+            return (RecordStructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordStructDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)recordModifier.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+        }
+
+        /// <summary>Creates a new RecordStructDeclarationSyntax instance.</summary>
+        public static RecordStructDeclarationSyntax RecordStructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.RecordStructDeclaration(attributeLists, modifiers, keyword, SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
+
+        /// <summary>Creates a new RecordStructDeclarationSyntax instance.</summary>
+        public static RecordStructDeclarationSyntax RecordStructDeclaration(SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.RecordStructDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, default, default, default, default, default, default, default, default);
+
+        /// <summary>Creates a new RecordStructDeclarationSyntax instance.</summary>
+        public static RecordStructDeclarationSyntax RecordStructDeclaration(SyntaxToken keyword, string identifier)
+            => SyntaxFactory.RecordStructDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Token(SyntaxKind.StructKeyword), SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default, default);
 
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)

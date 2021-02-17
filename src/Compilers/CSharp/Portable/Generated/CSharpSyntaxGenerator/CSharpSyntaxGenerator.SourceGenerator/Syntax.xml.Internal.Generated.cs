@@ -21917,6 +21917,369 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal sealed partial class RecordStructDeclarationSyntax : TypeDeclarationSyntax
+    {
+        internal readonly GreenNode? attributeLists;
+        internal readonly GreenNode? modifiers;
+        internal readonly SyntaxToken keyword;
+        internal readonly SyntaxToken recordModifier;
+        internal readonly SyntaxToken identifier;
+        internal readonly TypeParameterListSyntax? typeParameterList;
+        internal readonly ParameterListSyntax? parameterList;
+        internal readonly BaseListSyntax? baseList;
+        internal readonly GreenNode? constraintClauses;
+        internal readonly SyntaxToken? openBraceToken;
+        internal readonly GreenNode? members;
+        internal readonly SyntaxToken? closeBraceToken;
+        internal readonly SyntaxToken? semicolonToken;
+
+        internal RecordStructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 13;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(recordModifier);
+            this.recordModifier = recordModifier;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
+        }
+
+        internal RecordStructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 13;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(recordModifier);
+            this.recordModifier = recordModifier;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
+        }
+
+        internal RecordStructDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+          : base(kind)
+        {
+            this.SlotCount = 13;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(recordModifier);
+            this.recordModifier = recordModifier;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (openBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            if (closeBraceToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
+        }
+
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+        public override SyntaxToken Keyword => this.keyword;
+        public SyntaxToken RecordModifier => this.recordModifier;
+        public override SyntaxToken Identifier => this.identifier;
+        public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
+        public ParameterListSyntax? ParameterList => this.parameterList;
+        public override BaseListSyntax? BaseList => this.baseList;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
+        public override SyntaxToken? OpenBraceToken => this.openBraceToken;
+        public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
+        public override SyntaxToken? CloseBraceToken => this.closeBraceToken;
+        public override SyntaxToken? SemicolonToken => this.semicolonToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.attributeLists,
+                1 => this.modifiers,
+                2 => this.keyword,
+                3 => this.recordModifier,
+                4 => this.identifier,
+                5 => this.typeParameterList,
+                6 => this.parameterList,
+                7 => this.baseList,
+                8 => this.constraintClauses,
+                9 => this.openBraceToken,
+                10 => this.members,
+                11 => this.closeBraceToken,
+                12 => this.semicolonToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RecordStructDeclarationSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecordStructDeclaration(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRecordStructDeclaration(this);
+
+        public RecordStructDeclarationSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || recordModifier != this.RecordModifier || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+            {
+                var newNode = SyntaxFactory.RecordStructDeclaration(attributeLists, modifiers, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new RecordStructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.recordModifier, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new RecordStructDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.recordModifier, this.identifier, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+
+        internal RecordStructDeclarationSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 13;
+            var attributeLists = (GreenNode?)reader.ReadValue();
+            if (attributeLists != null)
+            {
+                AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            var modifiers = (GreenNode?)reader.ReadValue();
+            if (modifiers != null)
+            {
+                AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            var keyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            var recordModifier = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(recordModifier);
+            this.recordModifier = recordModifier;
+            var identifier = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            var typeParameterList = (TypeParameterListSyntax?)reader.ReadValue();
+            if (typeParameterList != null)
+            {
+                AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            var parameterList = (ParameterListSyntax?)reader.ReadValue();
+            if (parameterList != null)
+            {
+                AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            var baseList = (BaseListSyntax?)reader.ReadValue();
+            if (baseList != null)
+            {
+                AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            var constraintClauses = (GreenNode?)reader.ReadValue();
+            if (constraintClauses != null)
+            {
+                AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            var openBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (openBraceToken != null)
+            {
+                AdjustFlagsAndWidth(openBraceToken);
+                this.openBraceToken = openBraceToken;
+            }
+            var members = (GreenNode?)reader.ReadValue();
+            if (members != null)
+            {
+                AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            var closeBraceToken = (SyntaxToken?)reader.ReadValue();
+            if (closeBraceToken != null)
+            {
+                AdjustFlagsAndWidth(closeBraceToken);
+                this.closeBraceToken = closeBraceToken;
+            }
+            var semicolonToken = (SyntaxToken?)reader.ReadValue();
+            if (semicolonToken != null)
+            {
+                AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.attributeLists);
+            writer.WriteValue(this.modifiers);
+            writer.WriteValue(this.keyword);
+            writer.WriteValue(this.recordModifier);
+            writer.WriteValue(this.identifier);
+            writer.WriteValue(this.typeParameterList);
+            writer.WriteValue(this.parameterList);
+            writer.WriteValue(this.baseList);
+            writer.WriteValue(this.constraintClauses);
+            writer.WriteValue(this.openBraceToken);
+            writer.WriteValue(this.members);
+            writer.WriteValue(this.closeBraceToken);
+            writer.WriteValue(this.semicolonToken);
+        }
+
+        static RecordStructDeclarationSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(RecordStructDeclarationSyntax), r => new RecordStructDeclarationSyntax(r));
+        }
+    }
+
     /// <summary>Enum type declaration syntax.</summary>
     internal sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
@@ -33139,6 +33502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitRecordStructDeclaration(RecordStructDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
@@ -33374,6 +33738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRecordDeclaration(RecordDeclarationSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
@@ -33923,6 +34288,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.RecordModifier), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+
+        public override CSharpSyntaxNode VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (SyntaxToken)Visit(node.RecordModifier), (SyntaxToken)Visit(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
         public override CSharpSyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -37495,7 +37863,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (recordModifier.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                    case SyntaxKind.StructKeyword:
                     case SyntaxKind.None: break;
                     default: throw new ArgumentException(nameof(recordModifier));
                 }
@@ -37532,6 +37899,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             return new RecordDeclarationSyntax(SyntaxKind.RecordDeclaration, attributeLists.Node, modifiers.Node, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+        }
+
+        public RecordStructDeclarationSyntax RecordStructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+        {
+#if DEBUG
+            if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+            if (recordModifier == null) throw new ArgumentNullException(nameof(recordModifier));
+            if (recordModifier.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(recordModifier));
+            if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+            if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
+            if (semicolonToken != null)
+            {
+                switch (semicolonToken.Kind)
+                {
+                    case SyntaxKind.SemicolonToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(semicolonToken));
+                }
+            }
+#endif
+
+            return new RecordStructDeclarationSyntax(SyntaxKind.RecordStructDeclaration, attributeLists.Node, modifiers.Node, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
         }
 
         public EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
@@ -42374,7 +42781,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (recordModifier.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
-                    case SyntaxKind.StructKeyword:
                     case SyntaxKind.None: break;
                     default: throw new ArgumentException(nameof(recordModifier));
                 }
@@ -42411,6 +42817,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             return new RecordDeclarationSyntax(SyntaxKind.RecordDeclaration, attributeLists.Node, modifiers.Node, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+        }
+
+        public static RecordStructDeclarationSyntax RecordStructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken recordModifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+        {
+#if DEBUG
+            if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+            if (recordModifier == null) throw new ArgumentNullException(nameof(recordModifier));
+            if (recordModifier.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(recordModifier));
+            if (identifier == null) throw new ArgumentNullException(nameof(identifier));
+            if (identifier.Kind != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            if (openBraceToken != null)
+            {
+                switch (openBraceToken.Kind)
+                {
+                    case SyntaxKind.OpenBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(openBraceToken));
+                }
+            }
+            if (closeBraceToken != null)
+            {
+                switch (closeBraceToken.Kind)
+                {
+                    case SyntaxKind.CloseBraceToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(closeBraceToken));
+                }
+            }
+            if (semicolonToken != null)
+            {
+                switch (semicolonToken.Kind)
+                {
+                    case SyntaxKind.SemicolonToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(semicolonToken));
+                }
+            }
+#endif
+
+            return new RecordStructDeclarationSyntax(SyntaxKind.RecordStructDeclaration, attributeLists.Node, modifiers.Node, keyword, recordModifier, identifier, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
         }
 
         public static EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken? semicolonToken)
@@ -44068,6 +44514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(StructDeclarationSyntax),
                 typeof(InterfaceDeclarationSyntax),
                 typeof(RecordDeclarationSyntax),
+                typeof(RecordStructDeclarationSyntax),
                 typeof(EnumDeclarationSyntax),
                 typeof(DelegateDeclarationSyntax),
                 typeof(EnumMemberDeclarationSyntax),
