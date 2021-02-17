@@ -1427,7 +1427,7 @@ oneMoreTime:
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
                 // Visibility scope of such locals is represented by BoundScope node.
-                (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection || local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm)))
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }
