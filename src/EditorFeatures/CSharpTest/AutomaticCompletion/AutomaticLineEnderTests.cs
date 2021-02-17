@@ -109,7 +109,7 @@ $$", "class {$$}");
     }
 }", @"class C
 {
-    event System.EventHandler e$$
+    eve$$nt System.E$$ventHandler e$$
 }");
         }
 
@@ -689,13 +689,8 @@ $$
         {
             Test(@"class TestClass
 {
-    public int A
-    {
-        get; set
-        {
-            $$
-        }
-    }
+    public int A { get; set }
+    $$
 }", @"class TestClass
 {
     public int A { get; set$$ }
@@ -988,7 +983,7 @@ public class Bar
 }", @"
 public class Bar
 {
-    v$$oid Ma$$in()$$
+    v$$oid Ma$$in($$)$$
 }");
         }
 
@@ -1003,7 +998,22 @@ public interface Bar
 }", @"
 public interface Bar
 {
-    v$$oid Mai$$n()$$;
+    v$$oid Mai$$n($$)$$;
+}");
+        }
+
+        [WpfFact]
+        public void TestMissingSemicolonMethodInInterface()
+        {
+            Test(@"
+public interface Bar
+{
+    void Main()
+        $$
+}", @"
+public interface Bar
+{
+    v$$oid Mai$$n($$)$$
 }");
         }
 
@@ -1025,7 +1035,7 @@ public class Bar
 {
     void Main()
     {
-        v$$oid Loc$$al()$$
+        v$$oid Loc$$al($$)$$
         {
         }
     }
@@ -1050,13 +1060,13 @@ public class Bar
 {
     void Main()
     {
-        v$$oid Loca$$l()$$
+        v$$oid Loca$$l($$)$$
     }
 }");
         }
 
         [WpfFact]
-        public void TestIndexer1()
+        public void TestIndexerAsLastElementInClass()
         {
             Test(@"
 public class Bar
@@ -1073,7 +1083,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestIndexer2()
+        public void TestIndexerNotAsLastElementInClass()
         {
             Test(@"
 public class Bar
@@ -1111,9 +1121,18 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestGetAccessorOfProperty1()
+        public void TestGetAccessorOfProperty()
         {
-            Test(@"
+            var initialMarkup = @"
+public class Bar
+{
+    public int P
+    {
+        ge$$t
+    }
+}";
+
+            var firstResult = @"
 public class Bar
 {
     public int P
@@ -1123,20 +1142,8 @@ public class Bar
             $$
         }
     }
-}", @"
-public class Bar
-{
-    public int P
-    {
-        ge$$t
-    }
-}");
-        }
-
-        [WpfFact]
-        public void TestGetAccessorOfProperty2()
-        {
-            Test(@"
+}";
+            var secondResult = @"
 public class Bar
 {
     public int P
@@ -1144,72 +1151,48 @@ public class Bar
         get;
         $$
     }
-}", @"
-public class Bar
-{
-    public int P
-    {
-        get
-        {
-            $$
-        }
-    }
-}");
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
         }
 
         [WpfFact]
-        public void TestSetAccessorOfProperty1()
+        public void TestSetAccessorOfProperty()
         {
-            Test(@"
+            var initialMarkup = @"
 public class Bar
 {
     public int P
     {
-        get;
+        set$$
+    }
+}";
+            var firstResult = @"
+public class Bar
+{
+    public int P
+    {
         set
         {
             $$
         }
     }
-}", @"
+}";
+            var secondResult = @"
 public class Bar
 {
     public int P
     {
-        get;
-        se$$t
-    }
-}");
-        }
-
-        [WpfFact]
-        public void TestSetAccessorOfProperty2()
-        {
-            Test(@"
-public class Bar
-{
-    public int P
-    {
-        get;
         set;
         $$
     }
-}", @"
-public class Bar
-{
-    public int P
-    {
-        get;
-        set
-        {
-            $$
-        }
-    }
-}");
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
         }
 
         [WpfFact]
-        public void TestGetAccessorOfIndexer1()
+        public void TestGetAccessorOfIndexer()
         {
             Test(@"
 public class Bar
@@ -1232,7 +1215,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestGetAccessorOfIndexer2()
+        public void TestValidGetAccessorOfIndexer()
         {
             Test(@"
 public class Bar
@@ -1259,7 +1242,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestSetAccessorOfIndexer1()
+        public void TestSetAccessorOfIndexer()
         {
             Test(@"
 public class Bar
@@ -1284,7 +1267,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestSetAccessorOfIndexer2()
+        public void TestValidSetAccessorOfIndexer()
         {
             Test(@"
 public class Bar
@@ -1340,7 +1323,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestAddAccessor2()
+        public void TestValidAddAccessor()
         {
             Test(@"
 using System;
@@ -1371,7 +1354,32 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestRemoveAccessor1()
+        public void TestAddAccessorWithSemicolonWithRemoveAccessor()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add;
+        remove
+            $$
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add;
+        remov$$e
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestRemoveAccessor()
         {
             Test(@"
 using System;
@@ -1398,7 +1406,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestRemoveAccessor2()
+        public void TestValidRemoveAccessor()
         {
             Test(@"
 using System;
@@ -1429,20 +1437,30 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestFieldToProperty()
+        public void TestField()
         {
-            Test(@"
+            var initialMarkup = @"
+public class Bar
+{
+    p$$ublic i$$nt i$$ii$$
+}";
+            var firstResult = @"
 public class Bar
 {
     public int iii
     {
         $$
     }
-}", @"
+}";
+            var secondResult = @"
 public class Bar
 {
-    p$$ublic i$$nt i$$ii$$
-}");
+    public int iii;
+    $$
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
         }
 
         [WpfFact]
@@ -1461,27 +1479,15 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestPropertyToField()
+        public void TestEvent()
         {
-            Test(@"
+            var initialMarkup = @"
+using System;
 public class Bar
 {
-    public int iii;
-    $$
-}", @"
-public class Bar
-{
-    public int iii
-    {$$
-        $$
-    $$}
-}");
-        }
-
-        [WpfFact]
-        public void TestEventFieldToEventDeclaration()
-        {
-            Test(@"
+    pu$$blic e$$vent EventHand$$ler c$$c$$
+}";
+            var firstResult = @"
 using System;
 public class Bar
 {
@@ -1489,38 +1495,36 @@ public class Bar
     {
         $$
     }
-}", @"
-using System;
-public class Bar
-{
-    pu$$blic e$$vent EventHand$$ler c$$c$$
-}");
-        }
-
-        [WpfFact]
-        public void TestEventDeclarationToEventField()
-        {
-            Test(@"
+}";
+            var secondResult = @"
 using System;
 public class Bar
 {
     public event EventHandler cc;
     $$
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler cc
-    {
-        $$
-    }
-}");
+}";
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
         }
 
         [WpfFact]
-        public void TestAddBracesForObjectCreationExpression1()
+        public void TestObjectCreationExpressionWithParenthesis()
         {
-            Test(@"
+            var initialMarkup = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = n$$ew F$$oo($$)$$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
 public class Bar
 {
     public void M()
@@ -1535,58 +1539,9 @@ public class Foo
 {
     public int HH { get; set; }
     public int PP { get; set; }
-}", @"
-public class Bar
-{
-    public void M()
-    {
-        var f = n$$ew F$$oo()$$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}");
-        }
+}";
 
-        [WpfFact]
-        public void TestAddBracesForObjectCreationExpression2()
-        {
-            Test(@"
-public class Bar
-{
-    public void M()
-    {
-        var f = new Foo()
-        {
-            $$
-        };
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}", @"
-public class Bar
-{
-    public void M()
-    {
-        var f = n$$ew F$$oo$$
-    }
-}
-public class Foo
-{
-    public int HH { get; set; }
-    public int PP { get; set; }
-}");
-        }
-
-        [WpfFact]
-        public void TestRemoveBraceForObjectCreationExpression()
-        {
-            Test(@"
+            var secondResult = @"
 public class Bar
 {
     public void M()
@@ -1599,23 +1554,67 @@ public class Foo
 {
     public int HH { get; set; }
     public int PP { get; set; }
-}", @"
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithNoParenthesis()
+        {
+            var initialMarkUp = @"
 public class Bar
 {
     public void M()
     {
-        var f = ne$$w Fo$$o() { $$ };
+        var f = n$$ew F$$oo$$
     }
 }
 public class Foo
 {
     public int HH { get; set; }
     public int PP { get; set; }
-}");
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo()
+        {
+            $$
+        };
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo();
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
         }
 
         [WpfFact]
-        public void TestIfStatement1()
+        public void TestIfStatement()
         {
             Test(@"
 public class Bar
@@ -1931,7 +1930,7 @@ public class bar
         }
 
         [WpfFact]
-        public void TestCatchClause1()
+        public void TestCatchClauseWithException()
         {
             Test(@"
 public class Bar
@@ -1960,7 +1959,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestCatchClause2()
+        public void TestSingleCatchClause()
         {
             Test(@"
 public class bar
@@ -1989,7 +1988,7 @@ public class bar
         }
 
         [WpfFact]
-        public void TestCatchClause3()
+        public void TestCatchClauseWithWhenClause()
         {
             Test(@"
 public class bar

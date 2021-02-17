@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -69,9 +71,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && baseFieldDeclarationNode.SemicolonToken.IsMissing;
 
         private static bool ShouldAddBraceForAccessorDeclaration(AccessorDeclarationSyntax accessorDeclarationNode)
-            => accessorDeclarationNode.Body == null
-               && accessorDeclarationNode.ExpressionBody == null
-               && accessorDeclarationNode.SemicolonToken.IsMissing;
+        {
+            if (accessorDeclarationNode.Body == null
+                && accessorDeclarationNode.ExpressionBody == null
+                && accessorDeclarationNode.SemicolonToken.IsMissing)
+            {
+                // If the accessor doesn't have body, expression body and semicolon, let's check this case
+                // for both event and property,
+                // e.g.
+                // int Bar
+                // {
+                //     get;
+                //     se$$t
+                // }
+                // because if the getter doesn't have a body then setter also shouldn't have any body.
+                // Don't check for indexer because the accessor for indexer should have body.
+                var parent = accessorDeclarationNode.Parent;
+                var parentOfParent = parent?.Parent;
+                if (parent is AccessorListSyntax accessorListNode
+                    && parentOfParent is PropertyDeclarationSyntax or EventDeclarationSyntax)
+                {
+                    var otherAccessors = accessorListNode.Accessors
+                        .Except(new [] { accessorDeclarationNode })
+                        .ToImmutableArray();
+                    if (!otherAccessors.IsEmpty)
+                    {
+                        return !otherAccessors.Any(
+                            accessor => accessor.Body == null
+                                        && accessor.ExpressionBody == null
+                                        && !accessor.SemicolonToken.IsMissing);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
 
         // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
         // use its parent's close brace as its own.
@@ -387,7 +423,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static ObjectCreationExpressionSyntax RemoveInitializerForObjectCreationExpression(
             ObjectCreationExpressionSyntax objectCreationExpressionNode)
-            => objectCreationExpressionNode.WithInitializer(null);
+        {
+            return objectCreationExpressionNode.WithInitializer(null);
+        }
 
         /// <summary>
         /// Convert <param name="propertyDeclarationNode"/> to fieldDeclaration.

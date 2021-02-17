@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -493,38 +494,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             IEditorOptions editorOptions)
         {
             var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(objectCreationExpressionNode);
-            var objectCreationNodeWithInitializer = addOrRemoveInitializer
+            var objectCreationNodeWithCorrectInitializer = addOrRemoveInitializer
                 ? WithBraces(objectCreationNodeWithArgumentList, editorOptions)
                 : WithoutBraces(objectCreationNodeWithArgumentList);
-            // If the next token is a missing semicolon, like
-            // var l = new Ba$$r() { }
-            // Also add the semicolon
             var nextToken = objectCreationExpressionNode.GetLastToken(includeZeroWidth: true).GetNextToken(includeZeroWidth: true);
+            // If the next token is a semicolon, like
+            // var l = new Ba$$r() { };
             if (nextToken.IsKind(SyntaxKind.SemicolonToken)
-                && nextToken.IsMissing
                 && nextToken.Parent != null
                 && nextToken.Parent.Contains(objectCreationExpressionNode))
             {
                 var objectCreationNodeContainer = nextToken.Parent;
                 // Replace the old object creation node and add the semicolon token.
-                // Note: need to move the trailing trivia of the old node after semicolon token
+                // Note: need to move the trailing trivia of the objectCreationExpressionNode after the semicolon token
                 // e.g.
                 // var l = new Bar() {} // I am some comments
                 // =>
                 // var l = new Bar() {}; // I am some comments
                 var replacementContainerNode = objectCreationNodeContainer.ReplaceSyntax(
                     nodes: SpecializedCollections.SingletonCollection(objectCreationExpressionNode),
-                    (_, _) => objectCreationNodeWithInitializer.WithoutTrailingTrivia(),
+                    (_, _) => objectCreationNodeWithCorrectInitializer.WithoutTrailingTrivia(),
                     tokens: SpecializedCollections.SingletonCollection(nextToken),
                     computeReplacementToken: (_, _) =>
-                        SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithInitializer.GetTrailingTrivia()),
+                        SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
                     trivia: Enumerable.Empty<SyntaxTrivia>(),
                     computeReplacementTrivia: (_, syntaxTrivia) => syntaxTrivia);
                 return (replacementContainerNode, objectCreationNodeContainer);
             }
             else
             {
-                return (objectCreationNodeWithInitializer, objectCreationExpressionNode);
+                return (objectCreationNodeWithCorrectInitializer, objectCreationExpressionNode);
             }
         }
 
