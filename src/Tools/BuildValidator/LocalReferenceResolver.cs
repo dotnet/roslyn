@@ -61,7 +61,7 @@ namespace BuildValidator
 
         public static DirectoryInfo[] GetRefAssembliesDirectories()
         {
-            // TODO
+            // TODO: Don't hardcode the paths here. 
             return new[]
             {
                 new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref"),
