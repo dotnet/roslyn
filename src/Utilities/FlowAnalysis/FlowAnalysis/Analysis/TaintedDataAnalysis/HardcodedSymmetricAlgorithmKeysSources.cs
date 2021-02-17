@@ -12,12 +12,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// <see cref="SourceInfo"/>s for hardcoded symmetric algorithm cryptographic keys tainted data sources.
         /// </summary>
-        public static ImmutableHashSet<SourceInfo> SourceInfos { get; }
+        public static ImmutableHashSet<SourceInfo> SourceInfos { get; } = BuildSources();
 
         /// <summary>
         /// Statically constructs.
         /// </summary>
-        static HardcodedSymmetricAlgorithmKeysSources()
+        private static ImmutableHashSet<SourceInfo> BuildSources()
         {
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
@@ -34,9 +34,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         new ValueContentCheck[]
                         {
                             (argumentPointsTos, argumentValueContents) =>
-                            	argumentValueContents.Length == 1
+                                argumentValueContents.Length == 1
                                 && argumentValueContents[0].LiteralValues.Any(
-                                    (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4));
+                                    (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4))
                         }
                     ),
                 });
@@ -104,7 +104,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintConstantArray: true,
                 constantArrayLengthMatcher: IsLegalKeySize);
 
-            SourceInfos = builder.ToImmutableAndFree();
+            return builder.ToImmutableAndFree();
         }
 
         private static bool IsLegalKeySize(int byteCount)
