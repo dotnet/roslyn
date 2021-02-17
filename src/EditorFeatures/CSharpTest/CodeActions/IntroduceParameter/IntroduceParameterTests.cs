@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
             => GetNestedActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestBlockCase()
+        public async Task TestSimpleExpressionWithNoMethodCallsCase()
         {
             var code =
                 @"using System;
@@ -52,7 +52,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestBlockCaseWithMethodCall()
+        public async Task TestSimpleExpressionCaseWithLocal()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z) 
+                    {
+                        int l = 5;
+                        int m = [|l * y * z;|]
+                    }
+                }";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithSingleMethodCall()
         {
             var code =
                 @"using System;
@@ -65,7 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
 
                     void M1(int x, int y, int z) 
                     {
-                        M(x, y, z);
                         M(z, y, x);
                     }
                 }";
@@ -81,7 +97,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
 
                     void M1(int x, int y, int z) 
                     {
-                        M(x, y, z);
+                        M(z, y, x);
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithMultipleMethodCall()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = [|x * y * z|];
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(a + b, 5, x);
+                        M(z, y, x);
+                    }
+                }";
+
+            var expected =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z, {|Rename:int v|})
+                    {
+                        int m = v;
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(a + b, 5, x);
                         M(z, y, x);
                     }
                 }";

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -126,14 +127,17 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-                    if (offerRename)
-                    {
-                        parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(RenameAnnotation.Create());
-                    } 
-
                     if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     {
                         insertionIndex++;
+                    }
+
+                    if (offerRename)
+                    {
+                        var paramToken = syntaxFacts.GetIdentifierOfParameter(parameterDeclaration);
+                        var newParamToken = paramToken.WithAdditionalAnnotations(RenameAnnotation.Create());
+                        parameterDeclaration = parameterDeclaration.ReplaceToken(paramToken, newParamToken);
+                        //parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(RenameAnnotation.Create());
                     }
 
                     AddParameter(syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);

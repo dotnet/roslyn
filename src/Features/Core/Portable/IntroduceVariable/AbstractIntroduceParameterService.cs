@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract Task<Document> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
+        protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
         protected abstract bool ExpressionWithinParameterizedMethod(TExpressionSyntax expression);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
             var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                         .WithAdditionalAnnotations(Formatter.Annotation, RenameAnnotation.Create());
+                                         .WithAdditionalAnnotations(Formatter.Annotation);
 
             return RewriteCore(withinNodeInCurrent, replacement, matches);
         }

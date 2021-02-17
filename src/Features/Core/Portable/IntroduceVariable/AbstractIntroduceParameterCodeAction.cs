@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)
             {
-                return await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, _trampoline, cancellationToken).ConfigureAwait(false);
+                var solution = await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, _trampoline, cancellationToken).ConfigureAwait(false);
+                return solution.GetDocument(_semanticDocument.Document.Id);
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
