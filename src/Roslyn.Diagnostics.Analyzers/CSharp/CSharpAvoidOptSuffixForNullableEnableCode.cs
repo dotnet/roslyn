@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -26,7 +28,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.AvoidOptSuffixForNullableEnableCodeRuleId,
             s_localizableTitle,
             s_localizableMessage,

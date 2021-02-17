@@ -102,6 +102,16 @@
         <target state="translated">Wert nicht kopieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Es ist nicht möglich, einen Wert aus einem Verweis einem nicht kopierbaren Typ zuzuweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Ein Wert kann aus einem Verweis kann dem nicht kopierbaren Typ "{0}" nicht zugewiesen werden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">Für nicht kopierbare Werttypen darf kein Boxing ausgeführt werden.</target>
@@ -110,6 +120,16 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">Für den nicht kopierbaren Typ "{0}" darf kein Boxing ausgeführt werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Ein Wert aus einem Verweis kann nicht an einen nicht kopierbaren Typ zurückgegeben werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Ein Wert aus einem Verweis kann nicht an den nicht kopierbaren Typ "{0}" zurückgegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -271,6 +291,21 @@
         <source>Remove extra blank lines</source>
         <target state="translated">Zusätzliche Leerzeilen entfernen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">Die Instanz von TemporaryArray&lt;T&gt;.AsRef() muss eine using-Variable sein.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instanz von TemporaryArray&lt;T&gt;.AsRef() muss eine using-Variable sein</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instanz von TemporaryArray&lt;T&gt;.AsRef() muss eine using-Variable sein</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>

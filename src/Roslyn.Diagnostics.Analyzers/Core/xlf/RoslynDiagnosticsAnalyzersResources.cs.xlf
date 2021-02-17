@@ -102,6 +102,16 @@
         <target state="translated">Nekopírujte hodnotu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Hodnota z odkazu se nedá přiřadit typu, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Hodnota z odkazu se nedá přiřadit typu {0}, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">Nebalte nekopírovatelné typy hodnot.</target>
@@ -110,6 +120,16 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">Nebalte nekopírovatelný typ hodnoty {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Hodnota z odkazu se nedá vrátit typu, který se nedá kopírovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Hodnota z odkazu se nedá vrátit typu {0}, který se nedá kopírovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -271,6 +291,21 @@
         <source>Remove extra blank lines</source>
         <target state="translated">Odebrat nadbytečné prázdné řádky</target>
         <note />
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">Instance TemporaryArray&lt;T&gt;.AsRef() musí být proměnná using</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>

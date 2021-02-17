@@ -66,7 +66,7 @@ namespace Analyzer.Utilities
                     }
 
                     if (_allowExcludedSymbolNames &&
-                        method.IsConfiguredToSkipAnalysis(operationBlockAnalysisContext.Options, SupportedDiagnostics[0], operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
                     {
                         return;
                     }
@@ -113,7 +113,7 @@ namespace Analyzer.Utilities
         {
             private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType;
             private readonly bool _checkAnonymousFunctions;
-            private readonly Stack<bool> _seenRethrowInCatchClauses = new Stack<bool>();
+            private readonly Stack<bool> _seenRethrowInCatchClauses = new();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
 

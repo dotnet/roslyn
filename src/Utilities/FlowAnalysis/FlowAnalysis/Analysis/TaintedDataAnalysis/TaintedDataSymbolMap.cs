@@ -90,7 +90,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Indicates that this mapping is empty, i.e. there are no types referenced by the compilation represented by the <see cref="WellKnownTypeProvider"/>.
         /// </summary>
-        public bool IsEmpty { get { return this.ConcreteInfos.IsEmpty && this.InterfaceInfos.IsEmpty; } }
+        public bool IsEmpty => this.ConcreteInfos.IsEmpty && this.InterfaceInfos.IsEmpty;
 
         /// <summary>
         /// Indicates that any <see cref="ITaintedDataInfo"/> in this <see cref="TaintedDataSymbolMap&lt;TInfo&gt;"/> uses <see cref="ValueContentAbstractValue"/>s.
@@ -109,10 +109,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns>Relevant infos for the given type.</returns>
         public IEnumerable<TInfo> GetInfosForType(INamedTypeSymbol namedTypeSymbol)
         {
-            Debug.Assert(namedTypeSymbol != null);
-
             if (namedTypeSymbol == null)
             {
+                Debug.Fail("Expected non-null 'namedTypeSymbol'");
+
                 yield break;
             }
 

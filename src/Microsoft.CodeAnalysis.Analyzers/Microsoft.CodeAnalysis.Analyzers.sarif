@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -137,7 +137,7 @@
         "RS1016": {
           "id": "RS1016",
           "shortDescription": "Code fix providers should provide FixAll support",
-          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
+          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Correctness",
@@ -247,7 +247,7 @@
         "RS1024": {
           "id": "RS1024",
           "shortDescription": "Compare symbols correctly",
-          "fullDescription": "Symbols should be compared for equality, not identity.",
+          "fullDescription": "Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
@@ -424,9 +424,27 @@
             ]
           }
         },
+        "RS1034": {
+          "id": "RS1034",
+          "shortDescription": "Prefer 'IsKind' for checking syntax kinds",
+          "fullDescription": "Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "PreferIsKindAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
-          "shortDescription": "Add analyzer diagnostic IDs to analyzer release.",
+          "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
           "fullDescription": "All supported analyzer diagnostic IDs should be part of an analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -445,7 +463,7 @@
         },
         "RS2001": {
           "id": "RS2001",
-          "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
+          "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release",
           "fullDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -464,7 +482,7 @@
         },
         "RS2002": {
           "id": "RS2002",
-          "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release.",
+          "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release",
           "fullDescription": "Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -484,7 +502,7 @@
         },
         "RS2003": {
           "id": "RS2003",
-          "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
+          "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file",
           "fullDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -504,7 +522,7 @@
         },
         "RS2004": {
           "id": "RS2004",
-          "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
+          "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers",
           "fullDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -523,7 +541,7 @@
         },
         "RS2005": {
           "id": "RS2005",
-          "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
+          "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release",
           "fullDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -543,7 +561,7 @@
         },
         "RS2006": {
           "id": "RS2006",
-          "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
+          "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases",
           "fullDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -563,7 +581,7 @@
         },
         "RS2007": {
           "id": "RS2007",
-          "shortDescription": "Invalid entry in analyzer release file.",
+          "shortDescription": "Invalid entry in analyzer release file",
           "fullDescription": "Invalid entry in analyzer release file.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -605,7 +623,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -786,7 +804,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {

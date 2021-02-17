@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private readonly struct ApiData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public static readonly ApiData Empty = new ApiData(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
 
             public ImmutableArray<ApiLine> ApiList { get; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
             private readonly bool _useNullability;
-            private readonly ConcurrentDictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new ConcurrentDictionary<ITypeSymbol, bool>();
-            private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new ConcurrentDictionary<string, UnusedValue>(StringComparer.Ordinal);
+            private readonly ConcurrentDictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new();
+            private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new(StringComparer.Ordinal);
             private readonly IReadOnlyDictionary<string, ApiLine> _publicApiMap;
 
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData)
@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
                     var namedType = (INamedTypeSymbol)symbol;
-                    if (namedType.InstanceConstructors.Length == 1 &&
-                        (namedType.TypeKind == TypeKind.Class || namedType.TypeKind == TypeKind.Struct))
+                    if ((namedType.TypeKind == TypeKind.Class && namedType.InstanceConstructors.Length == 1)
+                        || namedType.TypeKind == TypeKind.Struct)
                     {
-                        var instanceConstructor = namedType.InstanceConstructors[0];
-                        if (instanceConstructor.IsImplicitlyDeclared)
+                        var implicitConstructor = namedType.InstanceConstructors.FirstOrDefault(x => x.IsImplicitlyDeclared);
+                        if (implicitConstructor != null)
                         {
-                            OnSymbolActionCore(instanceConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, explicitLocation: explicitLocation);
+                            OnSymbolActionCore(implicitConstructor, reportDiagnostic, isImplicitlyDeclaredConstructor: true, explicitLocation: explicitLocation);
                         }
                     }
                 }
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 if (symbol.Kind == SymbolKind.NamedType)
                 {
-                    return ObliviousDetector.IgnoreTopLevelNullabilityInstance.Visit(symbol);
+                    return ObliviousDetector.VisitNamedTypeDeclaration((INamedTypeSymbol)symbol);
                 }
 
                 return ObliviousDetector.Instance.Visit(symbol);
@@ -735,21 +735,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool IsPublicApiCore(ISymbol symbol)
             {
-                switch (symbol.DeclaredAccessibility)
+                return symbol.DeclaredAccessibility switch
                 {
-                    case Accessibility.Public:
-                        return symbol.ContainingType == null || IsPublicApiCore(symbol.ContainingType);
-                    case Accessibility.Protected:
-                    case Accessibility.ProtectedOrInternal:
-                        // Protected symbols must have parent types (that is, top-level protected
-                        // symbols are not allowed.
-                        return
-                            symbol.ContainingType != null &&
-                            IsPublicApiCore(symbol.ContainingType) &&
-                            CanTypeBeExtendedPublicly(symbol.ContainingType);
-                    default:
-                        return false;
-                }
+                    Accessibility.Public => symbol.ContainingType == null || IsPublicApiCore(symbol.ContainingType),
+                    Accessibility.Protected
+                    or Accessibility.ProtectedOrInternal => symbol.ContainingType != null
+                        && IsPublicApiCore(symbol.ContainingType)
+                        && CanTypeBeExtendedPublicly(symbol.ContainingType),// Protected symbols must have parent types (that is, top-level protected
+                                                                            // symbols are not allowed.
+                    _ => false,
+                };
             }
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)
@@ -772,8 +767,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// </summary>
             private sealed class ObliviousDetector : SymbolVisitor<bool>
             {
-                public static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
-                public static readonly ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
+                // We need to ignore top-level nullability for outer types: `Outer<...>.Inner`
+                private static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new(ignoreTopLevelNullability: true);
+
+                public static readonly ObliviousDetector Instance = new(ignoreTopLevelNullability: false);
 
                 private readonly bool _ignoreTopLevelNullability;
 
@@ -804,7 +801,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     foreach (var typeParameter in symbol.TypeParameters)
                     {
-                        if (Visit(typeParameter))
+                        if (CheckTypeParameterConstraints(typeParameter))
                         {
                             return true;
                         }
@@ -813,6 +810,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
+                /// <summary>This is visiting type references, not type definitions (that's done elsewhere).</summary>
                 public override bool VisitNamedType(INamedTypeSymbol symbol)
                 {
                     if (!_ignoreTopLevelNullability)
@@ -834,24 +832,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                     foreach (var typeArgument in symbol.TypeArguments)
                     {
-                        // type parameters will already have been checked on the type defining them, so we can just do a shallow check
-                        if (typeArgument.TypeKind == TypeKind.TypeParameter)
-                        {
-                            if (typeArgument.IsReferenceType &&
-                                typeArgument.NullableAnnotation() == NullableAnnotation.None)
-                            {
-                                return true;
-                            }
-                        }
-                        else if (Instance.Visit(typeArgument))
-                        {
-                            return true;
-                        }
-                    }
-
-                    foreach (var typeParameter in symbol.TypeParameters)
-                    {
-                        if (Instance.Visit(typeParameter))
+                        if (Instance.Visit(typeArgument))
                         {
                             return true;
                         }
@@ -875,10 +856,40 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return Visit(symbol.PointedAtType);
                 }
 
+                /// <summary>This only checks the use of a type parameter. We're checking their definition (looking at type constraints) elsewhere.</summary>
                 public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
                 {
-                    if (symbol.HasReferenceTypeConstraint() && symbol.ReferenceTypeConstraintNullableAnnotation() == NullableAnnotation.None)
+                    if (symbol.IsReferenceType &&
+                        symbol.NullableAnnotation() == NullableAnnotation.None)
                     {
+                        // Example:
+                        // I<TReferenceType~>
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                /// <summary>This is checking the definition of a type (as opposed to its usage).</summary>
+                public static bool VisitNamedTypeDeclaration(INamedTypeSymbol symbol)
+                {
+                    foreach (var typeParameter in symbol.TypeParameters)
+                    {
+                        if (CheckTypeParameterConstraints(typeParameter))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                private static bool CheckTypeParameterConstraints(ITypeParameterSymbol symbol)
+                {
+                    if (symbol.HasReferenceTypeConstraint() &&
+                        symbol.ReferenceTypeConstraintNullableAnnotation() == NullableAnnotation.None)
+                    {
+                        // where T : class~
                         return true;
                     }
 
@@ -886,6 +897,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     {
                         if (Instance.Visit(constraintType))
                         {
+                            // Examples:
+                            // where T : SomeReferenceType~
+                            // where T : I<SomeReferenceType~>
                             return true;
                         }
                     }

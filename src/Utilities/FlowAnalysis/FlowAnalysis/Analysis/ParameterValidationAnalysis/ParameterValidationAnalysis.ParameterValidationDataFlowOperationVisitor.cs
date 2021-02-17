@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue>
         {
             private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder? _hazardousParameterUsageBuilder;
+            private readonly INamedTypeSymbol? _notNullAttributeType;
 
             public ParameterValidationDataFlowOperationVisitor(ParameterValidationAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 {
                     _hazardousParameterUsageBuilder = ImmutableDictionary.CreateBuilder<IParameterSymbol, SyntaxNode>();
                 }
+
+                _notNullAttributeType = analysisContext.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsCodeAnalysisNotNullAttribute);
             }
 
             public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages
@@ -111,13 +114,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
                 {
-                    var value = HasValidatedNotNullAttribute(parameter) ? ParameterValidationAbstractValue.Validated : ParameterValidationAbstractValue.NotValidated;
+                    var value = HasAnyNullValidationAttribute(parameter) ? ParameterValidationAbstractValue.Validated : ParameterValidationAbstractValue.NotValidated;
                     SetAbstractValue(pointsToAbstractValue.Locations, value);
                 }
             }
 
-            private static bool HasValidatedNotNullAttribute(IParameterSymbol parameter)
-                => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase));
+            private bool HasAnyNullValidationAttribute(IParameterSymbol parameter)
+                => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase) ||
+                                                         attr.AttributeClass.Equals(_notNullAttributeType));
 
             protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
@@ -294,29 +298,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (Equals(targetMethod.Parameters[0].Type, SerializationInfoNamedType))
+                    if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
+                        targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
                     {
-                        switch (targetMethod.MethodKind)
-                        {
-                            case MethodKind.Ordinary:
-                                if (targetMethod.Name.Equals("GetObjectData", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    MarkValidatedLocations(arguments[0]);
-                                }
-                                break;
-
-                            case MethodKind.Constructor:
-                                MarkValidatedLocations(arguments[0]);
-                                break;
-                        }
+                        MarkValidatedLocations(arguments[0]);
                     }
-                    // TODO: Remove the previous code block and use the following code when ready for potential breaking change
-                    // See https://github.com/dotnet/roslyn-analyzers/issues/3331
-                    //if (targetMethod.IsGetObjectData(SerializationInfoNamedType, StreamingContextNamedType) ||
-                    //    targetMethod.IsSerializationConstructor(SerializationInfoNamedType, StreamingContextNamedType))
-                    //{
-                    //    MarkValidatedLocations(arguments[0]);
-                    //}
                 }
                 else if (_hazardousParameterUsageBuilder != null &&
                          !targetMethod.IsExternallyVisible() &&
@@ -352,7 +338,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     var notValidatedLocations = GetNotValidatedLocations(argument);
                     if (notValidatedLocations.Any())
                     {
-                        if (isNullCheckValidationMethod || HasValidatedNotNullAttribute(argument.Parameter))
+                        if (isNullCheckValidationMethod || HasAnyNullValidationAttribute(argument.Parameter))
                         {
                             MarkValidatedLocations(argument);
                         }
