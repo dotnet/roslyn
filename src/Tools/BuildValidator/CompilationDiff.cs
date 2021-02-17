@@ -145,7 +145,7 @@ namespace BuildValidator
                         var rebuildPdbMdvPath = Path.Combine(rebuildPath, assemblyName + ".pdb.mdv");
                         fixed (byte* ptr = rebuildBytes)
                         {
-                            var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
+                            using var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
                             writeVisualization(rebuildPeMdvPath, rebuildPeReader.GetMetadataReader());
 
                             if (rebuildPeReader.TryOpenAssociatedPortablePdb(

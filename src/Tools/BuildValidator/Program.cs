@@ -227,9 +227,8 @@ namespace BuildValidator
                         if (typeSymbol is object)
                         {
                             var methodSymbols = typeSymbol
-                                .GetMembers()
-                                .OfType<IMethodSymbol>()
-                                .Where(x => x.Name == mainMethodName);
+                                .GetMembers(mainMethodName)
+                                .OfType<IMethodSymbol>();
                             return methodSymbols.FirstOrDefault();
                         }
                     }
