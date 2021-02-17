@@ -97,6 +97,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     tp => new RoslynTaggedText { Tag = tp.Tag, Text = tp.Text }).ToArray();
             }
 
+            // We compute the TextEdit resolves for override and partial method completions here.
+            // Lazily resolving TextEdits is a supported hack in VS, but when the hack is removed
+            // this logic will need to change and VS will need to provide official support for
+            // TextEdit resolution in some form.
+            if (resolvedCompletionItem.InsertText == null && resolvedCompletionItem.TextEdit == null)
+            {
+                resolvedCompletionItem.TextEdit = await GenerateTextEditAsync(
+                    document, completionService, selectedItem, cancellationToken).ConfigureAwait(false);
+            }
+
             resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
             return resolvedCompletionItem;
         }
@@ -121,6 +131,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 TextEdit = completionItem.TextEdit,
                 Preselect = completionItem.Preselect
             };
+        }
+
+        private static async Task<LSP.TextEdit> GenerateTextEditAsync(
+            Document document,
+            CompletionService completionService,
+            CompletionItem selectedItem,
+            CancellationToken cancellationToken)
+        {
+            var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var completionChange = await completionService.GetChangeAsync(
+                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionChangeSpan = completionChange.TextChange.Span;
+
+            var textEdit = new LSP.TextEdit()
+            {
+                NewText = completionChange.TextChange.NewText ?? "",
+                Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
+            };
+
+            return textEdit;
         }
     }
 }

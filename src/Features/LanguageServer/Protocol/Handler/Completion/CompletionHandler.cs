@@ -196,8 +196,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
 
+                // The TextEdits for override and partial method completions are provided in the resolve handler and should be left blank for now.
+                item.Properties.TryGetValue("Modifiers", out var modifier);
+                var isOverrideOrPartialMethodCompletion = modifier != null && (modifier.Contains("Override") || modifier.Contains("Partial"));
+
                 LSP.TextEdit? textEdit = null;
-                if (returnTextEdits)
+                if (returnTextEdits && !isOverrideOrPartialMethodCompletion)
                 {
                     textEdit = await GenerateTextEdit(
                         document, item, completionService, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
@@ -208,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     TextEdit = returnTextEdits
                         ? textEdit
                         : null,
-                    InsertText = returnTextEdits
+                    InsertText = returnTextEdits || isOverrideOrPartialMethodCompletion
                         ? null
                         : item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText,
                     Label = completeDisplayText,
@@ -258,6 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             ? defaultRange
                             : ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
                     };
+
                     return textEdit;
                 }
             }

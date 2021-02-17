@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 }";
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
-            var completionParams = CreateCompletionParams(locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var completionItem = await CreateCompletionItemAsync(
@@ -42,8 +43,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var expected = CreateResolvedCompletionItem(completionItem, description, "class A", null);
 
-            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
+        }
+
+        [Fact]
+        public async Task TestResolveOverridesCompletionItemAsync()
+        {
+            var markup =
+@"abstract class A
+{
+    public abstract void M();
+}
+
+class B : A
+{
+    override {|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var tags = new string[] { "Method", "Public" };
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var completionItem = await CreateCompletionItemAsync(
+                label: "M()", LSP.CompletionItemKind.Method, tags, completionParams, document,
+                commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
+            var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
+
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
+            Assert.NotNull(results.TextEdit);
+            Assert.Null(results.InsertText);
         }
 
         private static async Task<object> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
