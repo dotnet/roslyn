@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // the parent is the member
                 // the grandparent is the container of the member
-                var container = token.GetRequiredParent().GetRequiredParent();
+                var container = token.Parent?.Parent;
 
                 // ref $$
                 // readonly ref $$
