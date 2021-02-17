@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     && parentOfParent is PropertyDeclarationSyntax or EventDeclarationSyntax)
                 {
                     var otherAccessors = accessorListNode.Accessors
-                        .Except(new [] { accessorDeclarationNode })
+                        .Except(new[] { accessorDeclarationNode })
                         .ToImmutableArray();
                     if (!otherAccessors.IsEmpty)
                     {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static bool ShouldAddBraceForDoStatement(DoStatementSyntax doStatementNode, int caretPosition)
             => !doStatementNode.DoKeyword.IsMissing
                && doStatementNode.Statement is not BlockSyntax
-               && doStatementNode.DoKeyword.Span.Contains(caretPosition);
+               && doStatementNode.DoKeyword.FullSpan.Contains(caretPosition);
 
         private static bool ShouldAddBraceForCommonForEachStatement(CommonForEachStatementSyntax commonForEachStatementNode, int caretPosition)
             => commonForEachStatementNode.Statement is not BlockSyntax
@@ -279,28 +279,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         #region AddBrace
 
-        /// <summary>
-        /// The close brace token that is used, it doesn't have any elastic annotation, because it would cause
-        /// the formatter not add new line between braces for BasePropertyDeclaration.
-        /// </summary>
-        private static readonly SyntaxToken s_closeBrace = SyntaxFactory.Token(
-            SyntaxTriviaList.Empty, SyntaxKind.CloseBraceToken, SyntaxTriviaList.Empty);
-
         private static AccessorListSyntax GetAccessorListNode(IEditorOptions editorOptions)
-            => SyntaxFactory.AccessorList().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(s_closeBrace);
+            => SyntaxFactory.AccessorList().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
 
         private static InitializerExpressionSyntax GetInitializerExpressionNode(IEditorOptions editorOptions)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression)
-                .WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(s_closeBrace);
+                .WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
 
         private static BlockSyntax GetBlockNode(IEditorOptions editorOptions)
-            => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(s_closeBrace);
+            => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
 
         private static SyntaxToken GetOpenBrace(IEditorOptions editorOptions)
             => SyntaxFactory.Token(
                     SyntaxTriviaList.Empty, SyntaxKind.OpenBraceToken,
                     SyntaxTriviaList.Empty.Add(GetNewLineTrivia(editorOptions)))
                 .WithAdditionalAnnotations(s_openBracePositionAnnotation);
+
+        private static SyntaxToken GetCloseBrace(IEditorOptions editorOptions)
+            => SyntaxFactory.Token(
+               SyntaxTriviaList.Empty, SyntaxKind.CloseBraceToken, SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)));
 
         private static SyntaxTrivia GetNewLineTrivia(IEditorOptions editorOptions)
         {
