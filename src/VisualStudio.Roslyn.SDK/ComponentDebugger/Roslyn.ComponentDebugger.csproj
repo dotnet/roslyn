@@ -6,7 +6,7 @@
     <RootNamespace>Roslyn.ComponentDebugger</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <Nullable>enable</Nullable>
-    <NoWarn>NU1603</NoWarn>
+    <NoWarn>NU1603;NU1605</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
