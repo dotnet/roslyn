@@ -26,17 +26,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, ValueContentCheck[])[]{
+                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, ValueContentCheck[])[]
+                {
                     (
-                        (methodName, arguments) =>
+                        (methodName, _) =>
                             methodName == "FromBase64String",
-                        new ValueContentCheck[]{
+                        new ValueContentCheck[]
+                        {
                             (argumentPointsTos, argumentValueContents) =>
-                            {
-                                return argumentValueContents.Length == 1
-                                    && argumentValueContents[0].LiteralValues.Any(
-                                        (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4));
-                            }
+                            	argumentValueContents.Length == 1
+                                && argumentValueContents[0].LiteralValues.Any(
+                                    (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4));
                         }
                     ),
                 });
@@ -48,16 +48,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: false,
                 taintedProperties: null,
                 taintedMethodsNeedsPointsToAnalysis: null,
-                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, (ValueContentCheck, string)[])[]{
+                taintedMethodsNeedsValueContentAnalysis: new (MethodMatcher, (ValueContentCheck, string)[])[]
+                {
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
-                            arguments.Count() == 5 &&
+                            arguments.Length == 5 &&
                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
-                        new (ValueContentCheck, string)[]{
+                        new (ValueContentCheck, string)[]
+                        {
                             (
-                                (argumentPointsTos, argumentValueContents) =>
-                                    argumentValueContents[0].IsLiteralState,
+                                (argumentPointsTos, argumentValueContents) => argumentValueContents[0].IsLiteralState,
                                 "chars"
                             ),
                         }
@@ -65,36 +66,33 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
-                            arguments.Count() == 1 &&
+                            arguments.Length == 1 &&
                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
-                        new (ValueContentCheck, string)[]{
+                        new (ValueContentCheck, string)[]
+                        {
                             (
-                                (argumentPointsTos, argumentValueContents) =>
-                                    argumentValueContents[0].IsLiteralState,
+                                (argumentPointsTos, argumentValueContents) => argumentValueContents[0].IsLiteralState,
                                 TaintedTargetValue.Return
                             ),
                         }
                     ),
                 },
-                transferMethods: new (MethodMatcher, (string, string)[])[]{
+                transferMethods: new (MethodMatcher, (string, string)[])[]
+                {
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
-                            arguments.Count() == 5 &&
+                            arguments.Length == 5 &&
                             arguments[0].Parameter.Type is IArrayTypeSymbol arrayTypeSymbol &&
                             arrayTypeSymbol.ElementType.SpecialType == SpecialType.System_Char,
-                        new (string, string)[]{
-                            ("chars", "bytes"),
-                        }
+                        new (string, string)[] { ("chars", "bytes"), }
                     ),
                     (
                         (methodName, arguments) =>
                             methodName == "GetBytes" &&
-                            arguments.Count() == 5 &&
+                            arguments.Length == 5 &&
                             arguments[0].Parameter.Type.SpecialType == SpecialType.System_String,
-                        new (string, string)[]{
-                            ("chars", "bytes"),
-                        }
+                        new (string, string)[] { ("chars", "bytes"), }
                     ),
                 });
             builder.AddSourceInfo(
