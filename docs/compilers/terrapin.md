@@ -13,12 +13,12 @@ The .NET Team will deliver a set of tools to the Terrapin team to provide the ne
 
 It's possible in the future we will end up providing a "all in one" experience tool but for the short term we'll be focusing on keeping these responsibilities and tools separate. 
 
-### dotnet-roslyn-manifest-generator
-This is global tool which takes in a DLL / PDB file combination and will generate an artifacts manifest file which lists the set of artifacts necessary to perform a validation. This includes the version of `dotnet-roslyn-validator` which needs to be used to perform the validation. 
+### dotnet-build-manifest-generator
+This is global tool which takes in a DLL / PDB file combination and will generate an artifacts manifest file which lists the set of artifacts necessary to perform a validation. This includes the version of `dotnet-build-validator` which needs to be used to perform the validation. 
 
 This tool is meant to work with binaries produced by earlier versions of the .NET compiler. Every time the contents of the PDB provenance metadata change a new version of this tool will be produced that can account for the metadata. The expectation is that Terrapin will always have the latest version of this tool installed on their service.
 
-### dotnet-roslyn-validator
+### dotnet-build-validator
 A global tool which takes in the following arguments: the PE file to validate, it's accompanying PDB and a directory containing the artifacts gathered from the artifacts manifest file. The tool will then return whether the provided PDB file can have it's provenance validated.
 
 The tool will have three output states:
@@ -29,29 +29,29 @@ The tool will have three output states:
 
 This tool will be sim-shipped with the compiler: every time there is a new compiler, there will be a new version of this tool that uses those compiler binaries. This is important because the compiler does not guarantee deterministic output between versions of the compiler. Even minor version differences of the compiler can produce different IL for the same source code if the code intersects a bug fix or optimization. In order for the validator to function with high fidelity Terrapin must use the version that sim-shipped with the compiler. 
 
-The expectation is that Terrapin will install this as a local tool for a given validation event. That will allow for every validation event to use a different version of `dotnet-roslyn-validator` without having to worry about version conflicts as it would if it were installed as a global tool.
+The expectation is that Terrapin will install this as a local tool for a given validation event. That will allow for every validation event to use a different version of `dotnet-build-validator` without having to worry about version conflicts as it would if it were installed as a global tool.
 
 ## The Terrapin Service Workflow
 The Terrapin service will validate a DLL by going through the following workflow for every DLL in a NuPkg file:
 
-1. Execute `dotnet-roslyn-manifest-generator` on the DLL + PDB conversation. 
+1. Execute `dotnet-build-manifest-generator` on the DLL + PDB conversion. 
 1. Setup the environment for validation:
     1. Transfer execution to the appropriate operating system listed in the manifest. All future actions are expected to run on this machine.
     1. Install the correct .NET Runtime on the target machine (if necessary)
-1. Download the artifacts listed in the artifact manifest file as well as the specified version of `dotnet-roslyn-validator`. 
-1. Execute `dotnet-roslyn-validator` providing the DLL, PDB and the directory where the artifacts were downloaded too.
+1. Download the artifacts listed in the artifact manifest file as well as the specified version of `dotnet-build-validator`. 
+1. Execute `dotnet-build-validator` providing the DLL, PDB and the directory where the artifacts were downloaded too.
 
 The Terrapin service will download the artifacts into a directory created by Terrapin. The directory will have two directories to store source files and references respectively: sources and references. The name of the artifacts in those directories will be specified in the manifest file. That will put the burden of avoiding collisions and dealing with file path fixup on the compiler team.
 
 ## Artifacts Manifest File
-The goal of `dotnet-roslyn-manifest-generator` is to provide a manifest file to the Terrapin service which lists all of the artifacts necessary for a validation to be completed as well as the environment needed to run the validation. The set of artifacts that are necessary include:
+The goal of `dotnet-build-manifest-generator` is to provide a manifest file to the Terrapin service which lists all of the artifacts necessary for a validation to be completed as well as the environment needed to run the validation. The set of artifacts that are necessary include:
 
 1. The source files used in the compilation. 
-1. The reference DLL used in the compilation. 
+1. The reference DLLs used in the compilation. 
 
 At this time the expectation is Terrapin will need to recreate much of the environment used to create the binaries in order to perform provenance validation. This includes having a matching .NET Runtime version and operating system. This is because OS dependencies, like zip compression version, can impact the deterministic output of the compiler. It's possible our experiments in Terrapin will cause us to re-evaluate how these play into determinism but for now the design is to build validation on top of our existing assumptions here. 
 
-To facilitate this the artifact manifest file will include all of the necessary environment information. This will include the OS RID, the .NET Runtime version and whether or a desktop or NET Core runtime was used to run the compiler.
+To facilitate this the artifact manifest file will include all of the necessary environment information. This will include the OS RID, the .NET Runtime version and whether a desktop or NET Core runtime was used to run the compiler.
 
 The artifacts manifest file will be a JSON file with the following format:
 
@@ -71,8 +71,10 @@ The artifacts manifest file will be a JSON file with the following format:
         }
     ],
     "environment": {
-        "dotnet-roslyn-validator-version": "3.8.0",
+        "compiler-language": "csharp",
+        "compiler-version": "3.8.0",
         "os": "windows",
+        "os-version": "...",
         "dotnet-runtime": "net5.0.0"
     }
 }
@@ -86,7 +88,7 @@ To help solve both of these we will be breaking this effort up into a series of 
 The milestones are:
 
 - Roslyn can successfully validate dotnet/roslyn on a machine that just built dotnet/roslyn. This will give us confidence the underlying provenance checks are achievable. All of the artifacts necessary to perform validation will be located on the machine in well known locations hence that will allow us to separate out "acquisition of artifacts"
-- Roslyn will produce versions of dotnet-roslyn-manifest-generator and dotnet-roslyn-validator for Terrapin and they will validate that they can use them on projects they are hosting locally. 
+- Roslyn will produce versions of dotnet-build-manifest-generator and dotnet-build-validator for Terrapin and they will validate that they can use them on projects they are hosting locally. 
 - Rebuild of DLLs on Windows: the target of this milestone is NuPkgs produced on Windows using the .NET Framework compiler. The goal is for us to be able to rebuild the DLLs, whether validation succeeds or fails. This will help us ensure that we have the right process in place between Terrapin and .NET as well that the PDBs do truly contain enough information for us to recreate compilations.
 - Validation of DLLs on Windows: the target of this milestone is NuPkgs produced on Windows using the .NET Framework compiler. The goal is for us to validate the provenance of these binaries as well as find common reasons why provenance validation fails. This will let us begin the conversation with .NET customers on how to change their build to make it provenance friendly.
 - Validation of DLLs on Windows Part 2: the target of this milestone is NuPkgs produced on Windows using the .NET Core compiler. This will require Terrapin to take the extra environment setup step of installing the correct .NET Core runtime and using that to drive the installation process.
@@ -107,14 +109,14 @@ The provenance validation will occur using the output of source generators rathe
 ### Running the validator on .NET Framework
 The expectation is that for Windows we should be able to use .NET Core to run the validator for binaries that were produced using the .NET Framework compiler. The runtime differences we are worried about for Unix operating systems don't have the same problems on Windows. Hence any .NET Runtime which can execute the compiler should be able to do provenance validation. 
 
-It's possible we will find differences here though in the real world. In which case we will need to have a mode for `dotnet-roslyn-validator` where by it will shell out to a .NET Framework process to do the validation. 
+It's possible we will find differences here though in the real world. In which case we will need to have a mode for `dotnet-build-validator` where by it will shell out to a .NET Framework process to do the validation. 
 
 ### Line ending issues
-In order for validation to succeed it is important for `dotnet-roslyn-validator` to receive source files that have the same line endings as the one's provided to the original compilation. These factor into items like the checksum of source files stored in PDBs, the content of string literals, etc ... 
+In order for validation to succeed it is important for `dotnet-build-validator` to receive source files that have the same line endings as the one's provided to the original compilation. These factor into items like the checksum of source files stored in PDBs, the content of string literals, etc ... 
 
 It's possible that the information provided by source link is not sufficient to properly recreate files with correct line endings. Consider that a `.gitattributes` file could change how line endings are used on different operating systems. 
 
-We need to see how much of a problem this is in practice before we decide how to approach it. One possible solution is as simple as giving customers guidance on how to handle line endings in a provenance friendly manner.
+This is a problem the debugger team hits today and has solved with a [simple algorithm](https://github.com/dotnet/sourcelink/pull/678/files#diff-3339ce7022ba5de3029d3f15bdf8ca585905bad4f25077ca1b1616c31d841c62R258-R290) we can replicate here. Essentially if the file has consistent LF or CRLF line endings and the SHA don't match, flip the line endings. If that matches then use that version. 
 
 ### Future expansions
 This document is written to describe how validation will work for the C# and VB compilers but those are not the only tools in the .NET SDK which create or modify DLLs. Other tools include, but is not limited to, the F# compiler and IL trimmer. 
