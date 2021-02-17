@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
+                    LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
@@ -667,27 +667,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        private void LogErrorMultiline(string output)
-        {
-            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string line in lines)
-            {
-                string trimmedMessage = line.Trim();
-                if (trimmedMessage != "")
-                {
-                    Log.LogError(trimmedMessage);
-                }
-            }
-        }
-
         /// <summary>
-        /// Log each of the messages in the given output with the given importance.
-        /// We assume each line is a message to log.
+        /// Log the compiler output to MSBuild. Each language will override this to parse their output and log it
+        /// in the language specific manner. This often involves parsing the raw output and formatting it as 
+        /// individual messages for MSBuild.
         /// </summary>
-        /// <remarks>
-        /// Should be "private protected" visibility once it is introduced into C#.
-        /// </remarks>
-        internal abstract void LogMessages(string output, MessageImportance messageImportance);
+        private protected abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
 
         public string GenerateResponseFileContents()
         {
