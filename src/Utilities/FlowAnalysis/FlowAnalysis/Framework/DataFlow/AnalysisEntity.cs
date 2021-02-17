@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public sealed class AnalysisEntity : CacheBasedEquatable<AnalysisEntity>
     {
-        private readonly ImmutableArray<int> _ignoringLocationHashCodeParts;
+        private readonly int _ignoringLocationHashCode;
 
         private AnalysisEntity(
             ISymbol? symbolOpt,
@@ -57,8 +55,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ParentOpt = parentOpt;
             IsThisOrMeInstance = isThisOrMeInstance;
 
-            _ignoringLocationHashCodeParts = ComputeIgnoringLocationHashCodeParts();
-            EqualsIgnoringInstanceLocationId = HashUtilities.Combine(_ignoringLocationHashCodeParts);
+            _ignoringLocationHashCode = ComputeIgnoringLocationHashCode();
+            EqualsIgnoringInstanceLocationId = _ignoringLocationHashCode;
         }
 
         private AnalysisEntity(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parentOpt)
@@ -212,33 +210,46 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Now perform slow check that compares individual hash code parts sequences.
-            return _ignoringLocationHashCodeParts.SequenceEqual(other._ignoringLocationHashCodeParts);
+            return SymbolOpt.GetHashCodeOrDefault() == other.SymbolOpt.GetHashCodeOrDefault()
+                && HashUtilities.Combine(Indices) == HashUtilities.Combine(other.Indices)
+                && InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault() == other.InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault()
+                && CaptureIdOpt.GetHashCodeOrDefault() == other.CaptureIdOpt.GetHashCodeOrDefault()
+                && Type.GetHashCodeOrDefault() == other.Type.GetHashCodeOrDefault()
+                && ParentOpt.GetHashCodeOrDefault() == other.ParentOpt.GetHashCodeOrDefault()
+                && IsThisOrMeInstance.GetHashCodeOrDefault() == other.IsThisOrMeInstance.GetHashCodeOrDefault();
         }
 
         public int EqualsIgnoringInstanceLocationId { get; private set; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(InstanceLocation.GetHashCode());
-            ComputeHashCodePartsIgnoringLocation(addPart);
+            hashCode.Add(InstanceLocation.GetHashCode());
+            ComputeHashCodePartsIgnoringLocation(ref hashCode);
         }
 
-        private void ComputeHashCodePartsIgnoringLocation(Action<int> addPart)
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AnalysisEntity> obj)
         {
-            addPart(SymbolOpt.GetHashCodeOrDefault());
-            addPart(HashUtilities.Combine(Indices));
-            addPart(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
-            addPart(CaptureIdOpt.GetHashCodeOrDefault());
-            addPart(Type.GetHashCode());
-            addPart(ParentOpt.GetHashCodeOrDefault());
-            addPart(IsThisOrMeInstance.GetHashCode());
+            var other = (AnalysisEntity)obj;
+            return InstanceLocation.GetHashCode() == other.InstanceLocation.GetHashCode()
+                && EqualsIgnoringInstanceLocation(other);
         }
 
-        private ImmutableArray<int> ComputeIgnoringLocationHashCodeParts()
+        private void ComputeHashCodePartsIgnoringLocation(ref RoslynHashCode hashCode)
         {
-            var builder = ArrayBuilder<int>.GetInstance(7);
-            ComputeHashCodePartsIgnoringLocation(builder.Add);
-            return builder.ToImmutableAndFree();
+            hashCode.Add(SymbolOpt.GetHashCodeOrDefault());
+            hashCode.Add(HashUtilities.Combine(Indices));
+            hashCode.Add(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
+            hashCode.Add(CaptureIdOpt.GetHashCodeOrDefault());
+            hashCode.Add(Type.GetHashCode());
+            hashCode.Add(ParentOpt.GetHashCodeOrDefault());
+            hashCode.Add(IsThisOrMeInstance.GetHashCode());
+        }
+
+        private int ComputeIgnoringLocationHashCode()
+        {
+            var hashCode = new RoslynHashCode();
+            ComputeHashCodePartsIgnoringLocation(ref hashCode);
+            return hashCode.ToHashCode();
         }
 
         public bool HasAncestor(AnalysisEntity ancestor)

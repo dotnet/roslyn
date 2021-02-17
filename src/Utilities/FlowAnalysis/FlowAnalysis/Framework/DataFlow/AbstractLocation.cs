@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -94,16 +93,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public bool IsAnalysisEntityDefaultLocation => AnalysisEntityOpt != null;
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(CreationOpt.GetHashCodeOrDefault());
-            addPart(HashUtilities.Combine(CreationCallStack));
-            addPart(SymbolOpt.GetHashCodeOrDefault());
-            addPart(CaptureIdOpt.GetHashCodeOrDefault());
-            addPart(AnalysisEntityOpt.GetHashCodeOrDefault());
-            addPart(LocationTypeOpt.GetHashCodeOrDefault());
-            addPart(_isSpecialSingleton.GetHashCode());
-            addPart(IsNull.GetHashCode());
+            hashCode.Add(CreationOpt.GetHashCodeOrDefault());
+            hashCode.Add(HashUtilities.Combine(CreationCallStack));
+            hashCode.Add(SymbolOpt.GetHashCodeOrDefault());
+            hashCode.Add(CaptureIdOpt.GetHashCodeOrDefault());
+            hashCode.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
+            hashCode.Add(LocationTypeOpt.GetHashCodeOrDefault());
+            hashCode.Add(_isSpecialSingleton.GetHashCode());
+            hashCode.Add(IsNull.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AbstractLocation> obj)
+        {
+            var other = (AbstractLocation)obj;
+            return CreationOpt.GetHashCodeOrDefault() == other.CreationOpt.GetHashCodeOrDefault()
+                && HashUtilities.Combine(CreationCallStack) == HashUtilities.Combine(other.CreationCallStack)
+                && SymbolOpt.GetHashCodeOrDefault() == other.SymbolOpt.GetHashCodeOrDefault()
+                && CaptureIdOpt.GetHashCodeOrDefault() == other.CaptureIdOpt.GetHashCodeOrDefault()
+                && AnalysisEntityOpt.GetHashCodeOrDefault() == other.AnalysisEntityOpt.GetHashCodeOrDefault()
+                && LocationTypeOpt.GetHashCodeOrDefault() == other.LocationTypeOpt.GetHashCodeOrDefault()
+                && _isSpecialSingleton.GetHashCode() == other._isSpecialSingleton.GetHashCode()
+                && IsNull.GetHashCode() == other.IsNull.GetHashCode();
         }
 
         /// <summary>

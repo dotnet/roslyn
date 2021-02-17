@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -34,10 +33,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<SymbolAccess> SourceOrigins { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(SourceOrigins));
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(SourceOrigins));
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<TaintedDataAbstractValue> obj)
+        {
+            var other = (TaintedDataAbstractValue)obj;
+            return HashUtilities.Combine(SourceOrigins) == HashUtilities.Combine(other.SourceOrigins)
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
 
         /// <summary>

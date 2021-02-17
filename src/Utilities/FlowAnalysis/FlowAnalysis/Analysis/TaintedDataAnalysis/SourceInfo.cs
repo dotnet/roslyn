@@ -176,17 +176,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
-                HashUtilities.Combine(this.TaintedProperties,
-                HashUtilities.Combine(this.TaintedArguments,
-                HashUtilities.Combine(this.TaintedMethods,
-                HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
-                HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
-                HashUtilities.Combine(this.TransferMethods,
-                HashUtilities.Combine(this.TransferProperties,
-                HashUtilities.Combine(this.DependencyFullTypeNames,
-                HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))))));
+            var hashCode = new RoslynHashCode();
+            hashCode.Add(this.TaintConstantArray.GetHashCode());
+            HashUtilities.Combine(this.TaintedProperties, ref hashCode);
+            HashUtilities.Combine(this.TaintedArguments, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethods, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis, ref hashCode);
+            HashUtilities.Combine(this.TransferMethods, ref hashCode);
+            HashUtilities.Combine(this.TransferProperties, ref hashCode);
+            HashUtilities.Combine(this.DependencyFullTypeNames, ref hashCode);
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)
