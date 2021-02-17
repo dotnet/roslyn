@@ -1486,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (member is FieldSymbol field && field.AssociatedSymbol is EventSymbol e)
             {
                 Debug.Assert(forDiagnostics);
+                // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
 
@@ -2478,11 +2479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
             /// to patch when adding the initializers for record positional members.
             /// </summary>
-            public int InstanceInitializersIndexForRecordDeclarationWithParameters = -1;
             public bool IsNullableEnabledForInstanceConstructorsAndFields;
             public bool IsNullableEnabledForStaticConstructorsAndFields;
 
-            public DeclaredMembersAndInitializers ToReadOnlyAndFree()
+            public DeclaredMembersAndInitializers ToReadOnlyAndFree(CSharpCompilation compilation)
             {
                 return new DeclaredMembersAndInitializers(
                     NonTypeMembers.ToImmutableAndFree(),
@@ -2491,9 +2491,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     HaveIndexers,
                     RecordDeclarationWithParameters,
                     RecordPrimaryConstructor,
-                    InstanceInitializersIndexForRecordDeclarationWithParameters,
                     isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
-                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields);
+                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields,
+                    compilation);
             }
 
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
@@ -2544,12 +2544,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool HaveIndexers;
             public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public readonly SynthesizedRecordConstructor? RecordPrimaryConstructor;
-
-            /// <summary>
-            /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
-            /// to patch when adding the initializers for record positional members.
-            /// </summary>
-            public readonly int InstanceInitializersIndexForRecordDeclarationWithParameters;
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
 
@@ -2566,13 +2560,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool haveIndexers,
                 RecordDeclarationSyntax? recordDeclarationWithParameters,
                 SynthesizedRecordConstructor? recordPrimaryConstructor,
-                int instanceInitializersIndexForRecordDeclarationWithParameters,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
-                bool isNullableEnabledForStaticConstructorsAndFields)
+                bool isNullableEnabledForStaticConstructorsAndFields,
+                CSharpCompilation compilation)
             {
                 Debug.Assert(!nonTypeMembers.IsDefault);
-                Debug.Assert(!staticInitializers.IsDefault);
-                Debug.Assert(!instanceInitializers.IsDefault);
+                AssertInitializers(staticInitializers, compilation);
+                AssertInitializers(instanceInitializers, compilation);
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
@@ -2583,9 +2577,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.HaveIndexers = haveIndexers;
                 this.RecordDeclarationWithParameters = recordDeclarationWithParameters;
                 this.RecordPrimaryConstructor = recordPrimaryConstructor;
-                this.InstanceInitializersIndexForRecordDeclarationWithParameters = instanceInitializersIndexForRecordDeclarationWithParameters;
                 this.IsNullableEnabledForInstanceConstructorsAndFields = isNullableEnabledForInstanceConstructorsAndFields;
                 this.IsNullableEnabledForStaticConstructorsAndFields = isNullableEnabledForStaticConstructorsAndFields;
+            }
+
+            [Conditional("DEBUG")]
+            public static void AssertInitializers(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers, CSharpCompilation compilation)
+            {
+                Debug.Assert(!initializers.IsDefault);
+                if (initializers.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (ImmutableArray<FieldOrPropertyInitializer> group in initializers)
+                {
+                    Debug.Assert(!group.IsDefaultOrEmpty);
+                }
+
+                for (int i = 0; i < initializers.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i - 1].First().Syntax, compilation), new LexicalSortKey(initializers[i].Last().Syntax, compilation)) < 0);
+                    }
+
+                    if (i + 1 < initializers.Length)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i].First().Syntax, compilation), new LexicalSortKey(initializers[i + 1].Last().Syntax, compilation)) < 0);
+                    }
+
+                    if (initializers[i].Length != 1)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i].First().Syntax, compilation), new LexicalSortKey(initializers[i].Last().Syntax, compilation)) < 0);
+                    }
+                }
             }
         }
 
@@ -2622,33 +2648,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> mergeInitializers()
                 {
-                    var groupCount = declaredMembers.InstanceInitializers.Length;
-                    var groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount);
-                    for (int i = 0; i < groupCount; i++)
-                    {
-                        var declaredInitializers = declaredMembers.InstanceInitializers[i];
-                        if (i == declaredMembers.InstanceInitializersIndexForRecordDeclarationWithParameters)
-                        {
-                            var insertedInitializers = InstanceInitializersForPositionalMembers;
-#if DEBUG
-                            if (declaredInitializers.Length > 0)
-                            {
-                                // initializers should be added in syntax order:
-                                Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.SyntaxTree == declaredInitializers[0].Syntax.SyntaxTree);
-                                Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.Span.Start < declaredInitializers[0].Syntax.Span.Start);
-                            }
-#endif
+                    Debug.Assert(InstanceInitializersForPositionalMembers.Count != 0);
+                    Debug.Assert(declaredMembers.RecordPrimaryConstructor is object);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters is object);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters.SyntaxTree == InstanceInitializersForPositionalMembers[0].Syntax.SyntaxTree);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters.Span.Contains(InstanceInitializersForPositionalMembers[0].Syntax.Span.Start));
 
-                            insertedInitializers.AddRange(declaredInitializers);
-                            groupsBuilder.Add(insertedInitializers.ToImmutableAndFree());
-                        }
-                        else
+                    var groupCount = declaredMembers.InstanceInitializers.Length;
+
+                    if (groupCount == 0)
+                    {
+                        return ImmutableArray.Create(InstanceInitializersForPositionalMembers.ToImmutableAndFree());
+                    }
+
+                    var compilation = declaredMembers.RecordPrimaryConstructor.DeclaringCompilation;
+                    var sortKey = new LexicalSortKey(InstanceInitializersForPositionalMembers.First().Syntax, compilation);
+
+                    int insertAt;
+
+                    for (insertAt = 0; insertAt < groupCount; insertAt++)
+                    {
+                        if (LexicalSortKey.Compare(sortKey, new LexicalSortKey(declaredMembers.InstanceInitializers[insertAt][0].Syntax, compilation)) < 0)
                         {
-                            groupsBuilder.Add(declaredInitializers);
+                            break;
                         }
                     }
 
-                    return groupsBuilder.ToImmutableAndFree();
+                    ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> groupsBuilder;
+
+                    if (insertAt != groupCount &&
+                        declaredMembers.RecordDeclarationWithParameters.SyntaxTree == declaredMembers.InstanceInitializers[insertAt][0].Syntax.SyntaxTree &&
+                        declaredMembers.RecordDeclarationWithParameters.Span.Contains(declaredMembers.InstanceInitializers[insertAt][0].Syntax.Span.Start))
+                    {
+                        // Need to merge into the previous group
+                        var declaredInitializers = declaredMembers.InstanceInitializers[insertAt];
+                        var insertedInitializers = InstanceInitializersForPositionalMembers;
+#if DEBUG
+                        // initializers should be added in syntax order:
+                        Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.SyntaxTree == declaredInitializers[0].Syntax.SyntaxTree);
+                        Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.Span.Start < declaredInitializers[0].Syntax.Span.Start);
+#endif
+
+                        insertedInitializers.AddRange(declaredInitializers);
+
+                        groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount);
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt);
+                        groupsBuilder.Add(insertedInitializers.ToImmutableAndFree());
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt + 1, groupCount - (insertAt + 1));
+                        Debug.Assert(groupsBuilder.Count == groupCount);
+                    }
+                    else
+                    {
+                        Debug.Assert(!declaredMembers.InstanceInitializers.Any(g => declaredMembers.RecordDeclarationWithParameters.SyntaxTree == g[0].Syntax.SyntaxTree &&
+                                                                                    declaredMembers.RecordDeclarationWithParameters.Span.Contains(g[0].Syntax.Span.Start)));
+                        groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount + 1);
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt);
+                        groupsBuilder.Add(InstanceInitializersForPositionalMembers.ToImmutableAndFree());
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt, groupCount - insertAt);
+                        Debug.Assert(groupsBuilder.Count == groupCount + 1);
+                    }
+
+                    var result = groupsBuilder.ToImmutableAndFree();
+
+                    DeclaredMembersAndInitializers.AssertInitializers(result, compilation);
+                    return result;
                 }
             }
 
@@ -2808,7 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return builder.ToReadOnlyAndFree();
+                return builder.ToReadOnlyAndFree(DeclaringCompilation);
             }
         }
 
@@ -2859,26 +2922,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.NamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
-                        AddNonTypeMembers(builder, instanceInitializers: null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.CompilationUnit:
-                        AddNonTypeMembers(builder, instanceInitializers: null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, ((CompilationUnitSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, instanceInitializers: null, typeDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
                         break;
 
                     case SyntaxKind.RecordDeclaration:
                         var recordDecl = (RecordDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder,
-                            instanceInitializers: noteRecordParameters(recordDecl, builder, diagnostics),
-                            recordDecl.Members,
-                            diagnostics);
+                        noteRecordParameters(recordDecl, builder, diagnostics);
+                        AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
                         break;
 
                     default:
@@ -2886,12 +2947,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ArrayBuilder<FieldOrPropertyInitializer>? noteRecordParameters(RecordDeclarationSyntax syntax, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
+            void noteRecordParameters(RecordDeclarationSyntax syntax, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
             {
                 var parameterList = syntax.ParameterList;
                 if (parameterList is null)
                 {
-                    return null;
+                    return;
                 }
 
                 if (builder.RecordDeclarationWithParameters is null)
@@ -2906,15 +2967,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                     }
-
-                    // Keep track of which instance initializers we'll want to update when we synthesize record properties
-                    builder.InstanceInitializersIndexForRecordDeclarationWithParameters = builder.InstanceInitializers.Count;
-                    return ArrayBuilder<FieldOrPropertyInitializer>.GetInstance();
                 }
                 else
                 {
                     diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
-                    return null;
                 }
             }
         }
@@ -3385,7 +3441,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!(paramList is null))
             {
                 Debug.Assert(declaredMembersAndInitializers.RecordDeclarationWithParameters is object);
-                Debug.Assert(declaredMembersAndInitializers.InstanceInitializersIndexForRecordDeclarationWithParameters >= 0);
 
                 var ctor = declaredMembersAndInitializers.RecordPrimaryConstructor;
                 Debug.Assert(ctor is object);
@@ -3926,13 +3981,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddNonTypeMembers(
             DeclaredMembersAndInitializersBuilder builder,
-            ArrayBuilder<FieldOrPropertyInitializer>? instanceInitializers,
             SyntaxList<MemberDeclarationSyntax> members,
             BindingDiagnosticBag diagnostics)
         {
             if (members.Count == 0)
             {
-                AddInitializers(builder.InstanceInitializers, instanceInitializers);
                 return;
             }
 
@@ -3940,6 +3993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = this.GetBinder(firstMember);
 
             ArrayBuilder<FieldOrPropertyInitializer>? staticInitializers = null;
+            ArrayBuilder<FieldOrPropertyInitializer>? instanceInitializers = null;
             var compilation = DeclaringCompilation;
 
             foreach (var m in members)
