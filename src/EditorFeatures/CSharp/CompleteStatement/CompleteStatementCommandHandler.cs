@@ -206,15 +206,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool CanHaveSemicolon(SyntaxNode currentNode)
         {
             if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            {
                 return true;
+            }
 
             if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            {
                 return true;
+            }
 
             if (currentNode is MethodDeclarationSyntax method &&
                 (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
                 method.IsParentKind(SyntaxKind.InterfaceDeclaration)))
+            {
                 return true;
+            }
 
             return false;
         }
