@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         MethodImplAttributes MethodImplementationFlags { get; }
 
+        /// <summary>
         /// Return true if this is a partial method definition without a body. If there
         /// is an implementing body, it can be retrieved with <see cref="PartialImplementationPart"/>.
         /// </summary>
