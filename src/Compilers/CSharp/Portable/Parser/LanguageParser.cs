@@ -6728,7 +6728,7 @@ done:
                                     _pool.Free(ranks);
                                 }
 
-                                // If we saw an open bracket that is not followed by an ommited size, it's possibly a length pattern.
+                                // If we saw an open bracket that is not followed by an omitted size, it's possibly a length pattern.
                                 if (!sawOpenBracket)
                                     continue;
                             }
