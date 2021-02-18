@@ -14,10 +14,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfTheory>
         <CombinatorialData>
         Public Async Function AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean) As Task
-            Using Environment = New TestEnvironment()
-                Dim project = Await Environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+            Using environment = New TestEnvironment()
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
-                Dim workspaceChangeEvents = New WorkspaceChangeWatcher(Environment)
+                Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
                     project.AddSourceFile("Z:\Test.vb")
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Equal(WorkspaceChangeKind.DocumentAdded, change.Kind)
                 Assert.Equal(project.Id, change.ProjectId)
-                Assert.Equal(Environment.Workspace.CurrentSolution.Projects.Single().DocumentIds.Single(), change.DocumentId)
+                Assert.Equal(environment.Workspace.CurrentSolution.Projects.Single().DocumentIds.Single(), change.DocumentId)
             End Using
         End Function
 
