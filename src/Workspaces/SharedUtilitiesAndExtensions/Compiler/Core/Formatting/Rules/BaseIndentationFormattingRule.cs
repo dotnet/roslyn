@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private void AdjustIndentBlockOperation(SegmentedList<IndentBlockOperation> list)
         {
-            using var _ = ArrayBuilder<IndentBlockOperation>.GetInstance(out var copy);
-
             list.RemoveOrTransformAll(static (operation, self) =>
             {
                 // if span is same as us, make sure we only include ourselves.
