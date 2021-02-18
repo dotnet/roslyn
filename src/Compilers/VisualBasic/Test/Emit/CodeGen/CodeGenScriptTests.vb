@@ -401,7 +401,8 @@ System.Console.Write("complete")
 }")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub ScriptEntryPoint_MissingMethods()
             Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>

@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagnostics = DiagnosticBag.GetInstance()
             Dim reportedNamespaceMismatch As Boolean = False
 
             ' Check for a few issues with namespace declaration.
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, diagnostics, CompilationStage.Declare) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics)) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()

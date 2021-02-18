@@ -10000,7 +10000,7 @@ class C
 }";
 
             var active = GetActiveStatements(src1, src2);
-            Extensions.VerifyUnchangedDocument(src2, active);
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active);
         }
 
         [Fact]
@@ -10041,7 +10041,7 @@ class C
 }";
 
             var active = GetActiveStatements(src1, src2);
-            Extensions.VerifyUnchangedDocument(src2, active);
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active);
         }
 
         #endregion

@@ -188,6 +188,7 @@ public class C
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
 
             result.Diagnostics.Verify(
@@ -219,6 +220,7 @@ public class C
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -250,6 +252,7 @@ public class C
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -281,6 +284,7 @@ public class C
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => throw new DllNotFoundException("xxx") });
 
             result.Diagnostics.Verify(

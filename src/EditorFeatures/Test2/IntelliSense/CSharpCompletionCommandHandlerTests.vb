@@ -5277,6 +5277,46 @@ class C
             End Using
         End Function
 
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/49861")>
+        <InlineData("r")>
+        <InlineData("load")>
+        <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PathDirective(directive As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    #   <%= directive %>  $$
+}
+                              </Document>)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
+
+                state.SendTypeChars("""")
+
+                Assert.Equal($"    #   {directive}  """, state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendTypeChars("x")
+
+                Assert.Equal($"    #   {directive}  ""x", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendBackspace()
+
+                Assert.Equal($"    #   {directive}  """, state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendBackspace()
+
+                Assert.Equal($"    #   {directive}  ", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AfterIdentifierInCaseLabel(showCompletionInArgumentLists As Boolean) As Task

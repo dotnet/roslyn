@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
 
                 Binder.ProcessedFieldInitializers initializers = default;
-                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, unusedDiagnostics, ref initializers);
+                Binder.BindFieldInitializers(compilation, null, method.IsStatic ? containingType.StaticInitializers : containingType.InstanceInitializers, BindingDiagnosticBag.Discarded, ref initializers);
                 NullableWalker.AnalyzeIfNeeded(
                     compilation,
                     method,
@@ -1585,11 +1585,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check that the slot represents a value of an equivalent type to the node
                 TypeSymbol slotType = NominalSlotType(result);
                 TypeSymbol? nodeType = node.Type;
-                HashSet<DiagnosticInfo>? discardedUseSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var conversionsWithoutNullability = this.compilation.Conversions;
                 Debug.Assert(node.HasErrors || nodeType!.IsErrorType() ||
-                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteDiagnostics) ||
-                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteDiagnostics));
+                       conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteInfo) ||
+                       conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteInfo));
             }
 #endif
             return result;
@@ -2143,11 +2143,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol possibleBase = possibleMember.ContainingType;
             TypeSymbol possibleDerived = NominalSlotType(slot);
-            HashSet<DiagnosticInfo>? discardedUseSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var conversionsWithoutNullability = _conversions.WithNullability(false);
             return
-                conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics) ||
-                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics);
+                conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo) ||
+                conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteInfo);
         }
 
         // 'skipSlot' is the original target slot that should be skipped in case of cycles.
@@ -3370,8 +3370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? bestType = null;
                 if (!node.HasErrors)
                 {
-                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo);
                 }
 
                 TypeWithAnnotations inferredType = (bestType is null)
@@ -3456,9 +3456,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
             }
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var placeholders = placeholdersBuilder.ToImmutableAndFree();
-            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref useSiteDiagnostics);
+            TypeSymbol? bestType = BestTypeInferrer.InferBestType(placeholders, walker._conversions, ref discardedUseSiteInfo);
 
             TypeWithAnnotations inferredType;
             if (bestType is { })
@@ -3469,7 +3469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < n; i++)
                 {
                     BoundExpression placeholder = placeholders[i];
-                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
+                    Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref discardedUseSiteInfo);
                     resultTypes[i] = walker.VisitConversion(conversionOpt: null, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i].ToTypeWithState(),
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
                         reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(binder.Compilation);
@@ -3848,8 +3848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
                 derivedType = derivedType.StrippedType();
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref discardedUseSiteInfo);
                 if (conversion.Exists && !conversion.IsExplicit)
                 {
                     return derivedType;
@@ -4028,11 +4028,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in getMembers(expressionType))
             {
-                HashSet<DiagnosticInfo>? discardedUseSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var containingType = this._symbol?.ContainingType;
                 if ((member is PropertySymbol { IsIndexedProperty: false } || member.Kind == SymbolKind.Field) &&
                     member.RequiresInstanceReceiver() &&
-                    (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
+                    (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteInfo)))
                 {
                     int childSlot = GetOrCreateSlot(member, slot, forceSlotEvenIfEmpty: true, createIfMissing: false);
                     if (childSlot > 0)
@@ -4351,8 +4351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   var c = true ? a : b;
                 BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(consequence, consequenceRValue.ToTypeWithAnnotations(compilation));
                 BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(alternative, alternativeRValue.ToTypeWithAnnotations(compilation));
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
             NullableFlowState resultState;
@@ -5500,8 +5500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             ReportNullableAssignmentIfNecessary(parameterValue, lValueType, worstCaseParameterWithState, UseLegacyWarnings(argument, result.LValueType));
 
-                            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                            if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                            if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref discardedUseSiteInfo))
                             {
                                 ReportNullabilityMismatchInArgument(argument.Syntax, lValueType.Type, parameter, parameterType.Type, forOutput: true);
                             }
@@ -5774,7 +5774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
             refKinds.Free();
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var result = MethodTypeInferrer.Infer(
                 _binder,
                 _conversions,
@@ -5783,7 +5783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 arguments,
-                ref useSiteDiagnostics,
+                ref discardedUseSiteInfo,
                 new MethodInferenceExtensions(this));
 
             if (!result.Success)
@@ -5890,7 +5890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
             {
-                return expr.UnboundLambda.WithNullableState(expr.UnboundLambda.Data.Binder, variableState);
+                return expr.UnboundLambda.WithNullableState(variableState);
             }
         }
 
@@ -5906,14 +5906,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
             ConstraintsHelper.CheckMethodConstraints(
                 method,
-                _conversions,
-                compilation,
+                new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
                 diagnosticsBuilder,
                 nullabilityBuilder,
                 ref useSiteDiagnosticsBuilder);
             foreach (var pair in nullabilityBuilder)
             {
-                Diagnostics.Add(pair.DiagnosticInfo, syntax.Location);
+                if (pair.UseSiteInfo.DiagnosticInfo is object)
+                {
+                    Diagnostics.Add(pair.UseSiteInfo.DiagnosticInfo, syntax.Location);
+                }
             }
             useSiteDiagnosticsBuilder?.Free();
             nullabilityBuilder.Free();
@@ -5981,7 +5983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Conversion GenerateConversion(Conversions conversions, BoundExpression? sourceExpression, TypeSymbol? sourceType, TypeSymbol destinationType, bool fromExplicitCast, bool extensionMethodThisArgument)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             bool useExpression = sourceType is null || UseExpressionForConversion(sourceExpression);
             if (extensionMethodThisArgument)
             {
@@ -5989,15 +5991,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useExpression ? sourceExpression : null,
                     sourceType,
                     destinationType,
-                    ref useSiteDiagnostics);
+                    ref discardedUseSiteInfo);
             }
             return useExpression ?
                 (fromExplicitCast ?
-                    conversions.ClassifyConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics, forCast: true) :
-                    conversions.ClassifyImplicitConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics)) :
+                    conversions.ClassifyConversionFromExpression(sourceExpression, destinationType, ref discardedUseSiteInfo, forCast: true) :
+                    conversions.ClassifyImplicitConversionFromExpression(sourceExpression, destinationType, ref discardedUseSiteInfo)) :
                 (fromExplicitCast ?
-                    conversions.ClassifyConversionFromType(sourceType, destinationType, ref useSiteDiagnostics, forCast: true) :
-                    conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics));
+                    conversions.ClassifyConversionFromType(sourceType, destinationType, ref discardedUseSiteInfo, forCast: true) :
+                    conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref discardedUseSiteInfo));
         }
 
         /// <summary>
@@ -6271,7 +6273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!_disableDiagnostics)
                 {
                     var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
-                    tupleOpt.CheckConstraints(_conversions, typeSyntax: node.Syntax, locations, currentCompilation: compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                    tupleOpt.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: true, node.Syntax.Location, diagnostics: null),
+                                              typeSyntax: node.Syntax, locations, nullabilityDiagnosticsOpt: new BindingDiagnosticBag(Diagnostics));
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
@@ -6463,20 +6466,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 targetInvokeMethod,
                 sourceInvokeMethod,
-                Diagnostics,
+                new BindingDiagnosticBag(Diagnostics),
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
                 extraArgument: (targetType, location),
                 invokedAsExtensionMethod: invokedAsExtensionMethod);
 
-            void reportBadDelegateReturn(DiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, (TypeSymbol targetType, Location location) arg)
+            void reportBadDelegateReturn(BindingDiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, arg.location,
                     new FormattedSymbol(sourceInvokeMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     arg.targetType);
             }
 
-            void reportBadDelegateParameter(DiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
+            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, arg.location,
                     GetParameterAsDiagnosticArgument(parameter),
@@ -6531,8 +6534,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var sourceType = source.Type;
             var destinationType = destination.Type;
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics).Exists;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref discardedUseSiteInfo).Exists;
         }
 
         private bool HasTopLevelNullabilityConversion(TypeWithAnnotations source, TypeWithAnnotations destination, bool requireIdentity)
@@ -7211,8 +7214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operandType.Type is object);
             Debug.Assert(diagnosticLocation != null);
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref discardedUseSiteInfo);
             if (reportWarnings && !conversion.Exists)
             {
                 if (assignmentKind == AssignmentKind.Argument)
@@ -8437,8 +8440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
-                    HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null;
-                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref ignoredUseSiteDiagnostics, out bool foundMultiple));
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple));
                     Debug.Assert(!foundMultiple);
                     Debug.Assert(targetTypeWithAnnotations.HasType);
                 }
@@ -8607,9 +8610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // foreach (DestinationType variable in collection)
                             // and asynchronous variants
-                            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
-                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref discardedUseSiteInfo)
                                 : node.ElementConversion;
                             result = VisitConversion(
                                 conversionOpt: null,

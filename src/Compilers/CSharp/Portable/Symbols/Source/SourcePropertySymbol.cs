@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourcePropertySymbol : SourcePropertySymbolBase
     {
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, PropertyDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var nameToken = syntax.Identifier;
             var location = nameToken.GetLocation();
             return Create(containingType, bodyBinder, syntax, nameToken.ValueText, location, diagnostics);
         }
 
-        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        internal static SourcePropertySymbol Create(SourceMemberContainerTypeSymbol containingType, Binder bodyBinder, IndexerDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             var location = syntax.ThisKeyword.GetLocation();
             return Create(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BasePropertyDeclarationSyntax syntax,
             string name,
             Location location,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             GetAccessorDeclarations(
                 syntax,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isInitOnly,
             string memberName,
             Location location,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(
                 containingType,
                 syntax,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool isAutoProperty,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isIndexer,
             bool accessorsHaveImplementation,
             Location location,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
             bool isInterface = containingType.IsInterface;
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             Debug.Assert(!(syntax.AccessorList is null && GetArrowExpression(syntax) != null));
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             AccessorDeclarationSyntax syntax,
             bool isAutoPropertyAccessor,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourcePropertyAccessorSymbol CreateExpressionBodiedAccessor(
             ArrowExpressionClauseSyntax syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
         }
 
-        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations Type, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindType(BindingDiagnosticBag diagnostics)
         {
             Binder binder = CreateBinderForTypeAndParameters();
             var syntax = CSharpSyntaxNode;
@@ -414,21 +414,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ComputeType(binder, syntax, diagnostics), ComputeParameters(binder, syntax, diagnostics));
         }
 
-        private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             RefKind refKind;
             var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
             var type = binder.BindType(typeSyntax, diagnostics);
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
-            if (GetExplicitInterfaceSpecifier() is null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            if (GetExplicitInterfaceSpecifier() is null && !this.IsNoMoreVisibleThan(type, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
                 diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), Location, this, type.Type);
             }
 
-            diagnostics.Add(Location, useSiteDiagnostics);
+            diagnostics.Add(Location, useSiteInfo);
 
             if (type.IsVoidType())
             {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
+            Binder binder, SourcePropertySymbolBase owner, BaseParameterListSyntax? parameterSyntaxOpt, BindingDiagnosticBag diagnostics, bool addRefReadOnlyModifier)
         {
             if (parameterSyntaxOpt == null)
             {
@@ -480,22 +480,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
             var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
             return parameters;
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             foreach (ParameterSymbol param in Parameters)
             {
-                if (!IsExplicitInterfaceImplementation && !this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
+                if (!IsExplicitInterfaceImplementation && !this.IsNoMoreVisibleThan(param.Type, ref useSiteInfo))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, Location, this, param.Type);
                 }
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            diagnostics.Add(Location, useSiteDiagnostics);
+            diagnostics.Add(Location, useSiteInfo);
         }
 
         protected override bool HasPointerTypeSyntactically

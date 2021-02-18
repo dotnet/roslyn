@@ -247,7 +247,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Convert_to_record">
         <source>Convert to record</source>
-        <target state="new">Convert to record</target>
+        <target state="translated">Converti in record</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -602,7 +602,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
+        <target state="translated">Se si modifica il corpo di '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -632,7 +632,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
+        <target state="translated">Se si modifica il file di origine '{0}', la sessione di debug non potrà continuare a causa dell'errore interno {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">

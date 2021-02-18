@@ -252,11 +252,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Nothing
         End Function
 
@@ -268,11 +268,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -280,8 +280,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return OriginalDefinition.GetUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return OriginalDefinition.GetUseSiteInfo()
         End Function
 
         Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
