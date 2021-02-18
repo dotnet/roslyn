@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // used for selection based formatting case. it contains operations that will define
         // what indentation to use as a starting indentation. (we always use 0 for formatting whole tree case)
-        private List<IndentBlockOperation> _initialIndentBlockOperations;
+        private SegmentedList<IndentBlockOperation> _initialIndentBlockOperations;
 
         public FormattingContext(AbstractFormatEngine engine, TokenStream tokenStream)
         {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _suppressFormattingMap = new HashSet<TextSpan>();
             _anchorMap = new HashSet<TextSpan>();
 
-            _initialIndentBlockOperations = new List<IndentBlockOperation>();
+            _initialIndentBlockOperations = new SegmentedList<IndentBlockOperation>();
         }
 
         public void Initialize(
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddIndentBlockOperations(
-            List<IndentBlockOperation> operations,
+            SegmentedList<IndentBlockOperation> operations,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(operations);
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public void AddSuppressOperations(
-            List<SuppressOperation> operations,
+            SegmentedList<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
             var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];

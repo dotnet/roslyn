@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public sealed override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public sealed override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddSuppressOperationsSlow(list, node, ref nextOperationCopy);
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public sealed override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
+        public sealed override void AddAnchorIndentationOperations(SegmentedList<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAnchorIndentationOperationsSlow(list, node, ref nextOperationCopy);
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public sealed override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        public sealed override void AddIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddIndentBlockOperationsSlow(list, node, ref nextOperationCopy);
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public sealed override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
+        public sealed override void AddAlignTokensOperations(SegmentedList<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
             AddAlignTokensOperationsSlow(list, node, ref nextOperationCopy);
@@ -68,25 +69,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
+        public virtual void AddSuppressOperationsSlow(SegmentedList<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
             => base.AddSuppressOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, ref NextAnchorIndentationOperationAction nextOperation)
+        public virtual void AddAnchorIndentationOperationsSlow(SegmentedList<AnchorIndentationOperation> list, SyntaxNode node, ref NextAnchorIndentationOperationAction nextOperation)
             => base.AddAnchorIndentationOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, ref NextIndentBlockOperationAction nextOperation)
+        public virtual void AddIndentBlockOperationsSlow(SegmentedList<IndentBlockOperation> list, SyntaxNode node, ref NextIndentBlockOperationAction nextOperation)
             => base.AddIndentBlockOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, ref NextAlignTokensOperationAction nextOperation)
+        public virtual void AddAlignTokensOperationsSlow(SegmentedList<AlignTokensOperation> list, SyntaxNode node, ref NextAlignTokensOperationAction nextOperation)
             => base.AddAlignTokensOperations(list, node, in nextOperation);
 
         /// <summary>

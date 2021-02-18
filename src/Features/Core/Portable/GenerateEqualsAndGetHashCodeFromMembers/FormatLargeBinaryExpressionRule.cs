@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ///        ...
             /// </summary>
             public override void AddIndentBlockOperations(
-                List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+                SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 if (_syntaxFacts.IsReturnStatement(node))
                 {

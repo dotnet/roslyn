@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,6 +59,25 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // normal case
             var combinedList = new List<T>(list1);
+            combinedList.AddRange(list2);
+
+            return combinedList;
+        }
+
+        [return: NotNullIfNotNull("list1"), NotNullIfNotNull("list2")]
+        public static SegmentedList<T>? Combine<T>(this SegmentedList<T>? list1, SegmentedList<T>? list2)
+        {
+            if (list1 == null)
+            {
+                return list2;
+            }
+            else if (list2 == null)
+            {
+                return list1;
+            }
+
+            // normal case
+            var combinedList = new SegmentedList<T>(list1);
             combinedList.AddRange(list2);
 
             return combinedList;

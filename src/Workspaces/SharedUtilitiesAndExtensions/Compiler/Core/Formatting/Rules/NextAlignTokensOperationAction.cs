@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly List<AlignTokensOperation> _list;
+        private readonly SegmentedList<AlignTokensOperation> _list;
 
         public NextAlignTokensOperationAction(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
-            List<AlignTokensOperation> list)
+            SegmentedList<AlignTokensOperation> list)
         {
             _formattingRules = formattingRules;
             _index = index;

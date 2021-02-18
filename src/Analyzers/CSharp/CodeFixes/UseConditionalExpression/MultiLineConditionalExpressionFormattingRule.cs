@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         public override void AddIndentBlockOperations(
-            List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+            SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             if (node.HasAnnotation(SpecializedFormattingAnnotation) &&
                 node is ConditionalExpressionSyntax conditional)

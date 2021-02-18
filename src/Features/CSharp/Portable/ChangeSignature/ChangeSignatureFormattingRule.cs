@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.BracketedArgumentList,
             SyntaxKind.AttributeArgumentList);
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        private static void AddChangeSignatureIndentOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        private static void AddChangeSignatureIndentOperation(SegmentedList<IndentBlockOperation> list, SyntaxNode node)
         {
             if (node.Parent != null)
             {

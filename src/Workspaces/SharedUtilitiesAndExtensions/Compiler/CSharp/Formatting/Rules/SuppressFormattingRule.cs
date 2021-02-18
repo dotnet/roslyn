@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSpecificNodesSuppressOperations(list, node);
         }
 
-        private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node is IfStatementSyntax ifStatementNode)
             {
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -273,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
         }
 
-        private static void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddFormatSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (!node.ContainsDirectives)
             {
@@ -294,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return;
 
             // Local functions
-            static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
+            static void ProcessTriviaList(SegmentedList<SuppressOperation> list, SyntaxTriviaList triviaList)
             {
                 foreach (var trivia in triviaList)
                 {
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            static void ProcessTrivia(List<SuppressOperation> list, SyntaxTrivia trivia)
+            static void ProcessTrivia(SegmentedList<SuppressOperation> list, SyntaxTrivia trivia)
             {
                 if (!(trivia.HasStructure))
                 {
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 ProcessStructuredTrivia(list, trivia.GetStructure()!);
             }
 
-            static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
+            static void ProcessStructuredTrivia(SegmentedList<SuppressOperation> list, SyntaxNode structure)
             {
                 if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
                 {
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return false;
         }
 
-        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             // array or collection initializer case
             if (node.IsInitializerForArrayOrCollectionCreationExpression())
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
+        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
         {
             // make creation node itself to not break into multiple line, if it is on same line
             AddSuppressWrappingIfOnSingleLineOperation(list, parent.GetFirstToken(includeZeroWidth: true), parent.GetLastToken(includeZeroWidth: true));

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -496,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -509,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             && forStatement.Condition == null
             && forStatement.Incrementors.Count == 0;
 
-        private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
+        private void SuppressVariableDeclaration(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
                 node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||

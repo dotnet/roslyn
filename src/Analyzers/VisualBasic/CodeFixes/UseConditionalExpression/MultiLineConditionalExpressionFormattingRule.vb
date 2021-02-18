@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Function
 
         Public Overrides Sub AddIndentBlockOperationsSlow(
-                list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
+                list As SegmentedList(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
 
             If node.HasAnnotation(UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation) AndAlso
                TypeOf node Is TernaryConditionalExpressionSyntax Then

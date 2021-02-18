@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -40,16 +41,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New DefaultOperationProvider(cachedOptions)
         End Function
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(operations As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
-        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As SegmentedList(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextAction As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As SegmentedList(Of IndentBlockOperation), node As SyntaxNode, ByRef nextAction As NextIndentBlockOperationAction)
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As SegmentedList(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
         End Sub
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>

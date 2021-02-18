@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -129,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             cancellationToken.ThrowIfCancellationRequested();
 
             // iterating tree is very expensive. do it once and cache it to list
-            List<SyntaxNode> nodeIterator;
+            SegmentedList<SyntaxNode> nodeIterator;
             using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
             {
                 const int magicLengthToNodesRatio = 5;
-                var result = new List<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
+                var result = new SegmentedList<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
 
                 foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
                 {
@@ -146,21 +147,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // iterate through each operation using index to not create any unnecessary object
             cancellationToken.ThrowIfCancellationRequested();
-            List<IndentBlockOperation> indentBlockOperation;
+            SegmentedList<IndentBlockOperation> indentBlockOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
             {
                 indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            List<SuppressOperation> suppressOperation;
+            SegmentedList<SuppressOperation> suppressOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
             {
                 suppressOperation = AddOperations<SuppressOperation>(nodeIterator, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            List<AlignTokensOperation> alignmentOperation;
+            SegmentedList<AlignTokensOperation> alignmentOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
             {
                 var operations = AddOperations<AlignTokensOperation>(nodeIterator, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            List<AnchorIndentationOperation> anchorIndentationOperations;
+            SegmentedList<AnchorIndentationOperation> anchorIndentationOperations;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
             {
                 anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
@@ -181,10 +182,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private static List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private static SegmentedList<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<SegmentedList<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
-            var operations = new List<T>();
-            var list = new List<T>();
+            var operations = new SegmentedList<T>();
+            var list = new SegmentedList<T>();
 
             foreach (var n in nodes)
             {
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operations;
         }
 
-        private TokenPairWithOperations[] CreateTokenOperation(
+        private SegmentedArray<TokenPairWithOperations> CreateTokenOperation(
             TokenStream tokenStream,
             CancellationToken cancellationToken)
         {
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
             {
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
-                var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
+                var list = new SegmentedArray<TokenPairWithOperations>(tokenStream.TokenCount - 1);
 
                 foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ApplyTokenOperations(
             FormattingContext context,
             NodeOperations nodeOperations,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             CancellationToken cancellationToken)
         {
             var applier = new OperationApplier(context, _formattingRules);
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplyAnchorOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {

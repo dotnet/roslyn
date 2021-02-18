@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        private void AddNextIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule.AddIndentBlockOperations(list, node, in nextOperation);
         }
 
-        private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
+        private void AdjustIndentBlockOperation(SegmentedList<IndentBlockOperation> list)
         {
             using var _ = ArrayBuilder<IndentBlockOperation>.GetInstance(out var copy);
 

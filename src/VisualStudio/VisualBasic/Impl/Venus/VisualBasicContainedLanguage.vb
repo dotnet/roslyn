@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -138,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
             Public Shared Shadows Instance As AbstractFormattingRule = New VisualBasicHelperFormattingRule()
 
-            Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
+            Public Overrides Sub AddIndentBlockOperationsSlow(list As SegmentedList(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
                 ' we need special behavior for VB due to @Helper code generation weird-ness.
                 ' this will looking for code gen specific style to make it not so expansive
                 If IsEndHelperPattern(node) Then

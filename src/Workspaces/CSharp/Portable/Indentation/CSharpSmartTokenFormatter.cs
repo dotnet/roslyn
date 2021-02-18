@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 // don't suppress anything
             }

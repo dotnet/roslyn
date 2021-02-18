@@ -501,6 +501,7 @@ Global
 		src\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems*{2531a8c4-97dd-47bc-a79c-b7846051e137}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{2531a8c4-97dd-47bc-a79c-b7846051e137}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{3140fe61-0856-4367-9aa3-8081b9a80e35}*SharedItemsImports = 13

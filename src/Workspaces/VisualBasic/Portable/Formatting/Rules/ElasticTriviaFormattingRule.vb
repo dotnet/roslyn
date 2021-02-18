@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -16,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(list As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As SegmentedList(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
@@ -58,9 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
-                                                      node As SyntaxNode,
-                                                      ByRef nextOperation As NextAlignTokensOperationAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(
+                list As SegmentedList(Of AlignTokensOperation),
+                node As SyntaxNode,
+                ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then

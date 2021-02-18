@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Roslyn.Utilities;
@@ -44,25 +45,25 @@ namespace Microsoft.CodeAnalysis.Formatting
             _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
         }
 
-        public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
+        public void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode currentNode)
         {
             var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
-        public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
+        public void AddAnchorIndentationOperations(SegmentedList<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
             var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
-        public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
+        public void AddIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode currentNode)
         {
             var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
-        public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
+        public void AddAlignTokensOperations(SegmentedList<AlignTokensOperation> list, SyntaxNode currentNode)
         {
             var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, list);
             action.Invoke();

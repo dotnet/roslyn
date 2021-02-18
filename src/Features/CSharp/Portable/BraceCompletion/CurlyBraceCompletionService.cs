@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -11,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
+            public override void AddAlignTokensOperations(SegmentedList<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
             {
                 base.AddAlignTokensOperations(list, node, in nextOperation);
                 if (_indentStyle == FormattingOptions.IndentStyle.Block)
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 base.AddSuppressOperations(list, node, in nextOperation);
 

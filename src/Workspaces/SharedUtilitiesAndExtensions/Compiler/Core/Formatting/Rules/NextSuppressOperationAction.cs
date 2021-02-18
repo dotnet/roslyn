@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly List<SuppressOperation> _list;
+        private readonly SegmentedList<SuppressOperation> _list;
 
         public NextSuppressOperationAction(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
-            List<SuppressOperation> list)
+            SegmentedList<SuppressOperation> list)
         {
             _formattingRules = formattingRules;
             _index = index;

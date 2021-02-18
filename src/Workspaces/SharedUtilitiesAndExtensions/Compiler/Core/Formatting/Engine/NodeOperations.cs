@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -14,12 +14,16 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static NodeOperations Empty = new();
 
-        public List<IndentBlockOperation> IndentBlockOperation { get; }
-        public List<SuppressOperation> SuppressOperation { get; }
-        public List<AlignTokensOperation> AlignmentOperation { get; }
-        public List<AnchorIndentationOperation> AnchorIndentationOperations { get; }
+        public SegmentedList<IndentBlockOperation> IndentBlockOperation { get; }
+        public SegmentedList<SuppressOperation> SuppressOperation { get; }
+        public SegmentedList<AlignTokensOperation> AlignmentOperation { get; }
+        public SegmentedList<AnchorIndentationOperation> AnchorIndentationOperations { get; }
 
-        public NodeOperations(List<IndentBlockOperation> indentBlockOperation, List<SuppressOperation> suppressOperation, List<AnchorIndentationOperation> anchorIndentationOperations, List<AlignTokensOperation> alignmentOperation)
+        public NodeOperations(
+            SegmentedList<IndentBlockOperation> indentBlockOperation,
+            SegmentedList<SuppressOperation> suppressOperation,
+            SegmentedList<AnchorIndentationOperation> anchorIndentationOperations,
+            SegmentedList<AlignTokensOperation> alignmentOperation)
         {
             this.IndentBlockOperation = indentBlockOperation;
             this.SuppressOperation = suppressOperation;
@@ -29,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private NodeOperations()
         {
-            this.IndentBlockOperation = new List<IndentBlockOperation>();
-            this.SuppressOperation = new List<SuppressOperation>();
-            this.AlignmentOperation = new List<AlignTokensOperation>();
-            this.AnchorIndentationOperations = new List<AnchorIndentationOperation>();
+            this.IndentBlockOperation = new SegmentedList<IndentBlockOperation>();
+            this.SuppressOperation = new SegmentedList<SuppressOperation>();
+            this.AlignmentOperation = new SegmentedList<AlignTokensOperation>();
+            this.AnchorIndentationOperations = new SegmentedList<AnchorIndentationOperation>();
         }
     }
 }

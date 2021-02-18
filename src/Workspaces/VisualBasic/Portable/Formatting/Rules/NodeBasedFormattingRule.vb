@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,9 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Node Based Formatting Rule"
 
-        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
-                                                            node As SyntaxNode,
-                                                            ByRef nextOperation As NextAnchorIndentationOperationAction)
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(
+                operations As SegmentedList(Of AnchorIndentationOperation),
+                node As SyntaxNode,
+                ByRef nextOperation As NextAnchorIndentationOperationAction)
             nextOperation.Invoke()
 
             If TypeOf node Is StatementSyntax AndAlso Not IsBlockSyntax(node) Then
@@ -46,9 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
-                                                      node As SyntaxNode,
-                                                      ByRef nextOperation As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(
+                operations As SegmentedList(Of IndentBlockOperation),
+                node As SyntaxNode,
+                ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
             Dim xmlDocument = TryCast(node, XmlDocumentSyntax)
@@ -221,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return outerBlock
         End Function
 
-        Private Shared Sub AddXmlEmptyElement(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlEmptyElement(operations As SegmentedList(Of IndentBlockOperation),
                                        node As XmlNodeSyntax,
                                        baseToken As SyntaxToken,
                                        startToken As SyntaxToken,
@@ -234,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             AddIndentBlockOperation(operations, startToken, token)
         End Sub
 
-        Private Shared Sub AddXmlElementIndentBlockOperation(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlElementIndentBlockOperation(operations As SegmentedList(Of IndentBlockOperation),
                                                       xmlNode As XmlNodeSyntax,
                                                       baseToken As SyntaxToken,
                                                       alignmentStartToken As SyntaxToken,

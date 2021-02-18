@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddInitializerSuppressOperations(list, node);
         }
 
-        private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddPropertyDeclarationSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var initializer = GetInitializerNode(node);
             var lastTokenOfType = GetLastTokenOfType(node);

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 _rootNode = rootNode;
             }
 
-            public (List<IndentBlockOperation> indentOperations, List<SuppressOperation>? suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
+            public (SegmentedList<IndentBlockOperation> indentOperations, SegmentedList<SuppressOperation>? suppressOperations) Do(SyntaxToken startToken, SyntaxToken endToken)
             {
                 // we are formatting part of document, try to find initial context that formatting will be based on such as
                 // initial indentation and etc.
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (initialSuppressOperations != null)
                     {
                         Debug.Assert(
-                            initialSuppressOperations.IsEmpty() ||
+                            initialSuppressOperations.Count == 0 ||
                             initialSuppressOperations.All(
                                 o => o.TextSpan.Contains(startToken.SpanStart) ||
                                      o.TextSpan.Contains(endToken.SpanStart)));
@@ -62,15 +63,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            private List<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)
+            private SegmentedList<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)
             {
                 var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
                 var node = startToken.GetCommonRoot(endToken)!.GetParentWithBiggerSpan();
                 var previous = (SyntaxNode?)null;
 
                 // starting from the common node, move up to the parent
-                var operations = new List<IndentBlockOperation>();
-                var list = new List<IndentBlockOperation>();
+                var operations = new SegmentedList<IndentBlockOperation>();
+                var list = new SegmentedList<IndentBlockOperation>();
                 while (node != null)
                 {
                     // get all operations for the nodes that contains the formatting span, but not ones contained by the span
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return operations;
             }
 
-            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
+            private SegmentedList<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken)
             {
                 var noWrapList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoWrapping);
                 var noSpaceList = this.GetInitialSuppressOperations(startToken, endToken, SuppressOption.NoSpacing);
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return list;
             }
 
-            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask)
+            private SegmentedList<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken startToken, SyntaxToken endToken, SuppressOption mask)
             {
                 var startList = this.GetInitialSuppressOperations(startToken, mask);
                 var endList = this.GetInitialSuppressOperations(endToken, mask);
@@ -138,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return startList.Combine(endList);
             }
 
-            private List<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken token, SuppressOption mask)
+            private SegmentedList<SuppressOperation>? GetInitialSuppressOperations(SyntaxToken token, SuppressOption mask)
             {
                 var startNode = token.Parent;
                 var startPosition = token.SpanStart;
 
                 // starting from given token, move up to root until the first meaningful
                 // operation has found
-                var list = new List<SuppressOperation>();
+                var list = new SegmentedList<SuppressOperation>();
 
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)

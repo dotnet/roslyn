@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -146,11 +147,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
+        internal static SegmentedList<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
-            var list = new List<SuppressOperation>();
+            var list = new SegmentedList<SuppressOperation>();
             chainedFormattingRules.AddSuppressOperations(list, node);
             return list;
         }
@@ -158,11 +159,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AnchorIndentationOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
+        internal static SegmentedList<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
-            var list = new List<AnchorIndentationOperation>();
+            var list = new SegmentedList<AnchorIndentationOperation>();
             chainedFormattingRules.AddAnchorIndentationOperations(list, node);
             return list;
         }
@@ -170,11 +171,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return IndentBlockOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
+        internal static SegmentedList<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
-            var list = new List<IndentBlockOperation>();
+            var list = new SegmentedList<IndentBlockOperation>();
             chainedFormattingRules.AddIndentBlockOperations(list, node);
             return list;
         }
@@ -182,11 +183,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AlignTokensOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
+        internal static SegmentedList<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
-            var list = new List<AlignTokensOperation>();
+            var list = new SegmentedList<AlignTokensOperation>();
             chainedFormattingRules.AddAlignTokensOperations(list, node);
             return list;
         }

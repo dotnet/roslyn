@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetIndentationOfCurrentPosition(
             SyntaxNode root,
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             int position,
             int extraSpaces,
             Func<SyntaxToken, int> tokenColumnGetter,
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private (int indentation, IndentBlockOperation? operation) GetIndentationRuleOfCurrentPosition(
-            SyntaxNode root, List<IndentBlockOperation> list, int position)
+            SyntaxNode root, SegmentedList<IndentBlockOperation> list, int position)
         {
             var indentationLevel = 0;
             var operations = GetIndentBlockOperationsFromSmallestSpan(root, list, position);
@@ -208,12 +209,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             return (indentationLevel, null);
         }
 
-        private List<IndentBlockOperation> GetParentIndentBlockOperations(SyntaxToken token)
+        private SegmentedList<IndentBlockOperation> GetParentIndentBlockOperations(SyntaxToken token)
         {
             var allNodes = GetParentNodes(token);
 
             // gather all indent operations 
-            var list = new List<IndentBlockOperation>();
+            var list = new SegmentedList<IndentBlockOperation>();
             foreach (var node in allNodes)
                 _formattingRules.AddIndentBlockOperations(list, node);
 
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var startNode = token.Parent;
 
-            var list = new List<AlignTokensOperation>();
+            var list = new SegmentedList<AlignTokensOperation>();
             var currentNode = startNode;
 
             while (currentNode != null)
@@ -275,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var startNode = token.Parent;
 
             // starting from given token, move up to the root until it finds the first set of appropriate operations
-            var list = new List<IndentBlockOperation>();
+            var list = new SegmentedList<IndentBlockOperation>();
 
             var currentNode = startNode;
             while (currentNode != null)
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return GetIndentBlockOperationsFromSmallestSpan(root, list, position).FirstOrDefault();
         }
 
-        private static IEnumerable<IndentBlockOperation> GetIndentBlockOperationsFromSmallestSpan(SyntaxNode root, List<IndentBlockOperation> list, int position)
+        private static IEnumerable<IndentBlockOperation> GetIndentBlockOperationsFromSmallestSpan(SyntaxNode root, SegmentedList<IndentBlockOperation> list, int position)
         {
             var lastVisibleToken = default(SyntaxToken);
             var map = new HashSet<TextSpan>();

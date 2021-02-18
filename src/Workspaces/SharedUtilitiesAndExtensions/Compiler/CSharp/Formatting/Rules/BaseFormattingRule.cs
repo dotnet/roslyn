@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     internal abstract class BaseFormattingRule : AbstractFormattingRule
     {
         protected static void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
             TextSpan textSpan,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void AddUnindentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
             bool includeTriviaAtEnd = false,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void AddAbsoluteZeroIndentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
             IndentBlockOption option = IndentBlockOption.AbsolutePosition)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken startToken,
             SyntaxToken endToken,
             TextSpan textSpan,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void AddIndentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken baseToken,
             SyntaxToken startToken,
             SyntaxToken endToken,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected static void SetAlignmentBlockOperation(
-            List<IndentBlockOperation> list,
+            SegmentedList<IndentBlockOperation> list,
             SyntaxToken baseToken,
             SyntaxToken startToken,
             SyntaxToken endToken,
@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 0, option: option));
         }
 
-        protected static void AddSuppressWrappingIfOnSingleLineOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        protected static void AddSuppressWrappingIfOnSingleLineOperation(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
             => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
 
-        protected static void AddSuppressAllOperationIfOnMultipleLine(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+        protected static void AddSuppressAllOperationIfOnMultipleLine(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
             => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
 
-        protected static void AddSuppressOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
+        protected static void AddSuppressOperation(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
         {
             if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateSuppressOperation(startToken, endToken, option));
         }
 
-        protected static void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
+        protected static void AddAnchorIndentationOperation(SegmentedList<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
         {
             if (anchorToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateAnchorIndentationOperation(anchorToken, endToken));
         }
 
-        protected static void AddAlignIndentationOfTokensToBaseTokenOperation(List<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, ImmutableArray<SyntaxToken> tokens, AlignTokensOption option = AlignTokensOption.AlignIndentationOfTokensToBaseToken)
+        protected static void AddAlignIndentationOfTokensToBaseTokenOperation(SegmentedList<AlignTokensOperation> list, SyntaxNode containingNode, SyntaxToken baseNode, ImmutableArray<SyntaxToken> tokens, AlignTokensOption option = AlignTokensOption.AlignIndentationOfTokensToBaseToken)
         {
             if (containingNode == null || tokens == null)
                 return;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
             => FormattingOperations.CreateAdjustSpacesOperation(space, option);
 
-        protected static void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        protected static void AddBraceSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())

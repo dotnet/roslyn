@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
@@ -20,25 +21,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public virtual void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
+        public virtual void AddAnchorIndentationOperations(SegmentedList<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
+        public virtual void AddIndentBlockOperations(SegmentedList<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
+        public virtual void AddAlignTokensOperations(SegmentedList<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>

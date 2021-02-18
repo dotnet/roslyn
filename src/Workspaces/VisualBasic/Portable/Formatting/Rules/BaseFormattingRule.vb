@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Protected Shared Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub AddIndentBlockOperation(operations As SegmentedList(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
                 Return
             End If
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
-        Protected Shared Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation),
+        Protected Shared Sub AddIndentBlockOperation(operations As SegmentedList(Of IndentBlockOperation),
                                               baseToken As SyntaxToken,
                                               startToken As SyntaxToken,
                                               endToken As SyntaxToken,
@@ -32,19 +33,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
-        Protected Shared Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub SetAlignmentBlockOperation(operations As SegmentedList(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             SetAlignmentBlockOperation(operations, baseToken, startToken, endToken, GetAlignmentSpan(startToken, endToken), [option])
         End Sub
 
-        Protected Shared Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub SetAlignmentBlockOperation(operations As SegmentedList(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             operations.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, span, indentationDelta:=0, [option]:=[option]))
         End Sub
 
-        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
+        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As SegmentedList(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
             AddAbsolutePositionIndentBlockOperation(operations, startToken, endToken, indentation, GetIndentBlockSpan(startToken, endToken), [option])
         End Sub
 
-        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
+        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As SegmentedList(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentation, [option]))
         End Sub
 
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 #Enable Warning IDE0060 ' Remove unused parameter
 
-        Protected Shared Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
+        Protected Shared Sub AddAnchorIndentationOperation(operations As SegmentedList(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
                 Return
             End If
@@ -89,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateAnchorIndentationOperation(startToken, endToken))
         End Sub
 
-        Protected Shared Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As ImmutableArray(Of SyntaxToken))
+        Protected Shared Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As SegmentedList(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As ImmutableArray(Of SyntaxToken))
             If containingNode Is Nothing OrElse tokens.IsDefaultOrEmpty Then
                 Return
             End If

@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public static readonly TypingFormattingRule Instance = new();
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
             {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             base.AddSuppressOperations(list, node, in nextOperation);
         }
 
-        private static bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
+        private static bool TryAddSuppressionOnMissingCloseBraceCase(SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())
