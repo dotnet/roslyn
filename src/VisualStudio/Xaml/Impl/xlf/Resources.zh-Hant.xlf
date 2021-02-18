@@ -17,11 +17,6 @@
         <target state="translated">排序 Namespace(&amp;S)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Xaml_Language_Server_Client">
-        <source>XAML Language Server Client</source>
-        <target state="translated">XAML 語言伺服器用戶端</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

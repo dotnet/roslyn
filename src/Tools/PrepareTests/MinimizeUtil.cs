@@ -17,21 +17,41 @@ internal static class MinimizeUtil
 
     internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
-        // Map of all PE files MVID to the path information
-        var idToFilePathMap = new Dictionary<Guid, List<FilePathInfo>>();
-
         const string duplicateDirectoryName = ".duplicate";
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        initialWalk();
+        // https://github.com/dotnet/roslyn/issues/49486
+        // we should avoid copying the files under Resources.
+        Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
+        var individualFiles = new[]
+        {
+            "global.json",
+            "NuGet.config",
+            "src/Workspaces/MSBuildTest/Resources/.editorconfig",
+            "src/Workspaces/MSBuildTest/Resources/global.json",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
+            "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
+            "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+        };
+
+        foreach (var individualFile in individualFiles)
+        {
+            var outputPath = Path.Combine(destinationDirectory, individualFile);
+            var outputDirectory = Path.GetDirectoryName(outputPath)!;
+            CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
+        }
+
+        // Map of all PE files MVID to the path information
+        var idToFilePathMap = initialWalk();
         resolveDuplicates();
         writeHydrateFile();
 
         // The goal of initial walk is to
         //  1. Record any PE files as they are eligable for de-dup
         //  2. Hard link all other files into destination directory
-        void initialWalk()
+        Dictionary<Guid, List<FilePathInfo>> initialWalk()
         {
             IEnumerable<string> directories = new[] {
                 Path.Combine(sourceDirectory, "eng")
@@ -40,59 +60,45 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
-            foreach (var unitDirPath in directories)
+            var idToFilePathMap = directories.AsParallel()
+                .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
+                .GroupBy(pair => pair.mvid)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(pair => pair.pathInfo).ToList());
+
+            return idToFilePathMap;
+        }
+
+        static IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
+        {
+            string? lastOutputDirectory = null;
+            foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
             {
-                foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
+                var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
+                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
+                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
+                if (currentOutputDirectory != lastOutputDirectory)
                 {
-                    var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
-                    var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
-                    var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
                     Directory.CreateDirectory(currentOutputDirectory);
-                    var fileName = Path.GetFileName(sourceFilePath);
-
-                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
-                    {
-                        if (!idToFilePathMap.TryGetValue(mvid, out var list))
-                        {
-                            list = new List<FilePathInfo>();
-                            idToFilePathMap[mvid] = list;
-                        }
-
-                        var filePathInfo = new FilePathInfo(
-                            RelativeDirectory: currentRelativeDirectory,
-                            Directory: currentDirName,
-                            RelativePath: Path.Combine(currentRelativeDirectory, fileName),
-                            FullPath: sourceFilePath);
-                        list.Add(filePathInfo);
-                    }
-                    else
-                    {
-                        var destFilePath = Path.Combine(currentOutputDirectory, fileName);
-                        CreateHardLink(destFilePath, sourceFilePath);
-                    }
+                    lastOutputDirectory = currentOutputDirectory;
                 }
-            }
+                var fileName = Path.GetFileName(sourceFilePath);
 
-            // https://github.com/dotnet/roslyn/issues/49486
-            // we should avoid copying the files under Resources.
-            var individualFiles = new[]
-            {
-                "global.json",
-                "NuGet.config",
-                "src/Workspaces/MSBuildTest/Resources/.editorconfig",
-                "src/Workspaces/MSBuildTest/Resources/global.json",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
-                "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
-                "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
-            };
-
-            foreach (var individualFile in individualFiles)
-            {
-                var outputPath = Path.Combine(destinationDirectory, individualFile);
-                var outputDirectory = Path.GetDirectoryName(outputPath)!;
-                Directory.CreateDirectory(outputDirectory);
-                CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
+                if (fileName.EndsWith(".dll", StringComparison.Ordinal) && TryGetMvid(sourceFilePath, out var mvid))
+                {
+                    var filePathInfo = new FilePathInfo(
+                        RelativeDirectory: currentRelativeDirectory,
+                        Directory: currentDirName,
+                        RelativePath: Path.Combine(currentRelativeDirectory, fileName),
+                        FullPath: sourceFilePath);
+                    yield return (mvid, filePathInfo);
+                }
+                else
+                {
+                    var destFilePath = Path.Combine(currentOutputDirectory, fileName);
+                    CreateHardLink(destFilePath, sourceFilePath);
+                }
             }
         }
 
@@ -265,7 +271,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
             if (!success)
             {
                 // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
-                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{Marshal.GetLastWin32Error():X}");
+                throw new IOException($"Failed to create hard link from {existingFileName} to {fileName} with exception 0x{Marshal.GetLastWin32Error():X}");
             }
         }
         else

@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenOperand,
             TypeSymbol rewrittenType,
             CSharpCompilation compilation,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool acceptFailingConversion)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             Debug.Assert(rewrittenOperand.Type is { });
-            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
 
             if (!conversion.IsValid)
             {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             SyntaxNode syntax,
             CSharpCompilation compilation,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool @checked,
             bool acceptFailingConversion = false)
         {
@@ -534,9 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression MakeImplicitConversion(BoundExpression rewrittenOperand, TypeSymbol rewrittenType)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            Debug.Assert(rewrittenOperand.Type is object);
+
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteInfo);
+            _diagnostics.Add(rewrittenOperand.Syntax, useSiteInfo);
             if (!conversion.IsImplicit)
             {
                 // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
@@ -1534,9 +1536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Conversion TryMakeConversion(SyntaxNode syntax, TypeSymbol fromType, TypeSymbol toType)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            var result = TryMakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteDiagnostics), fromType, toType);
-            _diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+            var result = TryMakeConversion(syntax, _compilation.Conversions.ClassifyConversionFromType(fromType, toType, ref useSiteInfo), fromType, toType);
+            _diagnostics.Add(syntax, useSiteInfo);
             return result;
         }
 

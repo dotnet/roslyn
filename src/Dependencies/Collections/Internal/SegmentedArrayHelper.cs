@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 {
     internal static class SegmentedArrayHelper
     {
+        // This is the threshold where Introspective sort switches to Insertion sort.
+        // Empirically, 16 seems to speed up most cases without slowing down others, at least for integers.
+        // Large value types may benefit from a smaller number.
+        internal const int IntrosortSizeThreshold = 16;
+
         /// <summary>
         /// Calculates the maximum number of elements of size <paramref name="elementSize"/> which can fit into an array
         /// which has the following characteristics:

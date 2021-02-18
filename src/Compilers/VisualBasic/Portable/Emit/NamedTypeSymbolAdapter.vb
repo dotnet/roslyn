@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For Each field In AdaptedNamedTypeSymbol.GetFieldsToEmit()
                 Dim adapter = field.GetCciAdapter()
-                If isStruct OrElse adapter.ShouldInclude(context) Then
+                If isStruct OrElse adapter.ShouldInclude(context) OrElse IsWithEventsField(field) Then
                     Yield adapter
                 End If
             Next
@@ -351,6 +351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 Next
             End If
+        End Function
+
+        Private Function IsWithEventsField(field As FieldSymbol) As Boolean
+            ' Backing fields for WithEvents are emitted with AccessedThroughPropertyAttribute
+            ' so need to be emitted even if private
+            Return TypeOf field Is SourceWithEventsBackingFieldSymbol
         End Function
 
         Private ReadOnly Property ITypeDefinitionGenericParameters As IEnumerable(Of IGenericTypeParameter) Implements ITypeDefinition.GenericParameters
@@ -922,7 +928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result As IEnumerable(Of NamedTypeSymbol) =
                 interfaces.Where(Function(sym As NamedTypeSymbol) As Boolean
                                      Return Not (base IsNot Nothing AndAlso
-                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, Nothing) AndAlso
+                                                 base.ImplementsInterface(sym, EqualsIgnoringComparer.InstanceCLRSignatureCompare, CompoundUseSiteInfo(Of AssemblySymbol).Discarded) AndAlso
                                                  Not Me.ImplementsAllMembersOfInterface(sym))
                                  End Function)
 

@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis
                              symbol.Kind == SymbolKind.DynamicType);
                 var state = this.ReadState();
 
-                var unrootedSymbolSet = state.UnrootedSymbolSet;
+                var unrootedSymbolSet = (state as FinalState)?.UnrootedSymbolSet;
                 if (unrootedSymbolSet == null)
                 {
-                    // this was not a tracker that hands out symbols (for example, it's a 'declaration table only'
-                    // tracker).  So we have nothing to check this symbol against.
+                    // this was not a tracker that has handed out a compilation (all compilations handed out must be
+                    // owned by a 'FinalState').  So this symbol could not be from us.
                     return false;
                 }
 
@@ -236,7 +236,10 @@ namespace Microsoft.CodeAnalysis
 
             public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
-                GetPartialCompilationState(solution, docState.Id, out var inProgressProject, out var inProgressCompilation, out var sourceGeneratedDocuments, cancellationToken);
+                GetPartialCompilationState(
+                    solution, docState.Id,
+                    out var inProgressProject, out var inProgressCompilation,
+                    out var sourceGeneratedDocuments, out var metadataReferenceToProjectId, cancellationToken);
 
                 if (!inProgressCompilation.SyntaxTrees.Contains(tree))
                 {
@@ -257,15 +260,17 @@ namespace Microsoft.CodeAnalysis
                 // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
-                return new CompilationTracker(
-                    inProgressProject,
-                    new FinalState(
-                        new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                        new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                        inProgressCompilation,
-                        hasSuccessfullyLoaded: false,
-                        sourceGeneratedDocuments,
-                        State.GetUnrootedSymbols(inProgressCompilation)));
+                var finalState = FinalState.Create(
+                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    inProgressCompilation,
+                    hasSuccessfullyLoaded: false,
+                    sourceGeneratedDocuments,
+                    inProgressCompilation,
+                    this.ProjectState.Id,
+                    metadataReferenceToProjectId);
+
+                return new CompilationTracker(inProgressProject, finalState);
             }
 
             /// <summary>
@@ -284,6 +289,7 @@ namespace Microsoft.CodeAnalysis
                 out ProjectState inProgressProject,
                 out Compilation inProgressCompilation,
                 out ImmutableArray<SourceGeneratedDocumentState> sourceGeneratedDocuments,
+                out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
@@ -306,6 +312,9 @@ namespace Microsoft.CodeAnalysis
                     // being made to the project, but it's the best we have so we'll use it.
                     inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.Select(d => d.SyntaxTree));
 
+                    // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
+                    // properly record assembly symbols for.
+                    metadataReferenceToProjectId = null;
                     SolutionLogger.UseExistingPartialProjectState();
                     return;
                 }
@@ -320,6 +329,12 @@ namespace Microsoft.CodeAnalysis
                     if (finalCompilation != null)
                     {
                         inProgressCompilation = finalCompilation;
+
+                        // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
+                        // before, we should have already recorded the assembly symbols for it.  So not recording them
+                        // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
+                        // the same references across source edits).
+                        metadataReferenceToProjectId = null;
                         SolutionLogger.UseExistingFullProjectState();
                         return;
                     }
@@ -348,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
-                var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+                metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
 
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
@@ -393,8 +408,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
-
-                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();
             }
@@ -830,17 +843,17 @@ namespace Microsoft.CodeAnalysis
 
                     compilation = compilation.AddSyntaxTrees(generatedDocuments.Select(d => d.SyntaxTree));
 
-                    RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
+                    var finalState = FinalState.Create(
+                        State.CreateValueSource(compilation, solution.Services),
+                        State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
+                        compilationWithoutGeneratedFiles,
+                        hasSuccessfullyLoaded,
+                        generatedDocuments,
+                        compilation,
+                        this.ProjectState.Id,
+                        metadataReferenceToProjectId);
 
-                    this.WriteState(
-                        new FinalState(
-                            State.CreateValueSource(compilation, solution.Services),
-                            State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
-                            compilationWithoutGeneratedFiles,
-                            hasSuccessfullyLoaded,
-                            generatedDocuments,
-                            State.GetUnrootedSymbols(compilation)),
-                        solution.Services);
+                    this.WriteState(finalState, solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatedDocuments);
                 }
@@ -861,7 +874,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
                 // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
-                using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2, out var hashInput);
+                var projectIdBytes = projectId.Id.ToByteArray();
+                using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2 + projectIdBytes.Length, out var hashInput);
+                hashInput.AddRange(projectIdBytes);
                 hashInput.AddRange(Encoding.Unicode.GetBytes(generatorName));
 
                 // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
@@ -875,17 +890,6 @@ namespace Microsoft.CodeAnalysis
                 var guid = new Guid(hash);
 
                 return DocumentId.CreateFromSerialized(projectId, guid, hintName);
-            }
-
-            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
-            {
-                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
-
-                foreach (var (metadataReference, projectId) in metadataReferenceToProjectId)
-                {
-                    var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                    RecordSourceOfAssemblySymbol(symbol, projectId);
-                }
             }
 
             /// <summary>

@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
 
+            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
+
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
             public NullableAnnotation ReceiverNullableAnnotation => _symbol.ReceiverNullableAnnotation;

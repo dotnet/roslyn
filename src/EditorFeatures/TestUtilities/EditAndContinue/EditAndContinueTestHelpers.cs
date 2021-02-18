@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -41,8 +43,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
-            var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
+
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(oldActiveStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
 
             Analyzer.GetTestAccessor().AnalyzeUnchangedDocument(
                 oldActiveStatements.AsImmutable(),
@@ -55,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertSpansEqual(expectedNewActiveStatements, actualNewActiveStatements.Select(s => s.Span), source, text);
 
             // check new exception regions:
-            Assert.Equal(expectedNewExceptionRegions.Length, actualNewExceptionRegions.Length);
+            Assert.Equal(expectedNewExceptionRegions.Length, actualNewExceptionRegions.Count);
             for (var i = 0; i < expectedNewExceptionRegions.Length; i++)
             {
                 AssertSpansEqual(expectedNewExceptionRegions[i], actualNewExceptionRegions[i], source, text);
@@ -80,15 +85,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldText = SourceText.From(oldSource);
             var newText = SourceText.From(newSource);
 
-            var diagnostics = new List<RudeEditDiagnostic>();
-            var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
-            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
+            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
+            var updatedActiveMethodMatches = new ArrayBuilder<UpdatedMemberInfo>();
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(oldActiveStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
             var editMap = BuildEditMap(editScript);
 
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
+            var testAccessor = Analyzer.GetTestAccessor();
 
-            Analyzer.GetTestAccessor().AnalyzeSyntax(
+            testAccessor.AnalyzeMemberBodiesSyntax(
                 editScript,
                 editMap,
                 oldText,
@@ -99,6 +107,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 actualNewExceptionRegions,
                 updatedActiveMethodMatches,
                 diagnostics);
+
+            testAccessor.ReportTopLevelSynctactiveRudeEdits(diagnostics, editScript, editMap);
 
             diagnostics.Verify(newSource, expectedDiagnostics);
 
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 // check new exception regions:
-                Assert.Equal(description.NewRegions.Length, actualNewExceptionRegions.Length);
+                Assert.Equal(description.NewRegions.Length, actualNewExceptionRegions.Count);
                 for (var i = 0; i < description.NewRegions.Length; i++)
                 {
                     AssertSpansEqual(description.NewRegions[i], actualNewExceptionRegions[i], newSource, newText);
@@ -148,11 +158,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldText = SourceText.From(oldSource);
             var newText = SourceText.From(newSource);
 
-            var diagnostics = new List<RudeEditDiagnostic>();
+            var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
             var editMap = BuildEditMap(editScript);
 
-            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<SourceLineUpdate>();
+            var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
+            var actualLineEdits = new ArrayBuilder<SourceLineUpdate>();
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
@@ -173,102 +183,92 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
-            EditScript<SyntaxNode> editScript,
+            IEnumerable<EditScript<SyntaxNode>> editScripts,
             ActiveStatementsDescription? activeStatements = null,
-            IEnumerable<string>? additionalOldSources = null,
-            IEnumerable<string>? additionalNewSources = null,
             SemanticEditDescription[]? expectedSemanticEdits = null,
-            DiagnosticDescription? expectedDeclarationError = null,
             RudeEditDiagnosticDescription[]? expectedDiagnostics = null)
         {
             activeStatements ??= ActiveStatementsDescription.Empty;
 
-            var editMap = BuildEditMap(editScript);
-
-            var oldRoot = editScript.Match.OldRoot;
-            var newRoot = editScript.Match.NewRoot;
-
-            var oldSource = oldRoot.SyntaxTree.ToString();
-            var newSource = newRoot.SyntaxTree.ToString();
-
-            var oldText = SourceText.From(oldSource);
-            var newText = SourceText.From(newSource);
-
-            IEnumerable<SyntaxTree> oldTrees = new[] { oldRoot.SyntaxTree };
-            IEnumerable<SyntaxTree> newTrees = new[] { newRoot.SyntaxTree };
-
-            if (additionalOldSources != null)
-            {
-                oldTrees = oldTrees.Concat(additionalOldSources.Select(s => ParseText(s)));
-            }
-
-            if (additionalOldSources != null)
-            {
-                newTrees = newTrees.Concat(additionalNewSources.Select(s => ParseText(s)));
-            }
+            var oldTrees = editScripts.Select(editScript => editScript.Match.OldRoot.SyntaxTree).ToArray();
+            var newTrees = editScripts.Select(editScript => editScript.Match.NewRoot.SyntaxTree).ToArray();
 
             var oldCompilation = CreateLibraryCompilation("Old", oldTrees);
             var newCompilation = CreateLibraryCompilation("New", newTrees);
 
-            var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
-            var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
-
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
-            var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
-            var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<SourceLineUpdate>();
-            var actualSemanticEdits = new List<SemanticEdit>();
-            var diagnostics = new List<RudeEditDiagnostic>();
-            var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
+            var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
+            var actualLineEdits = new ArrayBuilder<SourceLineUpdate>();
+            var actualSemanticEdits = new ArrayBuilder<SemanticEdit>();
+            var includeFirstLineInDiagnostics = expectedDiagnostics?.Any(d => d.FirstLine != null) == true;
+            var actualDiagnosticDescriptions = new ArrayBuilder<RudeEditDiagnosticDescription>();
+            var actualDeclarationErrors = new ArrayBuilder<Diagnostic>();
 
-            var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
-            var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[activeStatements.OldStatements.Length];
+            var actualNewActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(activeStatements.OldStatements.Length);
+            actualNewActiveStatements.Count = actualNewActiveStatements.Capacity;
 
-            Analyzer.GetTestAccessor().AnalyzeSyntax(
-                editScript,
-                editMap,
-                oldText,
-                newText,
-                oldActiveStatements,
-                activeStatements.OldTrackingSpans.ToImmutableArrayOrEmpty(),
-                actualNewActiveStatements,
-                actualNewExceptionRegions,
-                updatedActiveMethodMatches,
-                diagnostics);
+            var actualNewExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<LinePositionSpan>>(activeStatements.OldStatements.Length);
+            actualNewExceptionRegions.Count = actualNewExceptionRegions.Capacity;
 
-            diagnostics.Verify(newSource);
+            var testAccessor = Analyzer.GetTestAccessor();
 
-            Analyzer.GetTestAccessor().AnalyzeTrivia(
-                oldText,
-                newText,
-                editScript.Match,
-                editMap,
-                triviaEdits,
-                actualLineEdits,
-                diagnostics,
-                CancellationToken.None);
+            foreach (var editScript in editScripts)
+            {
+                var oldRoot = editScript.Match.OldRoot;
+                var newRoot = editScript.Match.NewRoot;
+                var oldSource = oldRoot.SyntaxTree.ToString();
+                var newSource = newRoot.SyntaxTree.ToString();
 
-            diagnostics.Verify(newSource);
+                var editMap = BuildEditMap(editScript);
+                var oldText = SourceText.From(oldSource);
+                var newText = SourceText.From(newSource);
+                var oldModel = oldCompilation.GetSemanticModel(oldRoot.SyntaxTree);
+                var newModel = newCompilation.GetSemanticModel(newRoot.SyntaxTree);
 
-            Analyzer.GetTestAccessor().AnalyzeSemantics(
-                editScript,
-                editMap,
-                oldText,
-                oldActiveStatements,
-                triviaEdits,
-                updatedActiveMethodMatches,
-                oldModel,
-                newModel,
-                actualSemanticEdits,
-                diagnostics,
-                out var firstDeclarationErrorOpt,
-                CancellationToken.None);
+                var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
+                var updatedActiveMethodMatches = new ArrayBuilder<UpdatedMemberInfo>();
 
-            var actualDeclarationErrors = (firstDeclarationErrorOpt != null) ? new[] { firstDeclarationErrorOpt } : Array.Empty<Diagnostic>();
-            var expectedDeclarationErrors = (expectedDeclarationError != null) ? new[] { expectedDeclarationError } : Array.Empty<DiagnosticDescription>();
-            actualDeclarationErrors.Verify(expectedDeclarationErrors);
+                testAccessor.AnalyzeMemberBodiesSyntax(
+                    editScript,
+                    editMap,
+                    oldText,
+                    newText,
+                    oldActiveStatements,
+                    activeStatements.OldTrackingSpans.ToImmutableArrayOrEmpty(),
+                    actualNewActiveStatements,
+                    actualNewExceptionRegions,
+                    updatedActiveMethodMatches,
+                    diagnostics);
 
-            diagnostics.Verify(newSource, expectedDiagnostics);
+                testAccessor.ReportTopLevelSynctactiveRudeEdits(diagnostics, editScript, editMap);
+
+                testAccessor.AnalyzeTrivia(
+                    oldText,
+                    newText,
+                    editScript.Match,
+                    editMap,
+                    triviaEdits,
+                    actualLineEdits,
+                    diagnostics,
+                    CancellationToken.None);
+
+                testAccessor.AnalyzeSemantics(
+                    editScript,
+                    editMap,
+                    oldText,
+                    oldActiveStatements,
+                    triviaEdits,
+                    updatedActiveMethodMatches,
+                    oldModel,
+                    newModel,
+                    actualSemanticEdits,
+                    diagnostics,
+                    CancellationToken.None);
+
+                actualDiagnosticDescriptions.AddRange(diagnostics.ToDescription(newSource, includeFirstLineInDiagnostics));
+            }
+
+            actualDiagnosticDescriptions.Verify(expectedDiagnostics);
 
             if (expectedSemanticEdits == null)
             {
@@ -292,6 +292,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Assert.Equal(expectedNewSymbol, actualNewSymbol);
 
                 var expectedSyntaxMap = expectedSemanticEdits[i].SyntaxMap;
+                var syntaxTreeOrdinal = expectedSemanticEdits[i].SyntaxTreeOrdinal;
+                var oldRoot = oldTrees[syntaxTreeOrdinal].GetRoot();
+                var newRoot = newTrees[syntaxTreeOrdinal].GetRoot();
                 var actualSyntaxMap = actualSemanticEdits[i].SyntaxMap;
 
                 Assert.Equal(expectedSemanticEdits[i].PreserveLocalVariables, actualSemanticEdits[i].PreserveLocalVariables);
@@ -301,8 +304,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Contract.ThrowIfNull(actualSyntaxMap);
                     Assert.True(expectedSemanticEdits[i].PreserveLocalVariables);
 
-                    var newNodes = new List<SyntaxNode>();
-
                     foreach (var expectedSpanMapping in expectedSyntaxMap)
                     {
                         var newNode = FindNode(newRoot, expectedSpanMapping.Value);
@@ -310,8 +311,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         var actualOldNode = actualSyntaxMap(newNode);
 
                         Assert.Equal(expectedOldNode, actualOldNode);
-
-                        newNodes.Add(newNode);
                     }
                 }
                 else if (!expectedSemanticEdits[i].PreserveLocalVariables)
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<SyntaxNode, LambdaInfo>? lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<ActiveNode>(), ref lazyActiveOrMatchedLambdas, new ArrayBuilder<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)

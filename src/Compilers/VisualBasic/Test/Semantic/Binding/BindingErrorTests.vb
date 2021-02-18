@@ -16521,7 +16521,7 @@ BC36548: Cannot convert anonymous type to an expression tree because a property 
     </file>
     </compilation>, {Net40.SystemCore})
 
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation,
     <expected>
 BC36549: Anonymous type property 'y' cannot be used in the definition of a lambda expression within the same initialization list.
             Dim x = New With {.y = 1, .z = From y In "" Select .y}

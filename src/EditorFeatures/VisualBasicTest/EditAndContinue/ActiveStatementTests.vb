@@ -5615,7 +5615,7 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
 
         <Fact>
@@ -5649,7 +5649,7 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
 
 #End Region

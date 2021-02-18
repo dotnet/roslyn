@@ -1497,6 +1497,15 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Unique metadata assembly references that are considered to be used by this compilation.
+        /// For example, if a type declared in a referenced assembly is referenced in source code 
+        /// within this compilation, the reference is considered to be used. Etc.
+        /// The returned set is a subset of references returned by <see cref="References"/> API.
+        /// The result is undefined if the compilation contains errors.
+        /// </summary>
+        public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
+
         internal void EnsureCompilationEventQueueCompleted()
         {
             RoslynDebug.Assert(EventQueue != null);
@@ -2242,6 +2251,11 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
+        internal static bool ReportUnusedImportsInTree(SyntaxTree tree)
+        {
+            return tree.Options.DocumentationMode != DocumentationMode.None;
+        }
+
         /// <summary>
         /// Signals the event queue, if any, that we are done compiling.
         /// There should not be more compiling actions after this step.
@@ -2441,6 +2455,35 @@ namespace Microsoft.CodeAnalysis
             Stream? metadataPEStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                debugEntryPoint,
+                sourceLinkStream,
+                embeddedTexts,
+                metadataPEStream,
+                pdbOptionsBlobReader: null,
+                cancellationToken);
+        }
+
+        internal EmitResult Emit(
+            Stream peStream,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
+            EmitOptions? options,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            Stream? metadataPEStream,
+            BlobReader? pdbOptionsBlobReader,
+            CancellationToken cancellationToken)
+        {
             if (peStream == null)
             {
                 throw new ArgumentNullException(nameof(peStream));
@@ -2535,6 +2578,7 @@ namespace Microsoft.CodeAnalysis
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
+                pdbOptionsBlobReader,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -2554,6 +2598,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
+            BlobReader? pdbOptionsBlobReader,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -2634,6 +2679,7 @@ namespace Microsoft.CodeAnalysis
                         new SimpleEmitStreamProvider(peStream),
                         (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                        pdbOptionsBlobReader,
                         testData?.SymWriterFactory,
                         diagnostics,
                         emitOptions: options,
@@ -2795,6 +2841,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider? metadataPEStreamProvider,
             EmitStreamProvider? pdbStreamProvider,
+            BlobReader? pdbOptionsBlobReader,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             EmitOptions emitOptions,
@@ -2868,6 +2915,7 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
+                        pdbOptionsBlobReader,
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
@@ -2949,6 +2997,7 @@ namespace Microsoft.CodeAnalysis
             Func<Stream?>? getPortablePdbStreamOpt,
             Cci.PdbWriter? nativePdbWriterOpt,
             string? pdbPathOpt,
+            BlobReader? pdbOptionsBlobReader,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -2966,6 +3015,7 @@ namespace Microsoft.CodeAnalysis
                 getPeStream,
                 getPortablePdbStreamOpt,
                 nativePdbWriterOpt,
+                pdbOptionsBlobReader,
                 pdbPathOpt,
                 metadataOnly,
                 deterministicPrimaryOutput,
@@ -2988,6 +3038,7 @@ namespace Microsoft.CodeAnalysis
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
+                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
                     isDeterministic: true,
@@ -3043,6 +3094,7 @@ namespace Microsoft.CodeAnalysis
                         metadataStream,
                         ilStream,
                         (nativePdbWriterOpt == null) ? pdbStream : null,
+                        pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
