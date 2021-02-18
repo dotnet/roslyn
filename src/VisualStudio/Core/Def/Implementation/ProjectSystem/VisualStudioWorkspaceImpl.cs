@@ -1616,7 +1616,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 base.OnProjectRemoved(projectId);
 
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
-                    await RefreshProjectExistsUIContextForLanguage_NoLockAsync(languageName, cancellationToken).ConfigureAwait(false));
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    RefreshProjectExistsUIContextForLanguage(languageName);
+                });
             }
         }
 
@@ -1998,27 +2001,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        /// <summary>
-        /// Must only be called when caller is holding <see cref="_gate"/>
-        /// </summary>
-        internal async Task RefreshProjectExistsUIContextForLanguage_NoLockAsync(string language, CancellationToken cancellationToken)
+        internal void RefreshProjectExistsUIContextForLanguage(string language)
         {
-            Contract.ThrowIfTrue(!Monitor.IsEntered(_gate) && Monitor.TryEnter(_gate), "Caller was not already holding the _gate");
-
-            // We must be on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
-            await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             _foregroundObject.AssertIsForeground();
 
-            var uiContext =
-                _languageToProjectExistsUIContext.GetOrAdd(
-                    language,
-                    l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
-
-            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-            if (uiContext != null && !uiContext.IsZombie)
+            lock (_gate)
             {
-                uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
+                var uiContext =
+                    _languageToProjectExistsUIContext.GetOrAdd(
+                        language,
+                        l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+
+                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+                if (uiContext != null && !uiContext.IsZombie)
+                {
+                    uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
+                }
             }
         }
     }

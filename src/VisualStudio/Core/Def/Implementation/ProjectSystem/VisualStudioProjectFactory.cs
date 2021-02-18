@@ -133,8 +133,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // When ApplyChangeToWorkspace is made async, we can remove this JTF.Run.
-                _threadingContext.JoinableTaskFactory.Run(() =>
-                    _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage_NoLockAsync(language, CancellationToken.None));
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language, CancellationToken.None);
+                });
             });
 
             return project;
