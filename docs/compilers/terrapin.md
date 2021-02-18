@@ -19,7 +19,7 @@ This is global tool which takes in a DLL / PDB file combination and will generat
 This tool is meant to work with binaries produced by earlier versions of the .NET compiler. Every time the contents of the PDB provenance metadata change a new version of this tool will be produced that can account for the metadata. The expectation is that Terrapin will always have the latest version of this tool installed on their service.
 
 ### dotnet-build-validator
-A global tool which takes in the following arguments: the PE file to validate, it's accompanying PDB and a directory containing the artifacts gathered from the artifacts manifest file. The tool will then return whether the provided PDB file can have it's provenance validated.
+A global tool which takes in the following arguments: the PE file to validate, its accompanying PDB and a directory containing the artifacts gathered from the artifacts manifest file. The tool will then return whether the provided PDB file can have it's provenance validated.
 
 The tool will have three output states:
 
@@ -34,7 +34,7 @@ The expectation is that Terrapin will install this as a local tool for a given v
 ## The Terrapin Service Workflow
 The Terrapin service will validate a DLL by going through the following workflow for every DLL in a NuPkg file:
 
-1. Execute `dotnet-build-manifest-generator` on the DLL + PDB conversion. 
+1. Execute `dotnet-build-manifest-generator` on the DLL + PDB combination. 
 1. Setup the environment for validation:
     1. Transfer execution to the appropriate operating system listed in the manifest. All future actions are expected to run on this machine.
     1. Install the correct .NET Runtime on the target machine (if necessary)
