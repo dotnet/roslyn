@@ -208,30 +208,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             StatementSyntax innerStatement,
             CancellationToken cancellationToken)
         {
-            // If this is just an if without else
+            // This ifStatement doesn't have an else clause, and its parent is a Block.
+            // Insert the innerStatement next to the ifStatement
             // e.g.
-            // before:
-            // if$$ (true)
-            //   Print("Hello");
-            // after:
-            // if (true)
+            // if ($$a)
+            // Print();
+            // =>
+            // if (a)
             // {
-            //      $$
+            //     $$
             // }
-            //   Print("Hello");
-            if (ifStatementNode.Else == null)
+            // Print();
+            if (ifStatementNode.Else == null && ifStatementNode.Parent is BlockSyntax)
             {
-                var topIfStatement = FindTheTopIfStatementNode(ifStatementNode);
-                if (topIfStatement != null)
-                {
-                    return ReplaceStatementOwnerAndInsertStatement(document,
-                        root,
-                        ifStatementNode,
-                        AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions),
-                        topIfStatement,
-                        ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
-                        cancellationToken);
-                }
+                return ReplaceStatementOwnerAndInsertStatement(document,
+                    root,
+                    ifStatementNode,
+                    AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions),
+                    ifStatementNode,
+                    ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    cancellationToken);
             }
 
             // If this IfStatement has an else statement after
@@ -272,12 +268,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return AddBraceToEmbeddedStatementOwner(document, root, elseClauseNode.Statement, editorOptions, cancellationToken);
             }
 
-            // Otherwise, it is just an ending else clause
+            // Otherwise, it is just an ending else clause.
+            // if its parent is an ifStatement and the parent of ifStatement is a block, insert the innerStatement after the ifStatement
             // e.g. before:
             // if (true)
             // {
             // } els$$e
-            // var i = 10;
+            // Print();
             // after:
             // if (true)
             // {
@@ -285,15 +282,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // {
             //      $$
             // }
-            // var i = 10;
-            var topIfStatement = FindTheTopIfStatementNode(elseClauseNode);
-            if (topIfStatement != null)
+            // Print();
+            if (elseClauseNode.Parent is IfStatementSyntax { Parent: BlockSyntax })
             {
                 return ReplaceStatementOwnerAndInsertStatement(document,
                     root,
                     elseClauseNode,
                     WithBraces(elseClauseNode, editorOptions),
-                    topIfStatement,
+                    elseClauseNode.Parent!,
                     ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
                     cancellationToken);
             }
@@ -307,25 +303,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
             return (formattedNewRoot, nextCaretPosition);
-        }
-
-        private static IfStatementSyntax? FindTheTopIfStatementNode(ElseClauseSyntax elseClauseNode)
-        {
-            return elseClauseNode.FirstAncestorOrSelf<IfStatementSyntax>(node => node.Parent is BlockSyntax);
-        }
-
-        private static IfStatementSyntax? FindTheTopIfStatementNode(IfStatementSyntax ifStatementNode)
-        {
-            foreach (var node in ifStatementNode.AncestorsAndSelf())
-            {
-                if (node is IfStatementSyntax ifStatementParent && ifStatementParent.Parent is BlockSyntax)
-                {
-                    return ifStatementParent;
-                }
-
-            }
-
-            return ifStatementNode.FirstAncestorOrSelf<IfStatementSyntax>(node => node.Parent is BlockSyntax);
         }
 
         #endregion

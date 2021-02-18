@@ -1844,8 +1844,8 @@ public class Bar
                     if (x == 4)
                     {
                         $$
+                        var a = 1000;
                     }
-        var a = 1000;
     }
 }", @"
 public class Bar
@@ -1856,7 +1856,7 @@ public class Bar
             if (x == 2)
                 if (x == 3)
                     i$$f ($$x =$$= 4)$$
-        var a = 1000;
+                        var a = 1000;
     }
 }");
         }
@@ -1891,41 +1891,6 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestNestIfStatementWithBlockWithInnerStatement()
-        {
-            Test(@"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-            {
-                if (x == 3)
-                    if (x == 4)
-                    {
-                        $$
-                    }
-                var i = 10;
-            }
-    }
-}", @"
-public class Bar
-{
-    public void Main(int x)
-    {
-        if (x == 1)
-            if (x == 2)
-            {
-                if (x == 3)
-                    i$$f ($$x =$$= 4)$$
-                var i = 10;
-            }
-    }
-}");
-        }
-
-        [WpfFact]
         public void TestNestedElseIfStatementWithInnerStatement()
         {
             Test(@"
@@ -1942,9 +1907,9 @@ public class Bar
                 $$
                 var i = 10;
             }
-        else
-        {
-        }
+            else
+            {
+            }
     }
 }", @"
 public class Bar
@@ -1957,9 +1922,9 @@ public class Bar
         else if (i == 2)
             i$$f (i$$ == 3)$$
                 var i = 10;
-        else
-        {
-        }
+            else
+            {
+            }
     }
 }");
         }
@@ -1974,17 +1939,17 @@ public class Bar
     {
         if (x == 1)
             if (x == 2)
-            {
                 if (x == 3)
+                {
                     if (x == 4)
                     {
                         $$
-                        var i = 10;
                     }
-            }
-            else
-            {
-            }
+                    var i = 10;
+                }
+                else
+                {
+                }
     }
 }", @"
 public class Bar
@@ -1993,11 +1958,11 @@ public class Bar
     {
         if (x == 1)
             if (x == 2)
-            {
                 if (x == 3)
+                {
                     i$$f ($$x =$$= 4)$$
                     var i = 10;
-            }
+                }
             else
             {
             }
@@ -2170,41 +2135,6 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestElseIfInTheMiddleWithoutInnerStatement()
-        {
-            Test(@"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        else if (false)
-        {
-            $$
-        }
-        else
-        {
-        }
-    }
-}", @"
-public class Bar
-{
-    public void Fo()
-    {
-        if (true)
-        {
-        }
-        e$$lse i$$f ($$false)$$
-        else
-        {
-        }
-    }
-}");
-        }
-
-        [WpfFact]
         public void TestElseIfInTheMiddleWithInnerStatement()
         {
             Test(@"
@@ -2249,8 +2179,6 @@ public class Bar
 {
     public void Fo(int i)
     {
-    public void Fo(int i)
-    {
         if (i == 1)
         {
             if (i == 2)
@@ -2261,7 +2189,6 @@ public class Bar
             }
             var c = 100;
         }
-    }
     }
 }", @"
 public class Bar
