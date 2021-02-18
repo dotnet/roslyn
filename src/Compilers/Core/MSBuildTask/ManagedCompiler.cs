@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
                     LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
-                    LogCompilationMessage(logger, CompilationKind.Server, "");
+                    LogCompilationMessage(logger, CompilationKind.Server, "server processed compilation");
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
