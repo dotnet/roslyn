@@ -49,34 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
 
-            if (isLspExperimentEnabled)
-            {
-                return new VSServerCapabilities
-                {
-                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
-                    HoverProvider = true,
-                    FoldingRangeProvider = new FoldingRangeOptions { },
-                    DocumentFormattingProvider = true,
-                    DocumentRangeFormattingProvider = true,
-                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
-                    OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
-                    TextDocumentSync = new TextDocumentSyncOptions
-                    {
-                        Change = TextDocumentSyncKind.None,
-                        OpenClose = false
-                    },
-                    SupportsDiagnosticRequests = true,
-                };
-            }
-
-            return new VSServerCapabilities
-            {
-                TextDocumentSync = new TextDocumentSyncOptions
-                {
-                    Change = TextDocumentSyncKind.None,
-                    OpenClose = false
-                }
-            };
+            return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
         }
     }
 }
