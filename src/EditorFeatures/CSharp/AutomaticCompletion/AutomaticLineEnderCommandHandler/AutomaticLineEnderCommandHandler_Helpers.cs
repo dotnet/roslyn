@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 var parent = accessorDeclarationNode.Parent;
                 var parentOfParent = parent?.Parent;
                 if (parent is AccessorListSyntax accessorListNode
-                    && parentOfParent is PropertyDeclarationSyntax or EventDeclarationSyntax)
+                    && parentOfParent is PropertyDeclarationSyntax)
                 {
                     var otherAccessors = accessorListNode.Accessors
                         .Except(new[] { accessorDeclarationNode })

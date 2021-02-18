@@ -988,6 +988,23 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestConstructor()
+        {
+            Test(@"
+public class Bar
+{
+    void Bar()
+    {
+        $$
+    }
+}", @"
+public class Bar
+{
+    v$$oid Ba$$r($$)$$
+}");
+        }
+
+        [WpfFact]
         public void TestValidMethodInInterface()
         {
             Test(@"
@@ -1296,7 +1313,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestAddAccessor1()
+        public void TestAddAccessorInEventDeclaration()
         {
             Test(@"
 using System;
@@ -1308,7 +1325,7 @@ public class Bar
         {
             $$
         }
-        remove { }
+        remove
     }
 }", @"
 using System;
@@ -1317,54 +1334,26 @@ public class Bar
     public event EventHandler e
     {
         ad$$d
-        remove { }
-    }
-}");
-        }
-
-        [WpfFact]
-        public void TestValidAddAccessor()
-        {
-            Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        {
-
-            $$
-        }
-        remove { }
-    }
-}", @"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add
-        {
-            $$
-        }
-        remove { }
-    }
-}");
-        }
-
-        [WpfFact]
-        public void TestAddAccessorWithSemicolonWithRemoveAccessor()
-        {
-            Test(@"
-using System;
-public class Bar
-{
-    public event EventHandler e
-    {
-        add;
         remove
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidAddAccessorInEventDeclaration()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler e
+    {
+        add
+        {
+
             $$
+        }
+        remove { }
     }
 }", @"
 using System;
@@ -1372,8 +1361,11 @@ public class Bar
 {
     public event EventHandler e
     {
-        add;
-        remov$$e
+        add
+        {
+            $$
+        }
+        remove { }
     }
 }");
         }
@@ -1387,7 +1379,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add { }
+        add
         remove
         {
             $$
@@ -1399,7 +1391,7 @@ public class Bar
 {
     public event EventHandler e
     {
-        add { }
+        add
         remo$$ve
     }
 }");
@@ -1475,6 +1467,38 @@ public class Bar
 public class Bar
 {
     p$$ublic reado$$nly i$$nt i$$ii$$
+}");
+        }
+
+        [WpfFact]
+        public void TestMulitpleFields()
+        {
+            Test(@"
+public class Bar
+{
+    public int apple, banana;
+    $$
+}", @"
+public class Bar
+{
+    p$$ublic i$$nt ap$$ple$$, ba$$nana;$$
+}");
+        }
+
+        [WpfFact]
+        public void TestMultipleEvents()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler apple, banana;
+    $$
+}", @"
+using System;
+public class Bar
+{
+    p$$ublic event EventHandler ap$$ple$$, ba$$nana$$;$$
 }");
         }
 
@@ -1614,6 +1638,124 @@ public class Foo
         }
 
         [WpfFact]
+        public void TestObjectCreationExpressionWithCorrectSemicolon()
+        {
+            var initialMarkUp = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = n$$ew F$$oo$$;
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo()
+        {
+            $$
+        };
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        var f = new Foo();
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionUsedAsExpression()
+        {
+            var initialMarkUp = @"
+public class Bar
+{
+    public void M()
+    {
+        N(ne$$w Fo$$o$$);
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        N(new Foo()
+        {
+            $$
+        });
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        N(new Foo());
+        $$
+    }
+
+    private void N(Foo f)
+    {
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkUp);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
         public void TestIfStatementWithInnerStatement()
         {
             Test(@"
@@ -1625,7 +1767,7 @@ public class Bar
         {
             $$
         }
-        var x = 1;
+        var z = 1;
     }
 }", @"
 public class Bar
@@ -1633,13 +1775,40 @@ public class Bar
     public void Main(bool x)
     {
         i$$f$$ ($$x)$$
-        var x = 1;
+        var z = 1;
     }
 }");
         }
 
         [WpfFact]
-        public void TestIfStatementWithEmptyInnerStatement()
+        public void TestIfStatementWithFollowingElseClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        if (x)
+        {
+            $$
+            var z = 1;
+        }
+        else if (!x)
+    }
+}", @"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        i$$f$$ ($$x)$$
+        var z = 1;
+        else if (!x)
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestIfStatementWithoutStatement()
         {
             Test(@"
 public class Bar
@@ -1766,7 +1935,7 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestElseStatementWithStatement()
+        public void TestElseStatementWithInnerStatement()
         {
             Test(@"
 public class Bar
@@ -1826,13 +1995,79 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestElseIfInTheMiddle()
+        public void TestElseIfInTheMiddleWithoutInnerStatement()
         {
-
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else if (false)
+        {
+            $$
+        }
+        else
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse i$$f ($$false)$$
+        else
+        {
+        }
+    }
+}");
         }
 
         [WpfFact]
-        public void TestForStatement()
+        public void TestElseIfInTheMiddleWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else if (false)
+        {
+            $$
+            var i = 10;
+        }
+        else
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse i$$f ($$false)$$
+        var i = 10;
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestForStatementWithoutStatement()
         {
             Test(@"
 public class Bar
@@ -1855,7 +2090,32 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestForEachStatement()
+        public void TestForStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        for (int i; i < 10; i++)
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        f$$or (i$$nt i; i < 10;$$ i++)$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestForEachStatementWithoutInnerStatement()
         {
             Test(@"
 public class Bar
@@ -1866,6 +2126,7 @@ public class Bar
         {
             $$
         }
+        var c = 10;
     }
 }", @"
 public class Bar
@@ -1873,12 +2134,13 @@ public class Bar
     public void Fo()
     {
         forea$$ch (var x $$in """")$$
+        var c = 10;
     }
 }");
         }
 
         [WpfFact]
-        public void TestLockStatement()
+        public void TestLockStatementWithoutInnerStatement()
         {
             Test(@"
 public class Bar
@@ -1903,7 +2165,34 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestUsingStatement()
+        public void TestLockStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        lock (o)
+        {
+            $$
+        }
+        var i = 10;
+    }
+}", @"
+public class Bar
+{
+    object o = new object();
+    public void Fo()
+    {
+        l$$ock$$(o)$$
+        var i = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingStatementWithoutInnerStatement()
         {
             Test(@"
 using System;
@@ -1928,6 +2217,43 @@ public class Bar
     public void Fo()
     {
         usi$$ng (va$$r d = new D())$$
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}");
+        }
+
+        [WpfFact]
+        public void TestUsingStatementWithInnerStatement()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        using (var d = new D())
+        {
+            $$
+        }
+        var c = 10;
+    }
+}
+public class D : IDisposable
+{
+    public void Dispose()
+    {}
+}", @"
+using System;
+public class Bar
+{
+    public void Fo()
+    {
+        usi$$ng (va$$r d = new D())$$
+        var c = 10;
     }
 }
 public class D : IDisposable
@@ -1971,7 +2297,7 @@ public class D : IDisposable
         }
 
         [WpfFact]
-        public void TestWhileStatement()
+        public void TestWhileStatementWithoutInnerStatement()
         {
             Test(@"
 public class Bar
@@ -1989,6 +2315,31 @@ public class Bar
     public void Fo()
     {
         wh$$ile (tr$$ue)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestWhileStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        while (true)
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        wh$$ile (tr$$ue)$$
+        var c = 10;
     }
 }");
         }
@@ -2019,6 +2370,58 @@ public class bar
         }
 
         [WpfFact]
+        public void TestValidSwitchStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switch (i)
+        $$
+        {
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        int i = 10;
+        switc$$h ($$i)$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidTryStatement()
+        {
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        try
+        $$
+        {
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        tr$$y$$
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestTryStatement()
         {
             Test(@"
@@ -2037,6 +2440,37 @@ public class bar
     public void TT()
     {
         tr$$y$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestValidCatchClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        $$
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void TT()
+    {
+        try
+        {
+        }
+        cat$$ch (Syste$$m.Exception)$$
+        {
+        }
     }
 }");
         }
