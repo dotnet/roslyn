@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
@@ -29,34 +25,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
     /// <summary>
     /// Shared implementation of the outliner tagger provider.
-    /// 
+    ///
     /// Note: the outliner tagger is a normal buffer tagger provider and not a view tagger provider.
     /// This is important for two reasons.  The first is that if it were view-based then we would lose
     /// the state of the collapsed/open regions when they scrolled in and out of view.  Also, if the
     /// editor doesn't know about all the regions in the file, then it wouldn't be able to
     /// persist them to the SUO file to persist this data across sessions.
     /// </summary>
-    internal abstract partial class AbstractStructureTaggerProvider<TRegionTag> :
-        AsynchronousTaggerProvider<TRegionTag>
-        where TRegionTag : class, ITag
+    internal abstract partial class AbstractStructureTaggerProvider :
+        AsynchronousTaggerProvider<IStructureTag>
     {
-        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
-            Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
-
-        protected readonly ITextEditorFactoryService TextEditorFactoryService;
         protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,
-            ITextEditorFactoryService textEditorFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
                 : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
         {
-            TextEditorFactoryService = textEditorFactoryService;
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
@@ -66,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when
             //     we hear about them.
-            // 2) Parse option changes.  These can affect outlining when, for example, we change from 
+            // 2) Parse option changes.  These can affect outlining when, for example, we change from
             //    DEBUG to RELEASE (affecting the inactive/active regions).
-            // 3) When we hear about a workspace being registered.  Outlining may run before a 
+            // 3) When we hear about a workspace being registered.  Outlining may run before a
             //    we even know about a workspace.  This can happen, for example, in the TypeScript
             //    case.  With TypeScript a file is opened, but the workspace is not generated until
             //    some time later when they have examined the file system.  As such, initially,
@@ -91,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
         /// </summary>
         protected sealed override async Task ProduceTagsAsync(
-            TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
@@ -124,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         /// Keep this in sync with <see cref="ProduceTagsAsync"/>
         /// </summary>
         protected sealed override void ProduceTagsSynchronously(
-            TaggerContext<TRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+            TaggerContext<IStructureTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
@@ -152,63 +141,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         }
 
         private void ProcessSpans(
-            TaggerContext<TRegionTag> context,
+            TaggerContext<IStructureTag> context,
             SnapshotSpan snapshotSpan,
             BlockStructureService outliningService,
             ImmutableArray<BlockSpan> spans)
         {
-            try
+            var snapshot = snapshotSpan.Snapshot;
+            spans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+            foreach (var span in spans)
             {
-                ProcessSpansWorker(context, snapshotSpan, outliningService, spans);
-            }
-            catch (TypeLoadException)
-            {
-                // We're targeting a version of the BlockTagging infrastructure in 
-                // VS that may not match the version that the user is currently
-                // developing against.  Be resilient to this until everything moves
-                // forward to the right VS version.
+                var tag = new StructureTag(this, span, snapshot);
+                context.AddTag(new TagSpan<IStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
             }
         }
 
-        private void ProcessSpansWorker(
-            TaggerContext<TRegionTag> context,
-            SnapshotSpan snapshotSpan,
-            BlockStructureService outliningService,
-            ImmutableArray<BlockSpan> spans)
-        {
-            if (spans != null)
-            {
-                var snapshot = snapshotSpan.Snapshot;
-                spans = GetMultiLineRegions(outliningService, spans, snapshot);
-
-                // Create the outlining tags.
-                var tagSpanStack = new Stack<TagSpan<TRegionTag>>();
-
-                foreach (var region in spans)
-                {
-                    var spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan());
-
-                    while (tagSpanStack.Count > 0 &&
-                           tagSpanStack.Peek().Span.End <= spanToCollapse.Span.Start)
-                    {
-                        tagSpanStack.Pop();
-                    }
-
-                    var parentTag = tagSpanStack.Count > 0 ? tagSpanStack.Peek() : null;
-                    var tag = CreateTag(parentTag?.Tag, snapshot, region);
-
-                    if (tag != null)
-                    {
-                        var tagSpan = new TagSpan<TRegionTag>(spanToCollapse, tag);
-
-                        context.AddTag(tagSpan);
-                        tagSpanStack.Push(tagSpan);
-                    }
-                }
-            }
-        }
-
-        protected abstract TRegionTag CreateTag(TRegionTag parentTag, ITextSnapshot snapshot, BlockSpan region);
+        internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
 
         private static bool s_exceptionReported = false;
 
@@ -252,13 +200,92 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 }
             }
 
-            // Make sure the regions are lexicographically sorted.  This is needed
-            // so we can appropriately parent them for BlockTags.
-            //
-            // Note we pass a IComparer instead of a Comparison to work around this
-            // issue in ImmutableArray.Builder: https://github.com/dotnet/corefx/issues/11173
-            multiLineRegions.Sort(s_blockSpanComparer);
             return multiLineRegions.ToImmutableAndFree();
         }
+
+        #region Creating Preview Buffers
+
+        private const int MaxPreviewText = 1000;
+
+        /// <summary>
+        /// Given a <see cref="StructureTag"/>, creates an ITextBuffer with the content to display 
+        /// in the tooltip.
+        /// </summary>
+        protected ITextBuffer CreateElisionBufferForTagTooltip(StructureTag tag)
+        {
+            // Remove any starting whitespace.
+            var span = TrimLeadingWhitespace(new SnapshotSpan(tag.Snapshot, tag.CollapsedHintFormSpan));
+
+            // Trim the length if it's too long.
+            var shortSpan = span;
+            if (span.Length > MaxPreviewText)
+            {
+                shortSpan = ComputeShortSpan(span);
+            }
+
+            // Create an elision buffer for that span, also trimming the
+            // leading whitespace.
+            var elisionBuffer = CreateElisionBufferWithoutIndentation(shortSpan);
+            var finalBuffer = elisionBuffer;
+
+            // If we trimmed the length, then make a projection buffer that 
+            // has the above elision buffer and follows it with "..."
+            if (span.Length != shortSpan.Length)
+            {
+                finalBuffer = CreateTrimmedProjectionBuffer(elisionBuffer);
+            }
+
+            return finalBuffer;
+        }
+
+        private ITextBuffer CreateTrimmedProjectionBuffer(ITextBuffer elisionBuffer)
+        {
+            // The elision buffer is too long.  We've already trimmed it, but now we want to add
+            // a "..." to it.  We do that by creating a projection of both the elision buffer and
+            // a new text buffer wrapping the ellipsis.
+            var elisionSpan = elisionBuffer.CurrentSnapshot.GetFullSpan();
+
+            var sourceSpans = new List<object>()
+                {
+                    elisionSpan.Snapshot.CreateTrackingSpan(elisionSpan, SpanTrackingMode.EdgeExclusive),
+                    "..."
+                };
+
+            var projectionBuffer = ProjectionBufferFactoryService.CreateProjectionBuffer(
+                projectionEditResolver: null,
+                sourceSpans: sourceSpans,
+                options: ProjectionBufferOptions.None);
+
+            return projectionBuffer;
+        }
+
+        private static SnapshotSpan ComputeShortSpan(SnapshotSpan span)
+        {
+            var endIndex = span.Start + MaxPreviewText;
+            var line = span.Snapshot.GetLineFromPosition(endIndex);
+
+            return new SnapshotSpan(span.Snapshot, Span.FromBounds(span.Start, line.EndIncludingLineBreak));
+        }
+
+        internal static SnapshotSpan TrimLeadingWhitespace(SnapshotSpan span)
+        {
+            int start = span.Start;
+
+            while (start < span.End && char.IsWhiteSpace(span.Snapshot[start]))
+                start++;
+
+            return new SnapshotSpan(span.Snapshot, Span.FromBounds(start, span.End));
+        }
+
+        private ITextBuffer CreateElisionBufferWithoutIndentation(
+            SnapshotSpan shortHintSpan)
+        {
+            return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
+                EditorOptionsFactoryService.GlobalOptions,
+                contentType: null,
+                exposedSpans: shortHintSpan);
+        }
+
+        #endregion
     }
 }
