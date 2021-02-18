@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
