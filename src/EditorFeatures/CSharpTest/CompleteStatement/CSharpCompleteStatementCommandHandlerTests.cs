@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         #region ParameterList
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        [InlineData("extern void M(object o$$)", "abstract void M(object o)")]
+        [InlineData("extern void M(object o$$)", "extern void M(object o)")]
         [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
@@ -80,7 +80,7 @@ public interface I
             var expected = @"
 public interface I
 {
-    public void M(object o);
+    public void M(object o);$$
 }";
 
             VerifyTypingSemicolon(code, expected);
