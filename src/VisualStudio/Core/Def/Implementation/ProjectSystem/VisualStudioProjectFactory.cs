@@ -60,11 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
             // moved off we'll need to fix up it's constructor to be free-threaded.
 
-            // Since we're on the UI thread here anyways, use that as an opportunity to grab the
-            // IVsSolution object and solution file path.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
+            // Since we're on the UI thread here anyways, use that as an opportunity to grab the
+            // IVsSolution object and solution file path.
+            //
             // ConfigureAwait(true) as we have to come back to the UI thread to do the cast to IVsSolution2.
             var solution = (IVsSolution2?)await _serviceProvider.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
