@@ -250,24 +250,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True(value < NumThreads);
         }
 
-        private void DoSimultaneousWrites(Func<string, Task> write)
-        {
-            var barrier = new Barrier(NumThreads);
-            var countdown = new CountdownEvent(NumThreads);
-            for (var i = 0; i < NumThreads; i++)
-            {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    var id = (int)s;
-                    barrier.SignalAndWait();
-                    write(id + "").Wait();
-                    countdown.Signal();
-                }, i);
-            }
-
-            countdown.Wait();
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task PersistentService_Solution_SimultaneousReads(Size size, bool withChecksum)
@@ -838,6 +820,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                     }
                     countdown.Signal();
                 });
+            }
+
+            countdown.Wait();
+
+            Assert.Equal(new List<Exception>(), exceptions);
+        }
+
+        private void DoSimultaneousWrites(Func<string, Task> write)
+        {
+            var barrier = new Barrier(NumThreads);
+            var countdown = new CountdownEvent(NumThreads);
+
+            var exceptions = new List<Exception>();
+            for (var i = 0; i < NumThreads; i++)
+            {
+                ThreadPool.QueueUserWorkItem(s =>
+                {
+                    var id = (int)s;
+                    barrier.SignalAndWait();
+                    try
+                    {
+                        write(id + "").Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+                    }
+                    countdown.Signal();
+                }, i);
             }
 
             countdown.Wait();
