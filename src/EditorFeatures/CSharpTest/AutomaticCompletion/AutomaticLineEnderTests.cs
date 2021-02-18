@@ -1614,7 +1614,7 @@ public class Foo
         }
 
         [WpfFact]
-        public void TestIfStatement()
+        public void TestIfStatementWithInnerStatement()
         {
             Test(@"
 public class Bar
@@ -1639,7 +1639,30 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestDoStatement()
+        public void TestIfStatementWithEmptyInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        if (x)
+        {
+            $$
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Main(bool x)
+    {
+        i$$f$$ ($$x)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestEmptyDoStatement()
         {
             Test(@"
 public class Bar
@@ -1657,6 +1680,58 @@ public class Bar
     public void Main()
     {
         d$$o$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDoStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main()
+    {
+        do
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Main()
+    {
+        d$$o$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestDoStatementWithWhileClause()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main()
+    {
+        do
+        {
+            $$
+            var c = 10;
+        }
+        while (true);
+    }
+}", @"
+public class Bar
+{
+    public void Main()
+    {
+        d$$o$$
+        var c = 10;
+        while (true);
     }
 }");
         }
@@ -1691,7 +1766,38 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestElseIfStatement1()
+        public void TestElseStatementWithStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            $$
+        }
+        var c = 10;
+    }
+}", @"
+public class Bar
+{
+    public void Fo()
+    {
+        if (true)
+        {
+        }
+        e$$lse$$
+        var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseIfStatement()
         {
             Test(@"
 public class Bar
@@ -1717,6 +1823,12 @@ public class Bar
         e$$lse i$$f ($$false)$$
     }
 }");
+        }
+
+        [WpfFact]
+        public void TestElseIfInTheMiddle()
+        {
+
         }
 
         [WpfFact]
