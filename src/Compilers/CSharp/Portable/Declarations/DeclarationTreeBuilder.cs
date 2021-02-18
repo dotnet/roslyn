@@ -382,6 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
             => VisitTypeDeclaration(node, DeclarationKind.Record);
 
+        public override SingleNamespaceOrTypeDeclaration VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
+            => VisitTypeDeclaration(node, DeclarationKind.RecordStruct);
+
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
@@ -402,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
+            // PROTOTYPE(record-structs): update for record structs
             // A record with parameters at least has a primary constructor
             if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
                 node is RecordDeclarationSyntax { ParameterList: { } })
@@ -627,6 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                    // PROTOTYPE(record-structs): update for record structs
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

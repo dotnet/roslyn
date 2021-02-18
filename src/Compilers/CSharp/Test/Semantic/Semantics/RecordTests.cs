@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion()
         {
+            // PROTOTYPE(record-structs): ported
             var src1 = @"
 class Point(int x, int y);
 ";
@@ -149,11 +150,18 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
+
+            var point = comp.GlobalNamespace.GetTypeMember("Point");
+            Assert.True(point.IsReferenceType);
+            Assert.False(point.IsValueType);
+            Assert.Equal(TypeKind.Class, point.TypeKind);
+            Assert.Equal(SpecialType.System_Object, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
         }
 
         [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
         public void RecordLanguageVersion_Nested()
         {
+            // PROTOTYPE(record-structs): ported
             var src1 = @"
 class C
 {
@@ -228,6 +236,60 @@ class E
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src3);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(45900, "https://github.com/dotnet/roslyn/issues/45900")]
+        public void RecordClassLanguageVersion()
+        {
+            var src = @"
+record class Point(int x, int y);
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
+                // (2,19): error CS1514: { expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS1513: } expected
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(2, 19),
+                // (2,19): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 19),
+                // (2,19): error CS8803: Top-level statements must precede namespace and type declarations.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int x, int y);").WithLocation(2, 19),
+                // (2,19): error CS8805: Program using top-level statements must be an executable.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 19),
+                // (2,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x, int y)").WithLocation(2, 19),
+                // (2,20): error CS8185: A declaration is not allowed in this context.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x").WithLocation(2, 20),
+                // (2,20): error CS0165: Use of unassigned local variable 'x'
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int x").WithArguments("x").WithLocation(2, 20),
+                // (2,27): error CS8185: A declaration is not allowed in this context.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int y").WithLocation(2, 27),
+                // (2,27): error CS0165: Use of unassigned local variable 'y'
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 27)
+                );
+
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(
+                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "class").WithArguments("record structs").WithLocation(2, 8)
+                );
+
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -691,7 +753,7 @@ record A(x)
         }
 
         [Fact]
-        public void TestInExpressionTree()
+        public void TestWithInExpressionTree()
         {
             var source = @"
 using System;
@@ -714,6 +776,7 @@ public record C(int i)
         [Fact]
         public void PartialRecord_MixedWithClass()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 partial record C(int X, int Y)
 {
@@ -724,7 +787,7 @@ partial class C
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (5,15): error CS0261: Partial declarations of 'C' must be all classes, all records, all structs, or all interfaces
+                // (5,15): error CS0261: Partial declarations of 'C' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 // partial class C
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C").WithArguments("C").WithLocation(5, 15)
                 );
@@ -747,6 +810,26 @@ public partial record C
 }
 ";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PartialRecord_ParametersInScopeOfBothParts_RecordClass()
+        {
+            var src = @"
+var c = new C(2);
+System.Console.Write((c.P1, c.P2));
+
+public partial record C(int X)
+{
+    public int P1 { get; set; } = X;
+}
+public partial record class C
+{
+    public int P2 { get; set; } = X;
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */).VerifyDiagnostics();
         }
 
@@ -984,6 +1067,58 @@ record C(int X, int X)
         }
 
         [Fact]
+        public void RecordProperties_05_RecordClass()
+        {
+            var src = @"
+record class C(int X, int X)
+{
+}";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,27): error CS0100: The parameter name 'X' is a duplicate
+                // record class C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "X").WithArguments("X").WithLocation(2, 27),
+                // (2,27): error CS0102: The type 'C' already contains a definition for 'X'
+                // record class C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 27)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Type C.EqualityContract { get; }",
+                "System.Int32 C.X { get; init; }",
+                "System.Int32 C.X { get; init; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            var expectedMemberNames = new[] {
+                ".ctor",
+                "get_EqualityContract",
+                "EqualityContract",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "ToString",
+                "PrintMembers",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
+                "Equals",
+                "<Clone>$",
+                ".ctor",
+                "Deconstruct"
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
+        }
+
+        [Fact]
         public void RecordProperties_06()
         {
             var src = @"
@@ -1111,6 +1246,7 @@ record C1(object O1)
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 class C<T> { }
 static class C2 { }
@@ -1167,6 +1303,7 @@ unsafe record C( // 1
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1219,6 +1356,7 @@ public unsafe record C
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1274,6 +1412,7 @@ public unsafe record C
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 class C<T> { }
 
@@ -1322,6 +1461,7 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public class C<T> { }
 public static class C2 { }
@@ -1480,6 +1620,57 @@ class Program
         }
 
         [Fact]
+        public void EmptyRecord_01_RecordClass()
+        {
+            var src = @"
+record class C();
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C();
+        var y = new C();
+        System.Console.WriteLine(x == y);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(src, expectedOutput: "True", parseOptions: TestOptions.RegularPreview);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ret
+}
+");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C..ctor()",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C? r1, C? r2)",
+                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? obj)",
+                "System.Boolean C.Equals(C? other)",
+                "C C." + WellKnownMemberNames.CloneMethodName + "()",
+                "C..ctor(C original)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
         public void EmptyRecord_02()
         {
             var src = @"
@@ -1591,185 +1782,6 @@ record R()
                 //     static R(R r) { }
                 Diagnostic(ErrorCode.ERR_StaticConstParam, "R").WithArguments("R.R(R)").WithLocation(4, 12)
                 );
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecord1()
-        {
-            var src = @"
-data struct Point(int X, int Y);";
-
-            var verifier = CompileAndVerify(src).VerifyDiagnostics();
-            verifier.VerifyIL("Point.Equals(object)", @"
-{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  .locals init (Point V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  isinst     ""Point""
-  IL_0006:  brtrue.s   IL_000a
-  IL_0008:  ldc.i4.0
-  IL_0009:  ret
-  IL_000a:  ldarg.0
-  IL_000b:  ldarg.1
-  IL_000c:  unbox.any  ""Point""
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""bool Point.Equals(in Point)""
-  IL_0019:  ret
-}");
-            verifier.VerifyIL("Point.Equals(in Point)", @"
-{
-  // Code size       49 (0x31)
-  .maxstack  3
-  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_0005:  ldarg.0
-  IL_0006:  ldfld      ""int Point.<X>k__BackingField""
-  IL_000b:  ldarg.1
-  IL_000c:  ldfld      ""int Point.<X>k__BackingField""
-  IL_0011:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_0016:  brfalse.s  IL_002f
-  IL_0018:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001d:  ldarg.0
-  IL_001e:  ldfld      ""int Point.<Y>k__BackingField""
-  IL_0023:  ldarg.1
-  IL_0024:  ldfld      ""int Point.<Y>k__BackingField""
-  IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002e:  ret
-  IL_002f:  ldc.i4.0
-  IL_0030:  ret
-}");
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecord2()
-        {
-            var src = @"
-using System;
-data struct S(int X, int Y)
-{
-    public static void Main()
-    {
-        var s1 = new S(0, 1);
-        var s2 = new S(0, 1);
-        Console.WriteLine(s1.X);
-        Console.WriteLine(s1.Y);
-        Console.WriteLine(s1.Equals(s2));
-        Console.WriteLine(s1.Equals(new S(1, 0)));
-    }
-}";
-            var verifier = CompileAndVerify(src, expectedOutput: @"0
-1
-True
-False").VerifyDiagnostics();
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecord3()
-        {
-            var src = @"
-using System;
-data struct S(int X, int Y)
-{
-    public bool Equals(S s) => false;
-    public static void Main()
-    {
-        var s1 = new S(0, 1);
-        Console.WriteLine(s1.Equals(s1));
-        Console.WriteLine(s1.Equals(in s1));
-    }
-}";
-            var verifier = CompileAndVerify(src, expectedOutput: @"False
-True").VerifyDiagnostics();
-
-            verifier.VerifyIL("S.Main", @"
-{
-  // Code size       37 (0x25)
-  .maxstack  3
-  .locals init (S V_0) //s1
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  call       ""S..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""bool S.Equals(S)""
-  IL_0011:  call       ""void System.Console.WriteLine(bool)""
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""bool S.Equals(in S)""
-  IL_001f:  call       ""void System.Console.WriteLine(bool)""
-  IL_0024:  ret
-}");
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecord4()
-        {
-            var src = @"
-using System;
-data struct S(int X, int Y)
-{
-    public override bool Equals(object o)
-    {
-        Console.WriteLine(""obj"");
-        return true;
-    }
-    public bool Equals(in S s)
-    {
-        Console.WriteLine(""s"");
-        return true;
-    }
-    public static void Main()
-    {
-        var s1 = new S(0, 1);
-        s1.Equals((object)s1);
-        s1.Equals(s1);
-    }
-}";
-            var verifier = CompileAndVerify(src, expectedOutput: @"obj
-s").VerifyDiagnostics();
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecord5()
-        {
-            var src = @"
-using System;
-data struct S(int X, int Y)
-{
-    public bool Equals(in S s)
-    {
-        Console.WriteLine(""s"");
-        return true;
-    }
-    public static void Main()
-    {
-        var s1 = new S(0, 1);
-        s1.Equals((object)s1);
-        s1.Equals(s1);
-    }
-}";
-            var verifier = CompileAndVerify(src, expectedOutput: @"s
-s").VerifyDiagnostics();
-        }
-
-        [Fact(Skip = "record struct")]
-        public void StructRecordDefaultCtor()
-        {
-            const string src = @"
-public data struct S(int X);";
-            const string src2 = @"
-class C
-{
-    public S M() => new S();
-}";
-            var comp = CreateCompilation(src + src2);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(src);
-            var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3170,6 +3182,7 @@ class C
         [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
         public void Clone_DisallowedInSource()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1(string Clone); // 1
 record C2
@@ -21973,62 +21986,6 @@ interface I {}
             }
         }
 
-        [Fact(Skip = "record struct")]
-        public void Equality_01()
-        {
-            var source =
-@"using static System.Console;
-data struct S;
-class Program
-{
-    static void Main()
-    {
-        var x = new S();
-        var y = new S();
-        WriteLine(x.Equals(y));
-        WriteLine(((object)x).Equals(y));
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True").VerifyDiagnostics();
-
-            verifier.VerifyIL("S.Equals(in S)",
-@"{
-  // Code size       23 (0x17)
-  .maxstack  2
-  .locals init (S V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Type S.EqualityContract.get""
-  IL_0006:  ldarg.1
-  IL_0007:  ldobj      ""S""
-  IL_000c:  stloc.0
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""System.Type S.EqualityContract.get""
-  IL_0014:  ceq
-  IL_0016:  ret
-}");
-            verifier.VerifyIL("S.Equals(object)",
-@"{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  .locals init (S V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  isinst     ""S""
-  IL_0006:  brtrue.s   IL_000a
-  IL_0008:  ldc.i4.0
-  IL_0009:  ret
-  IL_000a:  ldarg.0
-  IL_000b:  ldarg.1
-  IL_000c:  unbox.any  ""S""
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""bool S.Equals(in S)""
-  IL_0019:  ret
-}");
-        }
-
         [Fact]
         public void Equality_02()
         {
@@ -24350,6 +24307,7 @@ record R(int P1, int* P2, delegate*<int> P3);";
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_RefOrOut()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(ref int P1, out int P2);
 ";
@@ -24421,6 +24379,7 @@ public class C
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_This()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(this int i);
 ";
@@ -27569,6 +27528,47 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cMember.GetDocumentationCommentXml());
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+
+            var property = cMember.GetMembers("I1").Single();
+            Assert.Equal("", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void XmlDoc_RecordClass()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public record class C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");

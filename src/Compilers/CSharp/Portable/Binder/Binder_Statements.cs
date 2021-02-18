@@ -3286,6 +3286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (syntax)
             {
+                // PROTOTYPE(record-structs): update for record structs
                 case RecordDeclarationSyntax recordDecl:
                     return BindRecordConstructorBody(recordDecl, diagnostics);
 

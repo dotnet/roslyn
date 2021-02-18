@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                // PROTOTYPE(record-structs): update for record structs
                 case SyntaxKind.RecordDeclaration:
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
