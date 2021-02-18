@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             // Add a try block here to detect bogus comparisons
             try
             {
-                IntrospectiveSort(keys, comparer);
+                IntrospectiveSort(keys, comparer!);
             }
             catch (IndexOutOfRangeException)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
             if (keys.Length > 1)
             {
-                IntroSort(keys, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer);
+                IntroSort(keys, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer!);
             }
         }
 
@@ -158,33 +158,33 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
                     if (partitionSize == 2)
                     {
-                        SwapIfGreater(keys, comparer, 0, 1);
+                        SwapIfGreater(keys, comparer!, 0, 1);
                         return;
                     }
 
                     if (partitionSize == 3)
                     {
-                        SwapIfGreater(keys, comparer, 0, 1);
-                        SwapIfGreater(keys, comparer, 0, 2);
-                        SwapIfGreater(keys, comparer, 1, 2);
+                        SwapIfGreater(keys, comparer!, 0, 1);
+                        SwapIfGreater(keys, comparer!, 0, 2);
+                        SwapIfGreater(keys, comparer!, 1, 2);
                         return;
                     }
 
-                    InsertionSort(keys.Slice(0, partitionSize), comparer);
+                    InsertionSort(keys.Slice(0, partitionSize), comparer!);
                     return;
                 }
 
                 if (depthLimit == 0)
                 {
-                    HeapSort(keys.Slice(0, partitionSize), comparer);
+                    HeapSort(keys.Slice(0, partitionSize), comparer!);
                     return;
                 }
                 depthLimit--;
 
-                int p = PickPivotAndPartition(keys.Slice(0, partitionSize), comparer);
+                int p = PickPivotAndPartition(keys.Slice(0, partitionSize), comparer!);
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer!);
                 partitionSize = p;
             }
         }
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             int middle = hi >> 1;
 
             // Sort lo, mid and hi appropriately, then pick mid as the pivot.
-            SwapIfGreater(keys, comparer, 0, middle);  // swap the low with the mid point
-            SwapIfGreater(keys, comparer, 0, hi);   // swap the low with the high
-            SwapIfGreater(keys, comparer, middle, hi); // swap the middle with the high
+            SwapIfGreater(keys, comparer!, 0, middle);  // swap the low with the mid point
+            SwapIfGreater(keys, comparer!, 0, hi);   // swap the low with the high
+            SwapIfGreater(keys, comparer!, middle, hi); // swap the middle with the high
 
             T pivot = keys[middle];
             Swap(keys, middle, hi - 1);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
             while (left < right)
             {
-                while (comparer(keys[++left], pivot) < 0)
+                while (comparer!(keys[++left], pivot) < 0)
                 {
                     // Intentionally empty
                 }
@@ -242,13 +242,13 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
             {
-                DownHeap(keys, i, n, 0, comparer);
+                DownHeap(keys, i, n, 0, comparer!);
             }
 
             for (int i = n; i > 1; i--)
             {
                 Swap(keys, 0, i - 1);
-                DownHeap(keys, 1, i - 1, 0, comparer);
+                DownHeap(keys, 1, i - 1, 0, comparer!);
             }
         }
 
@@ -262,12 +262,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             while (i <= n >> 1)
             {
                 int child = 2 * i;
-                if (child < n && comparer(keys[lo + child - 1], keys[lo + child]) < 0)
+                if (child < n && comparer!(keys[lo + child - 1], keys[lo + child]) < 0)
                 {
                     child++;
                 }
 
-                if (!(comparer(d, keys[lo + child - 1]) < 0))
+                if (!(comparer!(d, keys[lo + child - 1]) < 0))
                     break;
 
                 keys[lo + i - 1] = keys[lo + child - 1];
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 }
                 else
                 {
-                    order = array[i].CompareTo(value);
+                    order = array[i].CompareTo(value!);
                 }
 
                 if (order == 0)
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             Debug.Assert(0 <= j && j < keys.Length && j < values.Length);
             Debug.Assert(i != j);
 
-            if (comparer.Compare(keys[i], keys[j]) > 0)
+            if (comparer!.Compare(keys[i], keys[j]) > 0)
             {
                 TKey key = keys[i];
                 keys[i] = keys[j];
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
             if (keys.Length > 1)
             {
-                IntroSort(keys, values, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer);
+                IntroSort(keys, values, 2 * (SegmentedArraySortUtils.Log2((uint)keys.Length) + 1), comparer!);
             }
         }
 
@@ -745,33 +745,33 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
                     if (partitionSize == 2)
                     {
-                        SwapIfGreaterWithValues(keys, values, comparer, 0, 1);
+                        SwapIfGreaterWithValues(keys, values, comparer!, 0, 1);
                         return;
                     }
 
                     if (partitionSize == 3)
                     {
-                        SwapIfGreaterWithValues(keys, values, comparer, 0, 1);
-                        SwapIfGreaterWithValues(keys, values, comparer, 0, 2);
-                        SwapIfGreaterWithValues(keys, values, comparer, 1, 2);
+                        SwapIfGreaterWithValues(keys, values, comparer!, 0, 1);
+                        SwapIfGreaterWithValues(keys, values, comparer!, 0, 2);
+                        SwapIfGreaterWithValues(keys, values, comparer!, 1, 2);
                         return;
                     }
 
-                    InsertionSort(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer);
+                    InsertionSort(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer!);
                     return;
                 }
 
                 if (depthLimit == 0)
                 {
-                    HeapSort(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer);
+                    HeapSort(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer!);
                     return;
                 }
                 depthLimit--;
 
-                int p = PickPivotAndPartition(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer);
+                int p = PickPivotAndPartition(keys.Slice(0, partitionSize), values.Slice(0, partitionSize), comparer!);
 
                 // Note we've already partitioned around the pivot and do not have to move the pivot again.
-                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), values.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer);
+                IntroSort(keys.Slice(p + 1, partitionSize - (p + 1)), values.Slice(p + 1, partitionSize - (p + 1)), depthLimit, comparer!);
                 partitionSize = p;
             }
         }
@@ -787,9 +787,9 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             int middle = hi >> 1;
 
             // Sort lo, mid and hi appropriately, then pick mid as the pivot.
-            SwapIfGreaterWithValues(keys, values, comparer, 0, middle);  // swap the low with the mid point
-            SwapIfGreaterWithValues(keys, values, comparer, 0, hi);   // swap the low with the high
-            SwapIfGreaterWithValues(keys, values, comparer, middle, hi); // swap the middle with the high
+            SwapIfGreaterWithValues(keys, values, comparer!, 0, middle);  // swap the low with the mid point
+            SwapIfGreaterWithValues(keys, values, comparer!, 0, hi);   // swap the low with the high
+            SwapIfGreaterWithValues(keys, values, comparer!, middle, hi); // swap the middle with the high
 
             TKey pivot = keys[middle];
             Swap(keys, values, middle, hi - 1);
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
             while (left < right)
             {
-                while (comparer.Compare(keys[++left], pivot) < 0)
+                while (comparer!.Compare(keys[++left], pivot) < 0)
                 {
                     // Intentionally empty
                 }
@@ -829,13 +829,13 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             int n = keys.Length;
             for (int i = n >> 1; i >= 1; i--)
             {
-                DownHeap(keys, values, i, n, 0, comparer);
+                DownHeap(keys, values, i, n, 0, comparer!);
             }
 
             for (int i = n; i > 1; i--)
             {
                 Swap(keys, values, 0, i - 1);
-                DownHeap(keys, values, 1, i - 1, 0, comparer);
+                DownHeap(keys, values, 1, i - 1, 0, comparer!);
             }
         }
 
@@ -851,12 +851,12 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             while (i <= n >> 1)
             {
                 int child = 2 * i;
-                if (child < n && comparer.Compare(keys[lo + child - 1], keys[lo + child]) < 0)
+                if (child < n && comparer!.Compare(keys[lo + child - 1], keys[lo + child]) < 0)
                 {
                     child++;
                 }
 
-                if (!(comparer.Compare(d, keys[lo + child - 1]) < 0))
+                if (!(comparer!.Compare(d, keys[lo + child - 1]) < 0))
                     break;
 
                 keys[lo + i - 1] = keys[lo + child - 1];
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 TValue tValue = values[i + 1];
 
                 int j = i;
-                while (j >= 0 && comparer.Compare(t, keys[j]) < 0)
+                while (j >= 0 && comparer!.Compare(t, keys[j]) < 0)
                 {
                     keys[j + 1] = keys[j];
                     values[j + 1] = values[j];

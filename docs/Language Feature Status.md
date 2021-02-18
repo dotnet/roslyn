@@ -19,6 +19,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562)                           | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default)                                  | [Implemented](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv)                                            | [gafter](https://github.com/gafter)                                                | [jcouv](https://github.com/jcouv)       |
 | [Constant Interpolated Strings](https://github.com/dotnet/csharplang/issues/2951) | master | [Merged into 16.9p3](https://github.com/dotnet/roslyn/pull/49676) | [kevinsun-dev](https://github.com/kevinsun-dev) | [333fred](https://github.com/333fred) | [jaredar](https://github.com/jaredpar), [agocke](https://github.com/agocke) |
 | [Mix declarations and variables in deconstruction](https://github.com/dotnet/csharplang/issues/125) | master | [Merged into 16.10](https://github.com/dotnet/roslyn/issues/47746) | [YairHalberstadt ](https://github.com/YairHalberstadt ) | [jcouv](https://github.com/jcouv) | [MadsTorgersen](https://github.com/MadsTorgersen) |
+| [List patterns](https://github.com/dotnet/csharplang/issues/3435) | [list-patterns](https://github.com/dotnet/roslyn/tree/features/list-patterns) | [In Progress](https://github.com/dotnet/roslyn/issues/51289) | [alrz](https://github.com/alrz) | [333fred](https://github.com/333fred) (tentative) | [333fred](https://github.com/333fred) |
 
 # VB 16.9
 
