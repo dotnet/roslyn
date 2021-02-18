@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Protected Shared Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As SegmentedList(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As ImmutableArray(Of SyntaxToken))
-            If containingNode Is Nothing OrElse tokens.IsDefaultOrEmpty Then
+            If containingNode Is Nothing OrElse tokens.IsEmpty Then
                 Return
             End If
 
