@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // delegate to:
                     //
                     // virtual bool Equals(Derived other) =>
-                    //     base.Equals((Base)other) &&
-                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
+                    //     (object)other == this || (base.Equals((Base)other) &&
+                    //     field1 == other.field1 && ... && fieldN == other.fieldN);
                     retExpr = F.Call(
                         F.Base(baseEquals.ContainingType),
                         baseEquals,
