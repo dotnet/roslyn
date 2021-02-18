@@ -609,7 +609,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    param.Accept(this.NotFirstVisitor);
+                    AddParameterRefKindIfRequired(param.RefKind);
+
+                    AddCustomModifiersIfRequired(param.RefCustomModifiers);
+
+                    param.Type.Accept(this.NotFirstVisitor);
+
+                    AddCustomModifiersIfRequired(param.CustomModifiers, leadingSpace: true, trailingSpace: false);
+
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
@@ -678,13 +685,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (e.g. field types, param types, etc), which just want the name whereas parameters are
             // used on their own or in the context of methods.
 
-            // SignatureOnlyParameterSymbol.ContainingSymbol throws.
-            var isFunctionPointerParameter = symbol is not Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel.Symbol { UnderlyingSymbol: SignatureOnlyParameterSymbol }
-                && symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature };
-            var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType)
-                || isFunctionPointerParameter;
+
+            var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
+
             var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
-                              && !isFunctionPointerParameter;
+                && symbol.Name.Length != 0;
+
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
             if (includeBrackets && symbol.IsOptional)
