@@ -1174,7 +1174,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                                                     getEnumeratorArguments, getEnumeratorDefaultArguments,
                                                                                                     moveNextArguments, moveNextDefaultArguments,
                                                                                                     currentArguments, currentDefaultArguments)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
             Return New ForEachLoopOperationInfo(statementInfo.ElementType,
                                                      statementInfo.GetEnumeratorMethod,
                                                      statementInfo.CurrentProperty,

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -62,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim m1 = MakeMethodBody(src1, stateMachine)
             Dim m2 = MakeMethodBody(src2, stateMachine)
 
-            Dim diagnostics = New List(Of RudeEditDiagnostic)()
+            Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
 
             Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
             Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)

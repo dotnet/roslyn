@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -638,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        protected override void ReportLocalFunctionsDeclarationRudeEdits(Match<SyntaxNode> bodyMatch, List<RudeEditDiagnostic> diagnostics)
+        protected override void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch)
         {
             var bodyEditsForLambda = bodyMatch.GetTreeEdits();
             var editMap = BuildEditMap(bodyEditsForLambda);
@@ -1050,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 || ((TypeDeclarationSyntax)syntaxRefs.Single().GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword);
         }
 
-        protected override ISymbol? GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken)
+        protected override ISymbol? GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, IReadOnlyDictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.Parameter))
             {
@@ -1083,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return model.GetDeclaredSymbol(node, cancellationToken);
         }
 
-        protected override bool TryGetDeclarationBodyEdit(Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap, out SyntaxNode? oldBody, out SyntaxNode? newBody)
+        protected override bool TryGetDeclarationBodyEdit(Edit<SyntaxNode> edit, IReadOnlyDictionary<SyntaxNode, EditKind> editMap, out SyntaxNode? oldBody, out SyntaxNode? newBody)
         {
             // Detect a transition between a property/indexer with an expression body and with an explicit getter.
             // int P => old_body;              <->      int P { get { new_body } } 
@@ -1111,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return base.TryGetDeclarationBodyEdit(edit, editMap, out oldBody, out newBody);
         }
 
-        private static bool IsGetterToExpressionBodyTransformation(EditKind editKind, SyntaxNode node, Dictionary<SyntaxNode, EditKind> editMap)
+        private static bool IsGetterToExpressionBodyTransformation(EditKind editKind, SyntaxNode node, IReadOnlyDictionary<SyntaxNode, EditKind> editMap)
         {
             if ((editKind == EditKind.Insert || editKind == EditKind.Delete) && node.IsKind(SyntaxKind.GetAccessorDeclaration))
             {
@@ -1199,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -1883,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private readonly struct EditClassifier
         {
             private readonly CSharpEditAndContinueAnalyzer _analyzer;
-            private readonly List<RudeEditDiagnostic> _diagnostics;
+            private readonly ArrayBuilder<RudeEditDiagnostic> _diagnostics;
             private readonly Match<SyntaxNode>? _match;
             private readonly SyntaxNode? _oldNode;
             private readonly SyntaxNode? _newNode;
@@ -1893,7 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
-                List<RudeEditDiagnostic> diagnostics,
+                ArrayBuilder<RudeEditDiagnostic> diagnostics,
                 SyntaxNode? oldNode,
                 SyntaxNode? newNode,
                 EditKind kind,
@@ -3030,8 +3031,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             #endregion
         }
 
-        internal override void ReportSyntacticRudeEdits(
-            List<RudeEditDiagnostic> diagnostics,
+        internal override void ReportTopLevelSyntacticRudeEdits(
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             Edit<SyntaxNode> edit,
             Dictionary<SyntaxNode, EditKind> editMap)
@@ -3045,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
+        internal override void ReportMemberUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
         {
             var classifier = new EditClassifier(this, diagnostics, oldNode: null, newMember, EditKind.Update, span: span);
 
@@ -3061,7 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Semantic Rude Edits
 
-        internal override void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol)
+        internal override void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol)
         {
             // We rejected all exported methods during syntax analysis, so no additional work is needed here.
         }
@@ -3122,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override void ReportEnclosingExceptionHandlingRudeEdits(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
             SyntaxNode oldStatement,
             TextSpan newStatementSpan)
@@ -3231,7 +3232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
             // TODO: changes around suspension points (foreach, lock, using, etc.)
 
@@ -3249,7 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
+        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
         {
             // Handle deletion of await keyword from await foreach statement.
             if (deletedSuspensionPoint is CommonForEachStatementSyntax deletedForeachStatement &&
@@ -3283,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             base.ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedSuspensionPoint);
         }
 
-        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
+        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
         {
             // Handle addition of await keyword to foreach statement.
             if (insertedSuspensionPoint is CommonForEachStatementSyntax insertedForEachStatement &&
@@ -3425,7 +3426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region Rude Edits around Active Statement
 
         internal override void ReportOtherRudeEditsAroundActiveStatement(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
@@ -3443,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// exactly the same variables are emitted for the new switch as they were for the old one and their order didn't change either.
         /// This is guaranteed if none of the case clauses have changed.
         /// </summary>
-        private void ReportRudeEditsForSwitchWhenClauses(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+        private void ReportRudeEditsForSwitchWhenClauses(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
         {
             if (!oldActiveStatement.IsKind(SyntaxKind.WhenClause))
             {
@@ -3499,7 +3500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private void ReportRudeEditsForCheckedStatements(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isNonLeaf)
@@ -3554,7 +3555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private void ReportRudeEditsForAncestorsDeclaringInterStatementTemps(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement)

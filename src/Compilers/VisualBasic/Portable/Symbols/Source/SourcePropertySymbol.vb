@@ -231,12 +231,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                              syntaxRef As SyntaxReference,
                              modifiers As MemberModifiers,
                              firstFieldDeclarationOfType As Boolean,
-                             diagnostics As DiagnosticBag) As SourcePropertySymbol
+                             diagnostics As BindingDiagnosticBag) As SourcePropertySymbol
 
             Dim name = identifier.ValueText
 
             ' we will require AccessedThroughPropertyAttribute
-            bodyBinder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
+            bodyBinder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
                                                     DirectCast(identifier.Parent, VisualBasicSyntaxNode),
                                                     diagnostics)
 
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeType(diagnostics As DiagnosticBag) As TypeSymbol
+        Private Function ComputeType(diagnostics As BindingDiagnosticBag) As TypeSymbol
             Dim binder = CreateBinderForTypeDeclaration()
 
             If IsWithEvents Then
@@ -553,9 +553,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
             Dim attrData = arguments.Attribute
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If arguments.SymbolPart = AttributeLocation.Return Then
@@ -566,7 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _getMethod Is Nothing AndAlso _setMethod IsNot Nothing AndAlso
                     (Not isMarshalAs OrElse Not SynthesizedParameterSymbol.IsMarshalAsAttributeApplicable(_setMethod)) Then
 
-                    arguments.Diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
+                    diagnostics.Add(ERRID.WRN_ReturnTypeAttributeOnWriteOnlyProperty, arguments.AttributeSyntaxOpt.GetLocation())
                     Return
                 End If
 
@@ -587,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' if neither getter or setter is marked by DebuggerHidden Dev11 reports a warning
                     If Not (_getMethod IsNot Nothing AndAlso DirectCast(_getMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute OrElse
                             _setMethod IsNot Nothing AndAlso DirectCast(_setMethod, SourcePropertyAccessorSymbol).HasDebuggerHiddenAttribute) Then
-                        arguments.Diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
+                        diagnostics.Add(ERRID.WRN_DebuggerHiddenIgnoredOnProperties, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                     Return
                 End If
@@ -730,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub EnsureSignature()
             If _lazyParameters.IsDefault Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
                 Dim params As ImmutableArray(Of ParameterSymbol) = ComputeParameters(diagnostics)
@@ -795,8 +796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 sourceModule.AtomicStoreArrayAndDiagnostics(
                     _lazyParameters,
                     params,
-                    diagnostics,
-                    CompilationStage.Declare)
+                    diagnostics)
 
                 diagnostics.Free()
             End If
@@ -819,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeParameters(diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+        Private Function ComputeParameters(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             If Me.IsWithEvents Then
                 ' no parameters
@@ -837,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' 'touch' System_Reflection_DefaultMemberAttribute__ctor to make sure all diagnostics are reported
-                binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
+                binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                                                                      syntax,
                                                                      diagnostics)
             End If
@@ -862,12 +862,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ExplicitInterfaceImplementations As ImmutableArray(Of PropertySymbol)
             Get
                 If _lazyImplementedProperties.IsDefault Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
-                                                                diagnostics,
-                                                                CompilationStage.Declare)
+                                                                diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -875,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeExplicitInterfaceImplementations(diagnostics As DiagnosticBag) As ImmutableArray(Of PropertySymbol)
+        Private Function ComputeExplicitInterfaceImplementations(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of PropertySymbol)
             Dim binder = CreateBinderForTypeDeclaration()
             Dim syntax = DirectCast(_syntaxRef.GetSyntax(), PropertyStatementSyntax)
             Return BindImplementsClause(_containingType, binder, Me, syntax, diagnostics)
@@ -1101,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                      bodyBinder As Binder,
                                                      prop As SourcePropertySymbol,
                                                      syntax As PropertyStatementSyntax,
-                                                     diagnostics As DiagnosticBag) As ImmutableArray(Of PropertySymbol)
+                                                     diagnostics As BindingDiagnosticBag) As ImmutableArray(Of PropertySymbol)
             If syntax.ImplementsClause IsNot Nothing Then
                 If prop.IsShared And Not containingType.IsModuleType Then
                     ' Implementing with shared methods is illegal.

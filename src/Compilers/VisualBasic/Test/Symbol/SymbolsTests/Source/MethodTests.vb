@@ -1732,5 +1732,56 @@ BC32065: Type parameters cannot be specified on this declaration.
 ]]></errors>)
         End Sub
 
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionOnNonPartial()
+            Dim source = <![CDATA[
+Public Class C
+    Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.False(m.IsPartialDefinition)
+        End Sub
+
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionOnPartialDefinitionOnly()
+            Dim source = <![CDATA[
+Public Class C
+    Private Partial Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.True(m.IsPartialDefinition)
+            Assert.Null(m.PartialDefinitionPart)
+            Assert.Null(m.PartialImplementationPart)
+        End Sub
+
+        <Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")>
+        Public Sub IsPartialDefinitionWithPartialImplementation()
+            Dim source = <![CDATA[
+Public Class C
+    Private Partial Sub M()
+    End Sub
+
+    Private Sub M()
+    End Sub
+End Class
+]]>.Value
+
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseDiagnostics()
+            Dim m As IMethodSymbol = comp.GetMember(Of MethodSymbol)("C.M")
+            Assert.True(m.IsPartialDefinition)
+            Assert.Null(m.PartialDefinitionPart)
+            Assert.False(m.PartialImplementationPart.IsPartialDefinition)
+        End Sub
     End Class
 End Namespace
