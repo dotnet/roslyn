@@ -130,7 +130,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             // Apply the text changes.
             using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, edits.TextChanges.Distinct(), CancellationToken.None);
+                using var edit = subjectBuffer.CreateEdit();
+                foreach (var change in edits.TextChanges.Distinct())
+                {
+                    edit.Replace(change.Span.ToSpan(), change.NewText);
+                }
+
+                edit.ApplyAndLogExceptions();
                 transaction.Complete();
             }
 
