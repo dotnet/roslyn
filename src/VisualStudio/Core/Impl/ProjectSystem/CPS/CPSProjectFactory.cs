@@ -58,6 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string binOutputPath,
             CancellationToken cancellationToken)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 FilePath = projectFilePath,
@@ -65,12 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 ProjectGuid = projectGuid,
             };
 
-            var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
+            var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
+                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(true);
 
             // At this point we've mutated the workspace.  So we're no longer cancellable.
             cancellationToken = CancellationToken.None;
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (languageName == LanguageNames.FSharp)
             {
                 var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
