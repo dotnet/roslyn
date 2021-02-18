@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -511,31 +510,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     newNode,
                     cancellationToken);
 
+                // Move the caret to the end of line
                 var replacementNode = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
-                if (replacementNode is ObjectCreationExpressionSyntax)
-                {
-                    var nextToken = replacementNode.GetLastToken().GetNextToken();
-                    if (nextToken.IsKind(SyntaxKind.SemicolonToken)
-                        && !nextToken.IsMissing)
-                    {
-                        return (newRoot, nextToken.Span.End);
-                    }
-                }
-
-                // TODO: Figure out a good way to find proper end
-                // Locate the replacement node, move the caret to the end.
-                // e.g.
-                // case 1 (here the replacement node is local declaration statement):
-                // var c = new Object() { $$ }
-                // =>
-                // var c = new Object();$$
-                // we need to move the caret after semicolon
-                // case 2: (here
-                // var c = new Object() { $$ }
-                // =>
-                // var c = new Object() { $$ };
-                var nextCaretPosition = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single().GetLastToken().Span.End;
-                return (newRoot, nextCaretPosition);
+                var lastToken = replacementNode.GetLastToken();
+                var lineEnd = newRoot.GetText().Lines.GetLineFromPosition(lastToken.Span.End).End;
+                return (newRoot, lineEnd);
             }
             else
             {
@@ -656,12 +635,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             {
                 if (ShouldAddBraces(node, caretPosition))
                 {
-                    return (node, true);
+                    return (selectedNode: node, addBrace: true);
                 }
 
                 if (ShouldRemoveBraces(node, caretPosition))
                 {
-                    return (node, false);
+                    return (selectedNode: node, addBrace: false);
                 }
             }
 

@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode root,
             SyntaxNode oldNode,
             SyntaxNode newNode,
-            ImmutableArray<SyntaxNode> nodesToInsert,
+            SyntaxNode anchorNode,
+            ImmutableArray<StatementSyntax> nodesToInsert,
             CancellationToken cancellationToken)
         {
             var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            rootEditor.InsertAfter(oldNode, nodesToInsert);
-            // TODO: this is not 100% valid, need to find the block via the inheritance chain
+            rootEditor.InsertAfter(anchorNode, nodesToInsert);
             rootEditor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(s_replacementNodeAnnotation));
             var newRoot = rootEditor.GetChangedRoot();
 
@@ -132,9 +132,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     => ReplaceStatementOwnerAndInsertStatement(
                           document,
                           root,
-                          embeddedStatementOwner,
-                          AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, editorOptions),
-                          ImmutableArray<SyntaxNode>.Empty.Add(statement),
+                          oldNode: embeddedStatementOwner,
+                          newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, editorOptions),
+                          anchorNode: embeddedStatementOwner,
+                          nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
                           cancellationToken),
                 DoStatementSyntax doStatementNode => AddBraceToDoStatement(document, root, doStatementNode, editorOptions, statement, cancellationToken),
                 IfStatementSyntax ifStatementNode => AddBraceToIfStatement(document, root, ifStatementNode, editorOptions, statement, cancellationToken),
@@ -170,9 +171,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return ReplaceStatementOwnerAndInsertStatement(
                     document,
                     root,
-                    doStatementNode,
-                    AddBlockToEmbeddedStatementOwner(doStatementNode, editorOptions),
-                    ImmutableArray<SyntaxNode>.Empty.Add(innerStatement),
+                    oldNode: doStatementNode,
+                    newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, editorOptions),
+                    anchorNode: doStatementNode,
+                    nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
                     cancellationToken);
             }
 
@@ -219,12 +221,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //   Print("Hello");
             if (ifStatementNode.Else == null)
             {
-                return ReplaceStatementOwnerAndInsertStatement(document,
-                    root,
-                    ifStatementNode,
-                    AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions),
-                    ImmutableArray<SyntaxNode>.Empty.Add(innerStatement),
-                    cancellationToken);
+                var topIfStatement = FindTheTopIfStatementNode(ifStatementNode);
+                if (topIfStatement != null)
+                {
+                    return ReplaceStatementOwnerAndInsertStatement(document,
+                        root,
+                        ifStatementNode,
+                        AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions),
+                        topIfStatement,
+                        ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                        cancellationToken);
+                }
             }
 
             // If this IfStatement has an else statement after
@@ -279,12 +286,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //      $$
             // }
             // var i = 10;
-            return ReplaceStatementOwnerAndInsertStatement(document,
+            var topIfStatement = FindTheTopIfStatementNode(elseClauseNode);
+            if (topIfStatement != null)
+            {
+                return ReplaceStatementOwnerAndInsertStatement(document,
+                    root,
+                    elseClauseNode,
+                    WithBraces(elseClauseNode, editorOptions),
+                    topIfStatement,
+                    ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    cancellationToken);
+            }
+
+            var formattedNewRoot = ReplaceNodeAndFormat(
+                document,
                 root,
                 elseClauseNode,
-                WithBraces(elseClauseNode, editorOptions),
-                ImmutableArray<SyntaxNode>.Empty.Add(innerStatement),
+                AddBlockToEmbeddedStatementOwner(elseClauseNode, editorOptions, innerStatement),
                 cancellationToken);
+
+            var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
+            return (formattedNewRoot, nextCaretPosition);
+        }
+
+        private static IfStatementSyntax? FindTheTopIfStatementNode(ElseClauseSyntax elseClauseNode)
+        {
+            return elseClauseNode.FirstAncestorOrSelf<IfStatementSyntax>(node => node.Parent is BlockSyntax);
+        }
+
+        private static IfStatementSyntax? FindTheTopIfStatementNode(IfStatementSyntax ifStatementNode)
+        {
+            foreach (var node in ifStatementNode.AncestorsAndSelf())
+            {
+                if (node is IfStatementSyntax ifStatementParent && ifStatementParent.Parent is BlockSyntax)
+                {
+                    return ifStatementParent;
+                }
+
+            }
+
+            return ifStatementNode.FirstAncestorOrSelf<IfStatementSyntax>(node => node.Parent is BlockSyntax);
         }
 
         #endregion
@@ -712,20 +753,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         private static InitializerExpressionSyntax GetInitializerExpressionNode(IEditorOptions editorOptions)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression)
-                .WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
+                .WithOpenBraceToken(GetOpenBrace(editorOptions));
 
         private static BlockSyntax GetBlockNode(IEditorOptions editorOptions)
             => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
 
         private static SyntaxToken GetOpenBrace(IEditorOptions editorOptions)
             => SyntaxFactory.Token(
-                    SyntaxTriviaList.Empty, SyntaxKind.OpenBraceToken,
-                    SyntaxTriviaList.Empty.Add(GetNewLineTrivia(editorOptions)))
+                    leading: SyntaxTriviaList.Empty,
+                    kind: SyntaxKind.OpenBraceToken,
+                    trailing: SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)))
                 .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
         private static SyntaxToken GetCloseBrace(IEditorOptions editorOptions)
             => SyntaxFactory.Token(
-               SyntaxTriviaList.Empty, SyntaxKind.CloseBraceToken, SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)));
+                leading: SyntaxTriviaList.Empty,
+                kind: SyntaxKind.CloseBraceToken,
+                trailing: SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)));
 
         private static SyntaxTrivia GetNewLineTrivia(IEditorOptions editorOptions)
         {
@@ -837,10 +881,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static SyntaxNode AddBlockToEmbeddedStatementOwner(
             SyntaxNode embeddedStatementOwner,
             IEditorOptions editorOptions,
-            SyntaxNode? extraNodeInsertedBetweenBraces = null)
+            StatementSyntax? extraNodeInsertedBetweenBraces = null)
         {
-            var block = extraNodeInsertedBetweenBraces is StatementSyntax statementNode
-                ? GetBlockNode(editorOptions).WithStatements(new SyntaxList<StatementSyntax>(statementNode))
+            var block = extraNodeInsertedBetweenBraces != null
+                ? GetBlockNode(editorOptions).WithStatements(new SyntaxList<StatementSyntax>(extraNodeInsertedBetweenBraces))
                 : GetBlockNode(editorOptions);
 
             return embeddedStatementOwner switch
@@ -885,7 +929,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static ObjectCreationExpressionSyntax RemoveInitializerForObjectCreationExpression(
             ObjectCreationExpressionSyntax objectCreationExpressionNode)
         {
-            return objectCreationExpressionNode.WithInitializer(null);
+            var objectCreationNodeWithoutInitializer = objectCreationExpressionNode.WithInitializer(null);
+            // Filter the non-comments trivia
+            // e.g.
+            // Bar(new Foo() // I am some comments
+            // {
+            //      $$
+            // });
+            // => 
+            // Bar(new Foo() // I am some comments);
+            // In this case, 'I am somme comments' has an end of line triva, if not removed, it would make
+            // the final result becomes
+            // Bar(new Foo() // I am some comments
+            // );
+            var trivia = objectCreationNodeWithoutInitializer.GetTrailingTrivia().Where(trivia => trivia.IsSingleOrMultiLineComment());
+            return objectCreationNodeWithoutInitializer.WithTrailingTrivia(trivia);
         }
 
         /// <summary>

@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 // Check if we could find the ending position
-                var endingInsertionPosition= GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
+                var endingInsertionPosition = GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
                 if (endingInsertionPosition != null)
                 {
                     using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);

@@ -1831,6 +1831,181 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestNestIfStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                    }
+        var a = 1000;
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+        var a = 1000;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfStatementWithoutInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                    }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfStatementWithBlockWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+            {
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                    }
+                var i = 10;
+            }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+            {
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+                var i = 10;
+            }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestedElseIfStatementWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+        }
+        else if (i == 2)
+            if (i == 3)
+            {
+                $$
+                var i = 10;
+            }
+        else
+        {
+        }
+    }
+}", @"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+        }
+        else if (i == 2)
+            i$$f (i$$ == 3)$$
+                var i = 10;
+        else
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestNestIfElseStatementWithBlockWithInnerStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+            {
+                if (x == 3)
+                    if (x == 4)
+                    {
+                        $$
+                        var i = 10;
+                    }
+            }
+            else
+            {
+            }
+    }
+}", @"
+public class Bar
+{
+    public void Main(int x)
+    {
+        if (x == 1)
+            if (x == 2)
+            {
+                if (x == 3)
+                    i$$f ($$x =$$= 4)$$
+                    var i = 10;
+            }
+            else
+            {
+            }
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestEmptyDoStatement()
         {
             Test(@"
@@ -2061,6 +2236,44 @@ public class Bar
         var i = 10;
         else
         {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestElseClauseInNestedIfStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Fo(int i)
+    {
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+            if (i == 2)
+                var i = 10;
+            else
+            {
+                $$
+            }
+            var c = 100;
+        }
+    }
+    }
+}", @"
+public class Bar
+{
+    public void Fo(int i)
+    {
+        if (i == 1)
+        {
+            if (i == 2)
+                var i = 10;
+            el$$se
+            var c = 100;
         }
     }
 }");
@@ -2379,7 +2592,7 @@ public class bar
     {
         int i = 10;
         switch (i)
-        $$
+            $$
         {
         }
     }
@@ -2405,7 +2618,7 @@ public class bar
     public void TT()
     {
         try
-        $$
+            $$
         {
         }
     }
