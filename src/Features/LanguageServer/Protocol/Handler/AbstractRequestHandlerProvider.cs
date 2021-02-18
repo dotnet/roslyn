@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -19,18 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal abstract class AbstractRequestHandlerProvider
     {
         /// <summary>
-        /// Instantiates new handler instances and returns the instance
-        /// with the LSP method metadata.
+        /// Instantiates new handler instances and returns them.
         /// </summary>
-        public ImmutableArray<(IRequestHandler Handler, ILspMethodMetadata Metadata)> CreateRequestHandlers()
-        {
-            var handlers = InitializeHandlers();
-            return handlers.Select(handler => (handler, LspMethodAttribute.GetLspMethodMetadata(handler.GetType()))).ToImmutableArray();
-        }
-
-        /// <summary>
-        /// Instantiates new handler instances.
-        /// </summary>
-        protected abstract ImmutableArray<IRequestHandler> InitializeHandlers();
+        public abstract ImmutableArray<IRequestHandler> CreateRequestHandlers();
     }
 }

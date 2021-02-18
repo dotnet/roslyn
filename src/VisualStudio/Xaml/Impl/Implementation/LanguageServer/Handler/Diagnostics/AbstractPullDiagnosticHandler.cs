@@ -30,6 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         /// <summary>
         /// Gets the progress object to stream results to.
         /// </summary>
@@ -58,6 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         public override async Task<TReport[]?> HandleRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
             // Get the set of results the request said were previously reported.

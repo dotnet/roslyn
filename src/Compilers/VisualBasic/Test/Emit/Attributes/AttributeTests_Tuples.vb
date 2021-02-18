@@ -165,16 +165,16 @@ Class C
         d((0, 0))
     End Sub
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
         Dim d As D(Of (x As Integer, y As Integer)) = Sub(o)
                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
@@ -204,16 +204,16 @@ End Namespace"
         Return Nothing
     End Function
 End Class"
-            Dim comp = CreateEmptyCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0}, assemblyName:="corelib")
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
             comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
-BC30002: Type 'System.String' is not defined.
+BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' containing the type 'ValueType'. Add one to your project.
+BC31091: Import of type 'String' from assembly or module 'corelib.dll' failed.
     Shared Function M() As (x As Integer, y As Integer)
                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 </expected>)

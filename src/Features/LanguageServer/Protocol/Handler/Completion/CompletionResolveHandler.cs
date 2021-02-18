@@ -18,10 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [LspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false)]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly CompletionListCache _completionListCache;
+
+        public string Method => LSP.Methods.TextDocumentCompletionResolveName;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CompletionResolveHandler(CompletionListCache completionListCache)
         {
@@ -108,6 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = completionItem.Detail,
                 Documentation = completionItem.Documentation,
                 FilterText = completionItem.FilterText,
+                Icon = completionItem is LSP.VSCompletionItem vsCompletionItem ? vsCompletionItem.Icon : null,
                 InsertText = completionItem.InsertText,
                 InsertTextFormat = completionItem.InsertTextFormat,
                 Kind = completionItem.Kind,

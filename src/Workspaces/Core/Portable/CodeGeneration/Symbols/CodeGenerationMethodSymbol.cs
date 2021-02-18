@@ -114,5 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol PartialImplementationPart => null;
 
         public override IMethodSymbol PartialDefinitionPart => null;
+
+        public override bool IsPartialDefinition => false;
     }
 }

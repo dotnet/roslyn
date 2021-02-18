@@ -136,6 +136,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CompletionDescription.Empty;
         }
 
+        public static string GetTypeName(CompletionItem item)
+        {
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName)
+                ? attributeFullName
+                : item.DisplayText;
+
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+            {
+                return typeName + aritySuffix;
+            }
+
+            return typeName;
+        }
+
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 

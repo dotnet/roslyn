@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 // TODO(cyrusn): Construct this.
                 _constructedFrom.PartialImplementationPart;
 
+        public override bool IsPartialDefinition => _constructedFrom.IsPartialDefinition;
+
         protected override CodeGenerationSymbol Clone()
             => new CodeGenerationConstructedMethodSymbol(_constructedFrom, _typeArguments);
     }

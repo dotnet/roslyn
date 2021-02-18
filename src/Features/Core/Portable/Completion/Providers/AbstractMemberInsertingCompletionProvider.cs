@@ -58,9 +58,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
+            var changesArray = changes.ToImmutableArray();
+            var change = Utilities.Collapse(newText, changesArray);
 
-            return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)

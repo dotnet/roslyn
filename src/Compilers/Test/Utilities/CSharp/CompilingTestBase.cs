@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, compilationState, new BindingDiagnosticBag(diagnostics));
             diagnostics.Free();
             return block;
         }

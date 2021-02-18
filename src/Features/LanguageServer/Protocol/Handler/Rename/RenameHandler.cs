@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentRenameName, mutatesSolutionState: false)]
+    [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RenameHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentRenameName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 

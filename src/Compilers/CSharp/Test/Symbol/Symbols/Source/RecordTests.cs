@@ -1236,8 +1236,9 @@ data struct S1 { }
 data struct S2(int X, int Y);";
             var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (3,14): error CS8805: Program using top-level statements must be an executable.
+                // data class C2(int X, int Y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int X, int Y);").WithLocation(3, 14),
                 // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // data class C1 { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
@@ -1631,6 +1632,197 @@ public record R1 : I1
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_01()
+        {
+            var src = @"
+record C(int X)
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_02()
+        {
+            var src1 = @"
+partial record C(int X)
+{
+}
+";
+            var src2 = @"
+partial record C
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { X = 11, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_03()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { Y = 22, X = 11 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { Y = 22, X = 11 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_04()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+}
+";
+            var src3 = @"
+partial record C
+{
+    public int Z = 33;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, Z = 33 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, Z = 33 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_05()
+        {
+            var src1 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+";
+            var src2 = @"
+partial record C
+{
+    public int Y = 22;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { X = 11, U = 44, Y = 22 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { X = 11, U = 44, Y = 22 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_06()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2, expectedOutput: "C { Y = 22, X = 11, U = 44 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2 }, expectedOutput: "C { Y = 22, X = 11, U = 44 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MergeInitializers_07()
+        {
+            var src1 = @"
+partial record C
+{
+    public int Y = 22;
+}
+";
+            var src2 = @"
+partial record C(int X)
+{
+    public int U = 44;
+}
+";
+            var src3 = @"
+partial record C
+{
+    public int Z = 33;
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.Write((new C(11)).ToString());
+    }
+}
+";
+            CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
+            CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
         }
     }
 }

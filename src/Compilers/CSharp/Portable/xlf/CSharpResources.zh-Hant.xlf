@@ -427,6 +427,11 @@
         <target state="translated">'{0}' 與函式指標 '{1}' 之間的參考不符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">無法以具名引數呼叫函式指標。</target>
@@ -9225,11 +9230,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_NoCanonicalView">
         <source>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</source>
         <target state="translated">找不到符合內嵌 Interop 類型 '{0}' 的 Interop 類型。是否遺漏了組件參考?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">不支援傳址方式傳回類型 'ref {0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">

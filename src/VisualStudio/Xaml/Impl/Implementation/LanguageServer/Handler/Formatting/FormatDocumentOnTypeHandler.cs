@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(Methods.TextDocumentOnTypeFormattingName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
@@ -28,6 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public FormatDocumentOnTypeHandler()
         {
         }
+
+        public override string Method => Methods.TextDocumentOnTypeFormattingName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
