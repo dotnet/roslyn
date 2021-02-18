@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class ListExtensions
+    internal static class SegmentedListExtensions
     {
         /// <summary>
         /// Update a list in place, where a function has the ability to either transform or remove each item.
@@ -20,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="transform">A function which transforms each element. The function returns the transformed list
         /// element, or <see langword="null"/> to remove the current item from the list.</param>
         /// <param name="arg">The state argument to pass to the transformation callback.</param>
-        public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
-            where T : class
+        public static void RemoveOrTransformAll<T, TArg>(this SegmentedList<T> list, Func<T, TArg, T?> transform, TArg arg)
+            where T : struct
         {
             RoslynDebug.AssertNotNull(list);
             RoslynDebug.AssertNotNull(transform);
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (newValue is null)
                     continue;
 
-                list[targetIndex++] = newValue;
+                list[targetIndex++] = newValue.Value;
             }
 
             list.RemoveRange(targetIndex, list.Count - targetIndex);

@@ -69,43 +69,28 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         {
             using var _ = ArrayBuilder<IndentBlockOperation>.GetInstance(out var copy);
 
-            var changed = false;
-            foreach (var operation in list)
+            list.RemoveOrTransformAll(static (operation, self) =>
             {
                 // if span is same as us, make sure we only include ourselves.
-                if (_span == operation.TextSpan && !Myself(operation))
-                    continue;
+                if (self._span == operation.TextSpan && !self.Myself(operation))
+                    return null;
 
                 // inside of us, skip it.
-                if (_span.Contains(operation.TextSpan))
-                {
-                    copy.AddRange(operation);
-                    continue;
-                }
+                if (self._span.Contains(operation.TextSpan))
+                    return operation;
 
                 // throw away operation that encloses ourselves
-                if (operation.TextSpan.Contains(_span))
-                    continue;
+                if (operation.TextSpan.Contains(self._span))
+                    return null;
 
                 // now we have an interesting case where indentation block intersects with us.
                 // this can happen if code is split in two different script blocks or nuggets.
                 // here, we will re-adjust block to be contained within our span.
-                if (operation.TextSpan.IntersectsWith(_span))
-                {
-                    changed = true;
-                    copy.Add(CloneAndAdjustFormattingOperation(operation));
-                    continue;
-                }
+                if (operation.TextSpan.IntersectsWith(self._span))
+                    return self.CloneAndAdjustFormattingOperation(operation);
 
-                copy.Add(operation);
-            }
-
-            // If we adjusted any items or skipped any items, replace the original list with the new values.
-            if (changed || list.Count != copy.Count)
-            {
-                list.Clear();
-                list.AddRange(copy);
-            }
+                return operation;
+            }, this);
         }
 
         private bool Myself(IndentBlockOperation operation)

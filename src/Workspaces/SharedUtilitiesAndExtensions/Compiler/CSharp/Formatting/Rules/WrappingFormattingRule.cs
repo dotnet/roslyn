@@ -183,21 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
 
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-            using var _ = ArrayBuilder<SuppressOperation>.GetInstance(out var copy);
-
-            foreach (var item in list)
+            list.RemoveOrTransformAll((item, span) =>
             {
                 if (item.TextSpan.Start >= span.Start && item.TextSpan.End <= span.End && item.Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
-                    continue;
+                    return null;
 
-                copy.Add(item);
-            }
-
-            if (copy.Count != list.Count)
-            {
-                list.Clear();
-                list.AddRange(copy);
-            }
+                return item;
+            }, span);
         }
 
         private readonly struct CachedOptions : IEquatable<CachedOptions>
