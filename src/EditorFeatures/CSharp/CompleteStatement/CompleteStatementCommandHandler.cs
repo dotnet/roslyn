@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (currentNode is MethodDeclarationSyntax method &&
                 (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
                 method.IsParentKind(SyntaxKind.InterfaceDeclaration)))
-                return true
+                return true;
 
             return false;
         }
