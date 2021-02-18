@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 240, // 100
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 580, // 100
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1280, // 1200
-                _ when ExecutionConditionUtil.IsMonoDesktop => 790, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 510, // 270
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1350, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 330, // 170
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 810, // 730
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 200, // 100
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 540, // 100
+                _ when ExecutionConditionUtil.IsCoreClrUnix => 1240, // 1200
+                _ when ExecutionConditionUtil.IsMonoDesktop => 750, // 730
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 470, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1310, // 1290
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 290, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 770, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
