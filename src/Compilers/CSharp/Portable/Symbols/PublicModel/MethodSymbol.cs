@@ -297,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsPartialDefinition => _underlying.IsPartialDefinition();
+
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
         {
             get
