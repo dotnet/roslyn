@@ -113,13 +113,6 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj">
-      <Name>CSharpEditorFeaturesWpf</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj">
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -309,6 +302,7 @@
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.core" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.e_sqlite3.net45" PkgDefEntry="CodeBase" />
+    <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.provider.dynamic_cdecl" PkgDefEntry="CodeBase" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" PkgDefEntry="BindingRedirect" />
     <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" PkgDefEntry="CodeBase" />
@@ -319,14 +313,14 @@
     <NugetPackageToIncludeInVsix Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" PkgDefEntry="CodeBase" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win7-x86\native\e_sqlite3.dll">
-      <Link>x86\e_sqlite3.dll</Link>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x86\native\e_sqlite3.dll">
+      <Link>runtimes\win-x86\native\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win7-x64\native\e_sqlite3.dll">
-      <Link>x64\e_sqlite3.dll</Link>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
+      <Link>runtimes\win-x64\native\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <Visible>false</Visible>

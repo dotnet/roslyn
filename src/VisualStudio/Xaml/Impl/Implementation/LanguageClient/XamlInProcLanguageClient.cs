@@ -27,20 +27,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
-            XamlLanguageServerProtocol languageServerProtocol,
+            XamlRequestDispatcherFactory xamlDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
         }
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => Resources.Xaml_Language_Server_Client;
+        public override string Name => "XAML Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities

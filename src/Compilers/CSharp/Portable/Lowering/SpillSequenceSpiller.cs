@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
 
-        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
+        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, BindingDiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _F.CurrentFunction = method;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var tempSubstitution = PooledDictionary<LocalSymbol, LocalSymbol>.GetInstance();
             var spiller = new SpillSequenceSpiller(method, body.Syntax, compilationState, tempSubstitution, diagnostics);

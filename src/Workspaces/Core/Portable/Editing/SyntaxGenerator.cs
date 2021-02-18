@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editing
         internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
-        internal abstract SyntaxTrivia EndOfLine(string text);
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 

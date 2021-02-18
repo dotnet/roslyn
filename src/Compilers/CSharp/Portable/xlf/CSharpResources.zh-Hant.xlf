@@ -427,6 +427,11 @@
         <target state="translated">'{0}' 與函式指標 '{1}' 之間的參考不符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">無法以具名引數呼叫函式指標。</target>
@@ -1001,6 +1006,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">記錄會定義 'Equals' 而非 'GetHashCode'。</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -9222,11 +9232,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">找不到符合內嵌 Interop 類型 '{0}' 的 Interop 類型。是否遺漏了組件參考?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">不支援傳址方式傳回類型 'ref {0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">儲存在 '{1}' 中的模組名稱 '{0}'，必須符合其檔案名稱。</target>
@@ -10505,11 +10510,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">此內容不允許 throw 運算式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">解構不得混合左側的宣告與運算式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">
