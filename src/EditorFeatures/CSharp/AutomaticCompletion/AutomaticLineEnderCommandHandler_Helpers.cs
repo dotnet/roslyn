@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         /// <summary>
         /// For namespace, make sure it has name there is no braces
-        // </summary>
+        /// </summary>
         private static bool ShouldAddBraceForNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclarationNode, int caretPosition)
             => !namespaceDeclarationNode.Name.IsMissing
                && HasNoBrace(namespaceDeclarationNode)
