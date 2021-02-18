@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void addToMap(BoundEvaluationDecisionDagNode node)
                 {
-                    if (node.Evaluation.Kind == BoundKind.DagNoOpEvaluation)
+                    if (node.Evaluation.Kind == BoundKind.DagIncrementEvaluation)
                     {
                         (_alternativeMap ??= PooledDictionary<BoundDagEvaluation, BoundEvaluationDecisionDagNode>.GetInstance()).Add(node.Evaluation, node);
                         GetDagNodeLabel(node);
@@ -127,7 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_dagNodeLabels.TryGetValue(dag, out LabelSymbol label))
                 {
-                    _dagNodeLabels.Add(dag, label = dag is BoundLeafDecisionDagNode d ? d.Label : _factory.GenerateLabel("dagNode"));
+                    _dagNodeLabels.Add(dag, label = dag switch
+                    {
+                        BoundLeafDecisionDagNode d => d.Label,
+                        BoundEvaluationDecisionDagNode { Evaluation: BoundDagIncrementEvaluation } => _factory.GenerateLabel("dagLoopNode"),
+                        _ => _factory.GenerateLabel("dagNode"),
+                    });
                 }
 
                 return label;
@@ -499,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (builder[i] is BoundConditionalGoto conditional)
                         {
-                            if (conditional.Label.MetadataName.Contains("dagNode"))
+                            if (string.Equals(conditional.Label.Name, "dagLoopNode", StringComparison.Ordinal))
                                 continue;
                             if (!labelMap.TryGetValue(conditional.Label, out LabelSymbol newLabel))
                                 labelMap.Add(conditional.Label, newLabel = _factory.GenerateLabel("leaveLabel"));
@@ -544,7 +549,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(e.CurrentProperty is null);
                     Debug.Assert(e.EnumeratorTemp is null);
-                    Debug.Assert(e.CountTemp is null);
                     Debug.Assert(test.OperatorKind == BinaryOperatorKind.IntGreaterThanOrEqual);
                     Debug.Assert(test.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
 
@@ -1063,11 +1067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode { Evaluation: var evaluation } evaluationNode:
                         {
-                            if (evaluation.Kind == BoundKind.DagNoOpEvaluation)
-                            {
-                                break;
-                            }
-
                             BoundExpression sideEffect = LowerEvaluation(evaluation);
                             Debug.Assert(sideEffect != null);
                             _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));

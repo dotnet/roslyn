@@ -1640,6 +1640,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 AssignPatternVariables(p, definitely);
                             }
+
+                            if (pat.ListPatternInfo.LengthPattern != null)
+                            {
+                                AssignPatternVariables(pat.ListPatternInfo.LengthPattern, definitely);
+                            }
                         }
                         if (definitely)
                             Assign(pat, null, false, false);

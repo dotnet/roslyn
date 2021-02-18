@@ -722,13 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundDagMethodEvaluation
     {
-        public BoundDagMethodEvaluation(SyntaxNode syntax, MethodSymbol method, BoundDagTemp input, bool hasErrors = false)
-            : this(syntax, method, index: 0, input, hasErrors)
-        {
-        }
-
         public BoundDagMethodEvaluation(SyntaxNode syntax, MethodSymbol method, int index, BoundDagTemp input, bool hasErrors = false)
-            : this(syntax, method, countTemp: null, enumeratorTemp: null, currentProperty: null, index, input, hasErrors)
+            : this(syntax, method, enumeratorTemp: null, currentProperty: null, index, input, hasErrors)
         {
         }
     }

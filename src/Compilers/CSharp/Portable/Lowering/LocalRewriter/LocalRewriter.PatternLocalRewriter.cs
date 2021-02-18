@@ -327,9 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagMethodEvaluation e:
                         {
                             MethodSymbol method = e.Method;
-                            var returnType = method.ReturnType;
+
                             Debug.Assert(!method.IsConstructor());
                             Debug.Assert(e.CurrentProperty is null == e.EnumeratorTemp is null);
+
                             var arg = e.CurrentProperty is not null
                                 ? ImmutableArray.Create(_factory.Property(_tempAllocator.GetTemp(e.EnumeratorTemp), e.CurrentProperty))
                                 : ImmutableArray<BoundExpression>.Empty;
@@ -338,15 +339,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (method.ReturnType.IsVoidType())
                             {
                                 // Enqueue Method
-                                Debug.Assert(e.CountTemp != null);
-                                BoundExpression count = _tempAllocator.GetTemp(e.CountTemp);
-                                return _factory.MakeSequence(callExpr, _factory.IntIncrement(count));
+                                return callExpr;
                             }
 
                             // MoveNext or Pop Method
-                            var outputTemp = new BoundDagTemp(e.Syntax, returnType, e);
+                            var outputTemp = new BoundDagTemp(e.Syntax, method.ReturnType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
+                        }
+
+                    case BoundDagIncrementEvaluation e:
+                        {
+                            return _factory.IntIncrement(input);
                         }
 
                     case BoundDagEnumeratorEvaluation e:

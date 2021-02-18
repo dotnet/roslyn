@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternMatchingTests5 : PatternMatchingTestBase
+    public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
     {
         [Fact(Skip = "PROTOTYPE")]
         public void ListPattern_Array_MDArray()

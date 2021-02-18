@@ -1445,7 +1445,6 @@
   </Node>
   <Node Name="BoundDagMethodEvaluation" Base="BoundDagEvaluation">
     <Field Name="Method" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="CountTemp" Type="BoundDagTemp?" Null="allow"/>
     <Field Name="EnumeratorTemp" Type="BoundDagTemp?" Null="allow"/>
     <Field Name="CurrentProperty" Type="PropertySymbol?" Null="allow"/>
     <Field Name="Index" Type="int"/>
@@ -1453,7 +1452,7 @@
   <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">
     <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo" Null="disallow"/>
   </Node>
-  <Node Name="BoundDagNoOpEvaluation" Base="BoundDagEvaluation">
+  <Node Name="BoundDagIncrementEvaluation" Base="BoundDagEvaluation">
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2143,7 +2142,9 @@
   <AbstractNode Name="BoundListPatternInfo" Base="BoundNode">
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LengthPattern" Type="BoundPattern?" Null="allow"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <!-- TODO(alrz) Use Subpatterns.IsDefault instead -->
+    <Field Name="HasSubpatterns" Type="bool"/>
     <Field Name="HasSlice" Type="bool"/>
   </AbstractNode>
   <Node Name="BoundListPatternWithArray" Base="BoundListPatternInfo">

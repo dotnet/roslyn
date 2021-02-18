@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagSliceEvaluation e => e.SliceMethodOpt,
                     BoundDagArrayEvaluation or
                     BoundDagArrayLengthEvaluation or
-                    BoundDagNoOpEvaluation => null,
+                    BoundDagIncrementEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }

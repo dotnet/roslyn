@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         ConstantValue? Sample { get; }
 
+        /// <summary>
+        /// Returns true if the value set contains exactly one contiguous interval, i.e there's no gap in between.
+        /// </summary>
         bool IsContiguous { get; }
     }
 
@@ -94,7 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the relation and some do not.
         /// </summary>
         bool All(BinaryOperatorKind relation, T value);
-        
+
+        /// <summary>
+        /// Returns the inclusive bounds of this value set.
+        /// </summary>
         (T First, T Last) GetRange();
     }
 }

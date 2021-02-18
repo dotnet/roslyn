@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                     }
 
-                                case BoundDagNoOpEvaluation:
+                                case BoundDagIncrementEvaluation:
                                     break;
 
                                 default:

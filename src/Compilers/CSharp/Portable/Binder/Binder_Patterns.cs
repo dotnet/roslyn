@@ -274,11 +274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundListPatternInfo BindListPatternClause(RecursivePatternSyntax node, BoundPattern? lengthPattern, TypeSymbol inputType, bool permitDesignations, ref bool hasErrors, DiagnosticBag diagnostics)
         {
+            var hasSubpatterns = node.PropertyPatternClause is not null;
             if (inputType.IsSZArray())
             {
                 var arrayType = (ArrayTypeSymbol)inputType;
                 var subpatterns = BindListPatternSubpatterns(node, arrayType, arrayType.ElementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-                return new BoundListPatternWithArray(node, arrayType.ElementType, lengthPattern, subpatterns, sawSlice, hasErrors);
+                return new BoundListPatternWithArray(node, arrayType.ElementType, lengthPattern, subpatterns, hasSubpatterns: hasSubpatterns, sawSlice, hasErrors);
             }
 
             if (!inputType.IsArray())
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, out TypeSymbol? returnType, ignoredDiagnostics))
                 {
                     var subpatterns = BindListPatternSubpatterns(node, inputType, returnType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-                    return new BoundListPatternWithRangeIndexerPattern(node, lengthOrCountProperty, (PropertySymbol)patternSymbol, returnType, lengthPattern, subpatterns, sawSlice, hasErrors);
+                    return new BoundListPatternWithRangeIndexerPattern(node, lengthOrCountProperty, (PropertySymbol)patternSymbol, returnType, lengthPattern, subpatterns, hasSubpatterns: hasSubpatterns, sawSlice, hasErrors);
                 }
 
                 var builder = new ForEachEnumeratorInfo.Builder();
@@ -297,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var info = builder.Build(this.Flags);
                     var subpatterns = BindListPatternSubpatterns(node, inputType, info.ElementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics, isEnumerable: true);
-                    return new BoundListPatternWithEnumerablePattern(node, info, info.ElementType, lengthPattern, subpatterns, sawSlice, hasErrors);
+                    return new BoundListPatternWithEnumerablePattern(node, info, info.ElementType, lengthPattern, subpatterns, hasSubpatterns: hasSubpatterns, sawSlice, hasErrors);
                 }
             }
 
@@ -308,9 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             {
-                var elementType = CreateErrorType();
-                var subpatterns = BindListPatternSubpatterns(node, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-                return new BoundListPatternWithArray(node, elementType, lengthPattern, subpatterns, sawSlice, hasErrors: true);
+                throw new NotImplementedException("unsupported type");
+                //var elementType = CreateErrorType();
+                //var subpatterns = BindListPatternSubpatterns(node, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+                //return new BoundListPatternWithArray(node, elementType, lengthPattern, subpatterns, sawSlice, hasErrors: true);
             }
         }
 
@@ -1417,6 +1419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ref bool hasErrors)
         {
+            if (node is null)
+                return default;
             var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
             foreach (SubpatternSyntax p in node.Subpatterns)
             {

@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// To represent loops in DAG lowering, we keep an alternative
         /// node that we will jump to after a test failure.
         /// </summary>
-        public BoundDagNoOpEvaluation? Next { get; init; }
+        public BoundDagIncrementEvaluation? Next { get; init; }
     }
 }

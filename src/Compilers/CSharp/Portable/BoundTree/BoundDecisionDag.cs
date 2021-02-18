@@ -188,9 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagRelationalTest d:
                             var f = ValueSetFactory.ForType(input.Type);
                             if (f is null) return null;
-                            // TODO: When ValueSetFactory has a method for comparing two values, use it.
-                            var set = f.Related(d.Relation.Operator(), d.Value);
-                            return set.Any(BinaryOperatorKind.Equal, inputConstant);
+                            return f.Related(d.Relation.Operator(), inputConstant, d.Value);
                         default:
                             throw ExceptionUtilities.UnexpectedValue(choice);
                     }
