@@ -1615,6 +1615,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
+                // Try to update the UI context info.  But cancel that work if we're shutting down.
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -2003,6 +2004,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void RefreshProjectExistsUIContextForLanguage(string language)
         {
+            // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
             _foregroundObject.AssertIsForeground();
 
             lock (_gate)
