@@ -1963,9 +1963,9 @@ public class Bar
                     i$$f ($$x =$$= 4)$$
                     var i = 10;
                 }
-            else
-            {
-            }
+                else
+                {
+                }
     }
 }");
         }

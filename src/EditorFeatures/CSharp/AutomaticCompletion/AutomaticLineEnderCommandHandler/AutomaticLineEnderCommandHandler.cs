@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     newNode,
                     cancellationToken);
 
-                // Move the caret to the end of line
+                // Find the replacement node, and move the caret to the end of line (where the last token is)
                 var replacementNode = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
                 var lastToken = replacementNode.GetLastToken();
                 var lineEnd = newRoot.GetText().Lines.GetLineFromPosition(lastToken.Span.End).End;
@@ -583,6 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         private static int GetOpenBraceSpanEnd(SyntaxNode root)
         {
+            // Use the annotation to find the end of the open brace.
             var annotatedOpenBraceToken = root.GetAnnotatedTokens(s_openBracePositionAnnotation).Single();
             return annotatedOpenBraceToken.Span.End;
         }

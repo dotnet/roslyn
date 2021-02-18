@@ -32,17 +32,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         {
             var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
+            // 1. Insert the node before anchor node
             rootEditor.InsertAfter(anchorNode, nodesToInsert);
+
+            // 2. Replace the old node with newNode. (new node is the node with correct braces)
             rootEditor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(s_replacementNodeAnnotation));
             var newRoot = rootEditor.GetChangedRoot();
 
+            // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
-            var formattingNode = newNodeAfterInsertion.FirstAncestorOrSelf<MemberDeclarationSyntax>() ?? newNodeAfterInsertion;
             var formattedNewRoot = Formatter.Format(
                 newRoot,
-                formattingNode.Span,
+                newNodeAfterInsertion.Span,
                 document.Project.Solution.Workspace,
                 cancellationToken: cancellationToken);
+
+            // 4. Use the annotation to find the end of the open brace, it would be the new caret position
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
             return (formattedNewRoot, nextCaretPosition);
         }
@@ -54,17 +59,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode newNode,
             CancellationToken cancellationToken)
         {
+            // 1. Tag the new node so that it could be found later.
             var annotatedNewNode = newNode.WithAdditionalAnnotations(s_replacementNodeAnnotation);
+
+            // 2. Replace the old node with newNode. (new node is the node with correct braces)
             var newRoot = root.ReplaceNode(
                 oldNode,
                 annotatedNewNode);
+
+            // 3. Find the newNode in the new syntax root.
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
 
-            var formattingNode = newNodeAfterInsertion.FirstAncestorOrSelf<MemberDeclarationSyntax>() ?? newNodeAfterInsertion;
+            // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedNewRoot = Formatter.Format(
                 newRoot,
-                formattingNode.Span,
+                newNodeAfterInsertion.Span,
                 document.Project.Solution.Workspace,
                 options,
                 cancellationToken: cancellationToken);
@@ -294,6 +304,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     cancellationToken);
             }
 
+            // For all the other cases,
+            // Put the innerStatement into the block
+            // e.g.
+            // if (a)
+            //     if (true)
+            //     {
+            //     }
+            //     else
+            //     {
+            //         $$
+            //         Print();
+            //     }
+            // =>
+            // if (a)
+            //     if (true)
+            //     {
+            //     }
+            //     els$$e
+            //         Print();
             var formattedNewRoot = ReplaceNodeAndFormat(
                 document,
                 root,
@@ -351,10 +380,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
             else
             {
+                // No need to change the semicolon, just return the objectCreationExpression with correct initializer
                 return (objectCreationNodeWithCorrectInitializer, objectCreationExpressionNode);
             }
         }
 
+        /// <summary>
+        /// Add argument list to the objectCreationExpression if needed.
+        /// e.g. new Bar; => new Bar();
+        /// </summary>
         private static ObjectCreationExpressionSyntax WithArgumentListIfNeeded(ObjectCreationExpressionSyntax objectCreationExpressionNode)
         {
             var argumentList = objectCreationExpressionNode.ArgumentList;
@@ -403,21 +437,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 _ => false,
             };
 
-        // For namespace, make sure it has name there is no braces
+        /// <summary>
+        /// For namespace, make sure it has name there is no braces
+        // </summary>
         private static bool ShouldAddBraceForNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclarationNode, int caretPosition)
             => !namespaceDeclarationNode.Name.IsMissing
                && HasNoBrace(namespaceDeclarationNode)
                && !WithinAttributeLists(namespaceDeclarationNode, caretPosition)
                && !WithinBraces(namespaceDeclarationNode, caretPosition);
 
-        // For class/struct/enum ..., make sure it has name and there is no braces.
+        /// <summary>
+        /// For class/struct/enum ..., make sure it has name and there is no braces.
+        /// </summary>
         private static bool ShouldAddBraceForBaseTypeDeclaration(BaseTypeDeclarationSyntax baseTypeDeclarationNode, int caretPosition)
             => !baseTypeDeclarationNode.Identifier.IsMissing
                && HasNoBrace(baseTypeDeclarationNode)
                && !WithinAttributeLists(baseTypeDeclarationNode, caretPosition)
                && !WithinBraces(baseTypeDeclarationNode, caretPosition);
 
-        // For method, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
+        /// <summary>
+        /// For method, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
+        /// </summary>
         private static bool ShouldAddBraceForBaseMethodDeclaration(BaseMethodDeclarationSyntax baseMethodDeclarationNode, int caretPosition)
             => baseMethodDeclarationNode.ExpressionBody == null
                && baseMethodDeclarationNode.Body == null
@@ -428,7 +468,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                // Make sure we don't insert braces for method in Interface.
                && !baseMethodDeclarationNode.IsParentKind(SyntaxKind.InterfaceDeclaration);
 
-        // For local Function, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
+        /// <summary>
+        /// For local Function, make sure it has a ParameterList, because later braces would be inserted after the Parameterlist
+        /// </summary>
         private static bool ShouldAddBraceForLocalFunctionStatement(LocalFunctionStatementSyntax localFunctionStatementNode, int caretPosition)
             => localFunctionStatementNode.ExpressionBody == null
                && localFunctionStatementNode.Body == null
@@ -436,6 +478,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && !WithinAttributeLists(localFunctionStatementNode, caretPosition)
                && !WithinMethodBody(localFunctionStatementNode, caretPosition);
 
+        /// <summary>
+        /// Add brace for ObjectCreationExpression if it doesn't have initializer
+        /// </summary>
         private static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
             => objectCreationExpressionNode.Initializer == null;
 
@@ -494,15 +539,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return false;
         }
 
-        // For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
-        // use its parent's close brace as its own.
-        // Example:
-        // class Bar
-        // {
-        //      int th$$is[int i]
-        // }
-        // In this case, parser would think the last '}' belongs to the indexer, not the class.
-        // Therefore, only check if the open brace is missing for these 4 types of SyntaxNode
+        /// <summary>
+        /// For indexer, switch, try and catch syntax node without braces, if it is the last child of its parent, it would
+        /// use its parent's close brace as its own.
+        /// Example:
+        /// class Bar
+        /// {
+        ///      int th$$is[int i]
+        /// }
+        /// In this case, parser would think the last '}' belongs to the indexer, not the class.
+        /// Therefore, only check if the open brace is missing for these 4 types of SyntaxNode
+        /// </summary>
         private static bool ShouldAddBraceForIndexerDeclaration(IndexerDeclarationSyntax indexerDeclarationNode, int caretPosition)
         {
             if (WithinAttributeLists(indexerDeclarationNode, caretPosition) ||
@@ -529,6 +576,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && indexerDeclarationNode.AccessorList.OpenBraceToken.IsMissing;
         }
 
+        // For the Switch, Try, Catch, Finally node
+        // e.g.
+        // class Bar
+        // {
+        //      void Main()
+        //      {
+        //          tr$$y
+        //      }
+        // }
+        // In this case, the last close brace of 'void Main()' would be thought as a part of the try statement,
+        // and the last close brace of 'Bar' would be thought as a part of Main()
+        // So for these case, , just check if the open brace is missing.
         private static bool ShouldAddBraceForSwitchStatement(SwitchStatementSyntax switchStatementNode)
             => !switchStatementNode.OpenParenToken.IsMissing
                && !switchStatementNode.CloseParenToken.IsMissing
@@ -674,7 +733,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 _ => false,
             };
 
-        // Remove the braces if the ObjectCreationExpression has an empty Initializer.
+        /// <summary>
+        /// Remove the braces if the ObjectCreationExpression has an empty Initializer.
+        /// </summary>
         private static bool ShouldRemoveBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
         {
             var initializer = objectCreationExpressionNode.Initializer;
@@ -692,12 +753,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                && accessorDeclarationNode.Parent.IsParentKind(SyntaxKind.PropertyDeclaration)
                && accessorDeclarationNode.Body.Span.Contains(caretPosition);
 
-        // If a property just has an empty accessorList, like
-        // int i $${ }
-        // then remove the braces and change it to a field
-        // int i;
         private static bool ShouldRemoveBraceForPropertyDeclaration(PropertyDeclarationSyntax propertyDeclarationNode, int caretPosition)
         {
+            // If a property just has an empty accessorList, like
+            // int i $${ }
+            // then remove the braces and change it to a field
+            // int i;
             if (propertyDeclarationNode.AccessorList != null
                 && propertyDeclarationNode.ExpressionBody == null)
             {
@@ -708,13 +769,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             return false;
         }
 
-        // If an event declaration just has an empty accessorList,
-        // like
-        // event EventHandler e$$  { }
-        // then change it to a event field declaration
-        // event EventHandler e;
         private static bool ShouldRemoveBraceForEventDeclaration(EventDeclarationSyntax eventDeclarationNode, int caretPosition)
         {
+            // If an event declaration just has an empty accessorList,
+            // like
+            // event EventHandler e$$  { }
+            // then change it to a event field declaration
+            // event EventHandler e;
             var accessorList = eventDeclarationNode.AccessorList;
             return accessorList != null
                    && accessorList.Span.Contains(caretPosition)
@@ -756,6 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         /// <summary>
         /// Add braces to the <param name="node"/>.
+        /// For FieldDeclaration and EventFieldDeclaration, it will change them to PropertyDeclaration and EventDeclaration
         /// </summary>
         private static SyntaxNode WithBraces(SyntaxNode node, IEditorOptions editorOptions)
             => node switch
