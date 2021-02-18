@@ -3584,7 +3584,7 @@ public class MainClass
                 Assert.Equal(2, typeA.GetAttributes().Length);
 
                 var ctorA = typeA.InstanceConstructors.First();
-                Assert.Equal(expectedMethodImplAttributes, ctorA.MethodImplementationFlags);
+                Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
                 Assert.True(((Cci.IMethodDefinition)ctorA.GetCciAdapter()).IsExternal);
 
                 var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo").GetCciAdapter();

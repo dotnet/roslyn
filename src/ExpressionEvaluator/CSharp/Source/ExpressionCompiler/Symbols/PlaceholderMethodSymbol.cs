@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
-        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get { return default(System.Reflection.MethodImplAttributes); }
         }

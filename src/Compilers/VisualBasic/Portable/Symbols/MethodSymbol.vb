@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Misc implementation metadata flags (ImplFlags in metadata).
         ''' </summary>
-        Friend MustOverride ReadOnly Property MethodImplementationFlags As System.Reflection.MethodImplAttributes
+        Friend MustOverride ReadOnly Property ImplementationAttributes As System.Reflection.MethodImplAttributes
 
         ''' <summary>
         ''' Declaration security information associated with this method, or null if there is none.
@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend ReadOnly Property IsRuntimeImplemented As Boolean
             Get
-                Return (Me.MethodImplementationFlags And Reflection.MethodImplAttributes.Runtime) <> 0
+                Return (Me.ImplementationAttributes And Reflection.MethodImplAttributes.Runtime) <> 0
             End Get
         End Property
 
@@ -875,9 +875,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_MethodImplementationFlags As System.Reflection.MethodImplAttributes Implements IMethodSymbol.MethodImplementationFlags
+        Private ReadOnly Property IMethodSymbol_ImplementationAttributes As System.Reflection.MethodImplAttributes Implements IMethodSymbol.ImplementationAttributes
             Get
-                Return Me.MethodImplementationFlags
+                Return Me.ImplementationAttributes
             End Get
         End Property
 

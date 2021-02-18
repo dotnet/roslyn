@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsReadOnly => _symbol.IsReadOnly;
             public bool IsInitOnly => _symbol.IsInitOnly;
 
-            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
+            public System.Reflection.MethodImplAttributes ImplementationAttributes => _symbol.ImplementationAttributes;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {

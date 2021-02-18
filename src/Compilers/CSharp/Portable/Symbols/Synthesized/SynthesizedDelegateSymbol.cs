@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
+            internal override System.Reflection.MethodImplAttributes ImplementationAttributes
             {
                 get { return System.Reflection.MethodImplAttributes.Runtime; }
             }

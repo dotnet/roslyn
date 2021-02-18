@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get { return default(System.Reflection.MethodImplAttributes); }
         }

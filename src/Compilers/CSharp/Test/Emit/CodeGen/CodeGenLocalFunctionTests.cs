@@ -5746,7 +5746,7 @@ class C
                 Assert.Equal(CharSet.None, importData.CharacterSet);
                 Assert.False(importData.SetLastError);
                 Assert.False(importData.ExactSpelling);
-                Assert.Equal(MethodImplAttributes.PreserveSig, localFunction.MethodImplementationFlags);
+                Assert.Equal(MethodImplAttributes.PreserveSig, localFunction.ImplementationAttributes);
                 Assert.Equal(CallingConvention.Winapi, importData.CallingConvention);
                 Assert.Null(importData.BestFitMapping);
                 Assert.Null(importData.ThrowOnUnmappableCharacter);
@@ -5818,7 +5818,7 @@ class C
                 Assert.Equal(CharSet.Ansi, importData.CharacterSet);
                 Assert.True(importData.SetLastError);
                 Assert.True(importData.ExactSpelling);
-                Assert.Equal(MethodImplAttributes.IL, localFunction.MethodImplementationFlags);
+                Assert.Equal(MethodImplAttributes.IL, localFunction.ImplementationAttributes);
                 Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
                 Assert.False(importData.BestFitMapping);
                 Assert.True(importData.ThrowOnUnmappableCharacter);
@@ -5875,7 +5875,7 @@ class C
             void checkImplAttributes(LocalFunctionStatementSyntax localFunctionStatement, MethodImplAttributes expectedFlags)
             {
                 var localFunction = semanticModel.GetDeclaredSymbol(localFunctionStatement).GetSymbol<LocalFunctionSymbol>();
-                Assert.Equal(expectedFlags, localFunction.MethodImplementationFlags);
+                Assert.Equal(expectedFlags, localFunction.ImplementationAttributes);
             }
 
             void validateAssembly(PEAssembly assembly)

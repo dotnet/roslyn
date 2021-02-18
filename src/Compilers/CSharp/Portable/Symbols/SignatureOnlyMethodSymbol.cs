@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasSpecialName { get { throw ExceptionUtilities.Unreachable; } }
 
-        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags { get { throw ExceptionUtilities.Unreachable; } }
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override bool RequiresSecurityObject { get { throw ExceptionUtilities.Unreachable; } }
 

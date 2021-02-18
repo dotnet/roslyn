@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsImplicitlyDeclared => true;
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
         internal override bool HasSpecialName => false;
-        internal override MethodImplAttributes MethodImplementationFlags => default;
+        internal override MethodImplAttributes ImplementationAttributes => default;
         internal override bool HasDeclarativeSecurity => false;
         internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
         internal override bool RequiresSecurityObject => false;

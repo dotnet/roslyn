@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _methodChecksLockObject; }
         }
 
-        internal override MethodImplAttributes MethodImplementationFlags
+        internal override MethodImplAttributes ImplementationAttributes
         {
             get
             {
-                MethodImplAttributes result = base.MethodImplementationFlags;
+                MethodImplAttributes result = base.ImplementationAttributes;
 
                 if (!IsAbstract && !AssociatedEvent.IsWindowsRuntimeEvent && !ContainingType.IsStructType() &&
                     (object)DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) == null)

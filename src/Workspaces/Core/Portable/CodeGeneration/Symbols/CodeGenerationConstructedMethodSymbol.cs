@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsReadOnly => _constructedFrom.IsReadOnly;
         public override bool IsInitOnly => _constructedFrom.IsInitOnly;
 
-        public override System.Reflection.MethodImplAttributes MethodImplementationFlags => _constructedFrom.MethodImplementationFlags;
+        public override System.Reflection.MethodImplAttributes ImplementationAttributes => _constructedFrom.ImplementationAttributes;
 
         public override IMethodSymbol OverriddenMethod =>
                 // TODO(cyrusn): Construct this.

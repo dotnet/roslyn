@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.HasSpecialName; }
         }
 
-        internal sealed override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal sealed override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get { return default(System.Reflection.MethodImplAttributes); }
         }

@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Friend NotOverridable Overrides ReadOnly Property MethodImplementationFlags As Reflection.MethodImplAttributes
+        Friend NotOverridable Overrides ReadOnly Property ImplementationAttributes As Reflection.MethodImplAttributes
             Get
                 Return Reflection.MethodImplAttributes.Runtime
             End Get

@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetImplementationAttributes(context As EmitContext) As Reflection.MethodImplAttributes
-            Return UnderlyingMethod.AdaptedMethodSymbol.MethodImplementationFlags
+            Return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes
         End Function
 
         Protected Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean

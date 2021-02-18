@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Misc implementation metadata flags (ImplFlags in metadata).
         /// </summary>
-        internal abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
+        internal abstract System.Reflection.MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
         /// True if the type has declarative security information (HasSecurity flags).

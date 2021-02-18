@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property MethodImplementationFlags As MethodImplAttributes
+        Friend Overrides ReadOnly Property ImplementationAttributes As MethodImplAttributes
             Get
                 Return Nothing
             End Get

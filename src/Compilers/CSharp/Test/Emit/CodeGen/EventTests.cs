@@ -215,13 +215,13 @@ class C
             var addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
-            Assert.True((addMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+            Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
             addMethod.CheckAccessorShape(@event);
 
             var removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
-            Assert.True((removeMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+            Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
             removeMethod.CheckAccessorShape(@event);
 
             // Whether or not the event was field-like in source, it will look custom when loaded from metadata.
@@ -715,10 +715,10 @@ class C
                                                                     var @event = @class.GetMember<EventSymbol>("e");
 
                                                                     var addMethod = @event.AddMethod;
-                                                                    Assert.False((addMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                                                    Assert.False((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
 
                                                                     var removeMethod = @event.RemoveMethod;
-                                                                    Assert.False((removeMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                                                    Assert.False((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
                                                                 }).VerifyDiagnostics();
 
             verifier.VerifyIL("C.e.add", @"
@@ -787,10 +787,10 @@ struct C
                                                 var @event = @class.GetMember<EventSymbol>("e");
 
                                                 var addMethod = @event.AddMethod;
-                                                Assert.True((addMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                                Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
 
                                                 var removeMethod = @event.RemoveMethod;
-                                                Assert.True((removeMethod.MethodImplementationFlags & System.Reflection.MethodImplAttributes.Synchronized) == 0);
+                                                Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
                                             }).VerifyDiagnostics();
 
             verifier.VerifyIL("C.e.add", @"

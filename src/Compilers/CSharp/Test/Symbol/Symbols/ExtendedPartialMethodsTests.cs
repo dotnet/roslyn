@@ -1170,7 +1170,7 @@ public partial class C
                 Assert.Equal(CharSet.None, importData.CharacterSet);
                 Assert.False(importData.SetLastError);
                 Assert.False(importData.ExactSpelling);
-                Assert.Equal(MethodImplAttributes.PreserveSig, method.MethodImplementationFlags);
+                Assert.Equal(MethodImplAttributes.PreserveSig, method.ImplementationAttributes);
                 Assert.Equal(CallingConvention.Winapi, importData.CallingConvention);
                 Assert.Null(importData.BestFitMapping);
                 Assert.Null(importData.ThrowOnUnmappableCharacter);

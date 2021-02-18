@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal sealed override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get
             {

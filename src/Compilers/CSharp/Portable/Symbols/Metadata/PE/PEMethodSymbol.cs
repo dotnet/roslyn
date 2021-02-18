@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool HasRuntimeSpecialName => HasFlag(MethodAttributes.RTSpecialName);
 
-        internal override MethodImplAttributes MethodImplementationFlags => (MethodImplAttributes)_implFlags;
+        internal override MethodImplAttributes ImplementationAttributes => (MethodImplAttributes)_implFlags;
 
         internal override bool RequiresSecurityObject => HasFlag(MethodAttributes.RequireSecObject);
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsExtern => HasFlag(MethodAttributes.PinvokeImpl);
 
-        internal override bool IsExternal => IsExtern || (MethodImplementationFlags & MethodImplAttributes.Runtime) != 0;
+        internal override bool IsExternal => IsExtern || (ImplementationAttributes & MethodImplAttributes.Runtime) != 0;
 
         public override bool IsVararg => Signature.Header.CallingConvention == SignatureCallingConvention.VarArgs;
 

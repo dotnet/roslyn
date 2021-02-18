@@ -6051,7 +6051,7 @@ extern static void internalCallStatic();
             void checkImplAttributes(LocalFunctionStatementSyntax localFunctionStatement, MethodImplAttributes expectedFlags)
             {
                 var localFunction = semanticModel.GetDeclaredSymbol(localFunctionStatement).GetSymbol<LocalFunctionSymbol>();
-                Assert.Equal(expectedFlags, localFunction.MethodImplementationFlags);
+                Assert.Equal(expectedFlags, localFunction.ImplementationAttributes);
             }
 
             void validateAssembly(PEAssembly assembly)
@@ -6143,7 +6143,7 @@ static extern void local1();
                 Assert.Equal(CharSet.Ansi, importData.CharacterSet);
                 Assert.True(importData.SetLastError);
                 Assert.True(importData.ExactSpelling);
-                Assert.Equal(MethodImplAttributes.IL, localFunction.MethodImplementationFlags);
+                Assert.Equal(MethodImplAttributes.IL, localFunction.ImplementationAttributes);
                 Assert.Equal(CallingConvention.Cdecl, importData.CallingConvention);
                 Assert.False(importData.BestFitMapping);
                 Assert.True(importData.ThrowOnUnmappableCharacter);

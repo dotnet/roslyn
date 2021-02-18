@@ -269,11 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return UnderlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get
             {
-                return UnderlyingMethod.MethodImplementationFlags;
+                return UnderlyingMethod.ImplementationAttributes;
             }
         }
 

@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IMethodDefinitionGetImplementationOptions(context As EmitContext) As MethodImplAttributes Implements Cci.IMethodDefinition.GetImplementationAttributes
             CheckDefinitionInvariant()
-            Return AdaptedMethodSymbol.MethodImplementationFlags Or
+            Return AdaptedMethodSymbol.ImplementationAttributes Or
                    If(DirectCast(context.Module, PEModuleBuilder).JITOptimizationIsDisabled(AdaptedMethodSymbol), MethodSymbol.DisableJITOptimizationFlags, Nothing)
         End Function
 

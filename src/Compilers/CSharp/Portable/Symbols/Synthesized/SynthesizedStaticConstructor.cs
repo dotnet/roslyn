@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override System.Reflection.MethodImplAttributes MethodImplementationFlags
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get { return default(System.Reflection.MethodImplAttributes); }
         }

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override MethodImplAttributes MethodImplementationFlags
+        internal override MethodImplAttributes ImplementationAttributes
         {
             get { return default(MethodImplAttributes); }
         }

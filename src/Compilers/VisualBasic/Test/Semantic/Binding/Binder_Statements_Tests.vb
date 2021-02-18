@@ -3607,11 +3607,11 @@ End Module
                                                        symbolValidator:=Sub(m As ModuleSymbol)
                                                                             Dim m1 = m.ContainingAssembly.GetTypeByMetadataName("Module1")
                                                                             Assert.Equal(MethodImplAttributes.Managed Or MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization,
-                                                                                         DirectCast(m1.GetMembers("TestEnd").Single(), PEMethodSymbol).MethodImplementationFlags)
+                                                                                         DirectCast(m1.GetMembers("TestEnd").Single(), PEMethodSymbol).ImplementationAttributes)
                                                                             Assert.Equal(MethodImplAttributes.Managed,
-                                                                                         DirectCast(m1.GetMembers("TestStop").Single(), PEMethodSymbol).MethodImplementationFlags)
+                                                                                         DirectCast(m1.GetMembers("TestStop").Single(), PEMethodSymbol).ImplementationAttributes)
                                                                             Assert.Equal(MethodImplAttributes.Managed,
-                                                                                         DirectCast(m1.GetMembers("Dummy").Single(), PEMethodSymbol).MethodImplementationFlags)
+                                                                                         DirectCast(m1.GetMembers("Dummy").Single(), PEMethodSymbol).ImplementationAttributes)
                                                                         End Sub)
 
             compilationVerifier.VerifyIL("Module1.TestEnd",
