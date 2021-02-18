@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+        public abstract bool IsPartialDefinition { get; }
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;

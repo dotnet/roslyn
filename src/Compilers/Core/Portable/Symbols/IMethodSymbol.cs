@@ -264,6 +264,12 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? PartialImplementationPart { get; }
 
         /// <summary>
+        /// Return true if this is a partial method definition without a body. If there
+        /// is an implementing body, it can be retrieved with <see cref="PartialImplementationPart"/>.
+        /// </summary>
+        bool IsPartialDefinition { get; }
+
+        /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.
         /// </summary>
         DllImportData? GetDllImportData();

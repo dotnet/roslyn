@@ -295,8 +295,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var map = ImmutableSegmentedDictionary.Create<string, string>()
                 .Add("a", "1").Add("b", "2");
-            var exception = Assert.Throws<KeyNotFoundException>(() => map["c"]);
-            Assert.Contains("'c'", exception.Message);
+            var missingKey = "__ThisKeyDoesNotExist__";
+            var exception = Assert.Throws<KeyNotFoundException>(() => map[missingKey]);
+            Assert.Contains(missingKey, exception.Message);
         }
 
         protected override IImmutableDictionary<TKey, TValue> Empty<TKey, TValue>()
