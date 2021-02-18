@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            // ConfigureAwait(true) as we have to come back to the UI thread to call GetSolutionInfo.
+            // ConfigureAwait(true) as we have to come back to the UI thread to do the cast to IVsSolution2.
             var solution = (IVsSolution2?)await _serviceProvider.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
                 ? filePath
