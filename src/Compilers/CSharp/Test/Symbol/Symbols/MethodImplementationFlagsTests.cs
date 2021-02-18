@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -36,10 +36,10 @@ public class C
             Action<ModuleSymbol> validator = module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var aggressiveInliningMethod = c.GetMember<MethodSymbol>("M_Aggressive");
+                var aggressiveInliningMethod = c.GetMember<MethodSymbol>("M_Aggressive").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.AggressiveInlining, aggressiveInliningMethod.MethodImplementationFlags);
 
-                var noInliningMethod = c.GetMember<MethodSymbol>("M_NoInlining");
+                var noInliningMethod = c.GetMember<MethodSymbol>("M_NoInlining").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.MethodImplementationFlags);
             };
 
@@ -69,14 +69,14 @@ public class C
             Action<ModuleSymbol> validator = module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var aggressiveOptimizationMethod = c.GetMember<MethodSymbol>("M_Aggressive");
+                var aggressiveOptimizationMethod = c.GetMember<MethodSymbol>("M_Aggressive").GetPublicSymbol();
 #if !NET472 // MethodImplAttributes.AggressiveOptimization was introduced in .NET Core 3
                 Assert.Equal(MethodImplAttributes.AggressiveOptimization, aggressiveOptimizationMethod.MethodImplementationFlags);
 #else
                 Assert.Equal((MethodImplAttributes)512, aggressiveOptimizationMethod.MethodImplementationFlags);
 #endif
 
-                var noOptimizationMethod = c.GetMember<MethodSymbol>("M_NoOptimization");
+                var noOptimizationMethod = c.GetMember<MethodSymbol>("M_NoOptimization").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.NoOptimization, noOptimizationMethod.MethodImplementationFlags);
             };
 
@@ -116,24 +116,24 @@ public class C
             Action<ModuleSymbol> validator = module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var aggressiveOptNoInliningMethod = c.GetMember<MethodSymbol>("M_AggressiveOpt_NoInlining");
+                var aggressiveOptNoInliningMethod = c.GetMember<MethodSymbol>("M_AggressiveOpt_NoInlining").GetPublicSymbol();
 #if !NET472 // MethodImplAttributes.AggressiveOptimization was introduced in .NET Core 3
                 Assert.Equal(MethodImplAttributes.AggressiveOptimization | MethodImplAttributes.NoInlining, aggressiveOptNoInliningMethod.MethodImplementationFlags);
 #else
                 Assert.Equal((MethodImplAttributes)512 | MethodImplAttributes.NoInlining, aggressiveOptNoInliningMethod.MethodImplementationFlags);
 #endif
 
-                var noOptNoInliningMethod = c.GetMember<MethodSymbol>("M_NoOpt_NoInlining");
+                var noOptNoInliningMethod = c.GetMember<MethodSymbol>("M_NoOpt_NoInlining").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.NoOptimization | MethodImplAttributes.NoInlining, noOptNoInliningMethod.MethodImplementationFlags);
 
-                var aggressiveOptAggressiveInliningMethod = c.GetMember<MethodSymbol>("M_AggressiveOpt_AggressiveInlining");
+                var aggressiveOptAggressiveInliningMethod = c.GetMember<MethodSymbol>("M_AggressiveOpt_AggressiveInlining").GetPublicSymbol();
 #if !NET472
                 Assert.Equal(MethodImplAttributes.AggressiveOptimization | MethodImplAttributes.AggressiveInlining, aggressiveOptAggressiveInliningMethod.MethodImplementationFlags);
 #else
                 Assert.Equal((MethodImplAttributes)512 | MethodImplAttributes.AggressiveInlining, aggressiveOptAggressiveInliningMethod.MethodImplementationFlags);
 #endif
 
-                var noOptAggressiveInliningMethod = c.GetMember<MethodSymbol>("M_NoOpt_AggressiveInlining");
+                var noOptAggressiveInliningMethod = c.GetMember<MethodSymbol>("M_NoOpt_AggressiveInlining").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.NoOptimization | MethodImplAttributes.AggressiveInlining, noOptAggressiveInliningMethod.MethodImplementationFlags);
             };
 
@@ -157,7 +157,7 @@ public class C
             Action<ModuleSymbol> validator = module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = c.GetMember<MethodSymbol>("M");
+                var method = c.GetMember<MethodSymbol>("M").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.PreserveSig | MethodImplAttributes.Runtime, method.MethodImplementationFlags);
             };
 
@@ -179,7 +179,7 @@ public class C
             Action<ModuleSymbol> validator = module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = c.GetMember<MethodSymbol>("M");
+                var method = c.GetMember<MethodSymbol>("M").GetPublicSymbol();
                 Assert.Equal(MethodImplAttributes.Native, method.MethodImplementationFlags);
             };
 

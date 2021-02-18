@@ -14,7 +14,7 @@ Microsoft.CodeAnalysis.GeneratorPostInitializationContext.AddSource(string hintN
 Microsoft.CodeAnalysis.GeneratorPostInitializationContext.AddSource(string hintName, string source) -> void
 Microsoft.CodeAnalysis.GeneratorPostInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.GeneratorPostInitializationContext.GeneratorPostInitializationContext() -> void
-Microsoft.CodeAnalysis.IMethodSymbol.ImplementationAttributes.get -> System.Reflection.MethodImplAttributes
+Microsoft.CodeAnalysis.IMethodSymbol.MethodImplementationFlags.get -> System.Reflection.MethodImplAttributes
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void

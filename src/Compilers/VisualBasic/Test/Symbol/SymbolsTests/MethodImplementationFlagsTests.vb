@@ -32,9 +32,9 @@ End Class
 
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                           Dim aggressiveInliningMethod = c.GetMember(Of MethodSymbol)("M_Aggressive")
+                                                           Dim aggressiveInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_Aggressive")
                                                            Assert.Equal(MethodImplAttributes.AggressiveInlining, aggressiveInliningMethod.MethodImplementationFlags)
-                                                           Dim noInliningMethod = c.GetMember(Of MethodSymbol)("M_NoInlining")
+                                                           Dim noInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_NoInlining")
                                                            Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.MethodImplementationFlags)
                                                        End Sub
 
@@ -62,9 +62,9 @@ End Class
 
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                           Dim aggressiveOptimizationMethod = c.GetMember(Of MethodSymbol)("M_Aggressive")
+                                                           Dim aggressiveOptimizationMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_Aggressive")
                                                            Assert.Equal(CType(512, MethodImplAttributes), aggressiveOptimizationMethod.MethodImplementationFlags)
-                                                           Dim noOptimizationMethod = c.GetMember(Of MethodSymbol)("M_NoOptimization")
+                                                           Dim noOptimizationMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_NoOptimization")
                                                            Assert.Equal(MethodImplAttributes.NoOptimization, noOptimizationMethod.MethodImplementationFlags)
                                                        End Sub
 
@@ -100,13 +100,13 @@ End Class
 
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                           Dim aggressiveOptNoInliningMethod = c.GetMember(Of MethodSymbol)("M_AggressiveOpt_NoInlining")
+                                                           Dim aggressiveOptNoInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_AggressiveOpt_NoInlining")
                                                            Assert.Equal(CType(512, MethodImplAttributes) Or MethodImplAttributes.NoInlining, aggressiveOptNoInliningMethod.MethodImplementationFlags)
-                                                           Dim noOptNoInliningMethod = c.GetMember(Of MethodSymbol)("M_NoOpt_NoInlining")
+                                                           Dim noOptNoInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_NoOpt_NoInlining")
                                                            Assert.Equal(MethodImplAttributes.NoOptimization Or MethodImplAttributes.NoInlining, noOptNoInliningMethod.MethodImplementationFlags)
-                                                           Dim aggressiveOptAggressiveInliningMethod = c.GetMember(Of MethodSymbol)("M_AggressiveOpt_AggressiveInlining")
+                                                           Dim aggressiveOptAggressiveInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_AggressiveOpt_AggressiveInlining")
                                                            Assert.Equal(CType(512, MethodImplAttributes) Or MethodImplAttributes.AggressiveInlining, aggressiveOptAggressiveInliningMethod.MethodImplementationFlags)
-                                                           Dim noOptAggressiveInliningMethod = c.GetMember(Of MethodSymbol)("M_NoOpt_AggressiveInlining")
+                                                           Dim noOptAggressiveInliningMethod As IMethodSymbol = c.GetMember(Of MethodSymbol)("M_NoOpt_AggressiveInlining")
                                                            Assert.Equal(MethodImplAttributes.NoOptimization Or MethodImplAttributes.AggressiveInlining, noOptAggressiveInliningMethod.MethodImplementationFlags)
                                                        End Sub
 
@@ -130,7 +130,7 @@ End Class
 
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                           Dim method = c.GetMember(Of MethodSymbol)("M")
+                                                           Dim method As IMethodSymbol = c.GetMember(Of MethodSymbol)("M")
                                                            Assert.Equal(MethodImplAttributes.PreserveSig Or MethodImplAttributes.Runtime, method.MethodImplementationFlags)
                                                        End Sub
 
@@ -154,7 +154,7 @@ End Class
 
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                           Dim method = c.GetMember(Of MethodSymbol)("M")
+                                                           Dim method As IMethodSymbol = c.GetMember(Of MethodSymbol)("M")
                                                            Assert.Equal(MethodImplAttributes.Native, method.MethodImplementationFlags)
                                                        End Sub
 

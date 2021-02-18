@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ImplementationAttributes As System.Reflection.MethodImplAttributes Implements IMethodSymbol.ImplementationAttributes
+        Private ReadOnly Property IMethodSymbol_MethodImplementationFlags As System.Reflection.MethodImplAttributes Implements IMethodSymbol.MethodImplementationFlags
             Get
                 Return Me.ImplementationAttributes
             End Get

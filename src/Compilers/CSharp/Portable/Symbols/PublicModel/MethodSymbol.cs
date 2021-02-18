@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
 
-        System.Reflection.MethodImplAttributes IMethodSymbol.ImplementationAttributes => _underlying.ImplementationAttributes;
+        System.Reflection.MethodImplAttributes IMethodSymbol.MethodImplementationFlags => _underlying.ImplementationAttributes;
 
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 
