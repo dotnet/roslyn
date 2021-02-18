@@ -213,12 +213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                        ConversionKind.WideningReference, objectType, Nothing).MakeCompilerGenerated(),
                                                    nothingLiteral, booleanType, reverse:=True)
 
-                ' Final equality check: <valIsNotNothing> AndAlso <combinedFieldCheck>
+                ' Final equality check: Me Is val OrElse (<valIsNotNothing> AndAlso <combinedFieldCheck>)
                 Dim finalEqualityCheck = BuildAndAlso(valIsNotNothing, combinedFieldCheck, booleanType)
 
                 Dim meIsValCheck = BuildIsCheck(boundMeReference, boundValReference, booleanType)
-
-                ' Me Is val OrElse (<valIsNotNothing> AndAlso <combinedFieldCheck>)
                 finalEqualityCheck = BuildOrElse(meIsValCheck, finalEqualityCheck, booleanType)
 
                 ' Create a bound block 
