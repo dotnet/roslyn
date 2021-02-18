@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 //  {
                 //      $anonymous$ local = value as $anonymous$;
-                //      return local != null 
+                //      return (object)local == this || (local != null 
                 //             && System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, local.backingFld_1)
                 //             ...
-                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N);
+                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N));
                 //  }
 
                 // Type and type expression
