@@ -28,11 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const string SolutionContextName = "Solution";
         private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
+        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
-        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
