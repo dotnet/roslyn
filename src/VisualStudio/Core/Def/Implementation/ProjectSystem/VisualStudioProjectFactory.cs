@@ -72,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? filePath
                 : null;
 
-            await TaskScheduler.Default;
-
-            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(false);
+            await _visualStudioWorkspaceImpl.EnsureDocumentOptionProvidersInitializedAsync(cancellationToken).ConfigureAwait(true);
 
             // From this point on, we start mutating the solution.  So make us non cancellable.
             cancellationToken = CancellationToken.None;
@@ -131,10 +129,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     w.OnProjectAdded(projectInfo);
                 }
-            });
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
+                _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguage(language);
+            });
 
             return project;
 
