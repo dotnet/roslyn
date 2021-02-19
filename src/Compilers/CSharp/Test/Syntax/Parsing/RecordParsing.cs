@@ -3435,5 +3435,566 @@ class C(int X, int Y)
             }
             EOF();
         }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial()
+        {
+            var text = "partial record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing_Partial()
+        {
+            var text = "partial record class S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordParsing_Partial()
+        {
+            var text = "partial record S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial_WithParameterList()
+        {
+            var text = "partial record struct S(int X);";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Partial_WithParameterList_AndMembers()
+        {
+            var text = "partial record struct S(int X) { }";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Readonly()
+        {
+            var text = "readonly record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_ReadonlyPartial()
+        {
+            var text = "readonly partial record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_PartialReadonly()
+        {
+            var text = "partial readonly record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,9): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // partial readonly record struct S;
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                }
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_New()
+        {
+            var text = "new record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,12): error CS1526: A new expression requires an argument list or (), [], or {} after type
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "struct").WithLocation(1, 12),
+                // (1,12): error CS1002: ; expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 12),
+                // (1,20): error CS1514: { expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
+                // new record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.ArgumentList);
+                            {
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Ref()
+        {
+            var text = "ref record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            verifyParsedAsRecord();
+
+            UsingTree(text, options: TestOptions.Regular8,
+                // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
+                // (1,20): error CS1514: { expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 20)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            UsingTree(text, options: TestOptions.Regular9,
+                // (1,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref record struct S;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 12)
+                );
+
+            verifyParsedAsRecord();
+
+            void verifyParsedAsRecord()
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordStructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Const()
+        {
+            var text = "const record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,14): error CS1001: Identifier expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS0145: A const field requires a value to be provided
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "struct").WithLocation(1, 14),
+                // (1,14): error CS1002: ; expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
+                // (1,22): error CS1514: { expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // const record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.ConstKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "record");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_Fixed()
+        {
+            var text = "fixed record struct S;";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,14): error CS1001: Identifier expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS1003: Syntax error, '[' expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("[", "struct").WithLocation(1, 14),
+                // (1,14): error CS1003: Syntax error, ']' expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "struct").WithArguments("]", "struct").WithLocation(1, 14),
+                // (1,14): error CS0443: Syntax error; value expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_ValueExpected, "struct").WithLocation(1, 14),
+                // (1,14): error CS1002: ; expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 14),
+                // (1,22): error CS1514: { expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1513: } expected
+                // fixed record struct S;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.FixedKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                M(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_BaseListWithParens()
+        {
+            var text = "record struct S : Base(1);";
+            UsingTree(text, options: TestOptions.RegularPreview,
+                // (1,23): error CS8861: Unexpected argument list.
+                // record struct S : Base(1);
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(").WithLocation(1, 23)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordStructParsing_BaseListWithParens_WithPositionalParameterList()
+        {
+            var text = "record struct S(int X) : Base(1);";
+            UsingTree(text, options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Base");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
