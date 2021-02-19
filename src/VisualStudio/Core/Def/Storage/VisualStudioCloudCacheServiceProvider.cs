@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
@@ -19,12 +20,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     internal class VisualStudioCloudCacheServiceProvider : ICloudCacheServiceProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioCloudCacheServiceProvider(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
@@ -39,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 #pragma warning restore ISB001 // Dispose of proxies
 
             Contract.ThrowIfNull(cacheService);
-            return new VisualStudioCloudCacheService(cacheService);
+            return new VisualStudioCloudCacheService(_threadingContext, cacheService);
         }
     }
 }

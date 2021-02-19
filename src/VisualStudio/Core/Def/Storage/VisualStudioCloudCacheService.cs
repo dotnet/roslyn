@@ -6,6 +6,7 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 
@@ -17,10 +18,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     /// </summary>
     internal class VisualStudioCloudCacheService : ICloudCacheService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ICacheService _cacheService;
 
-        public VisualStudioCloudCacheService(ICacheService cacheService)
-            => _cacheService = cacheService;
+        public VisualStudioCloudCacheService(IThreadingContext threadingContext, ICacheService cacheService)
+        {
+            _threadingContext = threadingContext;
+            _cacheService = cacheService;
+        }
 
         private static CacheItemKey Convert(CloudCacheItemKey key)
             => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
@@ -29,7 +34,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             => new(containerKey.Component, containerKey.Dimensions);
 
         public void Dispose()
-            => (_cacheService as IDisposable)?.Dispose();
+        {
+            if (_cacheService is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+            else if (_cacheService is IAsyncDisposable asyncDisposable)
+            {
+                _threadingContext.JoinableTaskFactory.Run(
+                    async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
+            }
+        }
 
         public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
             => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
