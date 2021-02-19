@@ -180,19 +180,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
 
-                boundConstructorArguments = BuildArgumentsForErrorRecovery(constructorArguments, ImmutableArray.Create(attributeConstructor));
-                constructorArguments.Arguments.Free();
+                if (resultKind != LookupResultKind.Viable)
+                {
+                    boundConstructorArguments = attributeArgumentBinder.BuildArgumentsForErrorRecovery(constructorArguments, ImmutableArray.Create(attributeConstructor));
+                    constructorArguments.Arguments.Free();
+                }
+                else
+                {
+                    boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
+                }
             }
             else
             {
-                boundConstructorArguments = constructorArguments.Arguments.SelectAsArrayInPlaceAndFree(
-                    (arg, @this) => @this.BindToTypeForErrorRecovery(arg), this);
+                Debug.Assert(resultKind != LookupResultKind.Viable);
+                boundConstructorArguments =
+                    constructorArguments.Arguments.SelectAsArrayInPlaceAndFree((arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg), attributeArgumentBinder);
             }
 
+            Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
+
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
-            ImmutableArray<BoundExpression> boundNamedArguments =
-                analyzedArguments.NamedArguments?.SelectAsArrayInPlaceAndFree((namedArg, @this) => @this.BindToTypeForErrorRecovery(namedArg), this)
-                    ?? ImmutableArray<BoundExpression>.Empty;
+            ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
+            Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
             constructorArguments.Free();
 
@@ -312,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
-            ArrayBuilder<BoundExpression>? boundNamedArgumentsBuilder = null;
+            ArrayBuilder<BoundAssignmentOperator>? boundNamedArgumentsBuilder = null;
 
             if (attributeArgumentList != null)
             {
@@ -352,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         string argumentName = argument.NameEquals.Name.Identifier.ValueText!;
                         if (boundNamedArgumentsBuilder == null)
                         {
-                            boundNamedArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                            boundNamedArgumentsBuilder = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
                             boundNamedArgumentsSet = new HashSet<string>();
                         }
                         else if (boundNamedArgumentsSet!.Contains(argumentName))
@@ -361,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_DuplicateNamedAttributeArgument, argument, argumentName);
                         }
 
-                        BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
+                        BoundAssignmentOperator boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }
@@ -371,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArgumentsBuilder);
         }
 
-        private BoundExpression BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
             bool wasError;
             LookupResultKind resultKind;
@@ -987,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return validatedArguments;
             }
 
-            public ImmutableArray<KeyValuePair<string, TypedConstant>> VisitNamedArguments(ImmutableArray<BoundExpression> arguments, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
+            public ImmutableArray<KeyValuePair<string, TypedConstant>> VisitNamedArguments(ImmutableArray<BoundAssignmentOperator> arguments, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
             {
                 ArrayBuilder<KeyValuePair<string, TypedConstant>>? builder = null;
                 foreach (var argument in arguments)
@@ -1013,28 +1022,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndFree();
             }
 
-            private KeyValuePair<String, TypedConstant>? VisitNamedArgument(BoundExpression argument, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
+            private KeyValuePair<String, TypedConstant>? VisitNamedArgument(BoundAssignmentOperator assignment, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
             {
                 KeyValuePair<String, TypedConstant>? visitedArgument = null;
 
-                switch (argument.Kind)
+                switch (assignment.Left.Kind)
                 {
-                    case BoundKind.AssignmentOperator:
-                        var assignment = (BoundAssignmentOperator)argument;
+                    case BoundKind.FieldAccess:
+                        var fa = (BoundFieldAccess)assignment.Left;
+                        visitedArgument = new KeyValuePair<String, TypedConstant>(fa.FieldSymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, assignment.HasAnyErrors));
+                        break;
 
-                        switch (assignment.Left.Kind)
-                        {
-                            case BoundKind.FieldAccess:
-                                var fa = (BoundFieldAccess)assignment.Left;
-                                visitedArgument = new KeyValuePair<String, TypedConstant>(fa.FieldSymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, argument.HasAnyErrors));
-                                break;
-
-                            case BoundKind.PropertyAccess:
-                                var pa = (BoundPropertyAccess)assignment.Left;
-                                visitedArgument = new KeyValuePair<String, TypedConstant>(pa.PropertySymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, argument.HasAnyErrors));
-                                break;
-                        }
-
+                    case BoundKind.PropertyAccess:
+                        var pa = (BoundPropertyAccess)assignment.Left;
+                        visitedArgument = new KeyValuePair<String, TypedConstant>(pa.PropertySymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, assignment.HasAnyErrors));
                         break;
                 }
 
@@ -1253,9 +1254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
-            internal readonly ArrayBuilder<BoundExpression>? NamedArguments;
+            internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;
 
-            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ArrayBuilder<BoundExpression>? namedArguments)
+            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ArrayBuilder<BoundAssignmentOperator>? namedArguments)
             {
                 this.ConstructorArguments = constructorArguments;
                 this.NamedArguments = namedArguments;
