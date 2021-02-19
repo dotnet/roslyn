@@ -227,12 +227,6 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
-    - task: PowerShell@2 
-      displayName: Build
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Debug -prepareMachine -ci -build -bootstrap -publish -binaryLog -skipDocumentation
-
     - powershell: .\eng\test-rebuild.ps1
       displayName: Run BuildValidator
 

@@ -31,11 +31,11 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -configuration:$configuration -pack -binaryLog }
   }
 
   $rebuildArgs = ("--verbose" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/$configuration/netcoreapp3.1`"" +
   " --assembliesPath $ArtifactsDir/obj/csc/$configuration/netcoreapp3.1" +
   " --debugPath `"$ArtifactsDir\BuildValidator`"" +
   " --sourcePath `"$RepoRoot`"" +
