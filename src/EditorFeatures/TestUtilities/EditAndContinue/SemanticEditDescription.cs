@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,13 +15,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly Func<Compilation, ISymbol> SymbolProvider;
         public readonly IEnumerable<KeyValuePair<TextSpan, TextSpan>> SyntaxMap;
         public readonly bool PreserveLocalVariables;
+        public readonly int SyntaxTreeOrdinal;
 
-        public SemanticEditDescription(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap, bool preserveLocalVariables)
+        public SemanticEditDescription(
+            SemanticEditKind kind,
+            Func<Compilation, ISymbol> symbolProvider,
+            IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap,
+            bool preserveLocalVariables,
+            int syntaxTreeOrdinal = 0)
         {
-            this.Kind = kind;
-            this.SymbolProvider = symbolProvider;
-            this.SyntaxMap = syntaxMap;
-            this.PreserveLocalVariables = preserveLocalVariables;
+            Kind = kind;
+            SymbolProvider = symbolProvider;
+            SyntaxMap = syntaxMap;
+            PreserveLocalVariables = preserveLocalVariables;
+            SyntaxTreeOrdinal = syntaxTreeOrdinal;
         }
     }
 }

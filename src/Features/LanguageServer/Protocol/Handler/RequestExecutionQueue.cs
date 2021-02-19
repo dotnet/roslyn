@@ -1,9 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -118,6 +119,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="mutatesSolutionState">Whether or not handling this method results in changes to the current solution state.
         /// Mutating requests will block all subsequent requests from starting until after they have
         /// completed and mutations have been applied.</param>
+        /// <param name="requiresLSPSolution">Whether or not to build a solution that represents the LSP view of the world. If this
+        /// is set to false, the default workspace's current solution will be used.</param>
         /// <param name="handler">The handler that will handle the request.</param>
         /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
@@ -128,6 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
         public Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
             bool mutatesSolutionState,
+            bool requiresLSPSolution,
             IRequestHandler<TRequestType, TResponseType> handler,
             TRequestType request,
             ClientCapabilities clientCapabilities,
@@ -143,12 +147,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var textDocument = handler.GetTextDocumentIdentifier(request);
             var item = new QueueItem(
                 mutatesSolutionState,
+                requiresLSPSolution,
                 clientCapabilities,
                 clientName,
                 methodName,
                 textDocument,
                 Trace.CorrelationManager.ActivityId,
                 _logger,
+                _requestTelemetryLogger,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -163,23 +169,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
-
-                        // Update success count for the request
-                        _requestTelemetryLogger.LogSuccess(methodName);
                     }
                     catch (OperationCanceledException ex)
                     {
                         completion.TrySetCanceled(ex.CancellationToken);
-                        _requestTelemetryLogger.LogCancel(methodName);
                     }
                     catch (Exception exception)
                     {
                         // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
-
-                        // Update the failure count for the request.
-                        // Failure details are captured separately in a non fatal watson report.
-                        _requestTelemetryLogger.LogFailure(methodName);
 
                         // Also allow the exception to flow back to the request queue to handle as appropriate
                         throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
@@ -206,12 +204,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
+                    // Record when the work item was been de-queued and the request context preparation started.
+                    work.Metrics.RecordExecutionStart();
+
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var context = CreateRequestContext(work);
+                    var context = CreateRequestContext(work, out var workspace);
 
                     if (work.MutatesSolutionState)
                     {
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lspSolutionCache.Remove(context.Solution.Workspace);
+                        _lspSolutionCache.Remove(workspace);
                     }
                     else
                     {
@@ -269,20 +270,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem)
+        private RequestContext CreateRequestContext(QueueItem queueItem, out Workspace workspace)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
             return RequestContext.Create(
+                queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
-                trackerToUse);
+                trackerToUse,
+                out workspace);
         }
     }
 }

@@ -74,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
         private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
+        private readonly Dictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = new();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -1314,6 +1315,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _projectToGuidMap.GetValueOrDefault(projectId, defaultValue: Guid.Empty);
         }
 
+        internal string? TryGetDependencyNodeTargetIdentifier(ProjectId projectId)
+        {
+            lock (_gate)
+            {
+                return _projectToDependencyNodeTargetIdentifier.GetValueOrDefault(projectId, defaultValue: null);
+            }
+        }
+
         internal override void SetDocumentContext(DocumentId documentId)
         {
             _foregroundObject.AssertIsForeground();
@@ -1588,6 +1597,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToMaxSupportedLangVersionMap.Remove(projectId);
+                _projectToDependencyNodeTargetIdentifier.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
@@ -1605,6 +1615,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
+                // Try to update the UI context info.  But cancel that work if we're shutting down.
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -1958,8 +1969,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void EnsureDocumentOptionProvidersInitialized()
+        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
         {
+            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
+            // UI-affinitized experimentation service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _foregroundObject.AssertIsForeground();
 
             if (_documentOptionsProvidersInitialized)
@@ -1976,6 +1991,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
+            }
+        }
+
+        internal void SetDependencyNodeTargetIdentifier(ProjectId projectId, string targetIdentifier)
+        {
+            lock (_gate)
+            {
+                _projectToDependencyNodeTargetIdentifier[projectId] = targetIdentifier;
             }
         }
 

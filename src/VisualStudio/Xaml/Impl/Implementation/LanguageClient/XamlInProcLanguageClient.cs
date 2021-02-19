@@ -6,6 +6,8 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,7 +21,10 @@ using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
-    [DisableUserExperience(true)] // Remove this when we are ready to use LSP everywhere
+    /// <summary>
+    /// Experimental XAML Language Server Client used everywhere when
+    /// <see cref="StringConstants.EnableLspIntelliSense"/> experiment is turned on.
+    /// </summary>
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
     internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
@@ -40,24 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => "XAML Language Server Client";
+        public override string Name => "XAML Language Server Client (Experimental)";
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => new VSServerCapabilities
-            {
-                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
-                HoverProvider = true,
-                FoldingRangeProvider = new FoldingRangeOptions { },
-                DocumentFormattingProvider = true,
-                DocumentRangeFormattingProvider = true,
-                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
-                OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
-                TextDocumentSync = new TextDocumentSyncOptions
-                {
-                    Change = TextDocumentSyncKind.None,
-                    OpenClose = false
-                },
-                SupportsDiagnosticRequests = true,
-            };
+        {
+            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
+            var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
+
+            return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
+        }
     }
 }

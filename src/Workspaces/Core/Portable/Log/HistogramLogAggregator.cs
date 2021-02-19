@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
             var counter = GetCounter(key);
             counter.IncreaseCount(value);
+        }
+
+        public HistogramCounter? GetValue(object key)
+        {
+            TryGetCounter(key, out var counter);
+            return counter;
         }
 
         internal sealed class HistogramCounter

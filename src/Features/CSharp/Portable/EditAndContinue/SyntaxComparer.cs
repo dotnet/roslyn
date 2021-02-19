@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
         {
-            Debug.Assert(HasLabel(node));
-
             if (node == _oldRoot)
             {
                 return _oldRootChildren;
@@ -505,6 +503,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.BracketedParameterList:
                     return Label.BracketedParameterList;
 
+                case SyntaxKind.ParameterList:
+                    return Label.ParameterList;
+
+                case SyntaxKind.Parameter:
+                    return Label.Parameter;
+
                 case SyntaxKind.AttributeList:
                     return Label.AttributeList;
 
@@ -768,15 +772,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ConstructorDeclaration:
                         return Label.ConstructorDeclaration;
-
-                    case SyntaxKind.ParameterList:
-                        return Label.ParameterList;
-
-                    case SyntaxKind.Parameter:
-                        // Top syntax only as we ignore anonymous methods and lambdas,
-                        // we only care about parameters of member declarations.
-                        // children: attributes
-                        return Label.Parameter;
                 }
             }
 
@@ -980,6 +975,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
                     return true;
 
+                case SyntaxKind.TypeParameterConstraintClause:
+                    distance = ComputeDistance((TypeParameterConstraintClauseSyntax)leftNode, (TypeParameterConstraintClauseSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.TypeParameter:
+                    distance = ComputeDistance((TypeParameterSyntax)leftNode, (TypeParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Parameter:
+                    distance = ComputeDistance((ParameterSyntax)leftNode, (ParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.AttributeList:
+                    distance = ComputeDistance((AttributeListSyntax)leftNode, (AttributeListSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Attribute:
+                    distance = ComputeDistance((AttributeSyntax)leftNode, (AttributeSyntax)rightNode);
+                    return true;
+
                 default:
                     var leftName = TryGetName(leftNode);
                     var rightName = TryGetName(rightNode);
@@ -1128,6 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.LocalFunctionStatement:
                     // value distance of the block body is included:
                     distance = GetDistance(leftBlock.Parent, rightBlock.Parent);
                     return true;

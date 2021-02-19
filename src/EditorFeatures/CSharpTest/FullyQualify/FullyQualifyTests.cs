@@ -1487,5 +1487,14 @@ class Class
         Sqrt(1);
     }");
         }
+
+        [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingAlias()
+        {
+            await TestInRegularAndScriptAsync(
+@"using M = [|Math|]",
+@"using M = System.Math");
+        }
     }
 }
