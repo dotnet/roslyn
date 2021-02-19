@@ -79,17 +79,16 @@ namespace BuildValidator
 
             // TODO: remove the DemoLoggerProvider, update this dependency,
             // and move to the built in logger.
-            var loggerFactory = new LoggerFactory(
-                new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
-                new LoggerFilterOptions()
-                {
-                    MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
-                });
-
-            if (!options.Quiet)
+            var loggerFactory = LoggerFactory.Create(builder => 
             {
-                loggerFactory.AddProvider(new DemoLoggerProvider());
-            }
+                builder.SetMinimumLevel((options.Verbose, options.Quiet) switch
+                {
+                    (_, true) => LogLevel.Error,
+                    (true, _) => LogLevel.Trace,
+                    _ => LogLevel.Information
+                });
+                builder.AddProvider(new DemoLoggerProvider());
+            });
 
             var logger = loggerFactory.CreateLogger<Program>();
             try
@@ -213,7 +212,7 @@ namespace BuildValidator
 
                 var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
-                    Path.GetFileNameWithoutExtension(originalBinary.Name));
+                    originalBinary.Name);
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
                 return compilationDiff;

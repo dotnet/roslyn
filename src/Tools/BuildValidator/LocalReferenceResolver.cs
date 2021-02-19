@@ -44,7 +44,7 @@ namespace BuildValidator
             using var _ = _logger.BeginScope("Assembly Reference Search Paths");
             foreach (var directory in _indexDirectories)
             {
-                _logger.LogInformation($@"""{directory}""");
+                _logger.LogInformation($@"""{directory.FullName}""");
             }
         }
 
