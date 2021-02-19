@@ -667,6 +667,23 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        /// <summary>
+        /// Walks down consecutive conversion operations that satisfy <paramref name="predicate"/> until an operand is reached that
+        /// either isn't a conversion or doesn't satisfy <paramref name="predicate"/>.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <param name="predicate">A predicate to filter conversion operations.</param>
+        /// <returns>The first operation that either isn't a conversion or doesn't satisfy <paramref name="predicate"/>.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation, Func<IConversionOperation, bool> predicate)
+        {
+            while (operation is IConversionOperation conversionOperation && predicate(conversionOperation))
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
         public static IOperation WalkUpConversion(this IOperation operation)
         {
             while (operation is IConversionOperation conversionOperation)
