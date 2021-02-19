@@ -15,6 +15,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
 using Microsoft.VisualStudio.RpcContracts.Caching;
+using Roslyn.Utilities;
 
 namespace CloudCache
 {
@@ -67,6 +68,9 @@ namespace CloudCache
 
             public void Dispose()
                 => (_cacheService as IDisposable)?.Dispose();
+
+            public ValueTask DisposeAsync()
+                => (_cacheService as IAsyncDisposable)?.DisposeAsync() ?? ValueTaskFactory.CompletedTask;
 
             public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
                 => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);

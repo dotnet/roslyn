@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
                 T result;
-                using (var storage = await persistentStorageService.GetStorageAsync(solution, checkBranchId: false, cancellationToken).ConfigureAwait(false))
+                await using (var storage = await persistentStorageService.GetStorageAsync(solution, checkBranchId: false, cancellationToken).ConfigureAwait(false))
                 {
                     // Get the unique key to identify our data.
                     var key = PrefixMetadataSymbolTreeInfo + keySuffix;

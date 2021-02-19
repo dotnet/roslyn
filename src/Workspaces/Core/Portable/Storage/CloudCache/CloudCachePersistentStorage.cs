@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Storage
         public override void Dispose()
             => _cacheService.Dispose();
 
+        public override ValueTask DisposeAsync()
+            => _cacheService.DisposeAsync();
+
         /// <summary>
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
         /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.

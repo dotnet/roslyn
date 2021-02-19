@@ -676,6 +676,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     // There were diagnostics from other documents, but none from the current document.
                     // If we're tracking the current document, we can stop.
                     IReadOnlyDictionaryExtensions.GetValueOrDefault(_publishedFileToDiagnostics, fileUri)?.Remove(document.Id);
+                    _documentsToPublishedUris.MultiRemove(document.Id, fileUri);
                 }
             }
         }

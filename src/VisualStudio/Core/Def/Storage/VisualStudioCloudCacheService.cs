@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
@@ -35,15 +36,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
         public void Dispose()
         {
-            if (_cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-            else if (_cacheService is IAsyncDisposable asyncDisposable)
+            if (_cacheService is IAsyncDisposable asyncDisposable)
             {
                 _threadingContext.JoinableTaskFactory.Run(
                     async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
             }
+            else if (_cacheService is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            if (_cacheService is IAsyncDisposable asyncDisposable)
+            {
+                return asyncDisposable.DisposeAsync();
+            }
+            else if (_cacheService is IDisposable disposable)
+            {
+                disposable.Dispose();
+                return ValueTaskFactory.CompletedTask;
+            }
+
+            return ValueTaskFactory.CompletedTask;
         }
 
         public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)

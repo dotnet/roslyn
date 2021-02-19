@@ -17,27 +17,28 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     /// <summary>
-    /// Experimental XAML Language Server Client used everywhere when
+    /// XAML Language Server Client for LiveShare and Codespaces. Unused when
     /// <see cref="StringConstants.EnableLspIntelliSense"/> experiment is turned on.
+    /// Remove this when we are ready to use LSP everywhere
     /// </summary>
+    [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
+    internal class XamlInProcLanguageClientDisableUX : AbstractInProcLanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public XamlInProcLanguageClient(
+        public XamlInProcLanguageClientDisableUX(
             XamlRequestDispatcherFactory xamlDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            [Import(typeof(SAsyncServiceProvider))] Microsoft.VisualStudio.Shell.IAsyncServiceProvider asyncServiceProvider)
             : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
         }
@@ -45,14 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => "XAML Language Server Client (Experimental)";
+        public override string Name => "XAML Language Server Client for LiveShare and Codespaces";
 
         protected internal override VSServerCapabilities GetCapabilities()
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
 
-            return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
+            return isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
         }
     }
 }

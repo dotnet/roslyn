@@ -4,6 +4,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -51,7 +53,7 @@ namespace Roslyn.Utilities
     /// even in concurrent execution.</para>
     /// </remarks>
     /// <typeparam name="T">The type of disposable object.</typeparam>
-    internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposable<T>, IDisposable
+    internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposable<T>
         where T : class, IDisposable
     {
         /// <summary>
@@ -174,13 +176,34 @@ namespace Roslyn.Utilities
         /// </remarks>
         public void Dispose()
         {
+            var instanceToDispose = DisposeImpl();
+            instanceToDispose?.Dispose();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            var instanceToDispose = DisposeImpl();
+            if (instanceToDispose == null)
+                return ValueTaskFactory.CompletedTask;
+
+#if !CODE_STYLE
+            if (instanceToDispose is IAsyncDisposable asyncDisposable)
+                return asyncDisposable.DisposeAsync();
+#endif
+
+            instanceToDispose.Dispose();
+            return ValueTaskFactory.CompletedTask;
+        }
+
+        private T? DisposeImpl()
+        {
             T? instanceToDispose = null;
             lock (_boxedReferenceCount)
             {
                 if (_instance == null)
                 {
                     // Already disposed; allow multiple without error.
-                    return;
+                    return null;
                 }
 
                 _boxedReferenceCount.Value--;
@@ -193,7 +216,7 @@ namespace Roslyn.Utilities
                 _instance = null;
             }
 
-            instanceToDispose?.Dispose();
+            return instanceToDispose;
         }
 
         /// <summary>

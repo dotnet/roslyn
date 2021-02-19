@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
@@ -25,7 +26,33 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             => new(containerKey.Component, containerKey.Dimensions);
 
         public void Dispose()
-            => (_cacheService as IDisposable)?.Dispose();
+        {
+            if (_cacheService is IAsyncDisposable asyncDisposable)
+            {
+                asyncDisposable.DisposeAsync().AsTask().Wait();
+            }
+            else if (_cacheService is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            if (_cacheService is IAsyncDisposable asyncDisposable)
+            {
+                return asyncDisposable.DisposeAsync();
+            }
+            else if (_cacheService is IDisposable disposable)
+            {
+                disposable.Dispose();
+                return ValueTaskFactory.CompletedTask;
+            }
+            else
+            {
+                return ValueTaskFactory.CompletedTask;
+            }
+        }
 
         public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
             => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);

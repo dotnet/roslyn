@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// Clone of the platform's Microsoft.VisualStudio.RpcContracts.Caching.ICacheService, but defined so we can
     /// reference it in the workspace layer, and function if it is not present.
     /// </summary>
-    internal interface ICloudCacheService : IDisposable
+    internal interface ICloudCacheService : IDisposable, IAsyncDisposable
     {
         Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken);
         ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken);

@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
 using Microsoft.ServiceHub.Framework;
@@ -19,7 +16,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
@@ -85,6 +82,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             public void Dispose()
                 => (_cacheService as IDisposable)?.Dispose();
+
+            public ValueTask DisposeAsync()
+                => (_cacheService as IAsyncDisposable)?.DisposeAsync() ?? ValueTaskFactory.CompletedTask;
 
             public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
                 => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
