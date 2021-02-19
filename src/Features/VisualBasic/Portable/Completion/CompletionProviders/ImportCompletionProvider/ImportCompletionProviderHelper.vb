@@ -34,13 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Shared Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
+            ' Also we use partial model so that we don't have to wait for all semantics to be computed.
             Dim sourceText = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
             Dim frozenDocument = sourceText.GetDocumentWithFrozenPartialSemantics(cancellationToken)
-            If frozenDocument Is Nothing Then
-                document = frozenDocument
-            End If
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Contract.ThrowIfNull(frozenDocument)
+
+            Dim semanticModel = Await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Return VisualBasicSyntaxContext.CreateContext(frozenDocument.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
     End Class
 End Namespace
