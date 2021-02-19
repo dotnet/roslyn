@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -35,12 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
             ' Also we use partial model so that we don't have to wait for all semantics to be computed.
-            Dim sourceText = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim frozenDocument = sourceText.GetDocumentWithFrozenPartialSemantics(cancellationToken)
-            Contract.ThrowIfNull(frozenDocument)
-
-            Dim semanticModel = Await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Return VisualBasicSyntaxContext.CreateContext(frozenDocument.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Dim semanticModel = Await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Contract.ThrowIfNull(semanticModel)
+            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
     End Class
 End Namespace
