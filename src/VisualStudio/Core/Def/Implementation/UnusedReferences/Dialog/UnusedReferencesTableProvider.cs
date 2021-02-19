@@ -59,9 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             }
         }
 
-        public void AddTableData(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        public void AddTableData(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
-            _dataSource.AddTableData(project, referenceUpdates);
+            _dataSource.AddTableData(solution, projectFilePath, referenceUpdates);
         }
 
         public void ClearTableData()
