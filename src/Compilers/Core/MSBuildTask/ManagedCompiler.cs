@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     HasToolBeenOverridden ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
-                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool by design {pathToTool}");
+                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var clientDir = Path.GetDirectoryName(PathToManagedTool);
                 if (clientDir is null || tempDir is null)
                 {
-                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool because we can't find client directory {PathToManagedTool}");
+                    LogCompilationMessage(logger, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToManagedTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (response is null)
             {
-                LogCompilationMessage(logger, CompilationKind.ToolFallback, "Could not launch server");
+                LogCompilationMessage(logger, CompilationKind.ToolFallback, "could not launch server");
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
 
@@ -652,11 +652,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different protocol version than build task.");
+                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different protocol version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different hash version than build task.");
+                    LogCompilationMessage(logger, CompilationKind.FatalError, "server reports different hash version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
