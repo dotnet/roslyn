@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -15,8 +16,7 @@ namespace Roslyn.Utilities
     internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue : class, IDisposable
         where TKey : notnull
     {
-        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache =
-            new();
+        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = new();
         private readonly object _gate = new();
 
         public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate<TArg>(TKey key, Func<TKey, TArg, TValue> valueCreator, TArg arg)
@@ -58,6 +58,9 @@ namespace Roslyn.Utilities
         }
 
         private sealed class Entry : IDisposable, ICacheEntry<TKey, TValue>
+#if !CODE_STYLE
+        , IAsyncDisposable
+#endif
         {
             private readonly ReferenceCountedDisposableCache<TKey, TValue> _cache;
 
@@ -79,6 +82,12 @@ namespace Roslyn.Utilities
 
                 // Dispose the underlying value
                 Value.Dispose();
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTaskFactory.CompletedTask;
             }
         }
     }

@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private class HierarchyEventSink : IVsHierarchyEvents, IDisposable
+            private class HierarchyEventSink : IVsHierarchyEvents, IDisposable, IAsyncDisposable
             {
                 private readonly IVsHierarchy _hierarchy;
                 private readonly uint _cookie;
@@ -441,6 +441,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 void IDisposable.Dispose()
                     => _hierarchy.UnadviseHierarchyEvents(_cookie);
+
+                ValueTask IAsyncDisposable.DisposeAsync()
+                {
+                    ((IDisposable)this).Dispose();
+                    return ValueTaskFactory.CompletedTask;
+                }
 
                 int IVsHierarchyEvents.OnItemAdded(uint itemidParent, uint itemidSiblingPrev, uint itemidAdded)
                     => VSConstants.E_NOTIMPL;
