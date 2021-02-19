@@ -462,10 +462,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             ErrorMessages = errorMessages;
         }
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
         protected override void AddResponseBody(BinaryWriter writer)
         {
             writer.Write(ErrorMessages.Count);
@@ -499,10 +495,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Reason = reason;
         }
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
         protected override void AddResponseBody(BinaryWriter writer)
         {
             WriteLengthPrefixedString(writer, Reason);

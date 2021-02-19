@@ -100,10 +100,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
                     var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'";
-                    if (errorMessages is null)
-                    {
-                        errorMessages = new List<string>();
-                    }
+                    errorMessages ??= new List<string>();
                     errorMessages.Add(message);
                 }
             }
