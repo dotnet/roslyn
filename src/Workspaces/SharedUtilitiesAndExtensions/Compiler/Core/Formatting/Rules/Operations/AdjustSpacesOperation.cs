@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal readonly struct AdjustSpacesOperation
     {
+        public static readonly AdjustSpacesOperation None = default;
+
         public readonly int Space;
         public readonly AdjustSpacesOption Option;
 

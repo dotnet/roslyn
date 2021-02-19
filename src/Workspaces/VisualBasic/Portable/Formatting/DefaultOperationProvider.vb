@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation?
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then

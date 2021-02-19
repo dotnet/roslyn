@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private NextGetAdjustSpacesOperation NextOperation
             => new(_formattingRules, _index + 1);
 
-        public AdjustSpacesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
+        public AdjustSpacesOperation Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (_index >= _formattingRules.Length)
             {
-                return null;
+                return AdjustSpacesOperation.None;
             }
             else
             {

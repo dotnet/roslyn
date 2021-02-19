@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = nextOperation.Invoke(in previousToken, in currentToken);
-            if (operation == null)
-                return null;
+            if (operation.Option == AdjustSpacesOption.None)
+                return AdjustSpacesOperation.None;
 
             // if operation is already forced, return as it is.
-            if (operation.Value.Option == AdjustSpacesOption.ForceSpaces)
+            if (operation.Option == AdjustSpacesOption.ForceSpaces)
                 return operation;
 
             if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken))
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // make every operation forced
-                return CreateAdjustSpacesOperation(Math.Max(0, operation.Value.Space), AdjustSpacesOption.ForceSpaces);
+                return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), AdjustSpacesOption.ForceSpaces);
             }
 
             return operation;

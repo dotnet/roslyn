@@ -403,16 +403,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // use space defined by the regular formatting rules
             var spaceOperation = this.FormattingRules.GetAdjustSpacesOperation(token1, token2);
-            if (spaceOperation == null)
+            if (spaceOperation.Option == AdjustSpacesOption.None)
                 return defaultRule;
 
-            if (spaceOperation.Value.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
-                spaceOperation.Value.Space == 1)
+            if (spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
+                spaceOperation.Space == 1)
             {
                 return defaultRule;
             }
 
-            return defaultRule.With(spaces: spaceOperation.Value.Space);
+            return defaultRule.With(spaces: spaceOperation.Space);
         }
 
         /// <summary>

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public virtual AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             => nextOperation.Invoke(in previousToken, in currentToken);
     }
 }

@@ -461,11 +461,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            if (operation.SpaceOperation != null)
+            if (operation.SpaceOperation.Option != AdjustSpacesOption.None)
             {
                 if (!context.IsSpacingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
-                    applier.Apply(operation.SpaceOperation.Value, operation.PairIndex);
+                    applier.Apply(operation.SpaceOperation, operation.PairIndex);
                 }
             }
         }

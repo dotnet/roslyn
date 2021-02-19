@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var spaceOperation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
 

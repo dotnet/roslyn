@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private static readonly AdjustSpacesOperation s_preserveSpace = FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
         private static readonly AdjustNewLinesOperation s_preserveLine = FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
-            if (operation != null)
+            if (operation.Option != AdjustSpacesOption.None)
             {
                 return s_preserveSpace;
             }

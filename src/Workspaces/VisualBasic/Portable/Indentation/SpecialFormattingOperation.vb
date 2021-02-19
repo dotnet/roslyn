@@ -43,13 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation?
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
             ' (force space basically means remove all line breaks)
-            If spaceOperation IsNot Nothing AndAlso spaceOperation.Value.Option = AdjustSpacesOption.ForceSpaces Then
-                Return FormattingOperations.CreateAdjustSpacesOperation(spaceOperation.Value.Space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            If spaceOperation.Option = AdjustSpacesOption.ForceSpaces Then
+                Return FormattingOperations.CreateAdjustSpacesOperation(spaceOperation.Space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             Return spaceOperation

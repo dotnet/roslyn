@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public sealed override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+            public sealed override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 var previousTokenCopy = previousToken;
                 var currentTokenCopy = currentToken;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
             /// </summary>
-            public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustSpacesOperation nextOperation)
+            public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustSpacesOperation nextOperation)
                 => base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
         }
     }

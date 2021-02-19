@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations
