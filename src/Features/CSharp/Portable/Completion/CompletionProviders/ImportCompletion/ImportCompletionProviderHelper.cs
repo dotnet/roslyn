@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -21,10 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => semanticModel.GetUsingNamespacesInScope(location)
                 .SelectAsArray(namespaceSymbol => namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
 
-        public static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<SyntaxContext?> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            document = sourceText.GetDocumentWithFrozenPartialSemantics(cancellationToken) ?? document;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }

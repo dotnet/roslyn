@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -33,6 +34,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Shared Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
+            Dim sourceText = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+            Dim frozenDocument = sourceText.GetDocumentWithFrozenPartialSemantics(cancellationToken)
+            If frozenDocument Is Nothing Then
+                document = frozenDocument
+            End If
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
