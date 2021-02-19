@@ -3315,7 +3315,7 @@ oneMoreTime:
                     {
                         return true;
                     }
-                    else if (operation is InvalidOperation invalidChild)
+                    else if (enumerator.Current is InvalidOperation invalidChild)
                     {
                         return checkInvalidChildren(invalidChild);
                     }
