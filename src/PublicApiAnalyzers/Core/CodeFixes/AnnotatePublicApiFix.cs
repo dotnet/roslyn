@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                 bool isShippedDocument = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
 
-                TextDocument? document = isShippedDocument ? DeclarePublicApiFix.GetShippedDocument(project) : DeclarePublicApiFix.GetUnshippedDocument(project);
+                TextDocument? document = isShippedDocument ? PublicApiFixHelpers.GetShippedDocument(project) : PublicApiFixHelpers.GetUnshippedDocument(project);
 
                 if (document != null)
                 {
@@ -82,7 +81,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + DeclarePublicApiFix.GetEndOfFileText(sourceText));
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    TextDocument? unshippedDocument = DeclarePublicApiFix.GetUnshippedDocument(project);
+                    TextDocument? unshippedDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
                     if (unshippedDocument?.FilePath != null && !uniqueUnshippedDocuments.Add(unshippedDocument.FilePath))
                     {
                         // Skip past duplicate unshipped documents.
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         unshippedDocument = null;
                     }
 
-                    TextDocument? shippedDocument = DeclarePublicApiFix.GetShippedDocument(project);
+                    TextDocument? shippedDocument = PublicApiFixHelpers.GetShippedDocument(project);
                     if (shippedDocument?.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
                     {
                         // Skip past duplicate shipped documents.
