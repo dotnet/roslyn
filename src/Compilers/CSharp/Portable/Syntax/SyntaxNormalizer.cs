@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private bool _afterLineBreak;
         private bool _afterIndentation;
+        private bool _inSingleLineInterpolation;
 
         // CONSIDER: if we become concerned about space, we shouldn't actually need any 
         // of the values between indentations[0] and indentations[initialDepth] (exclusive).
@@ -177,6 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private int LineBreaksAfter(SyntaxToken currentToken, SyntaxToken nextToken)
         {
+            if (_inSingleLineInterpolation)
+            {
+                return 0;
+            }
+
             if (currentToken.IsKind(SyntaxKind.EndOfDirectiveToken))
             {
                 return 1;
@@ -914,6 +920,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return 0;
+        }
+
+        public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
+        {
+            if (node.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+            {
+                //Just for non verbatim strings we want to make sure that the formatting of interpolations does not emit line breaks.
+                //See: https://github.com/dotnet/roslyn/issues/50742
+                //
+                //The flag _inSingleLineInterpolation is set to true while visiting InterpolatedStringExpressionSyntax and checked in LineBreaksAfter
+                //to suppress adding newlines.
+                var old = _inSingleLineInterpolation;
+                _inSingleLineInterpolation = true;
+                try
+                {
+                    return base.VisitInterpolatedStringExpression(node);
+                }
+                finally
+                {
+                    _inSingleLineInterpolation = old;
+                }
+            }
+
+            return base.VisitInterpolatedStringExpression(node);
         }
     }
 }
