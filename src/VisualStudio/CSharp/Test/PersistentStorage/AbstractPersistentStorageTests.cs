@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
             _storageService = GetStorageService(
-                (IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
+                 (IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(solution, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange

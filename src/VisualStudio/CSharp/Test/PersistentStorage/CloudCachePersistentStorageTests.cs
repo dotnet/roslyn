@@ -4,8 +4,10 @@
 
 using System;
 using System.IO.Pipelines;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
@@ -15,6 +17,7 @@ using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
@@ -81,10 +84,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 => new(containerKey.Component, containerKey.Dimensions);
 
             public void Dispose()
-                => (_cacheService as IDisposable)?.Dispose();
+            {
+                if (_cacheService is IAsyncDisposable asyncDisposable)
+                {
+                    asyncDisposable.DisposeAsync().AsTask().Wait();
+                }
+                else if (_cacheService is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
 
             public ValueTask DisposeAsync()
-                => (_cacheService as IAsyncDisposable)?.DisposeAsync() ?? ValueTaskFactory.CompletedTask;
+            {
+                if (_cacheService is IAsyncDisposable asyncDisposable)
+                {
+                    return asyncDisposable.DisposeAsync();
+                }
+                else if (_cacheService is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                    return ValueTaskFactory.CompletedTask;
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
 
             public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
                 => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
