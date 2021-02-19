@@ -494,9 +494,9 @@ namespace Text.Analyzers.UnitTests
                 "class Program {}",
                 dictionary,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.FileParseRule)
-                .WithArguments(
-                    "CodeAnalysisDictionary.xml",
-                    "The 'word' start tag on line 6 position 22 does not match the end tag of 'Word'. Line 6, position 32."));
+                    // Ignore diagnostic message comparison because the actual message
+                    // includes localized content from an exception's message
+                    .WithMessage(null));
         }
 
         private Task VerifyCSharpAsync(string source, params DiagnosticResult[] expected)
