@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
                     request, document, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
-                    completionService, returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                    completionService, context.ClientName, returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
                 CompletionService completionService,
+                string? clientName,
                 bool returnTextEdits,
                 SourceText? documentText,
                 TextSpan? defaultSpan,
@@ -166,16 +167,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (useVSCompletionItem)
                 {
                     var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
-                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache, completionService,
-                        returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
+                        completionService, clientName, returnTextEdits, documentText, defaultSpan,
+                        defaultRange, cancellationToken).ConfigureAwait(false);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
                     var roslynCompletionItem = await CreateCompletionItemAsync<LSP.CompletionItem>(
-                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache, completionService,
-                        returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
+                        completionService, clientName, returnTextEdits, documentText, defaultSpan,
+                        defaultRange, cancellationToken).ConfigureAwait(false);
                     return roslynCompletionItem;
                 }
             }
@@ -188,6 +191,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
                 CompletionService completionService,
+                string? clientName,
                 bool returnTextEdits,
                 SourceText? documentText,
                 TextSpan? defaultSpan,
@@ -196,7 +200,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
 
-                // The TextEdits for override and partial method completions are provided in the resolve handler and should be left blank for now.
+                // The TextEdits for override and partial method completions are provided in the resolve handler.
+                // We do not provide them in this handler.
                 item.Properties.TryGetValue("Modifiers", out var modifier);
                 var isOverrideOrPartialMethodCompletion = modifier != null && (modifier.Contains("Override") || modifier.Contains("Partial"));
 
@@ -215,6 +220,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     InsertText = returnTextEdits || isOverrideOrPartialMethodCompletion
                         ? null
                         : item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText,
+                    InsertTextFormat = isOverrideOrPartialMethodCompletion && clientName == "RazorCSharp"
+                        ? LSP.InsertTextFormat.Snippet
+                        : LSP.InsertTextFormat.Plaintext,
                     Label = completeDisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,

@@ -103,8 +103,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TextEdit resolution in some form.
             if (resolvedCompletionItem.InsertText == null && resolvedCompletionItem.TextEdit == null)
             {
+                var snippetsSupported = context.ClientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+
                 resolvedCompletionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, cancellationToken).ConfigureAwait(false);
+                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
             }
 
             resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
@@ -137,6 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document document,
             CompletionService completionService,
             CompletionItem selectedItem,
+            bool snippetsSupported,
             CancellationToken cancellationToken)
         {
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -144,10 +147,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionChange = await completionService.GetChangeAsync(
                 document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
+            var newText = completionChange.TextChange.NewText;
+
+            // If snippets are supported, that means we can move the caret (represented by $0) to
+            // a new location.
+            if (snippetsSupported)
+            {
+                var caretPosition = completionChange.NewPosition;
+                if (caretPosition.HasValue)
+                {
+                    // caretPosition is the absolute position of the caret in the document.
+                    // We want the position relative to the start of the snippet.
+                    var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
+                    newText = newText?.Insert(relativeCaretPosition, "$0");
+                }
+            }
 
             var textEdit = new LSP.TextEdit()
             {
-                NewText = completionChange.TextChange.NewText ?? "",
+                NewText = newText ?? "",
                 Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
             };
 
