@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextFunc As NextGetAdjustSpacesOperation) As AdjustSpacesOperation?
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextFunc As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' * <end of file token>
             If currentToken.Kind = SyntaxKind.EndOfFileToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)

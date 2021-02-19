@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return new BraceCompletionFormattingRule(_indentStyle, cachedOptions);
             }
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // If we're inside any of the following expressions check if the option for
                 // braces on new lines in object / array initializers is set before we attempt
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     }
                     else
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
                 }
 

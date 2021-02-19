@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         protected abstract class AbstractMetadataFormattingRule : AbstractFormattingRule
         {
-            protected abstract AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
+            protected abstract AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2);
             protected abstract bool IsNewLine(char c);
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
                     in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (previousToken.RawKind == 0 || currentToken.RawKind == 0)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
 
                 var betweenMembersAndUsingsOperation = GetAdjustNewLinesOperationBetweenMembersAndUsings(previousToken, currentToken);
-                if (betweenMembersAndUsingsOperation != null)
+                if (betweenMembersAndUsingsOperation.Option != AdjustNewLinesOption.None)
                 {
                     return betweenMembersAndUsingsOperation;
                 }

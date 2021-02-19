@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return operation;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             RoslynDebug.AssertNotNull(currentToken.Parent);
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 (currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
                 currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
             {
-                return null;
+                return AdjustNewLinesOperation.None;
             }
 
             var currentTokenParentParent = currentToken.Parent.Parent;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
                 else
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
             }
 

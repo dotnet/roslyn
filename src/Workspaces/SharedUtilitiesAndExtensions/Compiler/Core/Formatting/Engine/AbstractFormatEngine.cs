@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private static SegmentedList<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<SegmentedList<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+            where T : struct
         {
             var operations = new SegmentedList<T>();
             var list = new SegmentedList<T>();
@@ -192,7 +193,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 cancellationToken.ThrowIfCancellationRequested();
                 addOperations(list, n);
 
-                list.RemoveAll(item => item == null);
                 operations.AddRange(list);
                 list.Clear();
             }
@@ -387,12 +387,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static bool AnchorOperationCandidate(TokenPairWithOperations pair)
         {
-            if (pair.LineOperation == null)
+            if (pair.LineOperation.Option == AdjustNewLinesOption.None)
             {
                 return pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
             }
 
-            if (pair.LineOperation.Value.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+            if (pair.LineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 return !pair.TokenStream.TwoTokensOriginallyOnSameLine(pair.Token1, pair.Token2) &&
                         pair.TokenStream.GetTriviaData(pair.PairIndex).SecondTokenIsFirstTokenOnLine;
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var triviaInfo = context.TokenStream.GetTriviaData(operation.PairIndex);
             var spanBetweenTokens = TextSpan.FromBounds(token1.Span.End, token2.SpanStart);
 
-            if (operation.LineOperation != null)
+            if (operation.LineOperation.Option != AdjustNewLinesOption.None)
             {
                 if (!context.IsWrappingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
@@ -454,18 +454,18 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // are conflicting each other by forcing new lines and removing new lines.
                     //
                     // if wrapping operation applied, no need to run any other operation
-                    if (applier.Apply(operation.LineOperation.Value, operation.PairIndex, cancellationToken))
+                    if (applier.Apply(operation.LineOperation, operation.PairIndex, cancellationToken))
                     {
                         return;
                     }
                 }
             }
 
-            if (operation.SpaceOperation != null)
+            if (operation.SpaceOperation.Option != AdjustSpacesOption.None)
             {
                 if (!context.IsSpacingSuppressed(spanBetweenTokens, triviaInfo.TreatAsElastic))
                 {
-                    applier.Apply(operation.SpaceOperation.Value, operation.PairIndex);
+                    applier.Apply(operation.SpaceOperation, operation.PairIndex);
                 }
             }
         }

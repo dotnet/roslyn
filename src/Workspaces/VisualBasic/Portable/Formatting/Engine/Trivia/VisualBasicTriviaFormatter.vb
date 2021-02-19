@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -96,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' [trivia] [whitespace] [token] case
             If trivia2.Kind = SyntaxKind.None Then
-                Dim insertNewLine = Me.FormattingRules.GetAdjustNewLinesOperation(Me.Token1, Me.Token2) IsNot Nothing
+                Dim insertNewLine = Me.FormattingRules.GetAdjustNewLinesOperation(Me.Token1, Me.Token2).Option <> AdjustNewLinesOption.None
 
                 If insertNewLine Then
                     Return LineColumnRule.PreserveLinesWithDefaultIndentation(lines:=0)
@@ -133,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If
 
-                If Me.FormattingRules.GetAdjustNewLinesOperation(Me.Token1, Me.Token2) IsNot Nothing Then
+                If Me.FormattingRules.GetAdjustNewLinesOperation(Me.Token1, Me.Token2).Option <> AdjustNewLinesOption.None Then
                     Return LineColumnRule.PreserveLinesWithDefaultIndentation(lines:=0)
                 End If
 

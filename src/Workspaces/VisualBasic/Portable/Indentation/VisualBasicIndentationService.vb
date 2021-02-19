@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             ' now, regular case. ask formatting rule to see whether we should use token formatter or not
             Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options)
-            If lineOperation IsNot Nothing AndAlso lineOperation.Value.Option <> AdjustNewLinesOption.ForceLinesIfOnSingleLine Then
+            If lineOperation.Option <> AdjustNewLinesOption.None AndAlso lineOperation.Option <> AdjustNewLinesOption.ForceLinesIfOnSingleLine Then
                 Return True
             End If
 

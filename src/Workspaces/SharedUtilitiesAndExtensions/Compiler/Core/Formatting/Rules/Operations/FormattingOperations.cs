@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AdjustNewLinesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustNewLinesOperation? GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+        internal static AdjustNewLinesOperation GetAdjustNewLinesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustNewLinesOperation(previousToken, currentToken);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return AdjustSpacesOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static AdjustSpacesOperation? GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
+        internal static AdjustSpacesOperation GetAdjustSpacesOperation(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
             return chainedFormattingRules.GetAdjustSpacesOperation(previousToken, currentToken);

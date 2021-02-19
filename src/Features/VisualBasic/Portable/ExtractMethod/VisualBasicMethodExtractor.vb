@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class ExtractMethodFormattingRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation?
+            Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
                     Return nextOperation.Invoke(previousToken, currentToken)
                 End If

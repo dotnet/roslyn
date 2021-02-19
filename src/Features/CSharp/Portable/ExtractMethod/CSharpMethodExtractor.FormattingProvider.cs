@@ -18,14 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
             }
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // for extract method case, for a hybrid case, don't force rule, but preserve user style
-                var operationOpt = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
-                if (operationOpt == null)
-                    return null;
+                var operation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
+                if (operation.Option == AdjustNewLinesOption.None)
+                    return AdjustNewLinesOperation.None;
 
-                var operation = operationOpt.Value;
                 if (operation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
                     return FormattingOperations.CreateAdjustNewLinesOperation(operation.Line, AdjustNewLinesOption.PreserveLines);
 

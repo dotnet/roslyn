@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal readonly struct AdjustNewLinesOperation
     {
+        public static readonly AdjustNewLinesOperation None = default;
+
         public readonly int Line;
         public readonly AdjustNewLinesOption Option;
 

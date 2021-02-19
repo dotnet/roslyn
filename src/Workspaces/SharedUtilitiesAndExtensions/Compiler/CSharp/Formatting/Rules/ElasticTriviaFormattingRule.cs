@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = nextOperation.Invoke(in previousToken, in currentToken);
-            if (operation == null)
+            if (operation.Option == AdjustNewLinesOption.None)
             {
                 // If there are more than one Type Parameter Constraint Clause then each go in separate line
                 if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) &&
@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     }
                 }
 
-                return null;
+                return AdjustNewLinesOperation.None;
             }
 
             // if operation is already forced, return as it is.
-            if (operation.Value.Option == AdjustNewLinesOption.ForceLines)
+            if (operation.Option == AdjustNewLinesOption.ForceLines)
             {
                 return operation;
             }
@@ -137,28 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var betweenMemberOperation = GetAdjustNewLinesOperationBetweenMembers(previousToken, currentToken);
-            if (betweenMemberOperation != null)
+            if (betweenMemberOperation.Option != AdjustNewLinesOption.None)
             {
                 return betweenMemberOperation;
             }
 
-            var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Value.Line);
+            var line = Math.Max(LineBreaksAfter(previousToken, currentToken), operation.Line);
             if (line == 0)
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private static AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private static AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
-                return null;
+                return AdjustNewLinesOperation.None;
 
             var previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
             var nextMember = FormattingRangeHelper.GetEnclosingMember(currentToken);
             if (previousMember == null || nextMember == null)
             {
-                return null;
+                return AdjustNewLinesOperation.None;
             }
 
             // see whether first non whitespace trivia after before the current member is a comment or not
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = nextOperation.Invoke(in previousToken, in currentToken);
-            if (operation == null)
-                return null;
+            if (operation.Option == AdjustSpacesOption.None)
+                return AdjustSpacesOperation.None;
 
             // if operation is already forced, return as it is.
-            if (operation.Value.Option == AdjustSpacesOption.ForceSpaces)
+            if (operation.Option == AdjustSpacesOption.ForceSpaces)
                 return operation;
 
             if (CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken))
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
 
                 // make every operation forced
-                return CreateAdjustSpacesOperation(Math.Max(0, operation.Value.Space), AdjustSpacesOption.ForceSpaces);
+                return CreateAdjustSpacesOperation(Math.Max(0, operation.Space), AdjustSpacesOption.ForceSpaces);
             }
 
             return operation;

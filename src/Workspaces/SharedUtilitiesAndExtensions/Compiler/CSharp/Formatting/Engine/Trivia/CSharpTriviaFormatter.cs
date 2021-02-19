@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // [trivia] [whitespace] [token] case
             if (trivia2.IsKind(SyntaxKind.None))
             {
-                var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
+                var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2).Option != AdjustNewLinesOption.None;
 
                 if (IsMultilineComment(trivia1))
                 {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // 2. Every block comment is a group of its own
                 if (!trivia1.IsKind(trivia2.Kind()) || trivia2.IsMultiLineComment() || trivia2.IsMultiLineDocComment() || existingWhitespaceBetween.Lines > 1)
                 {
-                    if (this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null)
+                    if (this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2).Option != AdjustNewLinesOption.None)
                     {
                         return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
                     }

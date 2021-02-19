@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new TokenBasedFormattingRule(cachedOptions);
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             ////////////////////////////////////////////////////
             // brace related operations
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.OpenBraceToken:
                     if (currentToken.IsInterpolation())
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
 
                     if (!previousToken.IsParenInParenthesizedExpression())
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.CloseBraceToken:
                     if (currentToken.IsInterpolation())
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.CloseBraceToken:
                     if (previousToken.IsInterpolation())
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
 
                     if (!previousToken.IsCloseBraceOfExpression())
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.OpenBraceToken:
                     if (previousToken.IsInterpolation())
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
 
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations

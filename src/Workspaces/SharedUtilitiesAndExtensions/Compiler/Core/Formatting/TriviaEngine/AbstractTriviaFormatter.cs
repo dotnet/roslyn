@@ -366,17 +366,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // use line defined by the token formatting rules
-            var lineOperationOpt = this.FormattingRules.GetAdjustNewLinesOperation(token1, token2);
+            var lineOperation = this.FormattingRules.GetAdjustNewLinesOperation(token1, token2);
 
             // there is existing lines, but no line operation
-            if (existingWhitespaceBetween.Lines != 0 && lineOperationOpt == null)
+            if (existingWhitespaceBetween.Lines != 0 && lineOperation.Option == AdjustNewLinesOption.None)
             {
                 return defaultRule;
             }
 
-            if (lineOperationOpt != null)
+            if (lineOperation.Option != AdjustNewLinesOption.None)
             {
-                var lineOperation = lineOperationOpt.Value;
                 switch (lineOperation.Option)
                 {
                     case AdjustNewLinesOption.PreserveLines:
@@ -404,16 +403,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // use space defined by the regular formatting rules
             var spaceOperation = this.FormattingRules.GetAdjustSpacesOperation(token1, token2);
-            if (spaceOperation == null)
+            if (spaceOperation.Option == AdjustSpacesOption.None)
                 return defaultRule;
 
-            if (spaceOperation.Value.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
-                spaceOperation.Value.Space == 1)
+            if (spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
+                spaceOperation.Space == 1)
             {
                 return defaultRule;
             }
 
-            return defaultRule.With(spaces: spaceOperation.Value.Space);
+            return defaultRule.With(spaces: spaceOperation.Space);
         }
 
         /// <summary>
