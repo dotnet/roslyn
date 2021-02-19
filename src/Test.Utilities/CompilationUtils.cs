@@ -17,7 +17,7 @@ namespace Test.Utilities
             if (compileErrors.Any())
             {
                 var builder = new StringBuilder();
-                builder.Append($"Test contains compilation error(s). Pass {nameof(TestValidationMode)}.{nameof(TestValidationMode.AllowCompileErrors)} if these are intended:");
+                builder.Append($"Test contains compilation error(s):");
                 builder.Append(string.Concat(compileErrors.Select(x => "\n" + x.ToString())));
 
                 string message = builder.ToString();

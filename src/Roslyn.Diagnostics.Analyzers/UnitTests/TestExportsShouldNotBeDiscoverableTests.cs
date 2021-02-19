@@ -51,6 +51,38 @@ class C {{ }}
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
+        public async Task DiscoverableAddImport_CSharp(string mefNamespace)
+        {
+            var source = $@"
+[{mefNamespace}.Export]
+class C {{ }}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[{mefNamespace}.Export]
+[PartNotDiscoverable]
+class C {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
         public async Task NotDiscoverable_CSharp(string mefNamespace)
         {
             var source = $@"
@@ -99,6 +131,40 @@ End Class
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task DiscoverableAddImport_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+<{mefNamespace}.Export>
+Class C
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<{mefNamespace}.Export>
+<PartNotDiscoverable>
+Class C
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(2, 2, 2, mefNamespace.Length + 9).WithArguments("C") },
                 },
                 FixedState =
                 {

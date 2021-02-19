@@ -202,7 +202,7 @@ namespace Analyzer.Utilities
             {
                 if (fullTypeName[i] == '.')
                 {
-                    namespaceNamesBuilder.Add(fullTypeName.Substring(prevStartIndex, i - prevStartIndex));
+                    namespaceNamesBuilder.Add(fullTypeName[prevStartIndex..i]);
                     prevStartIndex = i + 1;
                 }
                 else if (!IsIdentifierPartCharacter(fullTypeName[i]))

@@ -25,26 +25,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             if (!_defaultPointsToValueMapBuilder.TryGetValue(analysisEntity, out PointsToAbstractValue value))
             {
-                if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Local ||
-                    analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||
-                    analysisEntity.CaptureIdOpt != null)
+                if (analysisEntity.Symbol?.Kind == SymbolKind.Local ||
+                    analysisEntity.Symbol is IParameterSymbol parameter && parameter.RefKind == RefKind.Out ||
+                    analysisEntity.CaptureId != null)
                 {
                     return PointsToAbstractValue.Undefined;
                 }
-                else if (!analysisEntity.Type.IsReferenceTypeOrNullableValueType())
+                else if (analysisEntity.Type.IsNonNullableValueType())
                 {
                     return PointsToAbstractValue.NoLocation;
                 }
-                else if (analysisEntity.HasUnknownInstanceLocation ||
-                    PointsToAnalysisKind != PointsToAnalysisKind.Complete &&
-                    analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                else if (analysisEntity.HasUnknownInstanceLocation)
                 {
                     return PointsToAbstractValue.Unknown;
                 }
 
                 value = PointsToAbstractValue.Create(AbstractLocation.CreateAnalysisEntityDefaultLocation(analysisEntity), mayBeNull: true);
-                _trackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
-                _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
+
+                // PERF: Do not track entity and its points to value for partial analysis for entities requiring complete analysis.
+                if (PointsToAnalysisKind == PointsToAnalysisKind.Complete ||
+                    !analysisEntity.IsChildOrInstanceMemberNeedingCompletePointsToAnalysis())
+                {
+                    _trackedEntitiesBuilder.AddEntityAndPointsToValue(analysisEntity, value);
+                    _defaultPointsToValueMapBuilder.Add(analysisEntity, value);
+                }
             }
 
             return value;

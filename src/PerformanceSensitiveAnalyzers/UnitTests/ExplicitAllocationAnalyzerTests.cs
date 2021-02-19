@@ -36,7 +36,9 @@ public class TestClass
     public string Name { get; set; }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 22));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -59,7 +61,9 @@ End Class";
 
             await VerifyVB.VerifyAnalyzerAsync(
                 code,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -122,7 +126,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -139,7 +145,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 36));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -158,7 +166,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(9, 20));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -175,7 +185,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(7, 20));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -194,7 +206,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -211,7 +225,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -230,7 +246,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 26));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -247,7 +265,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -270,8 +290,12 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(10, 25),
+#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.LetCauseRule).WithLocation(12, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -292,8 +316,12 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(8, 36),
+#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.LetCauseRule).WithLocation(10, 27));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -308,13 +336,15 @@ public struct S { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         object box = new S();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 22));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -329,12 +359,14 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As Object = new S()
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -349,13 +381,15 @@ public struct S { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         System.ValueType box = new S();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 32));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -370,12 +404,14 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As System.ValueType = new S()
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 39));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -392,13 +428,15 @@ public struct S : I { }
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         I box = new S();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(13, 17));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -417,12 +455,14 @@ End Structure
 
 Public Class A
     <PerformanceSensitive(""uri"")>
-    Public Sub Foo() 
+    Public Sub SomeMethod()
         Dim box As I = new S()
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(source,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(14, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -606,7 +646,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -623,7 +665,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -676,7 +720,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -693,7 +739,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -713,7 +761,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 26));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -730,7 +780,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -750,7 +802,9 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -767,7 +821,9 @@ Public Class A
     End Sub
 End Class";
             await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 36));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]

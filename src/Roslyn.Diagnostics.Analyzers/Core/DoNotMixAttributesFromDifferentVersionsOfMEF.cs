@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers
         internal static DiagnosticDescriptor Rule = new(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessage,
-                                                                             DiagnosticCategory.RoslyDiagnosticsReliability,
+                                                                             DiagnosticCategory.RoslynDiagnosticsReliability,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: true,
                                                                              description: s_localizableDescription,
@@ -47,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
-                };
+                }
 
                 var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 
@@ -116,9 +118,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static void ReportDiagnostic(SymbolAnalysisContext symbolContext, INamedTypeSymbol exportedType, AttributeData problematicAttribute)
         {
-            // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
-            var diagnostic = Diagnostic.Create(Rule, problematicAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), problematicAttribute.AttributeClass.Name, exportedType.Name);
-            symbolContext.ReportDiagnostic(diagnostic);
+            if (problematicAttribute.ApplicationSyntaxReference == null)
+            {
+                symbolContext.ReportDiagnostic(symbolContext.Symbol.CreateDiagnostic(Rule, problematicAttribute.AttributeClass.Name, exportedType.Name));
+            }
+            else
+            {
+                // Attribute '{0}' comes from a different version of MEF than the export attribute on '{1}'
+                var diagnostic = problematicAttribute.ApplicationSyntaxReference.CreateDiagnostic(
+                    Rule, symbolContext.CancellationToken, problematicAttribute.AttributeClass.Name, exportedType.Name);
+                symbolContext.ReportDiagnostic(diagnostic);
+            }
         }
     }
 }

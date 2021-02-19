@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -26,56 +27,58 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Dictionary<IOperation, AnalysisEntity?> _analysisEntityMap;
         private readonly Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>> _tupleElementEntitiesMap;
         private readonly Dictionary<CaptureId, AnalysisEntity> _captureIdEntityMap;
+        private readonly Dictionary<CaptureId, CopyAbstractValue> _captureIdCopyValueMap;
         private readonly Dictionary<ISymbol, PointsToAbstractValue> _instanceLocationsForSymbols;
-        private readonly Func<IOperation, PointsToAbstractValue>? _getPointsToAbstractValueOpt;
+        private readonly Func<IOperation, PointsToAbstractValue>? _getPointsToAbstractValue;
         private readonly Func<bool> _getIsInsideAnonymousObjectInitializer;
         private readonly Func<IFlowCaptureOperation, bool> _getIsLValueFlowCapture;
-        private readonly AnalysisEntity? _interproceduralThisOrMeInstanceForCallerOpt;
-        private readonly ImmutableStack<IOperation>? _interproceduralCallStackOpt;
-        private readonly Func<IOperation, AnalysisEntity?>? _interproceduralGetAnalysisEntityForFlowCaptureOpt;
+        private readonly AnalysisEntity? _interproceduralThisOrMeInstanceForCaller;
+        private readonly ImmutableStack<IOperation>? _interproceduralCallStack;
+        private readonly Func<IOperation, AnalysisEntity?>? _interproceduralGetAnalysisEntityForFlowCapture;
         private readonly Func<ISymbol, ImmutableStack<IOperation>?> _getInterproceduralCallStackForOwningSymbol;
 
         internal AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
             WellKnownTypeProvider wellKnownTypeProvider,
-            Func<IOperation, PointsToAbstractValue>? getPointsToAbstractValueOpt,
+            Func<IOperation, PointsToAbstractValue>? getPointsToAbstractValue,
             Func<bool> getIsInsideAnonymousObjectInitializer,
             Func<IFlowCaptureOperation, bool> getIsLValueFlowCapture,
             INamedTypeSymbol containingTypeSymbol,
-            AnalysisEntity? interproceduralInvocationInstanceOpt,
-            AnalysisEntity? interproceduralThisOrMeInstanceForCallerOpt,
-            ImmutableStack<IOperation>? interproceduralCallStackOpt,
-            ImmutableDictionary<ISymbol, PointsToAbstractValue>? interproceduralCapturedVariablesMapOpt,
-            Func<IOperation, AnalysisEntity?>? interproceduralGetAnalysisEntityForFlowCaptureOpt,
+            AnalysisEntity? interproceduralInvocationInstance,
+            AnalysisEntity? interproceduralThisOrMeInstanceForCaller,
+            ImmutableStack<IOperation>? interproceduralCallStack,
+            ImmutableDictionary<ISymbol, PointsToAbstractValue>? interproceduralCapturedVariablesMap,
+            Func<IOperation, AnalysisEntity?>? interproceduralGetAnalysisEntityForFlowCapture,
             Func<ISymbol, ImmutableStack<IOperation>?> getInterproceduralCallStackForOwningSymbol)
         {
             _controlFlowGraph = controlFlowGraph;
             _wellKnownTypeProvider = wellKnownTypeProvider;
-            _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
+            _getPointsToAbstractValue = getPointsToAbstractValue;
             _getIsInsideAnonymousObjectInitializer = getIsInsideAnonymousObjectInitializer;
             _getIsLValueFlowCapture = getIsLValueFlowCapture;
-            _interproceduralThisOrMeInstanceForCallerOpt = interproceduralThisOrMeInstanceForCallerOpt;
-            _interproceduralCallStackOpt = interproceduralCallStackOpt;
-            _interproceduralGetAnalysisEntityForFlowCaptureOpt = interproceduralGetAnalysisEntityForFlowCaptureOpt;
+            _interproceduralThisOrMeInstanceForCaller = interproceduralThisOrMeInstanceForCaller;
+            _interproceduralCallStack = interproceduralCallStack;
+            _interproceduralGetAnalysisEntityForFlowCapture = interproceduralGetAnalysisEntityForFlowCapture;
             _getInterproceduralCallStackForOwningSymbol = getInterproceduralCallStackForOwningSymbol;
 
             _analysisEntityMap = new Dictionary<IOperation, AnalysisEntity?>();
             _tupleElementEntitiesMap = new Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>>();
             _captureIdEntityMap = new Dictionary<CaptureId, AnalysisEntity>();
+            _captureIdCopyValueMap = new Dictionary<CaptureId, CopyAbstractValue>();
 
             _instanceLocationsForSymbols = new Dictionary<ISymbol, PointsToAbstractValue>();
-            if (interproceduralCapturedVariablesMapOpt != null)
+            if (interproceduralCapturedVariablesMap != null)
             {
-                _instanceLocationsForSymbols.AddRange(interproceduralCapturedVariablesMapOpt);
+                _instanceLocationsForSymbols.AddRange(interproceduralCapturedVariablesMap);
             }
 
-            if (interproceduralInvocationInstanceOpt != null)
+            if (interproceduralInvocationInstance != null)
             {
-                ThisOrMeInstance = interproceduralInvocationInstanceOpt;
+                ThisOrMeInstance = interproceduralInvocationInstance;
             }
             else
             {
-                var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol, interproceduralCallStackOpt);
+                var thisOrMeInstanceLocation = AbstractLocation.CreateThisOrMeLocation(containingTypeSymbol, interproceduralCallStack);
                 var instanceLocation = PointsToAbstractValue.Create(thisOrMeInstanceLocation, mayBeNull: false);
                 ThisOrMeInstance = AnalysisEntity.CreateThisOrMeInstance(containingTypeSymbol, instanceLocation);
             }
@@ -124,67 +127,58 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             analysisEntity = null;
-            ISymbol? symbolOpt = null;
+            ISymbol? symbol = null;
             ImmutableArray<AbstractIndex> indices = ImmutableArray<AbstractIndex>.Empty;
-            IOperation? instanceOpt = null;
+            IOperation? instance = null;
             ITypeSymbol? type = operation.Type;
             switch (operation)
             {
                 case ILocalReferenceOperation localReference:
-                    symbolOpt = localReference.Local;
+                    symbol = localReference.Local;
                     break;
 
                 case IParameterReferenceOperation parameterReference:
-                    symbolOpt = parameterReference.Parameter;
+                    symbol = parameterReference.Parameter;
                     break;
 
                 case IMemberReferenceOperation memberReference:
-                    instanceOpt = memberReference.Instance;
-                    GetSymbolAndIndicesForMemberReference(memberReference, ref symbolOpt, ref indices);
-
-                    // Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-                    if (instanceOpt == null &&
-                        symbolOpt != null &&
-                        memberReference is IPropertyReferenceOperation propertyReference)
-                    {
-                        instanceOpt = propertyReference.GetAnonymousObjectCreation();
-                    }
-
+                    instance = memberReference.Instance;
+                    GetSymbolAndIndicesForMemberReference(memberReference, ref symbol, ref indices);
                     break;
 
                 case IArrayElementReferenceOperation arrayElementReference:
-                    instanceOpt = arrayElementReference.ArrayReference;
+                    instance = arrayElementReference.ArrayReference;
                     indices = CreateAbstractIndices(arrayElementReference.Indices);
                     break;
 
                 case IDynamicIndexerAccessOperation dynamicIndexerAccess:
-                    instanceOpt = dynamicIndexerAccess.Operation;
+                    instance = dynamicIndexerAccess.Operation;
                     indices = CreateAbstractIndices(dynamicIndexerAccess.Arguments);
                     break;
 
                 case IConditionalAccessInstanceOperation conditionalAccessInstance:
                     IConditionalAccessOperation? conditionalAccess = conditionalAccessInstance.GetConditionalAccess();
-                    instanceOpt = conditionalAccess?.Operation;
+                    instance = conditionalAccess?.Operation;
                     if (conditionalAccessInstance.Parent is IMemberReferenceOperation memberReferenceParent)
                     {
-                        GetSymbolAndIndicesForMemberReference(memberReferenceParent, ref symbolOpt, ref indices);
+                        GetSymbolAndIndicesForMemberReference(memberReferenceParent, ref symbol, ref indices);
                     }
                     break;
 
                 case IInstanceReferenceOperation instanceReference:
-                    if (_getPointsToAbstractValueOpt != null)
+                    if (_getPointsToAbstractValue != null)
                     {
-                        instanceOpt = instanceReference.GetInstance(_getIsInsideAnonymousObjectInitializer());
-                        if (instanceOpt == null)
+                        instance = instanceReference.GetInstance(_getIsInsideAnonymousObjectInitializer());
+                        if (instance == null)
                         {
                             // Reference to this or base instance.
-                            analysisEntity = _interproceduralCallStackOpt != null && _interproceduralCallStackOpt.Peek().DescendantsAndSelf().Contains(instanceReference) ?
-                                _interproceduralThisOrMeInstanceForCallerOpt :
+                            analysisEntity = _interproceduralCallStack != null && _interproceduralCallStack.Peek().DescendantsAndSelf().Contains(instanceReference) ?
+                                _interproceduralThisOrMeInstanceForCaller :
                                 ThisOrMeInstance;
                         }
                         else
                         {
-                            var instanceLocation = _getPointsToAbstractValueOpt(instanceReference);
+                            var instanceLocation = _getPointsToAbstractValue(instanceReference);
                             analysisEntity = AnalysisEntity.Create(instanceReference, instanceLocation);
                         }
                     }
@@ -200,7 +194,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return TryCreate(argument.Value, out analysisEntity);
 
                 case IFlowCaptureOperation flowCapture:
-                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture, _getIsLValueFlowCapture(flowCapture));
+                    var isLvalueFlowCapture = _getIsLValueFlowCapture(flowCapture);
+                    analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture, isLvalueFlowCapture);
+
+                    // Store flow capture copy values for simple flow captures of non-flow captured entity.
+                    // This enables pseudo copy-analysis of values of these two entities in absence of true copy analysis, which is expensive.
+                    if (!isLvalueFlowCapture &&
+                        TryCreate(flowCapture.Value, out var capturedEntity) &&
+                        capturedEntity.CaptureId == null &&
+                        !_captureIdCopyValueMap.ContainsKey(flowCapture.Id) &&
+                        analysisEntity.Type.IsValueType == capturedEntity.Type.IsValueType)
+                    {
+                        // Skip flow capture for conversions unless we know the points to value
+                        // for conversion and operand is identical.
+                        if (flowCapture.Value is IConversionOperation conversion)
+                        {
+                            if (_getPointsToAbstractValue == null ||
+                                _getPointsToAbstractValue(conversion) != _getPointsToAbstractValue(conversion.Operand))
+                            {
+                                break;
+                            }
+                        }
+
+                        var kind = capturedEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
+                        var copyValue = new CopyAbstractValue(ImmutableHashSet.Create(analysisEntity, capturedEntity), kind);
+                        _captureIdCopyValueMap.Add(flowCapture.Id, copyValue);
+                    }
+
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
@@ -220,13 +240,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
 
                 case IVariableDeclaratorOperation variableDeclarator:
-                    symbolOpt = variableDeclarator.Symbol;
+                    symbol = variableDeclarator.Symbol;
                     type = variableDeclarator.Symbol.Type;
                     break;
 
                 case IDeclarationPatternOperation declarationPattern:
                     var declaredLocal = declarationPattern.DeclaredSymbol as ILocalSymbol;
-                    symbolOpt = declaredLocal;
+                    symbol = declaredLocal;
                     type = declaredLocal?.Type;
                     break;
 
@@ -234,33 +254,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
             }
 
-            if (symbolOpt != null || !indices.IsEmpty)
+            if (symbol != null || !indices.IsEmpty)
             {
-                TryCreate(symbolOpt, indices, type!, instanceOpt, out analysisEntity);
+                TryCreate(symbol, indices, type!, instance, out analysisEntity);
             }
 
             _analysisEntityMap[operation] = analysisEntity;
             return analysisEntity != null;
         }
 
-        private static void GetSymbolAndIndicesForMemberReference(IMemberReferenceOperation memberReference, ref ISymbol? symbolOpt, ref ImmutableArray<AbstractIndex> indices)
+        private static void GetSymbolAndIndicesForMemberReference(IMemberReferenceOperation memberReference, ref ISymbol? symbol, ref ImmutableArray<AbstractIndex> indices)
         {
             switch (memberReference)
             {
                 case IFieldReferenceOperation fieldReference:
-                    symbolOpt = fieldReference.Field;
+                    symbol = fieldReference.Field;
                     if (fieldReference.Field.CorrespondingTupleField != null)
                     {
                         // For tuple fields, always use the CorrespondingTupleField (i.e. Item1, Item2, etc.) from the underlying value tuple type.
                         // This allows seamless operation between named tuple elements and use of Item1, Item2, etc. to access tuple elements.
                         var name = fieldReference.Field.CorrespondingTupleField.Name;
-                        symbolOpt = fieldReference.Field.ContainingType.GetUnderlyingValueTupleTypeOrThis().GetMembers(name).OfType<IFieldSymbol>().FirstOrDefault()
-                            ?? symbolOpt;
+                        symbol = fieldReference.Field.ContainingType.GetUnderlyingValueTupleTypeOrThis().GetMembers(name).OfType<IFieldSymbol>().FirstOrDefault()
+                            ?? symbol;
                     }
                     break;
 
                 case IEventReferenceOperation eventReference:
-                    symbolOpt = eventReference.Member;
+                    symbol = eventReference.Member;
                     break;
 
                 case IPropertyReferenceOperation propertyReference:
@@ -272,7 +292,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         propertyReference.Property.IsReadOnly ||
                         propertyReference.Property.IsPropertyWithBackingField())
                     {
-                        symbolOpt = propertyReference.Property;
+                        symbol = propertyReference.Property;
                         indices = !propertyReference.Arguments.IsEmpty ?
                             CreateAbstractIndices(propertyReference.Arguments.Select(a => a.Value).ToImmutableArray()) :
                             ImmutableArray<AbstractIndex>.Empty;
@@ -304,7 +324,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 elementEntities = default;
                 if (tupleOperation.Type?.IsTupleType != true ||
-                    _getPointsToAbstractValueOpt == null)
+                    _getPointsToAbstractValue == null)
                 {
                     return false;
                 }
@@ -315,7 +335,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return false;
                 }
 
-                PointsToAbstractValue instanceLocation = _getPointsToAbstractValueOpt(tupleOperation);
+                PointsToAbstractValue instanceLocation = _getPointsToAbstractValue(tupleOperation);
                 var underlyingValueTupleType = tupleType.GetUnderlyingValueTupleTypeOrThis();
                 AnalysisEntity? parentEntity = null;
                 if (tupleOperation.TryGetParentTupleOperation(out var parentTupleOperationOpt, out var elementOfParentTupleContainingTuple) &&
@@ -337,7 +357,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     parentEntity = AnalysisEntity.Create(underlyingValueTupleType, ImmutableArray<AbstractIndex>.Empty,
-                        underlyingValueTupleType, instanceLocation, parentOpt: null);
+                        underlyingValueTupleType, instanceLocation, parent: null);
                 }
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
@@ -369,11 +389,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(!indices.IsEmpty);
 
-            return TryCreate(symbolOpt: null, indices, elementType, arrayCreation, out analysisEntity);
+            return TryCreate(symbol: null, indices, elementType, arrayCreation, out analysisEntity);
         }
 
         public bool TryGetForFlowCapture(CaptureId captureId, out AnalysisEntity analysisEntity)
             => _captureIdEntityMap.TryGetValue(captureId, out analysisEntity);
+
+        public bool TryGetCopyValueForFlowCapture(CaptureId captureId, out CopyAbstractValue copyValue)
+            => _captureIdCopyValueMap.TryGetValue(captureId, out copyValue);
 
         public bool TryGetForInterproceduralAnalysis(IOperation operation, out AnalysisEntity? analysisEntity)
             => _analysisEntityMap.TryGetValue(operation, out analysisEntity);
@@ -383,11 +406,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Type can be null for capture of operations with OperationKind.None
             type ??= _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
 
-            var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
-            if (interproceduralFlowCaptureEntityOpt != null)
+            var interproceduralFlowCaptureEntity = _interproceduralGetAnalysisEntityForFlowCapture?.Invoke(flowCaptureOrReference);
+            if (interproceduralFlowCaptureEntity != null)
             {
-                Debug.Assert(_interproceduralCallStackOpt.Last().Descendants().Contains(flowCaptureOrReference));
-                return interproceduralFlowCaptureEntityOpt;
+                Debug.Assert(_interproceduralCallStack.Last().Descendants().Contains(flowCaptureOrReference));
+                return interproceduralFlowCaptureEntity;
             }
 
             Debug.Assert(_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
@@ -395,7 +418,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var interproceduralCaptureId = new InterproceduralCaptureId(captureId, _controlFlowGraph, isLValueFlowCapture);
                 var instanceLocation = PointsToAbstractValue.Create(
-                    AbstractLocation.CreateFlowCaptureLocation(interproceduralCaptureId, type, _interproceduralCallStackOpt),
+                    AbstractLocation.CreateFlowCaptureLocation(interproceduralCaptureId, type, _interproceduralCallStack),
                     mayBeNull: false);
                 entity = AnalysisEntity.Create(interproceduralCaptureId, type, instanceLocation);
                 _captureIdEntityMap.Add(captureId, entity);
@@ -404,75 +427,69 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return entity;
         }
 
-        private bool TryCreate(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices,
-            ITypeSymbol type, IOperation? instanceOpt, [NotNullWhen(returnValue: true)] out AnalysisEntity? analysisEntity)
+        private bool TryCreate(ISymbol? symbol, ImmutableArray<AbstractIndex> indices,
+            ITypeSymbol type, IOperation? instance, [NotNullWhen(returnValue: true)] out AnalysisEntity? analysisEntity)
         {
-            Debug.Assert(symbolOpt != null || !indices.IsEmpty);
+            Debug.Assert(symbol != null || !indices.IsEmpty);
 
             analysisEntity = null;
 
             // Only analyze member symbols if we have points to analysis result.
-            if (_getPointsToAbstractValueOpt == null &&
-                symbolOpt?.Kind != SymbolKind.Local &&
-                symbolOpt?.Kind != SymbolKind.Parameter)
+            if (_getPointsToAbstractValue == null &&
+                symbol?.Kind != SymbolKind.Local &&
+                symbol?.Kind != SymbolKind.Parameter)
             {
                 return false;
             }
 
-            // Workaround for https://github.com/dotnet/roslyn-analyzers/issues/1602
-            if (instanceOpt != null && instanceOpt.Type == null)
+            PointsToAbstractValue? instanceLocation = null;
+            AnalysisEntity? parent = null;
+            if (instance?.Type != null)
             {
-                return false;
-            }
-
-            PointsToAbstractValue? instanceLocationOpt = null;
-            AnalysisEntity? parentOpt = null;
-            if (instanceOpt?.Type != null)
-            {
-                if (instanceOpt.Type.IsValueType)
+                if (instance.Type.IsValueType)
                 {
-                    if (TryCreate(instanceOpt, out var instanceEntityOpt) &&
+                    if (TryCreate(instance, out var instanceEntityOpt) &&
                         instanceEntityOpt.Type.IsValueType)
                     {
-                        parentOpt = instanceEntityOpt;
-                        instanceLocationOpt = parentOpt.InstanceLocation;
+                        parent = instanceEntityOpt;
+                        instanceLocation = parent.InstanceLocation;
                     }
                     else
                     {
                         // For value type allocations, we store the points to location.
-                        var instancePointsToValue = _getPointsToAbstractValueOpt!(instanceOpt);
+                        var instancePointsToValue = _getPointsToAbstractValue!(instance);
                         if (!ReferenceEquals(instancePointsToValue, PointsToAbstractValue.NoLocation))
                         {
-                            instanceLocationOpt = instancePointsToValue;
+                            instanceLocation = instancePointsToValue;
                         }
                     }
 
-                    if (instanceLocationOpt == null)
+                    if (instanceLocation == null)
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    instanceLocationOpt = _getPointsToAbstractValueOpt!(instanceOpt);
+                    instanceLocation = _getPointsToAbstractValue!(instance);
                 }
             }
 
-            analysisEntity = Create(symbolOpt, indices, type, instanceLocationOpt, parentOpt);
+            analysisEntity = Create(symbol, indices, type, instanceLocation, parent);
             return true;
         }
 
-        private PointsToAbstractValue? EnsureLocation(PointsToAbstractValue? instanceLocationOpt, ISymbol? symbolOpt, AnalysisEntity? parentOpt)
+        private PointsToAbstractValue? EnsureLocation(PointsToAbstractValue? instanceLocation, ISymbol? symbol, AnalysisEntity? parent)
         {
-            if (instanceLocationOpt == null && symbolOpt != null)
+            if (instanceLocation == null && symbol != null)
             {
-                Debug.Assert(symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter || symbolOpt.IsStatic || symbolOpt.IsLambdaOrLocalFunction());
+                Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.IsStatic || symbol.IsLambdaOrLocalFunction());
 
-                if (!_instanceLocationsForSymbols.TryGetValue(symbolOpt, out instanceLocationOpt))
+                if (!_instanceLocationsForSymbols.TryGetValue(symbol, out instanceLocation))
                 {
-                    if (parentOpt != null)
+                    if (parent != null)
                     {
-                        instanceLocationOpt = parentOpt.InstanceLocation;
+                        instanceLocation = parent.InstanceLocation;
                     }
                     else
                     {
@@ -480,50 +497,50 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         // we might have recursive invocations to the same method and the symbol declarations
                         // from both the current and prior invocation of the method in the call stack should be distinct entities.
                         ImmutableStack<IOperation>? interproceduralCallStackForSymbolDeclaration;
-                        if (_interproceduralCallStackOpt != null &&
-                            (symbolOpt.Kind == SymbolKind.Local || symbolOpt.Kind == SymbolKind.Parameter))
+                        if (_interproceduralCallStack != null &&
+                            (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter))
                         {
-                            interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(symbolOpt.ContainingSymbol);
+                            interproceduralCallStackForSymbolDeclaration = _getInterproceduralCallStackForOwningSymbol(symbol.ContainingSymbol);
                         }
                         else
                         {
                             interproceduralCallStackForSymbolDeclaration = ImmutableStack<IOperation>.Empty;
                         }
 
-                        var location = AbstractLocation.CreateSymbolLocation(symbolOpt, interproceduralCallStackForSymbolDeclaration);
-                        instanceLocationOpt = PointsToAbstractValue.Create(location, mayBeNull: false);
+                        var location = AbstractLocation.CreateSymbolLocation(symbol, interproceduralCallStackForSymbolDeclaration);
+                        instanceLocation = PointsToAbstractValue.Create(location, mayBeNull: false);
                     }
 
-                    _instanceLocationsForSymbols.Add(symbolOpt, instanceLocationOpt);
+                    _instanceLocationsForSymbols.Add(symbol, instanceLocation);
                 }
             }
 
-            return instanceLocationOpt;
+            return instanceLocation;
         }
 
-        private AnalysisEntity Create(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices, ITypeSymbol type, PointsToAbstractValue? instanceLocationOpt, AnalysisEntity? parentOpt)
+        private AnalysisEntity Create(ISymbol? symbol, ImmutableArray<AbstractIndex> indices, ITypeSymbol type, PointsToAbstractValue? instanceLocation, AnalysisEntity? parent)
         {
-            instanceLocationOpt = EnsureLocation(instanceLocationOpt, symbolOpt, parentOpt);
-            RoslynDebug.Assert(instanceLocationOpt != null);
-            var analysisEntity = AnalysisEntity.Create(symbolOpt, indices, type, instanceLocationOpt, parentOpt);
+            instanceLocation = EnsureLocation(instanceLocation, symbol, parent);
+            RoslynDebug.Assert(instanceLocation != null);
+            var analysisEntity = AnalysisEntity.Create(symbol, indices, type, instanceLocation, parent);
             return analysisEntity;
         }
 
         public AnalysisEntity CreateWithNewInstanceRoot(AnalysisEntity analysisEntity, AnalysisEntity newRootInstance)
         {
             if (analysisEntity.InstanceLocation == newRootInstance.InstanceLocation &&
-                analysisEntity.ParentOpt == newRootInstance.ParentOpt)
+                analysisEntity.Parent == newRootInstance.Parent)
             {
                 return analysisEntity;
             }
 
-            if (analysisEntity.ParentOpt == null)
+            if (analysisEntity.Parent == null)
             {
                 return newRootInstance;
             }
 
-            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.ParentOpt, newRootInstance);
-            return Create(analysisEntity.SymbolOpt, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
+            AnalysisEntity parentOpt = CreateWithNewInstanceRoot(analysisEntity.Parent, newRootInstance);
+            return Create(analysisEntity.Symbol, analysisEntity.Indices, analysisEntity.Type, newRootInstance.InstanceLocation, parentOpt);
         }
     }
 }

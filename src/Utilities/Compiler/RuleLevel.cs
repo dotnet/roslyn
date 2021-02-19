@@ -1,16 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET_ANALYZERS || FXCOP_ANALYZERS
+#if NET_ANALYZERS || TEXT_ANALYZERS || MICROSOFT_CODEANALYSIS_ANALYZERS
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable CA1008 // Enums should have zero value
+#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     internal enum RuleLevel
+#pragma warning restore CA1027 // Mark enums with FlagsAttribute
+#pragma warning restore CA1008 // Enums should have zero value
     {
         /// <summary>
         /// Correctness rule which should have <b>no false positives</b>, and is extremely likely to be fixed by users.
         /// This rule will be <b>enabled in CI and IDE live analysis</b> by default with severity <see cref="DiagnosticSeverity.Warning"/>.
         /// </summary>
         BuildWarning = 1,
+
+        /// <summary>
+        /// Correctness rule which should have <b>no false positives</b>, and is extremely likely to be fixed by users.
+        /// This rule is a candidate to be turned into a <see cref="BuildWarning"/>.
+        /// Until then, this rule will be an <see cref="IdeSuggestion"/>
+        /// </summary>
+        BuildWarningCandidate = IdeSuggestion,
 
         /// <summary>
         /// Rule which should have <b>no false positives</b>, and is a valuable IDE live analysis suggestion for opportunistic improvement, but not something to be enforced in CI.

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -24,7 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslyDiagnosticsReliability,
+            DiagnosticCategory.RoslynDiagnosticsReliability,
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
             description: s_localizableDescription,

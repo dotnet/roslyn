@@ -6,7 +6,6 @@ using System.Net;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 
 namespace Test.Utilities
 {
@@ -21,24 +20,26 @@ namespace Test.Utilities
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
                 // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
+#pragma warning disable CA5386 // Avoid hardcoding SecurityProtocolType value
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#pragma warning restore CA5386 // Avoid hardcoding SecurityProtocolType value
                 }
             }
 
             public Test()
             {
-                // These analyzers run on generated code by default.
-                TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             }
 
             protected override Project ApplyCompilationOptions(Project project)
             {
                 var newProject = base.ApplyCompilationOptions(project);
 
-                var parseOptions = newProject.ParseOptions.WithFeatures(
+                var parseOptions = newProject.ParseOptions!.WithFeatures(
                     newProject.ParseOptions.Features.Concat(
                         new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
 

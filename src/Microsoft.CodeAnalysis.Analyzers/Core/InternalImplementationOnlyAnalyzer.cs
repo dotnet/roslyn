@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                 {
                     if (!iface.ContainingAssembly.GivesAccessTo(namedTypeSymbol.ContainingAssembly))
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, namedTypeSymbol.Locations.First(), namedTypeSymbol.Name, iface.Name));
+                        context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(Rule, namedTypeSymbol.Name, iface.Name));
                         break;
                     }
                 }

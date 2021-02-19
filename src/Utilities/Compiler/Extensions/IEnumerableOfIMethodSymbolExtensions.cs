@@ -165,7 +165,7 @@ namespace Analyzer.Utilities.Extensions
             IsParams = isParams;
         }
 
-        public static ParameterInfo GetParameterInfo(INamedTypeSymbol type, bool isArray, int arrayRank, bool isParams)
+        public static ParameterInfo GetParameterInfo(INamedTypeSymbol type, bool isArray = false, int arrayRank = 0, bool isParams = false)
         {
             return new ParameterInfo(type, isArray, arrayRank, isParams);
         }

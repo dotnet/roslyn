@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,18 +27,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralValueContentAnalysisData? interproceduralAnalysisDataOpt,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes,
+            Func<IOperation, ValueContentAbstractValue>? getValueForAdditionalSupportedValueTypeOperation,
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralValueContentAnalysisData? interproceduralAnalysisData,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions, interproceduralAnalysisConfig,
-                  pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResultOpt,
-                  pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null, tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
+                  pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResult,
+                  pointsToAnalysisResult, valueContentAnalysisResult: null, tryGetOrComputeAnalysisResult, parentControlFlowGraph,
+                  interproceduralAnalysisData, interproceduralAnalysisPredicate)
         {
+            AdditionalSupportedValueTypes = additionalSupportedValueTypes.IsDefault ? ImmutableArray<INamedTypeSymbol>.Empty : additionalSupportedValueTypes;
+            GetValueForAdditionalSupportedValueTypeOperation = getValueForAdditionalSupportedValueTypeOperation;
         }
+
+        public ImmutableArray<INamedTypeSymbol> AdditionalSupportedValueTypes { get; }
+        public Func<IOperation, ValueContentAbstractValue>? GetValueForAdditionalSupportedValueTypeOperation { get; }
 
         internal static ValueContentAnalysisContext Create(
             AbstractValueDomain<ValueContentAbstractValue> valueDomain,
@@ -47,35 +55,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
+            PointsToAnalysisResult? pointsToAnalysisResult,
             Func<ValueContentAnalysisContext, ValueContentAnalysisResult?> tryGetOrComputeAnalysisResult,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
+            ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes,
+            Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate)
         {
             return new ValueContentAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, analyzerOptions,
-                interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt,
-                tryGetOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
+                interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult,
+                tryGetOrComputeAnalysisResult, additionalSupportedValueTypes, getValueContentValueForAdditionalSupportedValueTypeOperation,
+                parentControlFlowGraph: null, interproceduralAnalysisData: null, interproceduralAnalysisPredicate);
         }
 
         public override ValueContentAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
-            ControlFlowGraph invokedControlFlowGraph,
-            IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            ControlFlowGraph invokedCfg,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralValueContentAnalysisData? interproceduralAnalysisData)
         {
-            Debug.Assert(valueContentAnalysisResultOpt == null);
+            Debug.Assert(valueContentAnalysisResult == null);
 
-            return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, TryGetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
-                InterproceduralAnalysisPredicateOpt);
+            return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration,
+                PessimisticAnalysis, copyAnalysisResult, pointsToAnalysisResult, TryGetOrComputeAnalysisResult,
+                AdditionalSupportedValueTypes, GetValueForAdditionalSupportedValueTypeOperation, ControlFlowGraph, interproceduralAnalysisData,
+                InterproceduralAnalysisPredicate);
         }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
+            addPart(HashUtilities.Combine(AdditionalSupportedValueTypes));
         }
     }
 }

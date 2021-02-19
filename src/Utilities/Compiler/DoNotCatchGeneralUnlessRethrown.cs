@@ -18,27 +18,30 @@ namespace Analyzer.Utilities
     {
         private readonly bool _shouldCheckLambdas;
         private readonly string? _enablingMethodAttributeFullyQualifiedName;
+        private readonly bool _allowExcludedSymbolNames;
 
         private bool RequiresAttributeOnMethod => !string.IsNullOrEmpty(_enablingMethodAttributeFullyQualifiedName);
 
-        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null)
+        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null,
+            bool allowExcludedSymbolNames = false)
         {
             _shouldCheckLambdas = shouldCheckLambdas;
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
+            _allowExcludedSymbolNames = allowExcludedSymbolNames;
         }
 
         protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
-        protected virtual bool IsConfiguredDisallowedExceptionType(INamedTypeSymbol namedTypeSymbol, Compilation compilation, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+        protected virtual bool IsConfiguredDisallowedExceptionType(INamedTypeSymbol namedTypeSymbol, IMethodSymbol containingMethod, Compilation compilation, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             return false;
         }
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
-            analysisContext.RegisterCompilationStartAction(compilationStartAnalysisContext =>
+            context.RegisterCompilationStartAction(compilationStartAnalysisContext =>
             {
                 INamedTypeSymbol? requiredAttributeType = null;
                 if (RequiresAttributeOnMethod && (requiredAttributeType = GetRequiredAttributeType(compilationStartAnalysisContext.Compilation)) == null)
@@ -47,10 +50,6 @@ namespace Analyzer.Utilities
                 }
 
                 var disallowedCatchTypes = GetDisallowedCatchTypes(compilationStartAnalysisContext.Compilation);
-                bool IsDisallowedCatchType(INamedTypeSymbol type) =>
-                    disallowedCatchTypes.Contains(type) ||
-                    IsConfiguredDisallowedExceptionType(type, compilationStartAnalysisContext.Compilation,
-                        compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
 
                 compilationStartAnalysisContext.RegisterOperationBlockAction(operationBlockAnalysisContext =>
                 {
@@ -66,6 +65,12 @@ namespace Analyzer.Utilities
                         return;
                     }
 
+                    if (_allowExcludedSymbolNames &&
+                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                    {
+                        return;
+                    }
+
                     foreach (var operation in operationBlockAnalysisContext.OperationBlocks)
                     {
                         var walker = new DisallowGeneralCatchUnlessRethrowWalker(IsDisallowedCatchType, _shouldCheckLambdas);
@@ -76,6 +81,11 @@ namespace Analyzer.Utilities
                             operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
                         }
                     }
+
+                    bool IsDisallowedCatchType(INamedTypeSymbol type) =>
+                        disallowedCatchTypes.Contains(type) ||
+                        IsConfiguredDisallowedExceptionType(type, method, compilationStartAnalysisContext.Compilation,
+                            compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
                 });
             });
         }

@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _isTrackedPointsToValue = isTrackedPointsToValue ?? throw new ArgumentNullException(nameof(isTrackedPointsToValue));
         }
 
-        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResultOpt)
+        protected AnalysisEntityMapAbstractDomain(AbstractValueDomain<TValue> valueDomain, PointsToAnalysisResult? pointsToAnalysisResult)
             : this(valueDomain,
-                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedEntity : s_defaultIsTrackedEntity,
-                  pointsToAnalysisResultOpt != null ? pointsToAnalysisResultOpt.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
+                  pointsToAnalysisResult != null ? pointsToAnalysisResult.IsTrackedEntity : s_defaultIsTrackedEntity,
+                  pointsToAnalysisResult != null ? pointsToAnalysisResult.IsTrackedPointsToValue : s_defaultIsTrackedPointsToValue)
         {
         }
 
@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            if (analysisEntity.ParentOpt != null &&
-                !CanSkipNewEntity(analysisEntity.ParentOpt))
+            if (analysisEntity.Parent != null &&
+                !CanSkipNewEntity(analysisEntity.Parent))
             {
                 return false;
             }
@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 #endif
         }
 
+#pragma warning disable CA1725 // Parameter names should match base declaration
         public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
+#pragma warning restore CA1725 // Parameter names should match base declaration
         {
             AssertValidAnalysisData(map1);
             AssertValidAnalysisData(map2);
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                         else
                         {
-                            if (key1.SymbolOpt == null || !Equals(key1.SymbolOpt, key2.SymbolOpt))
+                            if (key1.Symbol == null || !Equals(key1.Symbol, key2.Symbol))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
                                 continue;
@@ -170,7 +172,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 newKeys.Add(mergedKey);
                             }
-
 
                             AddNewEntryToResultMap(mergedKey, mergedValue, isNewKey: !isExistingKeyInInput);
                         }
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return resultMap;
             static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
-                => entity.SymbolOpt?.Kind is SymbolKind.Field or SymbolKind.Property;
+                => entity.Symbol?.Kind is SymbolKind.Field or SymbolKind.Property;
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
             {
