@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, IsExpandedCompletion)
         End Function
 
         Protected Overrides Function GetComposition() As TestComposition

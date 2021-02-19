@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options)
         {
-            if (options.GetOption(CompletionServiceOptions.IsExpandedCompletion))
+            if (options.GetOption(CompletionServiceOptions.ExpandedCompletionState) is true)
             {
                 providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
             }
@@ -251,6 +251,10 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
+            // We are not interested in expander availability since it's not exposed publicly,
+            // set the value to null would avoid any cost for such check.
+            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            options = options.WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, null);
             var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
             return completionList;
         }

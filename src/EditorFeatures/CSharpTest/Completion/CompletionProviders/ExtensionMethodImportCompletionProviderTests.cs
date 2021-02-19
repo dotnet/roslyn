@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, IsExpandedCompletion)
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
                 .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
         }

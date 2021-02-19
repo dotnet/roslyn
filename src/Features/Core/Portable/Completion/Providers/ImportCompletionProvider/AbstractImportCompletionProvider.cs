@@ -52,6 +52,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
 
+            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+            var importCompletionEnabled = importCompletionOptionValue == true ||
+                (importCompletionOptionValue == null && IsExperimentEnabled(document.Project.Solution.Workspace));
+
+            // if we don't need to return the availablity of unimported items and import completion is disabled, we can simply bail here.
+            var expandedCompletionState = completionContext.Options.GetOption(CompletionServiceOptions.ExpandedCompletionState);
+            if (expandedCompletionState == null && !importCompletionEnabled)
+            {
+                return;
+            }
+
             // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
             // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
@@ -63,23 +74,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             completionContext.ExpandItemsAvailable = true;
 
             // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
-            var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
-            if (!isExpandedCompletion)
+            if (expandedCompletionState != true && !importCompletionEnabled)
             {
-                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-                if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
-                {
-                    return;
-                }
+                return;
             }
 
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.
             var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
-            await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+            await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope,
+                isExpandedCompletion: expandedCompletionState == true, cancellationToken).ConfigureAwait(false);
         }
 
         private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)

@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var options = documentOptions
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, isExpanded);
+                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, isExpanded);
 
             if (_isDebuggerTextView)
             {
