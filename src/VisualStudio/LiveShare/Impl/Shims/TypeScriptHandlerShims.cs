@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, LanguageServer.Protocol.CompletionList?, Solution>
     {
         /// <summary>
-        /// The VS LSP client supports streaming using IProgress on various requests.	
+        /// The VS LSP client supports streaming using IProgress on various requests.
         /// However, this works through liveshare on the LSP client, but not the LSP extension.
         /// see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
         /// </summary>
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public Task<LanguageServer.Protocol.CompletionList?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            // The VS LSP client supports streaming using IProgress<T> on various requests.	
+            // The VS LSP client supports streaming using IProgress<T> on various requests.
             // However, this works through liveshare on the LSP client, but not the LSP extension.
             // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
             var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            return LSP.RequestContext.Create(requiresLSPSolution: true, textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null, out _);
+            return LSP.RequestContext.Create(requiresLSPSolution: true, textDocument, clientName, NoOpLspLogger.Instance, clientCapabilities, workspaceRegistrationService, null, null, out _);
         }
     }
 }
