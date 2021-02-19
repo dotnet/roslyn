@@ -122,16 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
                 var lineOperation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
-                if (lineOperation != null)
+                if (lineOperation.Option != AdjustNewLinesOption.None)
                 {
                     // ignore force if same line option
-                    if (lineOperation.Value.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+                    if (lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
                     {
-                        return null;
+                        return AdjustNewLinesOperation.None;
                     }
 
                     // basically means don't ever put new line if there isn't already one, but do
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                     return FormattingOperations.CreateAdjustNewLinesOperation(line: 0, option: AdjustNewLinesOption.PreserveLines);
                 }
 
-                return null;
+                return AdjustNewLinesOperation.None;
             }
         }
 

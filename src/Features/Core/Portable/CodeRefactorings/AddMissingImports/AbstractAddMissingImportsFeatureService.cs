@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             public CleanUpNewLinesFormatter(SourceText text)
                 => _text = text;
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                     return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
                 }
 
-                return null;
+                return AdjustNewLinesOperation.None;
             }
         }
     }

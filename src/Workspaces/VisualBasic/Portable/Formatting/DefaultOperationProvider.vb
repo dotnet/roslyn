@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Function GetAdjustNewLinesOperationSlow(
                 ByRef previousToken As SyntaxToken,
                 ByRef currentToken As SyntaxToken,
-                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation?
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
             End If

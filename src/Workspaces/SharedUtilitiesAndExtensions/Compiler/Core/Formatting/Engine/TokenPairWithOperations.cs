@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public readonly TokenStream TokenStream;
         public readonly AdjustSpacesOperation? SpaceOperation;
-        public readonly AdjustNewLinesOperation? LineOperation;
+        public readonly AdjustNewLinesOperation LineOperation;
 
         public readonly int PairIndex;
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             TokenStream tokenStream,
             int tokenPairIndex,
             AdjustSpacesOperation? spaceOperations,
-            AdjustNewLinesOperation? lineOperations)
+            AdjustNewLinesOperation lineOperations)
         {
             Contract.ThrowIfNull(tokenStream);
 

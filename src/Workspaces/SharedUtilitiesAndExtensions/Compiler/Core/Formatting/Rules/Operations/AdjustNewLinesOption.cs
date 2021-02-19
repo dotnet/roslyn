@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// </summary>
     internal enum AdjustNewLinesOption
     {
+        /// <summary>
+        /// Sentinel value for <see cref="AdjustNewLinesOperation.None"/>.
+        /// </summary>
+        None,
         PreserveLines,
         ForceLines,
         ForceLinesIfOnSingleLine,

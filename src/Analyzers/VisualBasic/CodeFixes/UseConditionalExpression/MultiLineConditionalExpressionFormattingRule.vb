@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Function
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation?
+                ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 
                 ' next line.

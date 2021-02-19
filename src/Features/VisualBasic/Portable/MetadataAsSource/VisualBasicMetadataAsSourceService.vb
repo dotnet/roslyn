@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Private Class FormattingRule
             Inherits CompatAbstractMetadataFormattingRule
 
-            Protected Overrides Function GetAdjustNewLinesOperationBetweenMembersAndUsings(token1 As SyntaxToken, token2 As SyntaxToken) As AdjustNewLinesOperation?
+            Protected Overrides Function GetAdjustNewLinesOperationBetweenMembersAndUsings(token1 As SyntaxToken, token2 As SyntaxToken) As AdjustNewLinesOperation
                 If token1.Kind = SyntaxKind.None OrElse token2.Kind = SyntaxKind.None Then
                     Return Nothing
                 End If

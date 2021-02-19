@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.IsNestedQueryExpression())
             {

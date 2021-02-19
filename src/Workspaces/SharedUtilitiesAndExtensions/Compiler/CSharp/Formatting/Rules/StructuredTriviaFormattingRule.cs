@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Structured Trivia Formatting Rule";
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
             {
-                return null;
+                return AdjustNewLinesOperation.None;
             }
 
             return nextOperation.Invoke(in previousToken, in currentToken);

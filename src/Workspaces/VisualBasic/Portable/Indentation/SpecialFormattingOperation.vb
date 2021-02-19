@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             ' don't suppress anything
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation?
+        Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' unlike regular one. force position of attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             ' no line operation. no line changes what so ever
             Dim lineOperation = MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, nextOperation)
-            If lineOperation IsNot Nothing Then
+            If lineOperation.Option <> AdjustNewLinesOption.None Then
                 ' basically means don't ever put new line if there isn't already one, but do
                 ' indentation.
                 Return FormattingOperations.CreateAdjustNewLinesOperation(line:=0, option:=AdjustNewLinesOption.PreserveLines)

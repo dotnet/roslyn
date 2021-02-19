@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
     {
         private class FormattingRule : AbstractMetadataFormattingRule
         {
-            protected override AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
+            protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
             {
                 var previousToken = token1;
                 var currentToken = token2;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 if ((previousToken.Kind() != SyntaxKind.SemicolonToken && previousToken.Kind() != SyntaxKind.CloseBraceToken) ||
                     currentToken.Kind() == SyntaxKind.CloseBraceToken)
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
 
                 SyntaxNode previousMember = FormattingRangeHelper.GetEnclosingMember(previousToken);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
                 if (previousMember == null || nextMember == null || previousMember == nextMember)
                 {
-                    return null;
+                    return AdjustNewLinesOperation.None;
                 }
 
                 // If we have two members of the same kind, we won't insert a blank line 

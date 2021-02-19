@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             return false;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
             in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (IsQuestionOrColonOfNewConditional(currentToken))

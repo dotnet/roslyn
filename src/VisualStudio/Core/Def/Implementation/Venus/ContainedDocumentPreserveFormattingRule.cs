@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return operation;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
-            if (operation != null)
+            if (operation.Option != AdjustNewLinesOption.None)
             {
                 return s_preserveLine;
             }

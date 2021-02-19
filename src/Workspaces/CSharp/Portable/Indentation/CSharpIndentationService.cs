@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet.AsAnalyzerConfigOptions(optionService, LanguageNames.CSharp));
-            if (lineOperation == null || lineOperation.Value.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
+            if (lineOperation.Option == AdjustNewLinesOption.None || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter
                 return false;

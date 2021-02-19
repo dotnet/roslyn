@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public sealed override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public sealed override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var previousTokenCopy = previousToken;
             var currentTokenCopy = currentToken;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
+        public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(ref SyntaxToken previousToken, ref SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
             => base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
 
         /// <summary>

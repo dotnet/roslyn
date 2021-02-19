@@ -366,17 +366,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // use line defined by the token formatting rules
-            var lineOperationOpt = this.FormattingRules.GetAdjustNewLinesOperation(token1, token2);
+            var lineOperation = this.FormattingRules.GetAdjustNewLinesOperation(token1, token2);
 
             // there is existing lines, but no line operation
-            if (existingWhitespaceBetween.Lines != 0 && lineOperationOpt == null)
+            if (existingWhitespaceBetween.Lines != 0 && lineOperation.Option == AdjustNewLinesOption.None)
             {
                 return defaultRule;
             }
 
-            if (lineOperationOpt != null)
+            if (lineOperation.Option != AdjustNewLinesOption.None)
             {
-                var lineOperation = lineOperationOpt.Value;
                 switch (lineOperation.Option)
                 {
                     case AdjustNewLinesOption.PreserveLines:

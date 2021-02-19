@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation
         /// returned by NextOperation
         /// </summary>
-        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public virtual AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             => nextOperation.Invoke(in previousToken, in currentToken);
 
         /// <summary>
