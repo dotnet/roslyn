@@ -1756,6 +1756,59 @@ public class Foo
         }
 
         [WpfFact]
+        public void TestObjectCreationExpressionInUsingStatement()
+        {
+            var initialMarkup = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = n$$ew F$$oo($$)$$)
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var firstResult = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = new Foo()
+        {
+            $$
+        })
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            var secondResult = @"
+public class Bar
+{
+    public void M()
+    {
+        using(var a = new Foo())
+            $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}";
+
+            Test(firstResult, initialMarkup);
+            Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
         public void TestIfStatementWithInnerStatement()
         {
             Test(@"
