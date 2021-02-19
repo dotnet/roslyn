@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
