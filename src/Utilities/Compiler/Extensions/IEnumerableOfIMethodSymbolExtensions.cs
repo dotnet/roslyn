@@ -168,6 +168,7 @@ namespace Analyzer.Utilities.Extensions
                 if (Predicate(member))
                     return member;
             }
+
             return null;
 
             bool Predicate(IMethodSymbol member)
@@ -180,6 +181,7 @@ namespace Analyzer.Utilities.Extensions
                     if (!member.Parameters[index].Type.Equals(expectedParameterTypesInOrder[index]))
                         return false;
                 }
+
                 return true;
             }
         }
