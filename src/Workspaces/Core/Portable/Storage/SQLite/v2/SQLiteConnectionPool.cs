@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal sealed partial class SQLiteConnectionPool : IDisposable, IAsyncDisposable
+    internal sealed partial class SQLiteConnectionPool : IDisposable
     {
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
@@ -61,12 +61,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // let the lock go
                 _ownershipLock.Dispose();
             }
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            Dispose();
-            return ValueTaskFactory.CompletedTask;
         }
 
         private void CloseWorker()
