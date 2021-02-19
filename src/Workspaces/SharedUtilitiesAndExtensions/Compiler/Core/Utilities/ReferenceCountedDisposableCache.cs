@@ -58,9 +58,6 @@ namespace Roslyn.Utilities
         }
 
         private sealed class Entry : IDisposable, ICacheEntry<TKey, TValue>
-#if !CODE_STYLE
-        , IAsyncDisposable
-#endif
         {
             private readonly ReferenceCountedDisposableCache<TKey, TValue> _cache;
 
@@ -82,12 +79,6 @@ namespace Roslyn.Utilities
 
                 // Dispose the underlying value
                 Value.Dispose();
-            }
-
-            public ValueTask DisposeAsync()
-            {
-                Dispose();
-                return ValueTaskFactory.CompletedTask;
             }
         }
     }
