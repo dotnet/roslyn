@@ -53,7 +53,7 @@ namespace Roslyn.Utilities
     /// even in concurrent execution.</para>
     /// </remarks>
     /// <typeparam name="T">The type of disposable object.</typeparam>
-    internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposable<T>
+    internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposable<T>, IDisposable
         where T : class, IDisposable
     {
         /// <summary>
