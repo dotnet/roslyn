@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private static SegmentedList<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<SegmentedList<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+            where T : struct
         {
             var operations = new SegmentedList<T>();
             var list = new SegmentedList<T>();
@@ -192,7 +193,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 cancellationToken.ThrowIfCancellationRequested();
                 addOperations(list, n);
 
-                list.RemoveAll(item => item == null);
                 operations.AddRange(list);
                 list.Clear();
             }
